@@ -1,0 +1,42 @@
+# ============================================================================
+# .gitignore base del framework — agnostico allo stack.
+# Aggiungi sotto gli artefatti del TUO stack (vedi sezione in fondo).
+# ============================================================================
+
+# Environment & secrets — MAI committare (regola 1)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+**/secrets/
+.vault-token
+vault-keys.json
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Log
+*.log
+
+# Claude Code locale (settings personali, non condivisi)
+.claude/settings.local.json
+
+# (Opzionale) config locale del vault Obsidian, se apri .claude/ in Obsidian
+.obsidian/
+
+# ============================================================================
+# [DA DEFINIRE AL SETUP] — artefatti di build/dipendenze del tuo stack.
+# Decommenta/aggiungi ciò che serve. Esempi comuni:
+# ----------------------------------------------------------------------------
+# Node:    node_modules/  dist/  build/  .next/  out/  *.tsbuildinfo  coverage/
+# Java:    target/  *.class  *.jar
+# Python:  __pycache__/  *.pyc  .venv/  .pytest_cache/  .mypy_cache/
+# Go:      /bin/  *.test
+# Rust:    /target/
+# ============================================================================
