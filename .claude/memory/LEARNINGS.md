@@ -14,48 +14,7 @@ tags: [improvement]
 > La numerazione delle IMP parte da **001**. Questo file nasce VUOTO.
 
 ## Proposte APERTE (in attesa di decisione utente)
-
-### IMP-006 — Ciclo unico di fine deliverable (sequenza-tipo ordinata)
-- Data: 2026-06-16 | Origine: fotografia diagnostica dello stato del framework
-- Problema osservato: i mattoni di fine deliverable esistono ma sparsi su più doc;
-  nessun documento li mette in fila. Il diagramma di `00-overview.md` si ferma a
-  `/checkpoint` e non include `/security-review`, `/retro`, `/integrate` nella linea
-  principale: manca un runbook unico e ordinato.
-- Proposta: sezione "ciclo di fine deliverable" in `00-overview.md` con sequenza
-  ordinata (costruzione → [se sensibile] `/security-review` → `/retro` → `/checkpoint`
-  → `/integrate`), `/security-review` CONDIZIONALE (solo se sensibile), gli altri
-  passi FISSI; aggiornare il diagramma del ciclo; allineare i cenni in `README.md` e
-  `SETUP.md`.
-- Beneficio atteso / rischio: un runbook unico riduce i passi dimenticati a fine
-  deliverable. Rischio: nullo (ordina mattoni già esistenti).
-
-### IMP-007 — Cabla /retro nel flusso e risolvi l'incoerenza "riflessione al checkpoint"
-- Data: 2026-06-16 | Origine: fotografia diagnostica dello stato del framework
-- Problema osservato: `/retro` è agganciato solo al ramo escalation del diagramma
-  (`00-overview.md:36`), non al flusso happy-path. Inoltre `06-self-improvement.md`
-  (righe 48 e 65-66) prescrive "30 secondi di riflessione al `/checkpoint`", ma il
-  comando `/checkpoint` non contiene quello step: drift doc-vs-comando.
-- Proposta: rendere `/retro` un passo FISSO del ciclo di fine deliverable (IMP-006),
-  PRIMA di `/checkpoint`; correggere `06-self-improvement.md` perché la riflessione
-  sia il passo `/retro` a fine deliverable (non "dentro" il checkpoint); chiarire in
-  `retro.md` i due livelli (registrazione leggera per-deliverable vs review periodica
-  del backlog con decisioni).
-- Beneficio atteso / rischio: riflessione garantita senza sovraccaricare `/checkpoint`
-  (che resta allineamento-dati); doc e comando coerenti. Rischio: nullo.
-
-### IMP-008 — Branch di integrazione parametrico (rimuovi "develop" hardcoded)
-- Data: 2026-06-16 | Origine: fotografia diagnostica dello stato del framework
-- Problema osservato: doc e comandi (`/integrate`, `reset-task.sh`) assumono il nome
-  `develop` per il branch di integrazione, ma è il nome di UN modello (GitFlow): un
-  template agnostico non deve imporlo. È anche drift doc-vs-realtà — nel repo `develop`
-  non esiste, c'è solo `main` — e a runtime il blocco di `/integrate` fallirebbe.
-- Proposta: opzione (b) parametrica. In `04-git-workflow.md` stabilire che "branch di
-  integrazione" e "branch stabile" sono RUOLI; `develop`/`main` restano solo i default
-  di esempio, il nome effettivo è `[DA DEFINIRE AL SETUP]`. Parametrizzare il blocco di
-  `/integrate` (`<integrazione>`/`<stabile>`) e rendere configurabile la guardia dei
-  branch protetti in `reset-task.sh`.
-- Beneficio atteso / rischio: il framework non impone un modello di branching e i
-  comandi non assumono un branch che potrebbe non esistere. Rischio: nullo.
+_(nessuna proposta aperta)_
 
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>
@@ -91,6 +50,24 @@ tags: [improvement]
 - Nuovo slash command `/lint-memory` (coerenza: stato-vs-realtà, contraddizioni,
   orfani, link rotti, claim stantii) col criterio "contraddizione = bug da correggere";
   nota di confine lint≠retro aggiunta in docs/06.
+
+### IMP-006 — Ciclo unico di fine deliverable → applicata il 2026-06-16, commit 0a399f1
+- Sezione "Il ciclo di fine deliverable" in `00-overview.md` con sequenza ordinata
+  (costruzione → [se sensibile] `/security-review` → `/retro` → `/checkpoint` →
+  `/integrate`); diagramma del ciclo aggiornato; cenni allineati in `README.md` e
+  `SETUP.md`. `/security-review` è condizionale (solo se sensibile), gli altri fissi.
+
+### IMP-007 — Cabla /retro nel flusso e risolvi l'incoerenza della riflessione → applicata il 2026-06-16, commit e016ad4
+- `/retro` è ora il passo di riflessione del ciclo (PRIMA di `/checkpoint`). Corrette
+  in `06-self-improvement.md` le due occorrenze "riflessione al checkpoint"; chiarite
+  in `retro.md` le due intensità (registrazione leggera per-deliverable vs review
+  periodica del backlog con decisioni).
+
+### IMP-008 — Branch di integrazione parametrico → applicata il 2026-06-16, commit 86c7362
+- In `04-git-workflow.md` "branch di integrazione"/"branch stabile" sono RUOLI
+  (`develop`/`main` solo default di esempio, [DA DEFINIRE AL SETUP]); blocco di
+  `/integrate` parametrizzato (`<integrazione>`/`<stabile>`); guardia di
+  `reset-task.sh` configurabile via `PROTECTED_BRANCHES`.
 
 <!-- Formato:
 ### IMP-001 — <titolo> → applicata il YYYY-MM-DD, commit <sha>
