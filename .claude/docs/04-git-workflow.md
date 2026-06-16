@@ -5,16 +5,23 @@ conferma dove indicato.
 
 ## Modello di branching
 
-- `main` = produzione. Solo merge da `develop` via release, mai commit diretti.
-- `develop` = staging/integrazione. Solo merge di feature branch via PR.
-- `feat/<area>-<descrizione>` = una feature, vita breve (giorni, non settimane).
-- `fix/<area>-<descrizione>` per bugfix; `hotfix/<descrizione>` da `main` (e
-  ri-merge in `develop` subito dopo).
-- Claude Code crea SEMPRE un branch prima di iniziare una feature o una modifica
-  significativa — mai lavorare direttamente su `develop`.
+> **Convenzione di lettura — i nomi dei branch sono [DA DEFINIRE AL SETUP].** In
+> questo doc e nei comandi, **branch di integrazione** (dove confluiscono le feature) e
+> **branch stabile** (le versioni rilasciate) sono RUOLI, non nomi imposti. I nomi
+> `develop` (integrazione) e `main` (stabile) usati qui sotto sono i **default di
+> esempio**: scegli i tuoi al setup. In un modello trunk-based i due ruoli possono
+> COINCIDERE in un unico branch (es. solo `main`); allora "merge sul branch di
+> integrazione" e "release sul branch stabile" si riferiscono allo stesso branch.
 
-> Se il progetto usa un modello diverso (es. trunk-based puro, o nomi di branch
-> differenti): [DA DEFINIRE AL SETUP]. Il resto delle regole qui sotto resta valido.
+Modello di DEFAULT (a due branch), come esempio concreto:
+- `main` = branch stabile/produzione. Solo merge dal branch di integrazione via
+  release, mai commit diretti.
+- `develop` = branch di integrazione/staging. Solo merge di feature branch via PR.
+- `feat/<area>-<descrizione>` = una feature, vita breve (giorni, non settimane).
+- `fix/<area>-<descrizione>` per bugfix; `hotfix/<descrizione>` dal branch stabile (e
+  ri-merge nel branch di integrazione subito dopo).
+- Claude Code crea SEMPRE un branch prima di iniziare una feature o una modifica
+  significativa — mai lavorare direttamente sul branch di integrazione.
 
 ## QUANDO committare (i punti importanti)
 
