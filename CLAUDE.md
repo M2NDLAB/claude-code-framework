@@ -59,7 +59,8 @@ Stack: [DA DEFINIRE AL SETUP] | Repo: [DA DEFINIRE AL SETUP]
    motivo), LOW almeno registrati.
 
 ## Comandi rapidi
-- Slash command: `/checkpoint`, `/sos`, `/retro`, `/security-review`, `/new-component`
+- Slash command: `/checkpoint`, `/integrate`, `/sos`, `/retro`, `/security-review`,
+  `/new-component`
 - `make hooks-install` — installa gli hook git (gitleaks + commitlint)
 - `./scripts/reset-task.sh` — scarta il mezzo-task interrotto (preserva i commit)
 

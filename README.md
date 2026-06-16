@@ -20,7 +20,8 @@ un report strutturato invece di insistere alla cieca.
 - **Auto-miglioramento (IMP)** — le lezioni di processo diventano proposte di
 miglioramento approvate dall'umano, mai auto-applicate.
 - **Security gate & git workflow** — review obbligatoria sui componenti sensibili,
-conventional commits, hook pre-commit (secret scan + formattazione).
+conventional commits, versioning SemVer su tag annotati, blocco "pronto per
+integrazione" da incollare, hook pre-commit (secret scan + formattazione).
 
 ## Cosa NON include (per scelta)
 
@@ -64,7 +65,7 @@ pianifica → esegui per task → `/checkpoint` → (escala se ti blocchi) → `
 └── .claude/
     ├── settings.json          hook SessionStart (inietta STATE.md) + secret scan + permessi
     ├── docs/                  00-overview, 01-task-planning ... 06-self-improvement
-    ├── commands/              /checkpoint /sos /retro /security-review /new-component
+    ├── commands/              /checkpoint /integrate /sos /retro /security-review /new-component
     └── memory/                STATE, TREE, INDEX, LEARNINGS (template) + 4 sottocartelle
 ```
 

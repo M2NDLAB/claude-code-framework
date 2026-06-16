@@ -144,3 +144,7 @@ Esistono **due regimi**, e determinano su QUALE BRANCH vive il tag:
 - Tag e release: solo l'utente decide quando; Claude Code prepara (changelog dai
   conventional commit, bump versione secondo *Versioning*, tag annotato già scritto)
   e chiede conferma.
+- Blocco di integrazione: a fine deliverable, `/integrate` produce la sequenza di
+  comandi di merge + tag pronta da incollare (prossima versione calcolata da
+  `git describe` e dal bump di *Versioning*). Claude Code la STAMPA, non la esegue:
+  push, merge e tag restano azioni umane.

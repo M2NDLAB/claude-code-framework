@@ -27,7 +27,8 @@ Esegui la procedura di checkpoint per il lavoro corrente: $ARGUMENTS
      documentazione" in STATE.md con cosa andrà documentato.
 5. `git add` ESPLICITO dei file rilevanti (mai `git add .`), incluse memoria e doc.
 6. Commit con Conventional Commit: tipo e scope corretti, body con il PERCHÉ.
-7. Mostra il commit creato. NON pushare: il push lo decide l'utente.
+7. Mostra il commit creato. NON pushare: il push lo decide l'utente. A fine
+   deliverable, per i comandi di merge + tag pronti da incollare usa `/integrate`.
 
 Se il codice non compila o i test falliscono: commit con prefisso `wip:` SOLO se
 siamo su feature branch, altrimenti FERMATI e segnala.
