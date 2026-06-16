@@ -89,10 +89,11 @@ Apri Claude Code nella root del progetto e dài un comando come questo:
 > riepilogo del metodo come l'hai capito e segnalami eventuali `[DA DEFINIRE]` ancora
 > aperti. Non scrivere codice applicativo in questo passaggio.
 
-Da qui in poi il ciclo è quello di `.claude/docs/00-overview.md`. Per ogni prompt
-oneroso Claude Code genererà un piano in `.claude/memory/plans/`; a fine lavoro userai
-`/checkpoint`; quando si blocca, `/sos`; periodicamente, `/retro` per far crescere il
-metodo insieme al progetto.
+Da qui in poi il ciclo è quello di `.claude/docs/00-overview.md` (vedi "Il ciclo di
+fine deliverable"). Per ogni prompt oneroso Claude Code genererà un piano in
+`.claude/memory/plans/`; a fine deliverable seguirà la sequenza [se sensibile]
+`/security-review` → `/retro` → `/checkpoint` → `/integrate`; quando si blocca, `/sos`.
+La review periodica del backlog IMP resta `/retro` sull'intero `LEARNINGS.md`.
 
 ## 5. Far evolvere il framework
 

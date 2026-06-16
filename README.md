@@ -47,7 +47,8 @@ riempire, è in **[SETUP.md](SETUP.md)**):
    esatto suggerito è in `SETUP.md`.
 
 Da lì in poi si lavora con il ciclo descritto in `.claude/docs/00-overview.md`:
-pianifica → esegui per task → `/checkpoint` → (escala se ti blocchi) → `/retro`.
+pianifica → esegui per task → [se sensibile] `/security-review` → `/retro` →
+`/checkpoint` → `/integrate` (push deciso dall'umano); se ti blocchi, `/sos`.
 
 ### Struttura
 
