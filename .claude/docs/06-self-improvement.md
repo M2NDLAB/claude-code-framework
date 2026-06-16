@@ -45,7 +45,9 @@ quale configurazione è in vigore né perché. **Claude Code propone, l'umano di
 - Un'escalation (`ESC-...`) si è risolta → la lezione va in `LEARNINGS.md` oltre che
   nella nota di sessione: le escalation sono la fonte migliore di miglioramenti.
 - Una security review (`/security-review`) ha trovato qualcosa di sistemico → IMP.
-- `/checkpoint`: 30 secondi di riflessione — c'è stato attrito in questa sessione?
+- **A fine deliverable, il passo `/retro`** (ciclo in `00-overview.md`): 30 secondi di
+  riflessione — c'è stato attrito? una regola/doc che avrebbe aiutato? → registra
+  l'IMP. Va PRIMA del `/checkpoint`, che poi lo persiste nel commit.
 
 ## Applicazione delle proposte approvate
 
@@ -62,5 +64,11 @@ Quando l'utente approva una IMP (direttamente o via risposta di escalation):
   e si fa nei task, non di nascosto).
 - Non è licenza di aggiungere tool/dipendenze "perché migliorano" — quelle passano
   dalla registrazione di una decisione.
-- Non è auto-valutazione verbosa a ogni messaggio: è UN momento di riflessione al
-  checkpoint + la registrazione quando l'attrito si presenta.
+- Non è auto-valutazione verbosa a ogni messaggio: è UN momento di riflessione a fine
+  deliverable (il passo `/retro`) + la registrazione quando l'attrito si presenta.
+- Non è il lint della memoria. La coerenza della base di conoscenza (stato
+  disallineato dalla realtà, note contraddittorie, pagine orfane, link rotti) è un
+  health-check separato — `/lint-memory` — dove una contraddizione è un BUG da
+  CORREGGERE, non un miglioramento da proporre. La retro guarda al PROCESSO, il lint
+  alla salute dei DATI; il ponte tra i due è l'IMP che il lint apre quando un
+  disallineamento rivela un buco di processo.

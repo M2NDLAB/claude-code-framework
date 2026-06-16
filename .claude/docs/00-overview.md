@@ -26,17 +26,18 @@ componenti toccati dal task.
 ## Il ciclo di lavoro
 
 ```
-  inizio sessione                              fine task
-        │                                          │
-   leggi STATE.md ──▶ valuta l'onerosità ──▶ esegui ──▶ /checkpoint
-   (iniettato         (oneroso? → PIANO a    task per   (memoria + doc
-    dall'hook)         task atomici, 1        task,       + commit)
-        │              commit ciascuno)       commit      │
-        │                                                 ▼
-        └──────────────── bloccato? ──▶ ESCALATION ──▶ retro / IMP
-                          (2 tentativi    REPORT,        (lezioni di
-                           o bivio)       poi fermati    processo →
-                                                          proposte)
+  INIZIO SESSIONE                              FINE DELIVERABLE
+        │                                             │
+  leggi STATE.md ─▶ valuta onerosità ─▶ esegui ───────┤
+  (hook SessionStart)  (oneroso? → PIANO)   (per task) │
+        │                                             ▼
+        │   CICLO DI FINE DELIVERABLE (in ordine):
+        │     1. /security-review — solo se sensibile (gate)
+        │     2. /retro           — rifletti, registra IMP
+        │     3. /checkpoint      — allinea memoria/doc al reale
+        │     4. /integrate       — blocco merge+tag, push = umano
+        │
+        └─ bloccato? (2 tentativi / bivio) ─▶ ESCALATION REPORT, poi fermati
 ```
 
 1. **Pianifica** se il prompt è oneroso → `01-task-planning.md`. Niente burocrazia
@@ -49,6 +50,42 @@ componenti toccati dal task.
 5. **Sbloccati** senza insistere alla cieca → `05-escalation-protocol.md`.
 6. **Migliora il metodo** con le lezioni raccolte → `06-self-improvement.md`. Le
    correzioni fattuali si applicano; i cambi di regole si PROPONGONO soltanto.
+
+## Il ciclo di fine deliverable (sequenza-tipo)
+
+Un *deliverable* (un'unità onerosa completa: una feature, un componente, un blocco di
+lavoro) si chiude SEMPRE con questa sequenza ordinata. I mattoni esistono già nei doc;
+qui è fissato il loro ORDINE, così non se ne dimentica nessuno. Per i task piccoli e
+isolati non serve il rito completo (vedi `01-task-planning.md`): bastano la Definition
+of Done e il commit.
+
+1. **Costruzione** — esecuzione per task atomici, ognuno con la sua Definition of Done
+   verde (`01-task-planning.md`, `02-code-quality.md`). È la precondizione di tutto il
+   resto: il deliverable compila e i test passano. Se ti blocchi qui, esci con
+   l'escalation (`/sos`, `05-escalation-protocol.md`): non è un passo della sequenza,
+   è la via d'uscita.
+2. **`/security-review` — CONDIZIONALE: solo se il deliverable è sensibile.** Sensibile
+   = auth/authz, pagamenti/denaro, dati personali, edge di enforcement, superfici che
+   agiscono per conto di un client (`03-security-gate.md`; l'elenco concreto è
+   `[DA DEFINIRE AL SETUP]`). Se sensibile è un GATE: i finding HIGH/CRITICAL si
+   risolvono PRIMA di proseguire. Se non sensibile, si salta.
+3. **`/retro` — riflessione di fine deliverable (FISSO).** C'è stato attrito? una
+   regola/doc che avrebbe aiutato? → registra le proposte come IMP in `LEARNINGS.md`
+   (`06-self-improvement.md`). È leggera: senza attrito, è un no-op di pochi secondi.
+   Le DECISIONI sulle IMP accumulate si prendono nella retrospettiva periodica (sempre
+   `/retro`, ma sull'intero backlog). Va PRIMA del checkpoint, così le IMP appena
+   registrate vengono persistite dal commit successivo.
+4. **`/checkpoint` — allinea memoria e doc allo stato reale (FISSO).** Nota di
+   sessione, `STATE.md`, `TREE.md`, `INDEX.md`, riconciliazione branch/merge, commit
+   (`04-git-workflow.md`). NON pusha.
+5. **`/integrate` — blocco merge + tag pronto da incollare (FISSO).** Calcola bump e
+   prossima versione (`04-git-workflow.md`, *Versioning*) ed emette i comandi. Push,
+   merge e tag li esegue l'UMANO: è l'unico passo che esce dal controllo dell'agente.
+
+> In breve: passi FISSI 1·3·4·5; passo CONDIZIONALE 2 (`/security-review`, solo se
+> sensibile). L'ordine non è arbitrario — `/retro` prima di `/checkpoint` perché il
+> checkpoint persista le IMP appena registrate; `/integrate` per ultimo perché è
+> l'unico che tocca lo stato condiviso, e solo dopo che memoria e doc sono allineate.
 
 ## Principi di processo (in ordine di priorità)
 

@@ -16,12 +16,18 @@ cd "$(git rev-parse --show-toplevel)" || exit 1
 AUTO="${1:-}"
 BRANCH=$(git branch --show-current)
 
-# Guardia 1: non operare sui branch condivisi
-if [ "$BRANCH" = "develop" ] || [ "$BRANCH" = "main" ]; then
-  echo "❌ Sei su '$BRANCH'. reset-task opera su feature branch, non sui rami condivisi."
-  echo "   Se '$BRANCH' è sporco, ispeziona a mano con 'git status'."
-  exit 1
-fi
+# Guardia 1: non operare sui branch condivisi/protetti.
+# [DA DEFINIRE AL SETUP] adatta l'elenco al tuo modello (branch di integrazione +
+# branch stabile). Default di esempio: main + develop. Override via env, es.
+#   PROTECTED_BRANCHES="main trunk" ./scripts/reset-task.sh
+PROTECTED_BRANCHES="${PROTECTED_BRANCHES:-main develop}"
+for b in $PROTECTED_BRANCHES; do
+  if [ "$BRANCH" = "$b" ]; then
+    echo "❌ Sei su '$BRANCH' (branch protetto). reset-task opera solo sui feature branch."
+    echo "   Se '$BRANCH' è sporco, ispeziona a mano con 'git status'."
+    exit 1
+  fi
+done
 
 # Niente da fare?
 if git diff --quiet && git diff --cached --quiet && [ -z "$(git clean -nd)" ]; then

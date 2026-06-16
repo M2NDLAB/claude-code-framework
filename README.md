@@ -12,7 +12,8 @@ dal dominio: e-commerce, SaaS, data pipeline, qualsiasi cosa.
 ## Cosa include
 
 - **Sistema di memoria persistente** — STATE, TREE, INDEX, sessioni, decisioni,
-piani, backlog di miglioramenti. Claude Code mantiene contesto tra le sessioni.
+piani, backlog di miglioramenti, con un health-check di coerenza (`/lint-memory`).
+Claude Code mantiene contesto tra le sessioni.
 - **Task-planning resiliente** — i prompt onerosi si spezzano in task atomici con
 un commit ciascuno; un'interruzione non costa il rifacimento da zero.
 - **Protocollo di escalation** — quando Claude Code si blocca su un bivio, genera
@@ -20,7 +21,8 @@ un report strutturato invece di insistere alla cieca.
 - **Auto-miglioramento (IMP)** — le lezioni di processo diventano proposte di
 miglioramento approvate dall'umano, mai auto-applicate.
 - **Security gate & git workflow** — review obbligatoria sui componenti sensibili,
-conventional commits, hook pre-commit (secret scan + formattazione).
+conventional commits, versioning SemVer su tag annotati, blocco "pronto per
+integrazione" da incollare, hook pre-commit (secret scan + formattazione).
 
 ## Cosa NON include (per scelta)
 
@@ -45,7 +47,8 @@ riempire, è in **[SETUP.md](SETUP.md)**):
    esatto suggerito è in `SETUP.md`.
 
 Da lì in poi si lavora con il ciclo descritto in `.claude/docs/00-overview.md`:
-pianifica → esegui per task → `/checkpoint` → (escala se ti blocchi) → `/retro`.
+pianifica → esegui per task → [se sensibile] `/security-review` → `/retro` →
+`/checkpoint` → `/integrate` (push deciso dall'umano); se ti blocchi, `/sos`.
 
 ### Struttura
 
@@ -64,7 +67,7 @@ pianifica → esegui per task → `/checkpoint` → (escala se ti blocchi) → `
 └── .claude/
     ├── settings.json          hook SessionStart (inietta STATE.md) + secret scan + permessi
     ├── docs/                  00-overview, 01-task-planning ... 06-self-improvement
-    ├── commands/              /checkpoint /sos /retro /security-review /new-component
+    ├── commands/              /checkpoint /integrate /sos /retro /security-review /new-component /lint-memory
     └── memory/                STATE, TREE, INDEX, LEARNINGS (template) + 4 sottocartelle
 ```
 

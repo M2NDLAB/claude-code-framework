@@ -8,7 +8,7 @@ Stack: [DA DEFINIRE AL SETUP] | Repo: [DA DEFINIRE AL SETUP]
 > progetto vanno nell'ultima sezione.
 
 ## Documentazione di processo — carica SOLO i file rilevanti per il task
-- @.claude/docs/00-overview.md            — il metodo di lavoro, come si caricano i doc
+- @.claude/docs/00-overview.md            — il metodo, il ciclo di fine deliverable, caricamento doc
 - @.claude/docs/01-task-planning.md       — piano a task per prompt onerosi, ripresa resiliente
 - @.claude/docs/02-code-quality.md        — commenti, error handling, Definition of Done
 - @.claude/docs/03-security-gate.md       — review obbligatoria sui componenti sensibili
@@ -59,7 +59,8 @@ Stack: [DA DEFINIRE AL SETUP] | Repo: [DA DEFINIRE AL SETUP]
    motivo), LOW almeno registrati.
 
 ## Comandi rapidi
-- Slash command: `/checkpoint`, `/sos`, `/retro`, `/security-review`, `/new-component`
+- Slash command: `/checkpoint`, `/integrate`, `/sos`, `/retro`, `/security-review`,
+  `/new-component`, `/lint-memory`
 - `make hooks-install` — installa gli hook git (gitleaks + commitlint)
 - `./scripts/reset-task.sh` — scarta il mezzo-task interrotto (preserva i commit)
 
