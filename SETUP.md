@@ -53,9 +53,14 @@ Ecco la lista completa, raggruppata per file:
       comando — vedi punto 4; per ora lascia i blocchi di istruzioni.)
 
 ### `.claude/settings.json`
-- [ ] Aggiungi alla `allow` i comandi read-only dei tuoi tool (build tool, package
-      manager, container CLI) per ridurre i prompt di permesso — es. il tuo comando di
-      build/test. La `deny` (push, `reset --hard`, lettura secret) è già impostata.
+- [ ] Aggiungi alla `allow` SOLO i comandi **read-only** dei tuoi tool (build tool,
+      package manager, container CLI) per ridurre i prompt — es. il comando di
+      build/test. La baseline è già impostata (`allow`: ispezione git + `add`/`commit`
+      sicuri; `deny`: push, `reset --hard`, cancellazioni distruttive, lettura secret)
+      — i principi sono in `04-git-workflow.md` ("Configurazione dei permessi").
+- [ ] Lascia `settings.local.json` fuori dal versionamento (è già in `.gitignore`) e
+      parti vuoto: i permessi personali NON si committano, niente concessioni vaghe
+      tipo "non chiedere più per comandi simili".
 
 ### Root
 - [ ] `scripts/hooks-install.sh`: abilita e adatta il blocco **formattazione** per il

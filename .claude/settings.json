@@ -5,11 +5,16 @@
       "Bash(git diff:*)",
       "Bash(git log:*)",
       "Bash(git branch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
       "Bash(tree:*)"
     ],
     "deny": [
       "Bash(git push:*)",
       "Bash(git reset --hard:*)",
+      "Bash(git clean:*)",
+      "Bash(git branch -D:*)",
+      "Bash(rm -rf:*)",
       "Read(.env)",
       "Read(**/.env)",
       "Read(**/.env.*)",

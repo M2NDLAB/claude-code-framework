@@ -148,3 +148,27 @@ Esistono **due regimi**, e determinano su QUALE BRANCH vive il tag:
   comandi di merge + tag pronta da incollare (prossima versione calcolata da
   `git describe` e dal bump di *Versioning*). Claude Code la STAMPA, non la esegue:
   push, merge e tag restano azioni umane.
+
+## Configurazione dei permessi (`settings.json`)
+
+I permessi versionati (`.claude/settings.json`) sono la rete di sicurezza che decide
+cosa Claude Code può eseguire senza chiedere. Tienili **puliti e specifici**:
+
+- **`allow`**: solo comandi **read-only** (ispezione: `status`, `diff`, `log`,
+  `branch`, la mappa dell'albero) e i comandi **sicuri e reversibili** di
+  staging/commit (`git add`, `git commit`). Nient'altro: si riducono i prompt per le
+  operazioni innocue, non per quelle che toccano stato condiviso.
+- **`deny`**: tutte le operazioni **distruttive o irreversibili** — push (incluso
+  `--force`), `reset --hard`, cancellazioni (`clean`, `branch -D`, `rm -rf`), e la
+  **lettura di segreti** (`.env`, `secrets/`, file di credenziali). La `deny` ha la
+  precedenza sull'`allow`: un `git branch:*` permesso resta comunque bloccato sul `-D`.
+- **File locale NON versionato.** I permessi personali stanno in `settings.local.json`
+  (già in `.gitignore`) e si parte **vuoti**: ciò che è condiviso e ragionato sta nel
+  file versionato; le concessioni estemporanee restano locali e non inquinano il
+  template del progetto.
+- **Niente auto-approvazioni vaghe.** Evita le concessioni "non chiedere più per
+  comandi simili": un `allow` troppo largo è un buco che nessuno ricorda di aver
+  aperto. Meglio un prompt in più che un permesso implicito e dimenticato.
+
+> I comandi read-only specifici del tuo stack (build tool, package manager, CLI dei
+> container) si aggiungono all'`allow` al setup — [DA DEFINIRE AL SETUP].
