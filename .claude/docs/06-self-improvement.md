@@ -64,3 +64,9 @@ Quando l'utente approva una IMP (direttamente o via risposta di escalation):
   dalla registrazione di una decisione.
 - Non è auto-valutazione verbosa a ogni messaggio: è UN momento di riflessione al
   checkpoint + la registrazione quando l'attrito si presenta.
+- Non è il lint della memoria. La coerenza della base di conoscenza (stato
+  disallineato dalla realtà, note contraddittorie, pagine orfane, link rotti) è un
+  health-check separato — `/lint-memory` — dove una contraddizione è un BUG da
+  CORREGGERE, non un miglioramento da proporre. La retro guarda al PROCESSO, il lint
+  alla salute dei DATI; il ponte tra i due è l'IMP che il lint apre quando un
+  disallineamento rivela un buco di processo.

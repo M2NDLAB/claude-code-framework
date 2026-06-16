@@ -12,7 +12,8 @@ dal dominio: e-commerce, SaaS, data pipeline, qualsiasi cosa.
 ## Cosa include
 
 - **Sistema di memoria persistente** — STATE, TREE, INDEX, sessioni, decisioni,
-piani, backlog di miglioramenti. Claude Code mantiene contesto tra le sessioni.
+piani, backlog di miglioramenti, con un health-check di coerenza (`/lint-memory`).
+Claude Code mantiene contesto tra le sessioni.
 - **Task-planning resiliente** — i prompt onerosi si spezzano in task atomici con
 un commit ciascuno; un'interruzione non costa il rifacimento da zero.
 - **Protocollo di escalation** — quando Claude Code si blocca su un bivio, genera
@@ -65,7 +66,7 @@ pianifica → esegui per task → `/checkpoint` → (escala se ti blocchi) → `
 └── .claude/
     ├── settings.json          hook SessionStart (inietta STATE.md) + secret scan + permessi
     ├── docs/                  00-overview, 01-task-planning ... 06-self-improvement
-    ├── commands/              /checkpoint /integrate /sos /retro /security-review /new-component
+    ├── commands/              /checkpoint /integrate /sos /retro /security-review /new-component /lint-memory
     └── memory/                STATE, TREE, INDEX, LEARNINGS (template) + 4 sottocartelle
 ```
 
