@@ -45,7 +45,7 @@ git merge --ff-only origin/develop
 git merge --no-ff <feature> -m "<tipo>(<scope>): merge <feature> in develop"
 
 # 3. tag annotato col bump calcolato   (se "nessun tag": ometti questo passo)
-git tag -a v<X.Y.Z> -m "v<X.Y.Z> — <sintesi del deliverable>"
+git tag -a v<X.Y.Z> -m "v<X.Y.Z> - <sintesi del deliverable>"
 
 # 4. push esplicito di branch e tag (lo lanci TU: è l'azione umana)
 git push origin develop
