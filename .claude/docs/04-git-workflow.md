@@ -65,10 +65,59 @@ Il formato è verificato dall'hook `commit-msg` (commitlint) e definito in
   `feat(<area>): merge <feature> in develop`. I merge auto-generati da git ("Merge
   branch …") commitlint li ignora di default, ma preferiamo il messaggio conventional
   esplicito.
-- `develop` → `main`: solo via PR di release, tag semver `vX.Y.Z` dopo il merge.
+- `develop` → `main`: solo via PR di release. Il tag di versione segue la sezione
+  *Versioning* qui sotto (in 0.x si tagga su `develop`; da `1.0.0` in poi su `main`,
+  dopo il merge di release).
 
 Conflitti: Claude Code li risolve solo se banali (import, formattazione); se toccano
 logica, si FERMA e chiede all'utente mostrando le due versioni.
+
+## Versioning — SemVer su tag annotati
+
+Le versioni sono **tag git annotati** (`git tag -a vX.Y.Z -m "..."`), mai tag
+leggeri: un tag annotato porta autore, data e messaggio ed è ciò che `git describe`
+usa per calcolare la versione corrente e la distanza da essa. Formato SemVer `vX.Y.Z`.
+
+**Il tipo di conventional commit suggerisce il bump** (la decisione finale resta
+dell'utente — vedi "Tag e release"):
+
+| Commit                                                          | Bump        |
+| --------------------------------------------------------------- | ----------- |
+| `feat`                                                          | MINOR       |
+| `fix` (incluse le correzioni di sicurezza)                      | PATCH       |
+| breaking change (`tipo!` o footer `BREAKING CHANGE:`)           | MAJOR       |
+| `refactor`/`perf`/`test`/`docs`/`build`/`ci`/`chore`, sola doc/memoria | **nessun tag** |
+
+Per un deliverable che raccoglie più commit, il bump è il **più alto** tra quelli dei
+commit inclusi (un solo `feat` tra tanti `chore` → MINOR; nessun `feat`/`fix` →
+nessun tag, è lavoro interno, non un rilascio).
+
+Esistono **due regimi**, e determinano su QUALE BRANCH vive il tag:
+
+- **Pre-1.0 — si tagga sul branch di SVILUPPO.** Finché non c'è la prima release
+  stabile la versione è `0.y.z` e i tag vivono su `develop`, non su `main`: feature →
+  bump MINOR (`v0.1.0` → `v0.2.0`), fix/sicurezza → bump PATCH (`v0.2.0` → `v0.2.1`),
+  refactor/doc/memoria → nessun tag. In 0.x non si promette stabilità dell'API: un
+  breaking interno resta nel MINOR e non forza da solo l'1.0.0.
+- **Rilascio della 1.0.0 — promozione al branch STABILE.** Quando lo sviluppo è
+  completo e l'API è considerata stabile, si porta `develop` su `main` via PR di
+  release e si applica il tag **`v1.0.0` su `main`**. Da qui `main` è la linea delle
+  versioni rilasciate.
+- **Post-1.0 — si tagga sul branch STABILE.** Da 1.0.0 i tag di rilascio vivono su
+  `main`, dopo il merge di release `develop → main`: breaking → MAJOR
+  (`v1.4.2` → `v2.0.0`), feature → MINOR (`v1.4.2` → `v1.5.0`), fix → PATCH
+  (`v1.4.2` → `v1.4.3`). Un **hotfix** parte da `main`, è un PATCH taggato su `main`,
+  e va ri-mergiato su `develop` subito dopo (vedi "Modello di branching") così la
+  correzione non si perde alla release successiva.
+
+> **Conflitto storico risolto qui.** La regola precedente — "tag solo dopo il merge su
+> `main`" — descriveva solo il post-1.0 e ignorava la fase 0.x. È SOSTITUITA da questi
+> due regimi: in 0.x si tagga su `develop`, da 1.0.0 su `main`. Non restano due
+> istruzioni in conflitto.
+
+> Modello di branching diverso (es. trunk-based, o nomi differenti — [DA DEFINIRE AL
+> SETUP])? I nomi cambiano, i due regimi no: pre-1.0 si tagga sulla linea di lavoro,
+> post-1.0 sulla linea rilasciata.
 
 ## Rollback — scegliere lo strumento giusto
 
@@ -93,4 +142,5 @@ logica, si FERMA e chiede all'utente mostrando le due versioni.
   (`.claude/settings.json`) nega il push automatico — è intenzionale: il push lo
   conferma l'umano.
 - Tag e release: solo l'utente decide quando; Claude Code prepara (changelog dai
-  conventional commit, bump versione) e chiede conferma.
+  conventional commit, bump versione secondo *Versioning*, tag annotato già scritto)
+  e chiede conferma.
