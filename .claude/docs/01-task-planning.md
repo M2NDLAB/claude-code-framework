@@ -89,6 +89,31 @@ Quando tutti i task sono spuntati:
 - Il merge sul branch di integrazione e il push li gestisce l'utente, mai push
   autonomo (vedi `04-git-workflow.md`).
 
+## Caso speciale — refactor cross-modulo (codice condiviso)
+
+Estrarre o spostare codice usato da più moduli (una utility comune, un tipo
+condiviso, una libreria interna) è un refactor a rischio sproporzionato: un singolo
+modulo "verde" non dice nulla sugli altri consumatori. Trattalo come un prompt
+oneroso (FASE 2 → piano), e applica in più questa disciplina:
+
+- **Branch dedicato, task atomici per consumatore.** Un passo = un'estrazione
+  coerente e committabile: "introduci il modulo condiviso", poi "migra il consumatore
+  A", poi "migra il consumatore B". Mai "sposta tutto" in un unico task.
+- **Test di TUTTI i moduli toccati verdi a OGNI passo** — non solo del modulo in cui
+  stai lavorando, e non solo alla fine. Dopo ogni task ri-esegui le suite di ogni
+  modulo che consuma il codice spostato: una regressione introdotta al passo 2 si
+  scopre al passo 2, non tre task dopo, quando la causa è già sepolta.
+- **Commit di sicurezza prima di iniziare** (docs/04, "QUANDO committare"): il
+  refactor ampio parte da un punto di ripristino pulito.
+- **Review di coerenza prima del merge.** Oltre alla Definition of Done (docs/02) e
+  — se tocca componenti sensibili — al gate di sicurezza (docs/03), verifica che
+  l'estrazione sia coerente ovunque: nessun consumatore rimasto sulla vecchia copia,
+  nessuna duplicazione residua, l'API condivisa usata allo stesso modo dappertutto.
+
+> Il "wiring" tra moduli è esattamente ciò che gli unit isolati non vedono: per un
+> refactor cross-modulo lo smoke del sistema cablato (DoD, docs/02 punto 3) conta
+> ancora di più.
+
 ## RIPRESA (inizio di OGNI sessione)
 
 L'hook `SessionStart` inietta `STATE.md`. Inoltre, all'avvio:
