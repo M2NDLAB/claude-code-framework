@@ -1,8 +1,8 @@
 ---
 date: 2026-07-11
-task: consolidamento del framework — assessment (FASE 1) + registrazione IMP-009..026 (FASE 2)
+task: consolidamento del framework — assessment (FASE 1), registrazione IMP (FASE 2), applicazione (FASE 3)
 branch: feat/consolidamento
-status: in-progress
+status: completed
 tags: [session, consolidamento, assessment]
 ---
 # Session 2026-07-11 — Consolidamento: assessment e registrazione IMP
@@ -112,3 +112,37 @@ il lavoro (una sessione futura riparte da questa nota + le IMP approvate).
   sostanziali — → MINOR, v0.1.0→v0.2.0).
 - La rimozione di `origin/master` (se approvata in IMP-025) è azione UTENTE su
   storia condivisa: blocco separato con verifica preventiva, mai inline.
+
+## FASE 3 — applicazione (stessa data, ripresa dalla nota sopra)
+Decisioni utente: APPLICATE 009-022 + 024-025 (021: MIT, holder "M2NDLAB", 2026;
+024: opzione 3 "ibrido dichiarato"; 025: trunk-based dichiarato). RIMANDATE
+023 e 026 col trigger. Applicazione: un commit per IMP sul branch
+`feat/consolidamento` — sha in [[LEARNINGS]], sezione Applicate. Marcatura in
+commit separato (58c107e): lo sha di un commit non può stare dentro se stesso
+(stesso precedente di IMP-001..008).
+
+Note di esecuzione:
+1. IMP-020 dimostrata RED→GREEN sulla catena reale (repo usa-e-getta con finto
+   secret AWS): comando dell'hook PreToolUse → exit 0 con warning fuorviante
+   nonostante `leaks found: 1` (gitleaks nudo: exit 1); hook pre-commit di
+   hooks-install.sh → commit BLOCCATO. Scelta: rimozione dell'hook decorativo
+   (un fix onesto richiederebbe jq/parsing JSON e modalità stdin di gitleaks
+   version-dipendenti, fuori baseline template); la difesa dichiarata dalla
+   regola 1 è il pre-commit, che funziona.
+2. IMP-019 estesa alle TRE occorrenze della contraddizione (Merge, modello di
+   branching riga 19, Versioning/promozione 1.0.0): risolta, non spostata.
+3. Coerenza post-modifiche verificata a grep: nessun residuo "SEMPRE via PR",
+   nessun riferimento orfano all'hook PreToolUse (restano solo le citazioni
+   STORICHE in questa nota e in LEARNINGS, corrette), numerazione /integrate
+   coerente dopo l'inserimento del passo CHANGELOG (1-5 + variante release).
+4. Checkpoint secondo opzione 3: STATE.md/TREE.md/INDEX.md NON popolati (restano
+   template puliti — riempirli violerebbe il regime appena deciso); la mappa
+   reale del repo è il diagramma di struttura del README (aggiornato da
+   IMP-021/022); la legenda di TREE.md è stata riallineata da IMP-018.
+   L'istruzione "rigenera TREE.md" del prompt di chiusura è stata risolta così,
+   dichiarandolo: TREE è template, il regime ibrido non lo include tra i vivi.
+
+## Problemi incontrati → causa → soluzione (FASE 3)
+1. Comando demo IMP-020 negato dai permessi → conteneva `rm -rf` (deny attiva,
+   correttamente) → rieseguito senza cancellazioni, directory usa-e-getta nuova.
+
