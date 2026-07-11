@@ -16,7 +16,8 @@ conferma dove indicato.
 Modello di DEFAULT (a due branch), come esempio concreto:
 - `main` = branch stabile/produzione. Solo merge dal branch di integrazione via
   release, mai commit diretti.
-- `develop` = branch di integrazione/staging. Solo merge di feature branch via PR.
+- `develop` = branch di integrazione/staging. Solo merge di feature branch,
+  eseguiti da un umano (vedi *Merge*: via PR o via blocco `/integrate`).
 - `feat/<area>-<descrizione>` = una feature, vita breve (giorni, non settimane).
 - `fix/<area>-<descrizione>` per bugfix; `hotfix/<descrizione>` dal branch stabile (e
   ri-merge nel branch di integrazione subito dopo).
@@ -61,9 +62,16 @@ Il formato è verificato dall'hook `commit-msg` (commitlint) e definito in
 
 ## Merge
 
-- Feature → `develop`: SEMPRE via Pull Request, mai merge locale diretto. Prima della
-  PR: rebase su `develop` (`git fetch && git rebase origin/develop`) per risolvere i
-  conflitti nel branch, non nel merge.
+- Feature → `develop`: il merge è SEMPRE un'azione umana, mai eseguita da Claude
+  Code, in una di due forme — quale adotta il progetto è [DA DEFINIRE AL SETUP]:
+  - **via Pull Request** quando esiste un flusso di review remoto (team, forge con
+    review obbligatoria);
+  - **via blocco `/integrate`** (merge locale `--no-ff` che l'UTENTE incolla ed
+    esegue) nel flusso a sviluppatore singolo, dove una PR verso se stessi non
+    aggiunge controllo.
+  In entrambe le forme, prima del merge: rebase su `develop`
+  (`git fetch && git rebase origin/develop`) per risolvere i conflitti nel branch,
+  non nel merge.
 - Strategia: squash merge per feature piccole (storia pulita), merge commit per
   feature grandi dove la storia interna dei commit ha valore. Mai fast-forward su
   `develop` (si perde la traccia del branch).
@@ -72,9 +80,10 @@ Il formato è verificato dall'hook `commit-msg` (commitlint) e definito in
   `feat(<area>): merge <feature> in develop`. I merge auto-generati da git ("Merge
   branch …") commitlint li ignora di default, ma preferiamo il messaggio conventional
   esplicito.
-- `develop` → `main`: solo via PR di release. Il tag di versione segue la sezione
-  *Versioning* qui sotto (in 0.x si tagga su `develop`; da `1.0.0` in poi su `main`,
-  dopo il merge di release).
+- `develop` → `main`: solo come merge di release, nella stessa forma scelta sopra
+  (PR di release, o variante release del blocco `/integrate`). Il tag di versione
+  segue la sezione *Versioning* qui sotto (in 0.x si tagga su `develop`; da `1.0.0`
+  in poi su `main`, dopo il merge di release).
 
 Conflitti: Claude Code li risolve solo se banali (import, formattazione); se toccano
 logica, si FERMA e chiede all'utente mostrando le due versioni.
@@ -107,9 +116,9 @@ Esistono **due regimi**, e determinano su QUALE BRANCH vive il tag:
   refactor/doc/memoria → nessun tag. In 0.x non si promette stabilità dell'API: un
   breaking interno resta nel MINOR e non forza da solo l'1.0.0.
 - **Rilascio della 1.0.0 — promozione al branch STABILE.** Quando lo sviluppo è
-  completo e l'API è considerata stabile, si porta `develop` su `main` via PR di
-  release e si applica il tag **`v1.0.0` su `main`**. Da qui `main` è la linea delle
-  versioni rilasciate.
+  completo e l'API è considerata stabile, si porta `develop` su `main` con un merge
+  di release (nella forma scelta in *Merge*) e si applica il tag **`v1.0.0` su
+  `main`**. Da qui `main` è la linea delle versioni rilasciate.
 - **Post-1.0 — si tagga sul branch STABILE.** Da 1.0.0 i tag di rilascio vivono su
   `main`, dopo il merge di release `develop → main`: breaking → MAJOR
   (`v1.4.2` → `v2.0.0`), feature → MINOR (`v1.4.2` → `v1.5.0`), fix → PATCH
