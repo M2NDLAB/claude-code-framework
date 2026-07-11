@@ -126,6 +126,16 @@ Esistono **due regimi**, e determinano su QUALE BRANCH vive il tag:
 > SETUP])? I nomi cambiano, i due regimi no: pre-1.0 si tagga sulla linea di lavoro,
 > post-1.0 sulla linea rilasciata.
 
+**Igiene dei tag e del push (per l'utente che esegue).**
+- Il tag si DIGITA a mano, con un solo `-m` breve e ASCII puro: em-dash, accenti e
+  spazi non-breaking copiati da un editor corrompono il comando in modi oscuri.
+- Prima di pushare un tag: verificarlo SEMPRE con `git rev-parse <tag>`.
+  `git tag -d` si usa SOLO se quella verifica fallisce — mai su un tag sano, e mai
+  inline coi comandi costruttivi (vedi "Confine di esecuzione").
+- Prima di ogni push su un branch condiviso: `git log origin/<branch>..<branch>`
+  per vedere ESATTAMENTE cosa si sta per rendere pubblico — un push trascina TUTTI
+  i commit locali, non solo l'ultimo.
+
 ## Rollback — scegliere lo strumento giusto
 
 - Commit già pushato su branch condiviso (`develop`/`main`): `git revert <sha>` —
