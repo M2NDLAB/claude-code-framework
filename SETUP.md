@@ -56,8 +56,12 @@ Ecco la lista completa, raggruppata per file:
 
 ### `.claude/memory/`
 - [ ] `TREE.md`: il pattern `-I '...'` per `tree` adatto al tuo stack.
-- [ ] (I template `STATE.md`, `INDEX.md`, `LEARNINGS.md` si popolano al primo
-      comando — vedi punto 4; per ora lascia i blocchi di istruzioni.)
+- [ ] **SVUOTA la memoria VIVA del framework**: `LEARNINGS.md` arriva con le IMP
+      del framework stesso (regime ibrido, vedi il suo `CONTRIBUTING.md`) — riporta
+      le sezioni a vuote: le IMP del TUO progetto ripartono da 001. Elimina le note
+      in `sessions/` (tieni il README).
+- [ ] (I template `STATE.md`, `INDEX.md` si popolano al primo comando — vedi
+      punto 4; per ora lascia i blocchi di istruzioni.)
 
 ### `.claude/settings.json`
 - [ ] Aggiungi alla `allow` SOLO i comandi **read-only** dei tuoi tool (build tool,

@@ -28,6 +28,20 @@ Questo repo si auto-applica il metodo che descrive (`.claude/docs/`):
   un progetto (stack, nomi, valori concreti); dove serve concretezza si usa
   `[DA DEFINIRE AL SETUP]`.
 
+## La memoria di questo repo: regime "ibrido dichiarato"
+
+Il repo usa su di sé solo UNA PARTE del proprio sistema di memoria:
+
+- **VIVI**: `.claude/memory/LEARNINGS.md` (il backlog IMP del framework — è il
+  loop della *Filosofia* del README: le lezioni d'uso tornano nel template) e
+  `.claude/memory/sessions/` (il diario del lavoro sul framework).
+- **Template puliti**, mai popolati qui: `STATE.md`, `TREE.md`, `INDEX.md`,
+  `components/`, `decisions/`, `plans/` — restano pronti da copiare.
+
+Non è una dimenticanza: è la scelta che tiene il template copiabile senza
+rinunciare al loop di auto-miglioramento. Chi copia il template nel proprio
+progetto SVUOTA la parte viva (istruzioni in `SETUP.md`, passo 2).
+
 ## In pratica, per una proposta di modifica
 
 1. Apri un feature branch da `main`.

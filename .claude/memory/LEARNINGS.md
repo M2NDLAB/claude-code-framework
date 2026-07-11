@@ -11,7 +11,9 @@ tags: [improvement]
 > da solo: le applica solo dopo approvazione dell'utente. Le correzioni puramente
 > FATTUALI alla doc (Livello 1) non passano da qui, si applicano subito.
 >
-> La numerazione delle IMP parte da **001**. Questo file nasce VUOTO.
+> La numerazione delle IMP parte da **001**. Questo file nasce VUOTO in un nuovo
+> progetto. NEL REPO DEL FRAMEWORK, invece, è VIVO (regime ibrido dichiarato —
+> vedi `CONTRIBUTING.md`): chi copia il template lo SVUOTA al setup (`SETUP.md`).
 
 ## Proposte APERTE (in attesa di decisione utente)
 
