@@ -57,6 +57,7 @@ pianifica → esegui per task → [se sensibile] `/security-review` → `/retro`
 ├── CLAUDE.md                  indice + regole di processo + regole tecniche [DA DEFINIRE]
 ├── README.md                  questo file
 ├── SETUP.md                   come partire da zero, elenco dei [DA DEFINIRE]
+├── LICENSE                    MIT — copre il framework, non i progetti che lo usano
 ├── Makefile                   solo target di processo (hooks-install, reset-task)
 ├── commitlint.config.cjs      tipi Conventional Commits
 ├── .gitignore                 base (secrets + IDE/OS) + sezione [DA DEFINIRE]
