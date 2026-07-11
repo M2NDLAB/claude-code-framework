@@ -156,6 +156,33 @@ Esistono **due regimi**, e determinano su QUALE BRANCH vive il tag:
   `git describe` e dal bump di *Versioning*). Claude Code la STAMPA, non la esegue:
   push, merge e tag restano azioni umane.
 
+## Confine di esecuzione e blocchi per l'utente
+
+Il confine che decide CHI esegue un comando git è lo STATO che il comando tocca.
+Dichiararlo esplicitamente evita gli incidenti che nascono dalla sua ambiguità:
+
+- **Storia LOCALE → Claude Code.** Commit, amend, `rm --cached`, branch locali,
+  rebase del proprio feature branch: li esegue Claude Code in autonomia, dentro le
+  regole di questo doc.
+- **Storia CONDIVISA → l'utente.** Push, merge sul branch di integrazione, tag:
+  Claude Code li PREPARA (blocchi pronti da incollare, vedi `/integrate`), l'utente
+  li esegue dal suo terminale.
+
+Regole per ogni blocco di comandi destinato all'esecuzione manuale dell'utente:
+
+1. **Valori REALI, mai placeholder nudi.** SHA, branch e versioni letti da
+   `git log`/`git tag`/`git describe`, mai `<hash>`/`vX.Y.Z`/`<branch>` da risolvere
+   a mano. Se un valore non è risolvibile a priori, marcarlo esplicitamente:
+   "sostituisci X leggendolo da `<comando>`".
+2. **Placeholder per l'esecutore ≠ comandi per l'utente.** I placeholder nei comandi
+   che esegue Claude Code (l'esecutore li risolve da solo) non si passano MAI
+   all'utente: l'utente non deve risolvere nulla.
+3. **Comandi distruttivi mai inline.** `tag -d`, `branch -D`, `reset --hard`,
+   `push --force`, `rm`: mai nello stesso blocco copia-incolla dei comandi
+   costruttivi. Vanno in un blocco SEPARATO, preceduto dalla condizione ESATTA che
+   li giustifica ("solo se `<comando>` fallisce") — mai eseguibili per inerzia
+   scorrendo la sequenza.
+
 ## Configurazione dei permessi (`settings.json`)
 
 I permessi versionati (`.claude/settings.json`) sono la rete di sicurezza che decide
