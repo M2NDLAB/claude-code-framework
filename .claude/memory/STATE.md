@@ -43,8 +43,12 @@ tags: [state]
 
 ## Attenzione / problemi aperti
 <!-- Trappole note, debito tecnico accettato, cose fragili da non rompere.
-     Il debito di sicurezza accettato dal security gate (docs/03) va QUI, col motivo. -->
-- <problema aperto / debito accettato> — <motivo o nota>
+     Il debito di sicurezza accettato dal security gate (docs/03) va QUI, col motivo.
+     Ogni voce col suo TRIGGER esplicito ("X → precondizione bloccante di Y",
+     "riprendere quando Z"), MAI generica ("X da sistemare"): un debito col trigger
+     riemerge al momento giusto, uno generico affoga nel rumore. Le voci devono
+     SOPRAVVIVERE alle riscritture di questo file (verifica di /checkpoint). -->
+- <problema aperto / debito accettato> — <motivo> → <trigger: quando blocca/riprende>
 - [[LEARNINGS]]: stato delle proposte IMP (aperte / applicate / rimandate).
 
 ## Branch attivi

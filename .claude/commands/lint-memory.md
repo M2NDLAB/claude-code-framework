@@ -31,6 +31,11 @@ una regola: allora è un bug di processo, non di memoria, e va in escalation/IMP
 7. **Link rotti.** `[[wikilink]]` che puntano a note inesistenti.
 8. **Coerenza di `TREE.md`.** Allineato alla struttura reale del filesystem
    (rigenerabile come da `/checkpoint`).
+9. **Coerenza `LEARNINGS` ↔ `STATE`.** Gli item registrati sono allineati tra i
+   file: una IMP rimandata il cui trigger è vicino o bloccante compare anche tra i
+   problemi aperti di `STATE.md` (e viceversa); il debito accettato dal security
+   gate (docs/03) vive in `STATE.md` col motivo; ogni voce di debito ha il suo
+   TRIGGER esplicito, non è generica.
 
 ## Output e risoluzione
 Una tabella: **Area | Problema rilevato | Tipo** (disallineamento / contraddizione /

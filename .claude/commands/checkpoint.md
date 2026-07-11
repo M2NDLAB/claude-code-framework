@@ -9,7 +9,10 @@ Esegui la procedura di checkpoint per il lavoro corrente: $ARGUMENTS
 3. Aggiorna la memoria (.claude/memory/):
    - crea/aggiorna la nota di sessione di oggi con cosa è stato fatto e perché;
    - aggiorna le note components/ dei componenti toccati;
-   - riscrivi STATE.md con lo stato corrente;
+   - riscrivi STATE.md con lo stato corrente; DOPO la riscrittura verifica che le
+     voci preesistenti di "Attenzione / problemi aperti" siano ancora presenti o
+     consapevolmente chiuse (un debito critico non deve morire in una riscrittura)
+     e che ogni voce abbia il suo TRIGGER esplicito, mai generica;
    - riconcilia lo stato dei branch in STATE con la realtà git (i merge nel branch
      di integrazione avvengono FUORI sessione, quindi STATE può essere stale):
      `git branch --merged <branch-integrazione>` e `git log --oneline -5
