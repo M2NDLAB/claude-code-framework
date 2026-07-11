@@ -35,6 +35,25 @@ funzionali verdi può comunque avere difetti di sicurezza invisibili ai test (un
 bypass di un controllo, uno spoofing, un endpoint amministrativo esposto). Solo una
 review dedicata li trova prima che finiscano in integrazione.
 
+## Quando la review deve essere adversariale (autore ≠ giudice)
+
+Il criterio non è la severità nominale ma il **raggio di propagazione** del difetto:
+
+- **Adversariale** — chi verifica NON è chi ha scritto (un secondo agente, una
+  seconda persona, o un secondo passaggio con mandato esplicito di REFUTARE): per il
+  codice di sicurezza in moduli CONDIVISI, dove un difetto si propaga a più
+  consumer. L'autore che rilegge il proprio lavoro tende a rileggere le proprie
+  assunzioni.
+- **Autore-che-verifica** — sufficiente (e l'adversariale è overhead): per
+  ricognizioni fattuali e fix locali ispezionabili, con raggio di propagazione
+  nullo.
+
+**Prima di agire sui finding.** In una review multi-agente — specie dopo
+interruzioni o resume — verifica la COMPLETEZZA dai numeri giusti: la fonte
+autoritativa è la SINTESI della review, non i conteggi grezzi di un journal di
+esecuzione (che i retry possono gonfiare). Prima si riconcilia il conteggio, poi si
+agisce sui finding.
+
 ## Prevenzione *by-convention*
 
 Il gate trova i difetti; le convenzioni li prevengono. Dove un'intera classe di
