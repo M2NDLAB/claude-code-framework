@@ -32,17 +32,6 @@
           }
         ]
       }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "gitleaks protect --staged --no-banner 2>/dev/null || echo 'WARN: gitleaks non installato — installalo per il secret scanning'"
-          }
-        ]
-      }
     ]
   }
 }

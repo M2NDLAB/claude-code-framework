@@ -65,7 +65,7 @@ pianifica → esegui per task → [se sensibile] `/security-review` → `/retro`
 │   ├── reset-task.sh          cleanup chirurgico del task interrotto
 │   └── README.md
 └── .claude/
-    ├── settings.json          hook SessionStart (inietta STATE.md) + secret scan + permessi
+    ├── settings.json          hook SessionStart (inietta STATE.md) + permessi (secret scan: hook pre-commit)
     ├── docs/                  00-overview, 01-task-planning ... 06-self-improvement
     ├── commands/              /checkpoint /integrate /sos /retro /security-review /new-component /lint-memory
     └── memory/                STATE, TREE, INDEX, LEARNINGS (template) + 4 sottocartelle
