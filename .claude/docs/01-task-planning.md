@@ -26,6 +26,15 @@ Questa valutazione la fai TU in autonomia, senza chiedere all'utente.
 
 ## FASE 2 — Generazione del piano
 
+**Prima del piano, se ci sono scelte strutturali.** Se il prompt comporta decisioni
+costose da invertire (architettura, contratti tra moduli, scelta di un approccio),
+il piano NON è il primo artefatto: prima un assessment in SOLA LETTURA dello stato
+reale, poi la proposta con le alternative e i trade-off, poi la DECISIONE
+dell'utente, registrata in `decisions/` (o come ADR — vedi il README di
+`decisions/`). Solo allora il piano, che PUNTA alla decisione registrata invece di
+ridiscuterla a ogni task. Per i prompt onerosi ma senza bivi strutturali si va
+direttamente al piano.
+
 Crea `.claude/memory/plans/<id-prompt>.md` (es. `plans/03-modulo-x.md`) con questo
 formato (frontmatter + checklist):
 

@@ -41,7 +41,10 @@ componenti toccati dal task.
 ```
 
 1. **Pianifica** se il prompt è oneroso → `01-task-planning.md`. Niente burocrazia
-   per i task piccoli.
+   per i task piccoli. Se il deliverable comporta SCELTE STRUTTURALI, il piano è
+   preceduto da: assessment in sola lettura → proposta con alternative → decisione
+   dell'utente → registrazione in `decisions/` (o ADR) → il piano PUNTA alla
+   decisione registrata invece di ridiscuterla.
 2. **Esegui** rispettando la qualità → `02-code-quality.md`. Ogni task lascia il
    progetto in uno stato consistente e termina con un commit.
 3. **Proteggi** i componenti sensibili con il gate di sicurezza → `03-security-gate.md`.
