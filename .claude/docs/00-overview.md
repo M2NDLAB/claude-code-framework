@@ -90,6 +90,20 @@ of Done e il commit.
 > checkpoint persista le IMP appena registrate; `/integrate` per ultimo perché è
 > l'unico che tocca lo stato condiviso, e solo dopo che memoria e doc sono allineate.
 
+## Igiene di scope e di sessione
+
+- **Un cambiamento alla volta.** Niente "già che ci siamo": una pulizia scoperta
+  lavorando si estrae in un task/branch proprio SOLO se ha impatto reale (un bug);
+  altrimenti si annota (memoria o IMP) e si resta nello scope corrente.
+- **`/clear` (o nuova sessione) tra deliverable SCOLLEGATI.** Il contesto del
+  deliverable precedente contamina il successivo: si chiude col ciclo di fine
+  deliverable, poi si riparte puliti. Ciò che serve dopo sta nella memoria, non
+  nella chat.
+- **Lavoro scollegato = branch scollegato.** Documentazione o fix estranei al
+  feature branch corrente vanno su un branch (o worktree) separato, non accodati
+  al branch su cui stai lavorando. (La doc COLLEGATA alla modifica resta invece
+  nello stesso commit/branch: regola 5 di `CLAUDE.md`.)
+
 ## Principi di processo (in ordine di priorità)
 
 1. **Sicurezza per default** — nessun secret in chiaro (hook gitleaks), least
