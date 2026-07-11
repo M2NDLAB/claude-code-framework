@@ -86,3 +86,6 @@ Stack: [DA DEFINIRE AL SETUP] | Repo: [DA DEFINIRE AL SETUP]
 > - **Componenti sensibili** soggetti al security gate (regola 8).
 > - **Dove vive la documentazione di progetto** (regola 5).
 > - **Deploy**: formato dell'artefatto di produzione, ambiente target.
+> - **Licenza del progetto**: quale licenza adotta QUESTO progetto e chi è l'holder
+>   del copyright. Il framework non la impone: la sua `LICENSE` (MIT) copre il
+>   framework stesso, NON i progetti che lo usano — vedi `SETUP.md`.

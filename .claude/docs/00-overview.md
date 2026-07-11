@@ -12,6 +12,12 @@ progetto costruisca.
    mappa), `INDEX.md` (la rotta), più le note in `sessions/`, `components/`,
    `decisions/`, `plans/`. La memoria si legge a inizio sessione e si aggiorna a
    fine task. *Un task senza memoria aggiornata non è finito.*
+   La memoria non è un archivio: è ciò che ACCORCIA i prompt. Finché una decisione
+   vive solo in chat, ogni prompt successivo deve ripeterla; una volta su disco, il
+   prompt ci PUNTA ("esegui il task N del piano") e si riduce a poche righe. Per lo
+   stesso motivo il lavoro costoso (un assessment, una review lunga) si persiste
+   SUBITO in una nota di sessione — PRIMA di un `/clear` o di un cambio di modello,
+   che perdono il contesto della chat.
 2. **Doc di processo** (`.claude/docs/`) — le regole permanenti di COME si lavora:
    pianificare, scrivere codice di qualità, fare la review di sicurezza, usare git,
    sbloccarsi quando ci si blocca, migliorare il metodo stesso.
@@ -41,7 +47,10 @@ componenti toccati dal task.
 ```
 
 1. **Pianifica** se il prompt è oneroso → `01-task-planning.md`. Niente burocrazia
-   per i task piccoli.
+   per i task piccoli. Se il deliverable comporta SCELTE STRUTTURALI, il piano è
+   preceduto da: assessment in sola lettura → proposta con alternative → decisione
+   dell'utente → registrazione in `decisions/` (o ADR) → il piano PUNTA alla
+   decisione registrata invece di ridiscuterla.
 2. **Esegui** rispettando la qualità → `02-code-quality.md`. Ogni task lascia il
    progetto in uno stato consistente e termina con un commit.
 3. **Proteggi** i componenti sensibili con il gate di sicurezza → `03-security-gate.md`.
@@ -86,6 +95,32 @@ of Done e il commit.
 > sensibile). L'ordine non è arbitrario — `/retro` prima di `/checkpoint` perché il
 > checkpoint persista le IMP appena registrate; `/integrate` per ultimo perché è
 > l'unico che tocca lo stato condiviso, e solo dopo che memoria e doc sono allineate.
+
+> **E `/lint-memory`?** Non è un passo del ciclo di fine deliverable: è un
+> health-check PERIODICO. Si esegue tipicamente insieme alla retrospettiva
+> periodica sul backlog IMP (`/retro` sull'intero `LEARNINGS.md`), e in più dopo
+> gli eventi che toccano molte note in una volta: merge grossi, ristrutturazioni
+> della memoria, riscritture ampie di `STATE.md`.
+
+## Igiene di scope e di sessione
+
+- **Un cambiamento alla volta.** Niente "già che ci siamo": una pulizia scoperta
+  lavorando si estrae in un task/branch proprio SOLO se ha impatto reale (un bug);
+  altrimenti si annota (memoria o IMP) e si resta nello scope corrente.
+- **`/clear` (o nuova sessione) tra deliverable SCOLLEGATI.** Il contesto del
+  deliverable precedente contamina il successivo: si chiude col ciclo di fine
+  deliverable, poi si riparte puliti. Ciò che serve dopo sta nella memoria, non
+  nella chat.
+- **Lavoro scollegato = branch scollegato.** Documentazione o fix estranei al
+  feature branch corrente vanno su un branch (o worktree) separato, non accodati
+  al branch su cui stai lavorando. (La doc COLLEGATA alla modifica resta invece
+  nello stesso commit/branch: regola 5 di `CLAUDE.md`.)
+- **Effort proporzionale alle conseguenze dell'errore.** Il ragionamento "costoso"
+  (modello/effort alto) si riserva a dove la correttezza ha conseguenze:
+  implementazioni sensibili, review di sicurezza, analisi adversariali. Per
+  lettura, scrittura strutturata su decisioni già prese e chore basta il livello
+  standard. È un principio, non una regola rigida: gli strumenti cambiano, la
+  proporzionalità no.
 
 ## Principi di processo (in ordine di priorità)
 

@@ -68,6 +68,24 @@ vanno in `CLAUDE.md` (*"Regole tecniche specifiche del progetto"*).
   romperebbe tutti i call-site, anche quelli che non lo usano. Usa builder/fixture o
   binding da una mappa, così l'aggiunta di una property non si propaga ai test
   esistenti.
+- Verifica su artefatti REALI prima di decidere: mai derivare una decisione o un
+  fix dalla sola memoria o da un debito registrato quando l'artefatto (codice,
+  dati, config) è su disco — un debito può essere stato registrato con la CAUSA
+  sbagliata. Verificarla (grep/lettura) costa poco; eseguire alla lettera una
+  diagnosi errata costa molto.
+
+## Test che dimostrano (non solo test verdi)
+
+- Un test verde può passare per la ragione SBAGLIATA. Un fix si prova in modo che
+  DIMOSTRI la catena reale: riproduci il difetto (RED), applica il fix isolando la
+  variabile, mostra il passaggio a GREEN — non un generico "i test passano", che
+  potrebbero passare anche col bug.
+- Dove conta davvero (sicurezza, compliance, invarianti di dominio): test scritti
+  come INVARIANTI riapplicate per COSTRUZIONE, non come asserzioni sullo stato noto
+  oggi — es. un test che via reflection/introspezione asserisce una proprietà su
+  TUTTE le entità, con controllo anti-vacuità (fallisce se l'insieme scandito è
+  vuoto). Così una regressione futura rompe il build da sola, invece di aspettare
+  che qualcuno si ricordi di aggiornare il test.
 
 ## Definition of Done di ogni task
 

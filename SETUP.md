@@ -19,6 +19,12 @@ Copia nella root del nuovo repo: la cartella `.claude/`, `CLAUDE.md`, `Makefile`
 `commitlint.config.cjs`, `.gitignore`, `scripts/`. (README.md e questo SETUP.md
 puoi lasciarli fuori dal progetto finale, o tenerli come riferimento.)
 
+> **`LICENSE`, `CONTRIBUTING.md` e `CHANGELOG.md` NON si copiano.** Sono file del
+> repo del framework (la sua licenza, il suo flusso di contributi, la sua storia):
+> la licenza del TUO progetto è una scelta tua ([DA DEFINIRE AL SETUP], checklist
+> Root qui sotto). `SECURITY.md` invece è uno scaffold riusabile: puoi copiarlo e
+> compilare i suoi `[DA DEFINIRE AL SETUP]`.
+
 Poi: `git init` (se non è già un repo) e crea il branch di integrazione (`develop`).
 
 ## 2. Riempi i `[DA DEFINIRE AL SETUP]`
@@ -45,12 +51,17 @@ Ecco la lista completa, raggruppata per file:
 
 ### `.claude/commands/`
 - [ ] `checkpoint.md`: pattern da ignorare per `tree`, nome del branch di integrazione.
-- [ ] `new-component.md`: struttura standard di un componente del progetto.
+- [ ] `new-component.md`: struttura standard di un componente del progetto
+      (finché CLAUDE.md e questo file non sono compilati, `/new-component` è inerte).
 
 ### `.claude/memory/`
 - [ ] `TREE.md`: il pattern `-I '...'` per `tree` adatto al tuo stack.
-- [ ] (I template `STATE.md`, `INDEX.md`, `LEARNINGS.md` si popolano al primo
-      comando — vedi punto 4; per ora lascia i blocchi di istruzioni.)
+- [ ] **SVUOTA la memoria VIVA del framework**: `LEARNINGS.md` arriva con le IMP
+      del framework stesso (regime ibrido, vedi il suo `CONTRIBUTING.md`) — riporta
+      le sezioni a vuote: le IMP del TUO progetto ripartono da 001. Elimina le note
+      in `sessions/` (tieni il README).
+- [ ] (I template `STATE.md`, `INDEX.md` si popolano al primo comando — vedi
+      punto 4; per ora lascia i blocchi di istruzioni.)
 
 ### `.claude/settings.json`
 - [ ] Aggiungi alla `allow` SOLO i comandi **read-only** dei tuoi tool (build tool,
@@ -67,6 +78,9 @@ Ecco la lista completa, raggruppata per file:
       tuo linguaggio (vedi gli esempi commentati nell'hook pre-commit).
 - [ ] `Makefile`: aggiungi i target `build` / `test` / `run` del progetto.
 - [ ] `.gitignore`: decommenta/aggiungi gli artefatti di build del tuo stack.
+- [ ] **Licenza del progetto**: scegli la licenza del TUO progetto e crea la sua
+      `LICENSE` (holder e anno tuoi). Quella del framework non si eredita; registra
+      la scelta anche in `CLAUDE.md` (regole tecniche).
 
 ## 3. Installa gli hook git
 

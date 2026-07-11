@@ -7,6 +7,10 @@ processo: un health-check della COERENZA della base di conoscenza, su: $ARGUMENT
 
 Questo NON è una retrospettiva di processo (`/retro`, vedi @.claude/docs/06-self-improvement.md):
 la retro propone COSA MIGLIORARE nel workflow; il lint verifica la SALUTE dei DATI.
+**Quando si esegue** (vedi il ciclo in @.claude/docs/00-overview.md): NON a ogni
+deliverable — periodicamente, di norma insieme alla retrospettiva periodica sul
+backlog IMP, e dopo eventi che toccano molte note in una volta (merge grossi,
+ristrutturazioni della memoria, riscritture ampie di `STATE.md`).
 **Criterio di risoluzione**: questo è un framework per software — una contraddizione
 è un BUG, non una tensione da preservare. Il lint SEGNALA e PROPONE la correzione,
 allineando sempre lo stato alla realtà (mai il contrario — salvo che la realtà violi
@@ -31,6 +35,11 @@ una regola: allora è un bug di processo, non di memoria, e va in escalation/IMP
 7. **Link rotti.** `[[wikilink]]` che puntano a note inesistenti.
 8. **Coerenza di `TREE.md`.** Allineato alla struttura reale del filesystem
    (rigenerabile come da `/checkpoint`).
+9. **Coerenza `LEARNINGS` ↔ `STATE`.** Gli item registrati sono allineati tra i
+   file: una IMP rimandata il cui trigger è vicino o bloccante compare anche tra i
+   problemi aperti di `STATE.md` (e viceversa); il debito accettato dal security
+   gate (docs/03) vive in `STATE.md` col motivo; ogni voce di debito ha il suo
+   TRIGGER esplicito, non è generica.
 
 ## Output e risoluzione
 Una tabella: **Area | Problema rilevato | Tipo** (disallineamento / contraddizione /

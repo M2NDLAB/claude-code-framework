@@ -16,7 +16,8 @@ conferma dove indicato.
 Modello di DEFAULT (a due branch), come esempio concreto:
 - `main` = branch stabile/produzione. Solo merge dal branch di integrazione via
   release, mai commit diretti.
-- `develop` = branch di integrazione/staging. Solo merge di feature branch via PR.
+- `develop` = branch di integrazione/staging. Solo merge di feature branch,
+  eseguiti da un umano (vedi *Merge*: via PR o via blocco `/integrate`).
 - `feat/<area>-<descrizione>` = una feature, vita breve (giorni, non settimane).
 - `fix/<area>-<descrizione>` per bugfix; `hotfix/<descrizione>` dal branch stabile (e
   ri-merge nel branch di integrazione subito dopo).
@@ -59,11 +60,23 @@ Refs: #123
 Il formato è verificato dall'hook `commit-msg` (commitlint) e definito in
 `commitlint.config.cjs`.
 
+**Storia condivisa = per sempre.** Nei messaggi destinati alla storia condivisa
+(commit, merge, tag) nessun riferimento a istanze ESTERNE al progetto — nomi di
+altri progetti, clienti, ambienti privati: la storia pushata non si riscrive, e in
+un repo-template un nome concreto vi resta per sempre, violando l'agnosticità.
+
 ## Merge
 
-- Feature → `develop`: SEMPRE via Pull Request, mai merge locale diretto. Prima della
-  PR: rebase su `develop` (`git fetch && git rebase origin/develop`) per risolvere i
-  conflitti nel branch, non nel merge.
+- Feature → `develop`: il merge è SEMPRE un'azione umana, mai eseguita da Claude
+  Code, in una di due forme — quale adotta il progetto è [DA DEFINIRE AL SETUP]:
+  - **via Pull Request** quando esiste un flusso di review remoto (team, forge con
+    review obbligatoria);
+  - **via blocco `/integrate`** (merge locale `--no-ff` che l'UTENTE incolla ed
+    esegue) nel flusso a sviluppatore singolo, dove una PR verso se stessi non
+    aggiunge controllo.
+  In entrambe le forme, prima del merge: rebase su `develop`
+  (`git fetch && git rebase origin/develop`) per risolvere i conflitti nel branch,
+  non nel merge.
 - Strategia: squash merge per feature piccole (storia pulita), merge commit per
   feature grandi dove la storia interna dei commit ha valore. Mai fast-forward su
   `develop` (si perde la traccia del branch).
@@ -72,9 +85,10 @@ Il formato è verificato dall'hook `commit-msg` (commitlint) e definito in
   `feat(<area>): merge <feature> in develop`. I merge auto-generati da git ("Merge
   branch …") commitlint li ignora di default, ma preferiamo il messaggio conventional
   esplicito.
-- `develop` → `main`: solo via PR di release. Il tag di versione segue la sezione
-  *Versioning* qui sotto (in 0.x si tagga su `develop`; da `1.0.0` in poi su `main`,
-  dopo il merge di release).
+- `develop` → `main`: solo come merge di release, nella stessa forma scelta sopra
+  (PR di release, o variante release del blocco `/integrate`). Il tag di versione
+  segue la sezione *Versioning* qui sotto (in 0.x si tagga su `develop`; da `1.0.0`
+  in poi su `main`, dopo il merge di release).
 
 Conflitti: Claude Code li risolve solo se banali (import, formattazione); se toccano
 logica, si FERMA e chiede all'utente mostrando le due versioni.
@@ -107,9 +121,9 @@ Esistono **due regimi**, e determinano su QUALE BRANCH vive il tag:
   refactor/doc/memoria → nessun tag. In 0.x non si promette stabilità dell'API: un
   breaking interno resta nel MINOR e non forza da solo l'1.0.0.
 - **Rilascio della 1.0.0 — promozione al branch STABILE.** Quando lo sviluppo è
-  completo e l'API è considerata stabile, si porta `develop` su `main` via PR di
-  release e si applica il tag **`v1.0.0` su `main`**. Da qui `main` è la linea delle
-  versioni rilasciate.
+  completo e l'API è considerata stabile, si porta `develop` su `main` con un merge
+  di release (nella forma scelta in *Merge*) e si applica il tag **`v1.0.0` su
+  `main`**. Da qui `main` è la linea delle versioni rilasciate.
 - **Post-1.0 — si tagga sul branch STABILE.** Da 1.0.0 i tag di rilascio vivono su
   `main`, dopo il merge di release `develop → main`: breaking → MAJOR
   (`v1.4.2` → `v2.0.0`), feature → MINOR (`v1.4.2` → `v1.5.0`), fix → PATCH
@@ -125,6 +139,16 @@ Esistono **due regimi**, e determinano su QUALE BRANCH vive il tag:
 > Modello di branching diverso (es. trunk-based, o nomi differenti — [DA DEFINIRE AL
 > SETUP])? I nomi cambiano, i due regimi no: pre-1.0 si tagga sulla linea di lavoro,
 > post-1.0 sulla linea rilasciata.
+
+**Igiene dei tag e del push (per l'utente che esegue).**
+- Il tag si DIGITA a mano, con un solo `-m` breve e ASCII puro: em-dash, accenti e
+  spazi non-breaking copiati da un editor corrompono il comando in modi oscuri.
+- Prima di pushare un tag: verificarlo SEMPRE con `git rev-parse <tag>`.
+  `git tag -d` si usa SOLO se quella verifica fallisce — mai su un tag sano, e mai
+  inline coi comandi costruttivi (vedi "Confine di esecuzione").
+- Prima di ogni push su un branch condiviso: `git log origin/<branch>..<branch>`
+  per vedere ESATTAMENTE cosa si sta per rendere pubblico — un push trascina TUTTI
+  i commit locali, non solo l'ultimo.
 
 ## Rollback — scegliere lo strumento giusto
 
@@ -155,6 +179,33 @@ Esistono **due regimi**, e determinano su QUALE BRANCH vive il tag:
   comandi di merge + tag pronta da incollare (prossima versione calcolata da
   `git describe` e dal bump di *Versioning*). Claude Code la STAMPA, non la esegue:
   push, merge e tag restano azioni umane.
+
+## Confine di esecuzione e blocchi per l'utente
+
+Il confine che decide CHI esegue un comando git è lo STATO che il comando tocca.
+Dichiararlo esplicitamente evita gli incidenti che nascono dalla sua ambiguità:
+
+- **Storia LOCALE → Claude Code.** Commit, amend, `rm --cached`, branch locali,
+  rebase del proprio feature branch: li esegue Claude Code in autonomia, dentro le
+  regole di questo doc.
+- **Storia CONDIVISA → l'utente.** Push, merge sul branch di integrazione, tag:
+  Claude Code li PREPARA (blocchi pronti da incollare, vedi `/integrate`), l'utente
+  li esegue dal suo terminale.
+
+Regole per ogni blocco di comandi destinato all'esecuzione manuale dell'utente:
+
+1. **Valori REALI, mai placeholder nudi.** SHA, branch e versioni letti da
+   `git log`/`git tag`/`git describe`, mai `<hash>`/`vX.Y.Z`/`<branch>` da risolvere
+   a mano. Se un valore non è risolvibile a priori, marcarlo esplicitamente:
+   "sostituisci X leggendolo da `<comando>`".
+2. **Placeholder per l'esecutore ≠ comandi per l'utente.** I placeholder nei comandi
+   che esegue Claude Code (l'esecutore li risolve da solo) non si passano MAI
+   all'utente: l'utente non deve risolvere nulla.
+3. **Comandi distruttivi mai inline.** `tag -d`, `branch -D`, `reset --hard`,
+   `push --force`, `rm`: mai nello stesso blocco copia-incolla dei comandi
+   costruttivi. Vanno in un blocco SEPARATO, preceduto dalla condizione ESATTA che
+   li giustifica ("solo se `<comando>` fallisce") — mai eseguibili per inerzia
+   scorrendo la sequenza.
 
 ## Configurazione dei permessi (`settings.json`)
 

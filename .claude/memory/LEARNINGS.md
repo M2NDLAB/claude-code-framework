@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-06-16
+updated: 2026-07-11
 tags: [improvement]
 ---
 # Learnings & proposte di miglioramento
@@ -11,7 +11,9 @@ tags: [improvement]
 > da solo: le applica solo dopo approvazione dell'utente. Le correzioni puramente
 > FATTUALI alla doc (Livello 1) non passano da qui, si applicano subito.
 >
-> La numerazione delle IMP parte da **001**. Questo file nasce VUOTO.
+> La numerazione delle IMP parte da **001**. Questo file nasce VUOTO in un nuovo
+> progetto. NEL REPO DEL FRAMEWORK, invece, è VIVO (regime ibrido dichiarato —
+> vedi `CONTRIBUTING.md`): chi copia il template lo SVUOTA al setup (`SETUP.md`).
 
 ## Proposte APERTE (in attesa di decisione utente)
 _(nessuna proposta aperta)_
@@ -22,6 +24,7 @@ _(nessuna proposta aperta)_
 - Problema osservato: <attrito ricorrente, errore ripetuto, gap, regola ambigua>
 - Proposta: <cosa cambiare e dove: CLAUDE.md / docs/NN / comando / hook / processo>
 - Beneficio atteso / rischio:
+- Trigger di ripresa: <se non è applicabile subito: quale evento la fa tornare in gioco>
 -->
 
 ## Applicate
@@ -69,19 +72,117 @@ _(nessuna proposta aperta)_
   `/integrate` parametrizzato (`<integrazione>`/`<stabile>`); guardia di
   `reset-task.sh` configurabile via `PROTECTED_BRANCHES`.
 
+### IMP-009 — Confine di esecuzione git e blocchi per l'utente → applicata il 2026-07-11, commit 6019fc6
+- Nuova sezione in `04-git-workflow.md`: storia LOCALE = Claude Code, storia
+  CONDIVISA = utente; blocchi utente con valori REALI (mai placeholder nudi);
+  placeholder dell'esecutore mai passati all'utente; comandi distruttivi solo in
+  blocco separato con la condizione esatta.
+
+### IMP-010 — Igiene dei tag e verifiche pre-push → applicata il 2026-07-11, commit 83a6642
+- docs/04 *Versioning*: tag digitato a mano con `-m` ASCII, `git rev-parse <tag>`
+  prima del push, `tag -d` SOLO se la verifica fallisce, `git log
+  origin/<branch>..<branch>` prima di ogni push. Blocco di `/integrate` aggiornato
+  con le due verifiche e il blocco di recupero separato.
+
+### IMP-011 — Fasi a monte del deliverable strutturale → applicata il 2026-07-11, commit fdfdb29
+- `00-overview.md` + `01-task-planning.md`: per i deliverable con scelte
+  strutturali, PRIMA del piano: assessment read-only → proposta con alternative →
+  decisione utente → registrazione in `decisions/` (o ADR) → piano che PUNTA alla
+  decisione.
+
+### IMP-012 — Igiene di scope e di sessione → applicata il 2026-07-11, commit 27fa2d2
+- `00-overview.md`: un cambiamento alla volta (niente "già che ci siamo"), `/clear`
+  tra deliverable scollegati, lavoro scollegato su branch/worktree separato.
+
+### IMP-013 — Memoria su disco come contratto → applicata il 2026-07-11, commit bd2b034
+- `00-overview.md` (pilastro 1), `01` (RIPRESA), `sessions/README.md`: le decisioni
+  su disco ACCORCIANO i prompt (il prompt ci punta); il lavoro costoso si persiste
+  PRIMA di `/clear`/cambio modello; il prompt di ripresa dà il compito senza turni
+  a vuoto.
+
+### IMP-014 — Debiti con trigger, sopravvivenza alle riscritture di STATE → applicata il 2026-07-11, commit a9a3966
+- Template `STATE.md` (voce di debito col trigger), `/checkpoint` (verifica di
+  sopravvivenza delle voci dopo la riscrittura), `/lint-memory` (controllo 9:
+  coerenza LEARNINGS ↔ STATE).
+
+### IMP-015 — Verifica su artefatti reali; test che dimostrano → applicata il 2026-07-11, commit 1843352
+- docs/02: la causa si verifica sugli artefatti REALI prima di agire (un debito può
+  essere registrato con la causa sbagliata); sezione "Test che dimostrano":
+  RED→GREEN isolando la variabile, invarianti per costruzione con anti-vacuità.
+
+### IMP-016 — Review adversariale per raggio di propagazione → applicata il 2026-07-11, commit a20a932
+- docs/03: adversariale (autore ≠ giudice) sul codice di sicurezza in moduli
+  CONDIVISI; autore-che-verifica su ricognizioni e fix locali; completezza dei
+  finding dalla SINTESI (non dal journal gonfiabile dai retry) prima di agire.
+
+### IMP-017 — Effort proporzionale alle conseguenze dell'errore → applicata il 2026-07-11, commit 2e01896
+- `00-overview.md`: principio tool-agnostico — ragionamento costoso dove la
+  correttezza ha conseguenze, standard per lettura/decisioni già prese/chore.
+
+### IMP-018 — Trigger di /lint-memory + fix fattuali minori → applicata il 2026-07-11, commit f910cfd
+- Trigger dichiarato (periodico + eventi che toccano molte note) in `00-overview.md`
+  e `lint-memory.md`; legenda di `TREE.md` ora rimanda all'elenco autorevole di
+  `CLAUDE.md`; `SETUP.md` avvisa che `/new-component` è inerte finché non compilato.
+
+### IMP-019 — Merge parametrico: PR o blocco /integrate → applicata il 2026-07-11, commit 152f6f5
+- docs/04 *Merge*: risolta la contraddizione "SEMPRE via PR" vs blocco locale di
+  `/integrate` — il merge è SEMPRE azione umana, in due forme [DA DEFINIRE AL
+  SETUP]: via PR (flusso di review team) o via blocco `/integrate` (sviluppatore
+  singolo). Allineati release e promozione 1.0.0.
+
+### IMP-020 — Rimosso l'hook PreToolUse gitleaks decorativo → applicata il 2026-07-11, commit 6a55922
+- Dimostrato sulla catena reale: exit sempre 0 (l'`||` inghiottiva il leak trovato,
+  con messaggio fuorviante), bersaglio `--staged` sbagliato al momento di
+  Write/Edit; il pre-commit di `hooks-install.sh` invece blocca davvero (commit con
+  secret rifiutato). `settings.json` ripulito: niente falsa sicurezza.
+
+### IMP-021 — Licenza MIT a due livelli → applicata il 2026-07-11, commit a9b7dee
+- `LICENSE` MIT reale (Copyright (c) 2026 M2NDLAB) che copre il SOLO framework; la
+  licenza del progetto-cliente resta una sua scelta [DA DEFINIRE AL SETUP]
+  (`CLAUDE.md` regole tecniche + `SETUP.md`: LICENSE non si copia).
+
+### IMP-022 — SECURITY, CONTRIBUTING, CHANGELOG del repo → applicata il 2026-07-11, commit 63312bf
+- `SECURITY.md` (canale reale: GitHub Security Advisories, nessuna email; parti
+  cliente [DA DEFINIRE AL SETUP]); `CONTRIBUTING.md` (workflow reale del repo);
+  `CHANGELOG.md` Keep a Changelog con voce retroattiva `v0.1.0` + `Unreleased`;
+  aggiornamento del CHANGELOG cablato come passo 3 di `/integrate`.
+
+### IMP-024 — Regime di memoria "ibrido dichiarato" → applicata il 2026-07-11, commit 16cfe1e
+- Vivi nel repo-framework SOLO `LEARNINGS.md` e `sessions/`; `STATE`/`TREE`/`INDEX`
+  restano template. Dichiarato in `CONTRIBUTING.md` e nell'header di questo file;
+  `SETUP.md` istruisce lo svuotamento alla copia (le IMP del cliente ripartono da 001).
+
+### IMP-025 — Trunk-based dichiarato + storia condivisa agnostica → applicata il 2026-07-11, commit da164c8
+- `CONTRIBUTING.md` dichiara l'eccezione VOLUTA: trunk-based su `main` (integrazione
+  e stabile coincidono, caso previsto da docs/04), tag pre-1.0 su `main`; docs/04
+  *Formato commit*: niente nomi di progetti/clienti nella storia condivisa.
+
 <!-- Formato:
 ### IMP-001 — <titolo> → applicata il YYYY-MM-DD, commit <sha>
 - <sintesi del problema e di cosa è stato cambiato in concreto>
 -->
 
 ## Rimandate (non respinte — si riprendono al momento giusto)
-_(nessuna ancora)_
 
-<!-- Formato:
-### IMP-00N — <titolo> → rimandata il YYYY-MM-DD
-- Decisione utente: RIMANDA. <motivo>
-- Trigger di ripresa: <quale evento futuro la fa tornare in gioco>
--->
+### IMP-023 — CODE_OF_CONDUCT.md e template .github/ → rimandata il 2026-07-11
+- Decisione utente: RIMANDA. Senza un flusso reale di contributi esterni sono
+  cerimonia (filtro anti-hype); si creano al volo quando servono (costo basso).
+  Alla ripresa: CODE_OF_CONDUCT = Contributor Covenant v2.1 con contatto
+  placeholder; `.github/` con template issue/PR minimi allineati a Conventional
+  Commits e al ciclo di fine deliverable.
+- Trigger di ripresa: primo issue/PR di un contributore esterno reale, oppure
+  decisione dell'utente di pubblicizzare il repo.
+
+### IMP-026 — Skill di Claude Code come artefatto gestito → rimandata il 2026-07-11
+- Decisione utente: RIMANDA (interpretazione confermata: convenzione di gestione
+  delle Skill come artefatto di prima classe, NON libreria di skill concrete).
+  Oggi nessun attrito osservato che le giustifichi: i comandi e il caricamento
+  selettivo di doc/memoria svolgono la stessa funzione (contesto on-demand).
+- Trigger di ripresa: ≥2 procedure operative ricorrenti in un progetto-cliente
+  senza casa naturale (né regole tecniche di CLAUDE.md né un comando), oppure le
+  Skill diventano il veicolo primario delle procedure di progetto in Claude Code.
+  Alla ripresa: convenzione minima agnostica (`.claude/skills/README.md` + agganci
+  a `/checkpoint` e `/lint-memory`), MAI una libreria di skill concrete.
 
 ## Rifiutate (con motivo — per non riproporle)
 _(nessuna ancora)_

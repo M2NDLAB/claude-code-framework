@@ -57,6 +57,10 @@ pianifica → esegui per task → [se sensibile] `/security-review` → `/retro`
 ├── CLAUDE.md                  indice + regole di processo + regole tecniche [DA DEFINIRE]
 ├── README.md                  questo file
 ├── SETUP.md                   come partire da zero, elenco dei [DA DEFINIRE]
+├── LICENSE                    MIT — copre il framework, non i progetti che lo usano
+├── CONTRIBUTING.md            come contribuire AL framework (workflow reale del repo)
+├── SECURITY.md                policy di sicurezza (reale per il repo + scaffold [DA DEFINIRE])
+├── CHANGELOG.md               Keep a Changelog, agganciato al versioning di docs/04
 ├── Makefile                   solo target di processo (hooks-install, reset-task)
 ├── commitlint.config.cjs      tipi Conventional Commits
 ├── .gitignore                 base (secrets + IDE/OS) + sezione [DA DEFINIRE]
@@ -65,7 +69,7 @@ pianifica → esegui per task → [se sensibile] `/security-review` → `/retro`
 │   ├── reset-task.sh          cleanup chirurgico del task interrotto
 │   └── README.md
 └── .claude/
-    ├── settings.json          hook SessionStart (inietta STATE.md) + secret scan + permessi
+    ├── settings.json          hook SessionStart (inietta STATE.md) + permessi (secret scan: hook pre-commit)
     ├── docs/                  00-overview, 01-task-planning ... 06-self-improvement
     ├── commands/              /checkpoint /integrate /sos /retro /security-review /new-component /lint-memory
     └── memory/                STATE, TREE, INDEX, LEARNINGS (template) + 4 sottocartelle
