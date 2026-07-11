@@ -12,6 +12,12 @@ progetto costruisca.
    mappa), `INDEX.md` (la rotta), più le note in `sessions/`, `components/`,
    `decisions/`, `plans/`. La memoria si legge a inizio sessione e si aggiorna a
    fine task. *Un task senza memoria aggiornata non è finito.*
+   La memoria non è un archivio: è ciò che ACCORCIA i prompt. Finché una decisione
+   vive solo in chat, ogni prompt successivo deve ripeterla; una volta su disco, il
+   prompt ci PUNTA ("esegui il task N del piano") e si riduce a poche righe. Per lo
+   stesso motivo il lavoro costoso (un assessment, una review lunga) si persiste
+   SUBITO in una nota di sessione — PRIMA di un `/clear` o di un cambio di modello,
+   che perdono il contesto della chat.
 2. **Doc di processo** (`.claude/docs/`) — le regole permanenti di COME si lavora:
    pianificare, scrivere codice di qualità, fare la review di sicurezza, usare git,
    sbloccarsi quando ci si blocca, migliorare il metodo stesso.

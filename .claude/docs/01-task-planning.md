@@ -134,6 +134,10 @@ L'hook `SessionStart` inietta `STATE.md`. Inoltre, all'avvio:
 3. Prima di riprendere il task interrotto: se il working tree è sporco (codice del
    mezzo-task), scartalo con lo script `reset-task` o manualmente
    (`git restore . && git clean -fd`) — riparti dal task pulito, non da macerie.
+4. Un prompt di ripresa ben fatto dà il COMPITO direttamente ("riprendi dal primo
+   task non spuntato del piano X") e PUNTA a piano e note di sessione per il
+   contesto: non deve produrre un turno a vuoto ("attendo istruzioni") né
+   ricostruire in chat ciò che è già su disco.
 
 ## Cleanup di un task interrotto — CHIRURGICO, mai distruttivo
 

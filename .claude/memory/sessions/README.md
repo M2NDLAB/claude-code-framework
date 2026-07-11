@@ -10,7 +10,10 @@ miglioramento (vedi `docs/06-self-improvement.md`).
 
 ## Quando si scrive
 A fine task/sessione, tipicamente dentro `/checkpoint`. Anche un'escalation
-(`docs/05`) va registrata qui con il suo ID.
+(`docs/05`) va registrata qui con il suo ID. E SEMPRE prima di un `/clear` o di un
+cambio di modello, se in chat c'è lavoro costoso non ancora persistito (un
+assessment, una review, decisioni prese al volo): il contesto di chat si perde, la
+nota no — e il prompt successivo potrà PUNTARE alla nota invece di ricostruire.
 
 ## Naming
 `YYYY-MM-DD-<slug-breve>.md` — es. `2026-06-14-setup-iniziale.md`,
