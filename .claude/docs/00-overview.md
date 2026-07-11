@@ -96,6 +96,12 @@ of Done e il commit.
 > checkpoint persista le IMP appena registrate; `/integrate` per ultimo perché è
 > l'unico che tocca lo stato condiviso, e solo dopo che memoria e doc sono allineate.
 
+> **E `/lint-memory`?** Non è un passo del ciclo di fine deliverable: è un
+> health-check PERIODICO. Si esegue tipicamente insieme alla retrospettiva
+> periodica sul backlog IMP (`/retro` sull'intero `LEARNINGS.md`), e in più dopo
+> gli eventi che toccano molte note in una volta: merge grossi, ristrutturazioni
+> della memoria, riscritture ampie di `STATE.md`.
+
 ## Igiene di scope e di sessione
 
 - **Un cambiamento alla volta.** Niente "già che ci siamo": una pulizia scoperta

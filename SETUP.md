@@ -45,7 +45,8 @@ Ecco la lista completa, raggruppata per file:
 
 ### `.claude/commands/`
 - [ ] `checkpoint.md`: pattern da ignorare per `tree`, nome del branch di integrazione.
-- [ ] `new-component.md`: struttura standard di un componente del progetto.
+- [ ] `new-component.md`: struttura standard di un componente del progetto
+      (finché CLAUDE.md e questo file non sono compilati, `/new-component` è inerte).
 
 ### `.claude/memory/`
 - [ ] `TREE.md`: il pattern `-I '...'` per `tree` adatto al tuo stack.

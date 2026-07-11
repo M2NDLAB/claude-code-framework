@@ -32,7 +32,7 @@ tags: [structure]
 | Path | Cosa contiene |
 |---|---|
 | .claude/docs/ | documentazione di processo (il "metodo") — caricare solo i file rilevanti |
-| .claude/commands/ | slash command (/checkpoint, /sos, /retro, /security-review, /new-component) |
+| .claude/commands/ | slash command del metodo — l'elenco autorevole è in `CLAUDE.md`, "Comandi rapidi" |
 | .claude/memory/ | questa memoria: [[STATE]], [[TREE]], [[INDEX]], sessions/, decisions/, components/, plans/ |
 | <path> | <cosa contiene> |
 
