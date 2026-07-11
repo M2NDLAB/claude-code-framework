@@ -287,21 +287,6 @@ tags: [improvement]
 - Trigger di ripresa: DECISIONE UTENTE in questa retro (ok ai tre file + scelta
   retroattivo-vs-solo-Unreleased per il CHANGELOG).
 
-### IMP-023 — CODE_OF_CONDUCT.md e template .github/: rimandare con trigger ⚖️ DECISIONE
-- Data: 2026-07-11 | Origine: consolidamento (INPUT 3, filtro anti-hype)
-- Problema osservato: mancano, ma il filtro «problema reale o hype?» chiede se servono
-  ORA: il repo non ha oggi un flusso di contributi esterni osservabile; un Code of
-  Conduct e i template issue/PR senza comunità sono cerimonia.
-- Proposta (consigliata): RIMANDARE entrambi con trigger esplicito. Se invece si vuole
-  crearli ora: CODE_OF_CONDUCT = Contributor Covenant v2.1 con contatto placeholder
-  `[DA DEFINIRE AL SETUP]`; `.github/` con ISSUE_TEMPLATE e PULL_REQUEST_TEMPLATE minimi
-  allineati a Conventional Commits e al ciclo di fine deliverable.
-- Beneficio atteso / rischio: niente file-vetrina da mantenere; si creano quando c'è chi
-  li usa. Rischio: se un contributore arriva prima del trigger, si crea al volo (costo
-  basso).
-- Trigger di ripresa: primo issue/PR di un contributore esterno reale, oppure decisione
-  dell'utente di pubblicizzare il repo.
-
 ### IMP-024 — Dogfooding: il repo-framework usa la propria memoria su di sé? ⚖️ DECISIONE
 - Data: 2026-07-11 | Origine: consolidamento (INPUT 2, decisione architetturale aperta)
 - Problema osservato: stato IBRIDO non dichiarato: `LEARNINGS.md` è REALE (IMP-001..008
@@ -360,35 +345,6 @@ tags: [improvement]
 - Trigger di ripresa: DECISIONE UTENTE in questa retro (trunk-based dichiarato vs
   migrazione a due branch; sì/no alla rimozione di `origin/master`).
 
-### IMP-026 — Skill di Claude Code come artefatto gestito: NON ora, con trigger di ripresa ⚖️ DECISIONE
-- Data: 2026-07-11 | Origine: consolidamento (INPUT 4, valutazione scettica richiesta)
-- Interpretazione assunta (da confermare con l'utente): "il framework fa e mantiene
-  aggiornate le skill" = prevedere le Skill (`.claude/skills/`) come artefatto di prima
-  classe del metodo — dove vivono, quando si creano/aggiornano, come si versionano, come
-  `/checkpoint` e `/lint-memory` le includono nei controlli — NON una libreria di skill
-  concrete (sarebbero stack-specifiche → violerebbero l'agnosticità).
-- Valutazione col filtro «problema reale o hype?»: oggi nel framework NON c'è un attrito
-  osservato che le Skill risolverebbero. I 7 comandi coprono il metodo; la conoscenza di
-  progetto vive in memoria e doc con caricamento selettivo, che svolge la stessa
-  funzione delle Skill (contesto on-demand). Una convenzione di gestione skill
-  introdotta ORA sarebbe superficie di manutenzione senza un problema concreto e
-  ricorrente → NON giustificata ora.
-- Proposta consigliata: NON creare `.claude/skills/` né convenzioni ora. Trigger di
-  ripresa esplicito: quando un progetto costruito sul framework accumula ≥2 procedure
-  operative ricorrenti che non stanno bene né nelle regole tecniche di CLAUDE.md né in
-  un comando (es. runbook di deploy, procedura di release complessa), oppure quando
-  l'ecosistema Claude Code rende le Skill il veicolo primario delle procedure di
-  progetto → a quel punto: convenzione minima agnostica (`.claude/skills/README.md`:
-  quando una procedura diventa skill, naming, aggancio a `/checkpoint` e
-  `/lint-memory`), MAI una libreria di skill concrete.
-- Alternativa se l'utente le vuole comunque: la sola convenzione minima (README) subito,
-  senza skill concrete.
-- Beneficio atteso / rischio: niente artefatto-vetrina; la porta resta aperta con un
-  trigger preciso. Rischio: se l'interpretazione assunta è sbagliata (l'utente voleva
-  skill CONCRETE per il repo-framework stesso), la valutazione va rifatta su quel
-  perimetro.
-- Trigger di ripresa: DECISIONE UTENTE in questa retro (conferma interpretazione +
-  rimandare vs convenzione minima subito).
 
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>
@@ -449,7 +405,26 @@ tags: [improvement]
 -->
 
 ## Rimandate (non respinte — si riprendono al momento giusto)
-_(nessuna ancora)_
+
+### IMP-023 — CODE_OF_CONDUCT.md e template .github/ → rimandata il 2026-07-11
+- Decisione utente: RIMANDA. Senza un flusso reale di contributi esterni sono
+  cerimonia (filtro anti-hype); si creano al volo quando servono (costo basso).
+  Alla ripresa: CODE_OF_CONDUCT = Contributor Covenant v2.1 con contatto
+  placeholder; `.github/` con template issue/PR minimi allineati a Conventional
+  Commits e al ciclo di fine deliverable.
+- Trigger di ripresa: primo issue/PR di un contributore esterno reale, oppure
+  decisione dell'utente di pubblicizzare il repo.
+
+### IMP-026 — Skill di Claude Code come artefatto gestito → rimandata il 2026-07-11
+- Decisione utente: RIMANDA (interpretazione confermata: convenzione di gestione
+  delle Skill come artefatto di prima classe, NON libreria di skill concrete).
+  Oggi nessun attrito osservato che le giustifichi: i comandi e il caricamento
+  selettivo di doc/memoria svolgono la stessa funzione (contesto on-demand).
+- Trigger di ripresa: ≥2 procedure operative ricorrenti in un progetto-cliente
+  senza casa naturale (né regole tecniche di CLAUDE.md né un comando), oppure le
+  Skill diventano il veicolo primario delle procedure di progetto in Claude Code.
+  Alla ripresa: convenzione minima agnostica (`.claude/skills/README.md` + agganci
+  a `/checkpoint` e `/lint-memory`), MAI una libreria di skill concrete.
 
 <!-- Formato:
 ### IMP-00N — <titolo> → rimandata il YYYY-MM-DD
