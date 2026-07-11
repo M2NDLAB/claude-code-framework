@@ -7,7 +7,8 @@ A fine deliverable, prepara il blocco PRONTO PER INTEGRAZIONE per: $ARGUMENTS
 Claude Code **non pusha e non mergia** — è azione umana (vedi
 @.claude/docs/04-git-workflow.md). Qui RACCOGLIE lo stato con comandi di sola lettura
 e PRODUCE un blocco di comandi esatti, pronti da incollare. Esegui SOLO i comandi di
-lettura dei passi 1-2; tutto il resto va STAMPATO, non eseguito.
+lettura dei passi 1-2 e l'aggiornamento del CHANGELOG del passo 3 (commit locale);
+tutto il resto va STAMPATO, non eseguito.
 
 ## 1. Raccogli lo stato (read-only)
 - Branch corrente (feature): `git branch --show-current`.
@@ -31,7 +32,16 @@ Applica le regole di *Versioning* di docs/04 al set di commit del branch:
   tag arriva alla release `<integrazione>`→`<stabile>` (vedi nota in fondo). Calcola la
   prossima versione dal `git describe` del passo 1.
 
-## 3. Stampa il blocco PRONTO PER INTEGRAZIONE
+## 3. Aggiorna il CHANGELOG (se il progetto ne tiene uno)
+
+Se alla root esiste un `CHANGELOG.md` (formato Keep a Changelog):
+- bump = "nessun tag" → NON toccarlo (il lavoro interno non è una release);
+- altrimenti: sposta il contenuto di `## [Unreleased]` sotto una nuova voce
+  `## [X.Y.Z] — YYYY-MM-DD` (versione calcolata al passo 2, data di oggi),
+  integrandolo con ciò che emerge dai commit del branch, e COMMITTA sul feature
+  branch PRIMA di stampare il blocco: così il changelog entra nel merge.
+
+## 4. Stampa il blocco PRONTO PER INTEGRAZIONE
 Un unico blocco di codice copiabile, con i segnaposto già sostituiti dai valori reali
 calcolati. NON eseguirlo:
 ```
@@ -70,7 +80,7 @@ git tag -d v<X.Y.Z>
 # poi ricrea il tag digitandolo a mano (passo 3) e riverifica (passo 4)
 ```
 
-## 4. Verifica finale (stampala come checklist)
+## 5. Verifica finale (stampala come checklist)
 - l'header del merge commit è entro il limite del commit-linter: **100 caratteri**
   (default conventional, non sovrascritto in `commitlint.config.cjs`);
 - il tipo del merge commit è un tipo valido (`feat`/`fix`/...), MAI `merge:`;

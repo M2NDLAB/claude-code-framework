@@ -19,9 +19,11 @@ Copia nella root del nuovo repo: la cartella `.claude/`, `CLAUDE.md`, `Makefile`
 `commitlint.config.cjs`, `.gitignore`, `scripts/`. (README.md e questo SETUP.md
 puoi lasciarli fuori dal progetto finale, o tenerli come riferimento.)
 
-> **`LICENSE` NON si copia.** La licenza MIT alla root copre il *framework*, non i
-> progetti costruiti con esso: la licenza del TUO progetto è una scelta tua
-> ([DA DEFINIRE AL SETUP], vedi la checklist Root qui sotto).
+> **`LICENSE`, `CONTRIBUTING.md` e `CHANGELOG.md` NON si copiano.** Sono file del
+> repo del framework (la sua licenza, il suo flusso di contributi, la sua storia):
+> la licenza del TUO progetto è una scelta tua ([DA DEFINIRE AL SETUP], checklist
+> Root qui sotto). `SECURITY.md` invece è uno scaffold riusabile: puoi copiarlo e
+> compilare i suoi `[DA DEFINIRE AL SETUP]`.
 
 Poi: `git init` (se non è già un repo) e crea il branch di integrazione (`develop`).
 

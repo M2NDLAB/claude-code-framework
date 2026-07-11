@@ -58,6 +58,9 @@ pianifica → esegui per task → [se sensibile] `/security-review` → `/retro`
 ├── README.md                  questo file
 ├── SETUP.md                   come partire da zero, elenco dei [DA DEFINIRE]
 ├── LICENSE                    MIT — copre il framework, non i progetti che lo usano
+├── CONTRIBUTING.md            come contribuire AL framework (workflow reale del repo)
+├── SECURITY.md                policy di sicurezza (reale per il repo + scaffold [DA DEFINIRE])
+├── CHANGELOG.md               Keep a Changelog, agganciato al versioning di docs/04
 ├── Makefile                   solo target di processo (hooks-install, reset-task)
 ├── commitlint.config.cjs      tipi Conventional Commits
 ├── .gitignore                 base (secrets + IDE/OS) + sezione [DA DEFINIRE]
