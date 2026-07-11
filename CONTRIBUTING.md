@@ -28,6 +28,22 @@ Questo repo si auto-applica il metodo che descrive (`.claude/docs/`):
   un progetto (stack, nomi, valori concreti); dove serve concretezza si usa
   `[DA DEFINIRE AL SETUP]`.
 
+## Il modello git di questo repo (eccezione dichiarata)
+
+Il default che il framework DESCRIVE è a due branch (`.claude/docs/04`), ma il
+repo del framework stesso è **trunk-based su `main`**: i due RUOLI del doc —
+branch di integrazione e branch stabile — qui COINCIDONO (caso previsto dal doc
+stesso). In concreto:
+
+- i deliverable passano da un feature branch mergiato in `main` con `--no-ff` via
+  blocco `/integrate`, eseguito da un umano (una PR verso se stessi non aggiunge
+  controllo);
+- in regime pre-1.0 i tag annotati (`v0.x.y`) vivono su `main`, che qui È la
+  linea di integrazione;
+- nella storia condivisa (commit, merge, tag) niente nomi di progetti o clienti
+  specifici — vedi la regola in docs/04, *Formato commit*: per un template
+  l'agnosticità vale anche nei messaggi, perché la storia pushata non si riscrive.
+
 ## La memoria di questo repo: regime "ibrido dichiarato"
 
 Il repo usa su di sé solo UNA PARTE del proprio sistema di memoria:

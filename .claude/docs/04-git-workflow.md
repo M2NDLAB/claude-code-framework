@@ -60,6 +60,11 @@ Refs: #123
 Il formato è verificato dall'hook `commit-msg` (commitlint) e definito in
 `commitlint.config.cjs`.
 
+**Storia condivisa = per sempre.** Nei messaggi destinati alla storia condivisa
+(commit, merge, tag) nessun riferimento a istanze ESTERNE al progetto — nomi di
+altri progetti, clienti, ambienti privati: la storia pushata non si riscrive, e in
+un repo-template un nome concreto vi resta per sempre, violando l'agnosticità.
+
 ## Merge
 
 - Feature → `develop`: il merge è SEMPRE un'azione umana, mai eseguita da Claude
