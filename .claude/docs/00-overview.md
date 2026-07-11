@@ -109,6 +109,12 @@ of Done e il commit.
   feature branch corrente vanno su un branch (o worktree) separato, non accodati
   al branch su cui stai lavorando. (La doc COLLEGATA alla modifica resta invece
   nello stesso commit/branch: regola 5 di `CLAUDE.md`.)
+- **Effort proporzionale alle conseguenze dell'errore.** Il ragionamento "costoso"
+  (modello/effort alto) si riserva a dove la correttezza ha conseguenze:
+  implementazioni sensibili, review di sicurezza, analisi adversariali. Per
+  lettura, scrittura strutturata su decisioni già prese e chore basta il livello
+  standard. È un principio, non una regola rigida: gli strumenti cambiano, la
+  proporzionalità no.
 
 ## Principi di processo (in ordine di priorità)
 
