@@ -162,6 +162,28 @@ La lista di copia del passo 1 assume file assenti. Se il progetto ospite li ha g
 Regola generale per ogni altra collisione: **preserva il file dell'ospite, integra
 solo il necessario del template, segnala la collisione all'utente**.
 
+### Igiene git ereditata
+
+Su una storia git preesistente, prima di adottare il flusso di `docs/04`:
+
+- [ ] **Storia scansionata**: `gitleaks detect` one-off sull'intera storia (vedi
+      il riquadro del passo 3) — l'hook protegge solo i commit futuri.
+- [ ] **Audit dei tag ereditati**: `git cat-file -t <tag>` su ciascuno (`tag` =
+      annotato, `commit` = leggero). Il regime di `docs/04` (*Versioning*) crea
+      tag annotati SemVer: individua da quale base SemVer riparte il versioning
+      (la guardia di `/integrate` si ferma su una base non-SemVer); l'eventuale
+      normalizzazione dei tag ereditati è una decisione dell'utente — i tag
+      pushati sono storia condivisa.
+- [ ] **Costanti di versione negli script/config dell'ospite**: se una versione è
+      hard-coded, allineala ai tag (o derivala da `git describe`) e annota la
+      scelta — il drift tra costante e tag è un bug latente.
+- [ ] **Topologia dei branch**: davanti a un branch di integrazione remoto
+      dormiente (es. un vecchio `dev`), DECIDI e DICHIARA la scelta: trunk-based
+      (i due ruoli coincidono — caso previsto da `docs/04`) oppure ripristino del
+      branch come integrazione. Registra la scelta nei `[DA DEFINIRE AL SETUP]`
+      di `docs/04` e nei parametri dei comandi (`checkpoint.md`, `integrate.md` —
+      passo 2 di questa guida).
+
 ### Il primo comando diventa un ASSESSMENT che popola la memoria
 
 Su un progetto esistente la memoria non parte vuota: parte dalla fotografia

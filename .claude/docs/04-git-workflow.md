@@ -96,8 +96,11 @@ logica, si FERMA e chiede all'utente mostrando le due versioni.
 ## Versioning — SemVer su tag annotati
 
 Le versioni sono **tag git annotati** (`git tag -a vX.Y.Z -m "..."`), mai tag
-leggeri: un tag annotato porta autore, data e messaggio ed è ciò che `git describe`
-usa per calcolare la versione corrente e la distanza da essa. Formato SemVer `vX.Y.Z`.
+leggeri: un tag annotato porta autore, data e messaggio. (Precisione sul razionale:
+`git describe` SENZA `--tags` considera i soli tag annotati; il blocco di
+`/integrate` usa `git describe --tags`, che accetta anche i tag leggeri — per
+esempio ereditati da un innesto su un repo esistente — e per questo VERIFICA che
+la base sia un tag SemVer sano prima di calcolare il bump.) Formato SemVer `vX.Y.Z`.
 
 **Il tipo di conventional commit suggerisce il bump** (la decisione finale resta
 dell'utente — vedi "Tag e release"):

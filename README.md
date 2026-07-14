@@ -52,8 +52,8 @@ pianifica → esegui per task → [se sensibile] `/security-review` → `/retro`
 
 > Innesti il framework su un progetto **esistente** (brownfield)? I passi sono
 > gli stessi, con le differenze — riconciliazione dei file in collisione,
-> assessment iniziale che popola la memoria — nella sezione dedicata in coda a
-> `SETUP.md`.
+> assessment iniziale che popola la memoria, igiene della storia git ereditata —
+> nella sezione dedicata in coda a `SETUP.md`.
 
 ### Struttura
 

@@ -125,7 +125,11 @@ tags: [improvement]
   lightweight; individuare la base SemVer da cui riparte il regime di docs/04;
   eventuale normalizzazione = decisione utente) + nota nel passo 1 di
   integrate.md: verificare che la base restituita da `git describe --tags` sia
-  un tag SemVer sano prima di calcolare il bump; regola per le costanti di
+  un tag SemVer sano prima di calcolare il bump, e correzione DESCRITTIVA del
+  razionale impreciso di docs/04 (*Versioning*): `git describe` senza `--tags`
+  usa i soli tag annotati, mentre `/integrate` usa `--tags` che accetta anche i
+  lightweight — da cui la guardia. Nessun obbligo nuovo: la regola "mai tag
+  leggeri" resta invariata; regola per le costanti di
   versione negli script dell'ospite (allinearle o derivarle dai tag);
   (b) `gitleaks detect` one-off sull'intera storia come passo del setup
   brownfield; esito registrato, finding → decisione utente (la storia pushata

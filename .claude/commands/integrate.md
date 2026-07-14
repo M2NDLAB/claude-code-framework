@@ -19,6 +19,11 @@ tutto il resto va STAMPATO, non eseguito.
   (fallback senza remote: `<integrazione>..HEAD`).
 - Versione corrente e distanza: `git describe --tags --long` (se non esistono tag,
   parti da `v0.0.0`).
+- Guardia sulla BASE: `git describe --tags` accetta anche tag leggeri e nomi
+  non-SemVer (tipico di una storia ereditata da un innesto su repo esistente). Se
+  il tag base non è nel formato `vX.Y.Z`, FERMATI e segnala: la base del
+  versioning va decisa con l'utente (candidata tipica: il tag SemVer più alto,
+  `git tag --list 'v*' --sort=-v:refname | head -1`).
 
 ## 2. Calcola il bump e la prossima versione
 Applica le regole di *Versioning* di docs/04 al set di commit del branch:
