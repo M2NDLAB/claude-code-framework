@@ -30,6 +30,15 @@ Poi: `git init` (se non è già un repo) e crea il branch di integrazione (`deve
 ## 2. Riempi i `[DA DEFINIRE AL SETUP]`
 
 Cerca i marcatori nel template: `grep -rn "DA DEFINIRE AL SETUP" .`
+
+Due modalità equivalenti — scegli quella che preferisci:
+- **a mano**, spuntando la checklist qui sotto;
+- **in dialogo con Claude Code**: chiedigli di intervistarti sui
+  `[DA DEFINIRE AL SETUP]` (guidato da questa checklist) e di scrivere le tue
+  risposte nei file giusti. Non inventa nulla: ciò che non rispondi resta
+  `[DA DEFINIRE AL SETUP]`, e lo completi quando vuoi. (Vedi anche la variante
+  del primo comando, passo 4.)
+
 Ecco la lista completa, raggruppata per file:
 
 ### `CLAUDE.md` (il più importante)
@@ -112,6 +121,12 @@ Apri Claude Code nella root del progetto e dài un comando come questo:
 > genera `TREE.md` dalla struttura attuale, e popola `INDEX.md`. Infine, fammi un
 > riepilogo del metodo come l'hai capito e segnalami eventuali `[DA DEFINIRE]` ancora
 > aperti. Non scrivere codice applicativo in questo passaggio.
+
+*(Se al passo 2 hai scelto la modalità in dialogo)* aggiungi in coda al comando:
+
+> Poi intervistami sui `[DA DEFINIRE AL SETUP]` ancora aperti, seguendo la
+> checklist del passo 2 di `SETUP.md`, e scrivi le mie risposte nei file giusti;
+> ciò che non so ancora rispondere resta `[DA DEFINIRE AL SETUP]`.
 
 Da qui in poi il ciclo è quello di `.claude/docs/00-overview.md` (vedi "Il ciclo di
 fine deliverable"). Per ogni prompt oneroso Claude Code genererà un piano in
