@@ -91,6 +91,13 @@ make hooks-install
 Verifica: un commit con un messaggio non-conventional deve essere rifiutato; un file
 con un secret finto deve essere bloccato da gitleaks.
 
+> **Il repo ha già una storia?** (innesto su un progetto esistente) L'hook protegge
+> solo i commit da ora in poi: completa la baseline con una scansione one-off
+> dell'INTERA storia, `gitleaks detect` (dalla root del repo). Valuta ogni finding
+> PRIMA di proseguire: un secret nella storia pushata resta esposto anche se lo
+> togli dai file correnti — ruotalo/revocalo subito; l'eventuale riscrittura della
+> storia è un'operazione a parte, da decidere con giudizio (`docs/03`, baseline).
+
 ## 4. Primo comando a Claude Code
 
 Apri Claude Code nella root del progetto e dài un comando come questo:
