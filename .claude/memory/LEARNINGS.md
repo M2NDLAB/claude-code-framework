@@ -16,184 +16,7 @@ tags: [improvement]
 > vedi `CONTRIBUTING.md`): chi copia il template lo SVUOTA al setup (`SETUP.md`).
 
 ## Proposte APERTE (in attesa di decisione utente)
-
-### IMP-027 — Percorso di setup brownfield (innesto su progetto esistente)
-- Data: 2026-07-14 | Origine: primo innesto reale del framework su un progetto
-  esistente (brew-manager, tool shell/zsh) — frizioni documentate in presa diretta
-  nella nota d'innesto; verifica sui file reali in
-  [[sessions/2026-07-14-registrazione-imp-innesto-brownfield]]
-- Problema osservato: `SETUP.md` è interamente greenfield ("da template vuoto";
-  unico cenno al preesistente: "git init (se non è già un repo)", r.28). Quattro
-  gap verificati sui file:
-  1. **Collisioni file**: il passo 1 impone di copiare `.gitignore` e `Makefile`
-     senza istruzioni di merge (la checklist Root r.79-80 assume come base la
-     copia del framework: "aggiungi i target", "decommenta/aggiungi"); nessuna
-     regola "preserva il file dell'ospite, integra solo il necessario, segnala
-     ogni collisione". La copertura esistente è solo per esclusione
-     (LICENSE/CONTRIBUTING/CHANGELOG non si copiano, r.22-26); per `SECURITY.md`
-     ("puoi copiarlo") non dice nulla se l'ospite ne ha già uno.
-  2. **Memoria non popolata dall'esistente**: il primo comando (passo 4)
-     inizializza solo STATE/TREE/INDEX; niente assessment read-only del codice
-     esistente (maturità, difetti, test), niente note `components/` per i
-     componenti preesistenti, niente decisioni retroattive in `decisions/`. Il
-     pattern di IMP-011 (assessment → proposta → decisione, docs/00 r.49-53 e
-     docs/01 r.28-35) copre la tecnica ma è agganciato ai deliverable con scelte
-     strutturali, non al setup; il trigger di `components/README.md` ("alla
-     nascita del componente") non contempla componenti nati prima dell'innesto.
-  3. **`.claude/` preesistente ambiguo**: gli artefatti dell'harness (es.
-     `settings.local.json` creato dalle approvazioni permessi) fanno esistere
-     `.claude/` senza innesto precedente; SETUP/README non contemplano il caso e
-     manca un criterio per distinguere CASO A (innesto precedente da riprendere)
-     da CASO B (soli artefatti locali da preservare) — es. presenza di
-     `CLAUDE.md` + `docs/` + `memory/` del framework, non il solo "esiste `.claude/`?".
-  4. **Divergenze doc-vs-realtà dell'ospite** (README che documenta feature
-     inesistenti): docs/06 LIVELLO 1 letto alla lettera ("allinea la doc alla
-     realtà... applica direttamente") prescriverebbe di correggerle d'ufficio
-     durante l'innesto — l'opposto dell'igiene di scope (docs/00: "si annota e
-     si resta nello scope corrente"). La sezione "Debito documentazione" di
-     STATE è definita solo per doc MANCANTE ("cosa andrà documentato e non lo è
-     ancora"), non per doc esistente-ma-errata.
-- Proposta: nuova sezione "Innesto su un progetto esistente (brownfield)" in
-  `SETUP.md` (con rimando dal README), che NON tocca il flusso greenfield:
-  (a) regola di riconciliazione file: preserva il file dell'ospite, integra solo
-  il necessario del template, segnala ogni collisione all'utente;
-  (b) passo di assessment read-only che POPOLA la memoria (STATE con stato e
-  maturità reali, note `components/` dei componenti esistenti, decisioni
-  retroattive in `decisions/`): il pattern di IMP-011 promosso a passo esplicito
-  del setup brownfield;
-  (c) criterio CASO A/CASO B per `.claude/` preesistente (cosa guardare oltre
-  all'esistenza della cartella, cosa preservare in entrambi i casi);
-  (d) destinazione delle divergenze doc-vs-realtà dell'ospite: "Debito
-  documentazione" di STATE (allargandone la definizione alla doc
-  esistente-ma-errata) + chiarimento in docs/06 che il LIVELLO 1 riguarda la doc
-  del METODO/configurazione, non la doc dell'ospite durante l'innesto.
-  **OPZIONE da valutare (filtro anti-hype), NON decisa**: uno script
-  `scripts/graft.sh` che automatizza l'innesto (copia il sottoinsieme giusto,
-  azzera LEARNINGS/sessions, lancia il gitleaks detect one-off di IMP-028,
-  gestisce gli hook esistenti). Pro: passi meccanici ripetibili, niente
-  dimenticanze, stessa famiglia di `reset-task.sh`. Contro: le collisioni sono
-  DECISIONI umane non automatizzabili (lo script può solo rilevarle), casi limite
-  costosi da mantenere, rischio di falsa sicurezza; la sezione documentata può
-  bastare, e lo script può nascere DOPO, distillato dal testo provato su 2-3
-  innesti reali.
-- Beneficio atteso / rischio: ogni prossimo innesto non riscopre le stesse
-  frizioni (questa volta documentate a mano, in presa diretta). Rischio:
-  appesantire SETUP.md per chi parte greenfield — mitigato dalla sezione
-  separata in coda.
-- Trigger di ripresa: se rimandata, il prossimo innesto su un progetto esistente
-  la riporta in gioco (le frizioni si ripresenterebbero identiche).
-
-### IMP-028 — Igiene git ereditata all'innesto (tag, storia, branch, hook)
-- Data: 2026-07-14 | Origine: primo innesto reale del framework su un progetto
-  esistente (brew-manager) — vedi
-  [[sessions/2026-07-14-registrazione-imp-innesto-brownfield]]
-- Problema osservato: quattro tensioni git/hook specifiche del brownfield, tutte
-  verificate come scoperte:
-  1. **Tag ereditati**: docs/04 impone tag annotati per i tag NUOVI (r.96-100,
-     razionale: `git describe`) e IMP-010 copre l'igiene dei tag che si CREANO;
-     nulla sui tag preesistenti. Su tag lightweight ereditati `/integrate` non si
-     rompe ma DEGRADA in silenzio: usa `git describe --tags` (integrate.md
-     r.20-21), che accetta anche i lightweight e qualunque nome non-SemVer come
-     base del calcolo versione, senza guardie — in tensione con "mai tag leggeri"
-     (il razionale di docs/04 vale per `git describe` senza `--tags`). Osservato
-     inoltre il drift tra una costante di versione hard-coded in uno script
-     dell'ospite e i tag: nessuna regola lo intercetta.
-  2. **Storia mai scansionata**: l'hook esegue `gitleaks protect --staged`
-     (hooks-install.sh r.32) = solo commit futuri; la baseline di docs/03 r.5-7
-     ("nessun secret in chiaro entra nel repo") è sovra-promettente su un
-     brownfield, dove la storia pre-innesto resta non verificata. Nessun
-     `gitleaks detect` in tutto il framework (grep vuoto). Aggancio: è il
-     completamento naturale della baseline di docs/03, non una regola nuova.
-  3. **Topologia branch ereditata**: la meccanica parametrica esiste (IMP-008:
-     ruoli, trunk-based previsto in docs/04 r.8-14) ma SETUP.md r.28 istruisce
-     incondizionatamente a CREARE il branch di integrazione: nessuna guida a
-     decidere-e-dichiarare davanti a un branch remoto dormiente (es. un
-     `origin/dev` stantio): riattivarlo come integrazione o dichiarare
-     trunk-based. L'unico esempio di scelta dichiarata è CONTRIBUTING.md
-     (r.31-45), che per istruzione di SETUP r.22-26 NON si copia: non raggiunge
-     chi fa il setup.
-  4. **Hook preesistenti sovrascritti**: hooks-install.sh fa `cat >`
-     incondizionato su pre-commit/commit-msg (r.26, 65): distrugge hook esistenti
-     (husky, pre-commit framework) senza backup/merge/abort; e se l'ospite usa
-     `core.hooksPath` (husky), gli hook del framework finiscono in `.git/hooks`
-     che git IGNORA = installati ma inerti. Il commento in testa (r.6:
-     "sovrascrive gli hook precedenti installati da questo script") promette
-     meno di ciò che lo script fa davvero.
-- Proposta: checklist "igiene git ereditata" dentro la sezione brownfield di
-  SETUP.md (vedi IMP-027):
-  (a) audit dei tag ereditati (`git cat-file -t` su ciascun tag: annotati vs
-  lightweight; individuare la base SemVer da cui riparte il regime di docs/04;
-  eventuale normalizzazione = decisione utente) + nota nel passo 1 di
-  integrate.md: verificare che la base restituita da `git describe --tags` sia
-  un tag SemVer sano prima di calcolare il bump, e correzione DESCRITTIVA del
-  razionale impreciso di docs/04 (*Versioning*): `git describe` senza `--tags`
-  usa i soli tag annotati, mentre `/integrate` usa `--tags` che accetta anche i
-  lightweight — da cui la guardia. Nessun obbligo nuovo: la regola "mai tag
-  leggeri" resta invariata; regola per le costanti di
-  versione negli script dell'ospite (allinearle o derivarle dai tag);
-  (b) `gitleaks detect` one-off sull'intera storia come passo del setup
-  brownfield; esito registrato, finding → decisione utente (la storia pushata
-  non si riscrive alla leggera);
-  (c) passo "decidi e dichiara la topologia" (trunk-based vs ripristino del
-  branch dormiente), registrato nei [DA DEFINIRE AL SETUP] di docs/04 e nei
-  parametri di checkpoint/integrate;
-  (d) hooks-install.sh: rilevare hook preesistenti e `core.hooksPath` PRIMA di
-  scrivere — avvisare e fermarsi (o backup `.bak` + istruzioni di merge), e
-  correggere il commento impreciso in testa allo script.
-- Beneficio atteso / rischio: (b) chiude un buco di sicurezza reale (secret
-  storici mai visti da nessuno strumento); (d) evita di distruggere la pipeline
-  dell'ospite o di installare hook inerti credendoli attivi. Rischio:
-  hooks-install.sh più complesso — mitigato: il rilevamento è poche righe e
-  fallisce in modo parlante.
-- Trigger di ripresa: se rimandata, il prossimo innesto su un repo con storia
-  (per la (d): il primo ospite con husky o hook propri).
-
-### IMP-029 — Convivenza linguistica dichiarata (framework vs progetto)
-- Data: 2026-07-14 | Origine: primo innesto reale (brew-manager): framework in
-  italiano, doc pubblica dell'ospite in inglese — convivenza decisa al volo,
-  senza una casa nelle regole
-- Problema osservato: il framework è interamente in italiano ma non lo dichiara
-  mai come scelta; nessuna voce "lingua" nella checklist di SETUP.md né tra gli
-  esempi delle "Regole tecniche specifiche del progetto" di CLAUDE.md (grep
-  `lingua|italian|english|bilingu` → solo "linguaggio" di programmazione). Non è
-  un problema solo brownfield: si pone identico in greenfield con doc pubblica
-  in inglese — per questo è una IMP a sé e non una riga di IMP-027 (portata più
-  ampia, punto di applicazione diverso).
-- Proposta: voce "lingua/e del progetto" tra gli esempi della sezione "Regole
-  tecniche specifiche del progetto" di CLAUDE.md e checkbox nella checklist di
-  SETUP.md passo 2: quale lingua per memoria/processo (default: quella del
-  framework), quale per README/doc pubblici dell'ospite; una riga di rimando
-  nella sezione brownfield di IMP-027.
-- Beneficio atteso / rischio: decisione esplicita invece di deriva incoerente
-  nota-per-nota. Rischio: nullo (una voce di checklist e un esempio).
-- Trigger di ripresa: se rimandata, il prossimo progetto con doc pubblica in
-  lingua diversa da quella del framework.
-
-### IMP-030 — Compilazione dei [DA DEFINIRE AL SETUP] assistita da Claude Code
-- Data: 2026-07-14 | Origine: segnalazione utente al primo innesto (vale in
-  greenfield e brownfield, NON è specifica del brownfield)
-- Problema osservato: SETUP.md passo 2 e README "Come si usa" punto 2 sono
-  formulati come istruzioni manuali all'umano ("Riempi i [DA DEFINIRE AL
-  SETUP]", grep manuale, checklist, "15-30 minuti... per compilare le regole
-  tecniche"). Il massimo ruolo documentato di Claude Code è passivo: "segnalami
-  eventuali [DA DEFINIRE] ancora aperti" (SETUP r.103). L'alternativa reale e
-  già praticabile — Code li vede, chiede i valori in dialogo e scrive le
-  risposte nei file giusti — non è offerta da nessuna parte (grep su
-  chied/compil/dialogo: nulla). Nulla la vieta: docs/06 vieta i cambi di REGOLE
-  in autonomia, non la compilazione di placeholder su risposte dell'utente; e lo
-  stesso primo comando fa già scrivere a Code STATE/TREE/INDEX.
-- Proposta: in SETUP.md passo 2 dichiarare le DUE modalità equivalenti — (a) a
-  mano con la checklist; (b) in dialogo: chiedi a Claude Code di intervistarti
-  sui [DA DEFINIRE AL SETUP] (guidato dalla checklist esistente) e di scrivere
-  le risposte — ed estendere il primo comando del passo 4 con la variante
-  corrispondente; una riga allineata in README punto 2.
-- Beneficio atteso / rischio: onboarding più rapido; le risposte finiscono nei
-  file giusti senza che l'utente debba conoscere la mappa dei marcatori.
-  Rischio: compilazione superficiale se le risposte sono frettolose — mitigato:
-  l'intervista segue la checklist esistente e i marcatori senza risposta restano
-  `[DA DEFINIRE AL SETUP]` (nessuna invenzione).
-- Trigger di ripresa: se rimandata, il prossimo setup di un progetto (greenfield
-  o brownfield).
+_(nessuna proposta aperta)_
 
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>
@@ -334,6 +157,45 @@ tags: [improvement]
   e stabile coincidono, caso previsto da docs/04), tag pre-1.0 su `main`; docs/04
   *Formato commit*: niente nomi di progetti/clienti nella storia condivisa.
 
+### IMP-027 — Percorso di setup brownfield → applicata il 2026-07-14, commit ff3c2bc (+7fc8b8e)
+- Sezione "Innesto su un progetto ESISTENTE (brownfield)" in `SETUP.md`: criterio
+  CASO A/B per `.claude/` preesistente (la sola esistenza della cartella non
+  basta), riconciliazione dei file in collisione (l'ospite ha la precedenza; ogni
+  collisione si segnala), primo comando come assessment read-only che POPOLA la
+  memoria dall'esistente (STATE reale, `components/` retroattive, decisioni
+  ereditate), divergenze doc-vs-realtà registrate come debito e mai corrette
+  d'ufficio. Perimetro del LIVELLO 1 precisato in docs/06 (con confine di fine
+  innesto, 7fc8b8e), "Debito documentazione" allargato nel template `STATE.md`
+  alla doc esistente-ma-errata, rimando dal README e forward-pointer al passo 1.
+  L'opzione script `graft.sh` NON è inclusa: rimandata (vedi Rimandate).
+
+### IMP-028 — Igiene git ereditata all'innesto → applicata il 2026-07-14, commit 051d02c, 1103ffb, 4cd4363, c623b82
+- (b) 051d02c: `gitleaks detect` one-off sull'intera storia dichiarato come
+  completamento della baseline (docs/03 + riquadro in SETUP passo 3).
+  (d) 1103ffb + review c623b82: `hooks-install.sh` si ferma su hook di altra
+  origine (symlink inclusi) e su `core.hooksPath` con rimedio a scope corretto;
+  `FORCE_OVERWRITE=1` fa backup `.bak` e non scrive mai attraverso i symlink; le
+  personalizzazioni dei PROPRI hook si salvano in `.bak` al rilancio; commento
+  in testa allineato al comportamento reale. Sei scenari dimostrati su repo
+  usa-e-getta. (a+c) 4cd4363: guardia sulla base SemVer nel passo 1 di
+  `/integrate` + razionale di docs/04 corretto in forma descrittiva (`git
+  describe --tags` accetta anche i lightweight; nessun obbligo nuovo) +
+  checklist "Igiene git ereditata" nella sezione brownfield (audit tag, costanti
+  di versione hard-coded, topologia dei branch decisa-e-dichiarata).
+
+### IMP-029 — Convivenza linguistica dichiarata → applicata il 2026-07-14, commit acdefcb
+- Voce "Lingua/e del progetto" negli esempi delle regole tecniche di `CLAUDE.md`,
+  checkbox nella checklist del passo 2 di `SETUP.md`, rimando nella sezione
+  brownfield: la lingua di memoria/processo vs doc pubblica si decide una volta,
+  non nota-per-nota. Vale anche in greenfield.
+
+### IMP-030 — Compilazione dei [DA DEFINIRE AL SETUP] assistita da Claude Code → applicata il 2026-07-14, commit 42bc00a
+- SETUP passo 2 dichiara le due modalità equivalenti (a mano con la checklist /
+  in dialogo con Claude Code che intervista e scrive le risposte), variante del
+  primo comando al passo 4, riga allineata nel README. Solo documentazione del
+  comportamento esistente: i marcatori senza risposta restano
+  `[DA DEFINIRE AL SETUP]`, nessuna invenzione.
+
 <!-- Formato:
 ### IMP-001 — <titolo> → applicata il YYYY-MM-DD, commit <sha>
 - <sintesi del problema e di cosa è stato cambiato in concreto>
@@ -360,6 +222,15 @@ tags: [improvement]
   Skill diventano il veicolo primario delle procedure di progetto in Claude Code.
   Alla ripresa: convenzione minima agnostica (`.claude/skills/README.md` + agganci
   a `/checkpoint` e `/lint-memory`), MAI una libreria di skill concrete.
+
+### IMP-027 (opzione `graft.sh`) — script di innesto automatizzato → rimandata il 2026-07-14
+- Decisione utente: il resto di IMP-027 è APPLICATO (vedi Applicate); lo script
+  che automatizza l'innesto (copia del sottoinsieme giusto, azzeramento di
+  LEARNINGS/sessions, `gitleaks detect` one-off, gestione hook) NON si fa ora —
+  filtro anti-hype: le collisioni sono decisioni umane (lo script può solo
+  rilevarle) e la sezione brownfield di `SETUP.md` va prima provata sul campo.
+- Trigger di ripresa: dopo 2-3 innesti brownfield reali, quando il pattern
+  comune è distillabile dal testo provato.
 
 ## Rifiutate (con motivo — per non riproporle)
 _(nessuna ancora)_
