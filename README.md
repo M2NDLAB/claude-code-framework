@@ -50,6 +50,11 @@ Da lì in poi si lavora con il ciclo descritto in `.claude/docs/00-overview.md`:
 pianifica → esegui per task → [se sensibile] `/security-review` → `/retro` →
 `/checkpoint` → `/integrate` (push deciso dall'umano); se ti blocchi, `/sos`.
 
+> Innesti il framework su un progetto **esistente** (brownfield)? I passi sono
+> gli stessi, con le differenze — riconciliazione dei file in collisione,
+> assessment iniziale che popola la memoria — nella sezione dedicata in coda a
+> `SETUP.md`.
+
 ### Struttura
 
 ```

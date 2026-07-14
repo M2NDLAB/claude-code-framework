@@ -122,3 +122,74 @@ Le lezioni di processo che emergono lavorando finiscono in `LEARNINGS.md` come
 proposte IMP. Quelle che si rivelano utili a *qualsiasi* progetto sono candidate a
 tornare nel template del framework, per il prossimo progetto. È il loop descritto
 nella *Filosofia* del README.
+
+---
+
+## Innesto su un progetto ESISTENTE (brownfield)
+
+I passi 1-5 valgono anche per un progetto già avviato (codice, storia git, doc
+propri), con le differenze di questa sezione. Principio guida: **il progetto
+ospite ha la precedenza** — il template si INTEGRA, non si impone; ogni collisione
+si segnala all'utente invece di risolverla in silenzio.
+
+### Prima di copiare: `.claude/` esiste già?
+
+L'esistenza della cartella da sola NON basta a decidere: guarda cosa contiene.
+
+- **CASO A — innesto precedente del framework** (c'è `CLAUDE.md` alla root del
+  progetto e `.claude/` contiene `docs/` e `memory/` del framework): NON ricopiare
+  il template sopra — quella è la memoria del progetto. Riprendi da `STATE.md`;
+  se vuoi aggiornare il framework a una versione più recente, riconcilia file per
+  file dichiarando le differenze all'utente.
+- **CASO B — soli artefatti locali dell'harness** (tipicamente
+  `settings.local.json` creato dalle approvazioni dei permessi; nessun doc o
+  memoria del framework): procedi con la copia del template e PRESERVA quei file
+  locali (non sono versionati e non vanno sovrascritti).
+
+### Riconciliazione dei file in collisione
+
+La lista di copia del passo 1 assume file assenti. Se il progetto ospite li ha già:
+
+| File | Regola |
+|---|---|
+| `README.md` dell'ospite | Si PRESERVA: è la doc pubblica del progetto (il README del framework non si copia comunque, passo 1). |
+| `.gitignore` | Si INTEGRA: aggiungi al file dell'ospite le voci del template (secrets, `settings.local.json`, ecc.), non sovrascriverlo. |
+| `Makefile` | Si INTEGRA: aggiungi i target di processo (`hooks-install`, `reset-task`) a quello dell'ospite. |
+| `SECURITY.md` | Se l'ospite ne ha già uno, si preserva/integra; lo scaffold del template serve solo se manca. |
+| `LICENSE` | Resta quella dell'ospite (la LICENSE del framework non si copia mai, passo 1). |
+| Hook git esistenti | Vedi passo 3: `hooks-install.sh` si ferma da solo davanti a hook non suoi o a `core.hooksPath` attivo, e ti dice come procedere. |
+
+Regola generale per ogni altra collisione: **preserva il file dell'ospite, integra
+solo il necessario del template, segnala la collisione all'utente**.
+
+### Il primo comando diventa un ASSESSMENT che popola la memoria
+
+Su un progetto esistente la memoria non parte vuota: parte dalla fotografia
+dell'esistente. Al posto del comando del passo 4, usa:
+
+> Leggi `CLAUDE.md` e tutti i doc in `.claude/docs/`: interiorizza il metodo. Poi
+> fai un **assessment in SOLA LETTURA** del progetto esistente: struttura,
+> componenti, maturità reale (test? doc? build?), difetti evidenti, scelte
+> architetturali visibili nel codice. Con quello **inizializza la memoria**:
+> compila `STATE.md` con lo stato REALE (inclusi difetti e debiti osservati),
+> crea una nota in `.claude/memory/components/` per ogni componente significativo
+> già esistente, registra in `.claude/memory/decisions/` le scelte architetturali
+> ereditate che ricostruisci (decisioni retroattive, marcate come tali), genera
+> `TREE.md` e popola `INDEX.md`. Le divergenze tra la doc dell'ospite e la realtà
+> del codice NON correggerle: registrale in `STATE.md`, sezione "Debito
+> documentazione". Infine riepilogami il metodo e segnalami i `[DA DEFINIRE]`
+> ancora aperti. Non scrivere codice applicativo in questo passaggio.
+
+È il pattern assessment → proposta → decisione di `00-overview.md` e
+`01-task-planning.md`, promosso a passo del setup: l'assessment FOTOGRAFA, le
+decisioni su cosa correggere restano all'utente.
+
+### Divergenze doc-vs-realtà dell'ospite
+
+Un README che documenta feature inesistenti (o simili) NON si corregge durante
+l'innesto: prevale l'igiene di scope (`00-overview.md`, un cambiamento alla
+volta). Si registra in `STATE.md` → "Debito documentazione" e si corregge solo
+come task deciso dall'utente. Il LIVELLO 1 di `06-self-improvement.md`
+(correzioni fattuali immediate) riguarda la doc del METODO e del progetto
+gestito, NON la doc preesistente dell'ospite durante l'innesto — vedi la
+precisazione di perimetro lì.
