@@ -40,6 +40,9 @@ Ecco la lista completa, raggruppata per file:
       build/test/lint/run, struttura standard di un componente, convenzioni di codice,
       API design, datastore, test/coverage, deploy. È qui che il framework diventa
       *il tuo* progetto.
+- [ ] **Lingua/e del progetto** (nelle regole tecniche): quale lingua per
+      memoria/processo, quale per la doc pubblica — da dichiarare se diverse
+      (es. metodo in una lingua, README del progetto in un'altra).
 
 ### `.claude/docs/`
 - [ ] `02-code-quality.md`: strumento di doc-comment, formato d'errore esposto ai
@@ -215,3 +218,10 @@ come task deciso dall'utente. Il LIVELLO 1 di `06-self-improvement.md`
 (correzioni fattuali immediate) riguarda la doc del METODO e del progetto
 gestito, NON la doc preesistente dell'ospite durante l'innesto — vedi la
 precisazione di perimetro lì.
+
+### Lingua del progetto ospite
+
+Se la doc pubblica dell'ospite è in una lingua diversa da quella del framework,
+dichiara la convivenza — quale lingua per memoria/processo, quale per la doc
+pubblica — nelle regole tecniche di `CLAUDE.md` (voce "Lingua/e del progetto",
+checklist del passo 2): decisa una volta, non nota-per-nota.

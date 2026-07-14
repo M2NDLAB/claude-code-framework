@@ -85,6 +85,9 @@ Stack: [DA DEFINIRE AL SETUP] | Repo: [DA DEFINIRE AL SETUP]
 > - **Test**: framework, soglie di coverage, cosa richiede un test di integrazione.
 > - **Componenti sensibili** soggetti al security gate (regola 8).
 > - **Dove vive la documentazione di progetto** (regola 5).
+> - **Lingua/e del progetto**: in quale lingua si scrivono memoria e processo
+>   (default: la lingua del framework) e in quale la doc pubblica (README, doc
+>   utente) — dichiarala qui se le due differiscono.
 > - **Deploy**: formato dell'artefatto di produzione, ambiente target.
 > - **Licenza del progetto**: quale licenza adotta QUESTO progetto e chi è l'holder
 >   del copyright. Il framework non la impone: la sua `LICENSE` (MIT) copre il
