@@ -29,6 +29,9 @@ doc che manca.
 > disaccordo con la realtà NON si corregge d'ufficio: si registra in `STATE.md`
 > ("Debito documentazione") e si corregge solo come task deciso dall'utente —
 > prevale l'igiene di scope di `00-overview.md` (un cambiamento alla volta).
+> A innesto COMPLETATO la doc dell'ospite È la doc del progetto gestito e rientra
+> nel LIVELLO 1; restano fuori solo i debiti già registrati in `STATE.md`
+> durante l'innesto, che si smaltiscono come task decisi dall'utente.
 
 ## LIVELLO 2 — Miglioramenti di regole e processo: PROPONI soltanto
 

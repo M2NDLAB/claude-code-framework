@@ -13,8 +13,8 @@ tutto il resto va STAMPATO, non eseguito.
 ## 1. Raccogli lo stato (read-only)
 - Branch corrente (feature): `git branch --show-current`.
 - Branch di integrazione `<integrazione>` e branch stabile `<stabile>`: sono i RUOLI
-  di docs/04 (default di esempio `develop`/`main`; nomi effettivi [DA DEFINIRE AL
-  SETUP]). Sostituisci i segnaposto coi nomi reali del progetto.
+  di docs/04 (default di esempio `develop`/`main`; nomi effettivi
+  [DA DEFINIRE AL SETUP]). Sostituisci i segnaposto coi nomi reali del progetto.
 - Commit del branch non ancora nell'integrazione: `git log --oneline origin/<integrazione>..HEAD`
   (fallback senza remote: `<integrazione>..HEAD`).
 - Versione corrente e distanza: `git describe --tags --long` (se non esistono tag,

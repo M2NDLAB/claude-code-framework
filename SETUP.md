@@ -15,6 +15,11 @@ Tempo stimato: 15-30 minuti, la maggior parte per compilare le regole tecniche.
 
 ## 1. Copia il template nel nuovo progetto
 
+> **Progetto ESISTENTE?** Leggi prima la sezione *Innesto su un progetto
+> ESISTENTE (brownfield)* in coda a questa guida: la lista di copia qui sotto
+> assume file assenti, e lì trovi le regole di riconciliazione per quelli già
+> presenti (più il criterio per un `.claude/` preesistente).
+
 Copia nella root del nuovo repo: la cartella `.claude/`, `CLAUDE.md`, `Makefile`,
 `commitlint.config.cjs`, `.gitignore`, `scripts/`. (README.md e questo SETUP.md
 puoi lasciarli fuori dal progetto finale, o tenerli come riferimento.)
@@ -63,6 +68,8 @@ Ecco la lista completa, raggruppata per file:
 
 ### `.claude/commands/`
 - [ ] `checkpoint.md`: pattern da ignorare per `tree`, nome del branch di integrazione.
+- [ ] `integrate.md`: nomi reali dei branch di integrazione e stabile (i RUOLI di
+      `docs/04`) usati nel blocco di integrazione.
 - [ ] `new-component.md`: struttura standard di un componente del progetto
       (finché CLAUDE.md e questo file non sono compilati, `/new-component` è inerte).
 
@@ -232,7 +239,10 @@ volta). Si registra in `STATE.md` → "Debito documentazione" e si corregge solo
 come task deciso dall'utente. Il LIVELLO 1 di `06-self-improvement.md`
 (correzioni fattuali immediate) riguarda la doc del METODO e del progetto
 gestito, NON la doc preesistente dell'ospite durante l'innesto — vedi la
-precisazione di perimetro lì.
+precisazione di perimetro lì. A innesto completato, la doc dell'ospite è a tutti
+gli effetti doc del progetto gestito: le divergenze scoperte DOPO seguono le
+regole normali di `docs/06`; i debiti registrati durante l'innesto si
+smaltiscono come task decisi dall'utente.
 
 ### Lingua del progetto ospite
 
