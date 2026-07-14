@@ -68,3 +68,56 @@ e questa nota.
   secondo docs/06).
 - Merge di questo branch in `main`: azione umana via blocco `/integrate`
   (nessun tag: solo memoria → "nessun bump").
+
+## APPLICAZIONE (stessa data, dopo le decisioni utente)
+Decisioni: APPROVATE 027 (senza `graft.sh` → Rimandate col trigger "dopo 2-3
+innesti reali"), 028 (i due punti seri b/d in commit curati separati), 029, 030.
+Vincolo su 028(a): correzione del razionale di docs/04 DESCRITTIVA, nessun
+obbligo nuovo. Guardia di completezza pre-applicazione (S1-S3) superata con una
+integrazione: la correzione del razionale docs/04 esplicitata nella proposta (a)
+di IMP-028 prima di applicare.
+
+Commit di applicazione (il piano "un commit per IMP" del Follow-up sopra è stato
+raffinato dalle decisioni: 028 in tre commit + un fix da review):
+- 051d02c `docs(security)` IMP-028b — gitleaks detect one-off (docs/03 + SETUP p.3)
+- 1103ffb `fix(scripts)` IMP-028d — guardie hook preesistenti + core.hooksPath
+- ff3c2bc `feat(setup)` IMP-027 — sezione brownfield + docs/06 perimetro L1 +
+  STATE template + rimando README
+- 4cd4363 `fix(git)` IMP-028a/c — guardia base SemVer in /integrate + razionale
+  docs/04 + checklist igiene git ereditata
+- acdefcb `docs(setup)` IMP-029 — lingua/e del progetto
+- 42bc00a `docs(setup)` IMP-030 — [DA DEFINIRE] a mano o in dialogo
+- c623b82 `fix(scripts)` review 028d — personalizzazioni salvate in .bak,
+  symlink mai attraversati, hint hooksPath a scope corretto
+- 7fc8b8e `docs(setup)` rifiniture review — forward-pointer p.1, checkbox
+  integrate.md al p.2, marcatore ricompattato (fix L1), confine temporale del
+  perimetro L1
+- 0662cec `chore(claude)` marcatura: 027..030 → Applicate, graft.sh → Rimandate
+
+## Review adversariale post-apply (autore ≠ giudice)
+Sei lenti indipendenti con mandato di refutare (rimandi/orfani, greenfield
+intatto, docs/06 integro, agnosticità, script, memoria). 9 finding, 0 blocker;
+i fondati applicati nei due commit di review sopra. I due più seri, entrambi
+dimostrati empiricamente dai revisori su repo usa-e-getta:
+1. il rilancio di hooks-install distruggeva le personalizzazioni del blocco
+   formattazione che lo script stesso chiede di fare (il marcatore le
+   qualificava come "proprie") → rigenerazione via .new + confronto + .bak;
+2. FORCE_OVERWRITE su un hook-symlink scriveva ATTRAVERSO il link corrompendo
+   il file dell'ospite fuori da .git/hooks → symlink sempre trattati come
+   estranei, backup e rimozione del link prima della scrittura.
+Lente agnosticità: zero finding (nessun nome di progetto nei testi del
+framework né nei messaggi di commit).
+
+## Problemi incontrati → causa → soluzione (applicazione)
+1. Comando di test negato dai permessi → conteneva `rm -rf` (deny attiva,
+   correttamente) → rieseguito con `mktemp -d` e directory usa-e-getta nuove.
+2. Rimando "passo 2" per integrate.md non risolvibile → il marcatore
+   [DA DEFINIRE AL SETUP] di integrate.md era spezzato su due righe, invisibile
+   al grep dichiarato dal passo 2 (bug preesistente, scoperto dalla review) →
+   ricompattato + checkbox dedicata al passo 2 (7fc8b8e).
+
+## Checkpoint (regime ibrido dichiarato)
+STATE/TREE/INDEX restano template puliti: la modifica a STATE.md di ff3c2bc è
+al TEMPLATE (definizione di "Debito documentazione"), non un popolamento.
+Nessun componente in components/ (repo del metodo). Struttura invariata →
+TREE.md non rigenerato. CHANGELOG: [Unreleased] si compila dentro /integrate.
