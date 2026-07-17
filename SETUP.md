@@ -257,3 +257,152 @@ Se la doc pubblica dell'ospite è in una lingua diversa da quella del framework,
 dichiara la convivenza — quale lingua per memoria/processo, quale per la doc
 pubblica — nelle regole tecniche di `CLAUDE.md` (voce "Lingua/e del progetto",
 checklist del passo 2): decisa una volta, non nota-per-nota.
+
+---
+
+## Aggiornare il framework su un progetto già innestato (`vX` → `vY`)
+
+Il **terzo caso**, accanto a greenfield (passi 0-5) e brownfield (innesto su un
+progetto SENZA framework). Qui il progetto ha GIÀ una versione del framework
+innestata — `CLAUDE.md` alla root, `.claude/docs/` e `.claude/memory/` popolati: è
+esattamente la condizione del **CASO A** più sopra — e va portato a una versione più
+recente **preservando la memoria di progetto accumulata** (STATE, sessioni, decisioni,
+componenti, il backlog IMP).
+
+È il verso DISCENDENTE del ponte descritto in `docs/06` (*"Il ponte verso il
+framework"*): mentre `/harvest-framework` fa RISALIRE le lezioni dal progetto al
+framework, l'upgrade fa SCENDERE una nuova versione del framework nel progetto. È anche
+il veicolo con cui i fix del framework (es. a `hooks-install.sh`) e i nuovi
+`[DA DEFINIRE AL SETUP]` di una versione raggiungono i progetti già avviati.
+
+> **Nessuna automazione, per ora — è una scelta, non una mancanza.** Con pochi upgrade
+> reali alle spalle questa è una procedura MANUALE guidata che orchestra primitive già
+> esistenti (branch usa-e-getta, `reset-task.sh`, `/checkpoint`, `/integrate`,
+> `make hooks-install`, `/lint-memory`). Un comando/script che la automatizzi — e un
+> *pin* che registri all'innesto da quale versione si è partiti, per irrobustirne la
+> baseline — restano rimandati finché più upgrade reali non li giustificano: stesso
+> criterio anti-hype con cui il framework rimanda l'innesto automatizzato. Si documenta
+> prima, si prova sul campo, si automatizza dopo.
+
+### Il modello mentale: tre classi di file
+
+Un upgrade tocca SOLO il layer di PROCESSO, MAI la memoria di progetto. Ogni file
+ricade in una di tre classi:
+
+- **METODO** (puro-framework, si porta a `vY`): `.claude/docs/00-06`, i comandi in
+  `.claude/commands/` non personalizzati, i README-guida dentro `.claude/memory/*/`,
+  `scripts/reset-task.sh`, `scripts/README.md`, `commitlint.config.cjs`.
+- **MEMORIA-DI-PROGETTO** (resta INTATTA): `.claude/memory/STATE.md`, `TREE.md`,
+  `INDEX.md`, `sessions/`, `components/`, `decisions/`, `plans/`. **Invariante di
+  verifica: dopo l'upgrade il `git diff` su `.claude/memory/` deve essere VUOTO** (unica
+  eccezione: i rimandi rotti da un rename di doc — vedi *Casi limite*).
+- **IBRIDO** (parte-framework che evolve + parte-progetto da preservare, si
+  riconcilia): `CLAUDE.md`, `.claude/settings.json`, `scripts/hooks-install.sh`,
+  `.gitignore`, `Makefile`, `LEARNINGS.md`, e i comandi personalizzati al setup
+  (`checkpoint.md`, `integrate.md`, `new-component.md`).
+
+> **Perché gli ibridi non si separano "a sezioni".** Il fill dei `[DA DEFINIRE AL
+> SETUP]` è DISTRUTTIVO: quando il progetto compila un marcatore, la stringa sparisce e
+> viene sostituita dalla risposta. A setup fatto il file è un impasto di prosa-framework
+> + risposte-progetto senza più un confine grep-abile. L'unico meccanismo robusto per
+> riconciliarli è il **merge a 3 vie** con il template alla versione DI PARTENZA (`vX`)
+> come base comune.
+
+### Precondizione: procurati il framework a `vX` e `vY`
+
+Il progetto ha COPIATO i file del framework, non la sua storia git: i tag di versione
+vivono solo nel repo del framework. Il "cosa è cambiato" si deriva perciò LÌ, non nel
+progetto (aggiungere il framework come *remote* del progetto è sconsigliato: inquina il
+grafo e mescola due linee di versione). Prima di iniziare, procurati due checkout (o
+export) del repo del framework: uno alla versione INNESTATA (`vX`) e uno alla versione
+TARGET (`vY`). Sono la *base* e i *loro* del merge a 3 vie.
+
+### Passo 0 — Determina la baseline `vX`
+
+Il progetto non registra da quale versione è stato innestato. Determina `vX` così, in
+ordine di preferenza:
+
+1. **Chiedila** a chi ha fatto l'innesto (spesso la ricorda o l'ha annotata).
+2. **Stimala** sul contenuto: scegli il tag del framework la cui copia dei file di
+   classe METODO combacia meglio con quelli attuali del progetto — un confronto sul
+   contenuto reale batte l'euristica "tag più vicino alla data d'innesto".
+3. **Degrada** con onestà: se `vX` resta incerta, NON fingere un 3-way pulito. Ricadi
+   sulla riconciliazione file-per-file guidata dal CHANGELOG come indice (è ciò che il
+   CASO A già prescrive), ispezionando ogni file dubbio.
+
+### Passo 1 — Punto di ripristino e branch usa-e-getta
+
+Da branch di integrazione con working tree pulito:
+`git checkout -b chore/framework-upgrade-vX-to-vY`. L'HEAD pre-upgrade è il punto di
+ripristino: **la memoria vive in git, quindi il commit di sicurezza È già il backup**
+(ripristino selettivo con `git checkout <sha-pre-upgrade> -- .claude/memory/`). L'intero
+upgrade è un'unità buttabile — se va male, si cancella il branch (vedi *Rollback* in
+`docs/04`). Nessuna copia extra della memoria fuori dal tree è necessaria.
+
+### Passo 2 — Deriva il "cosa è cambiato" (framework-side)
+
+Nel repo del framework, combina due fonti complementari:
+
+- **Il CHANGELOG come INDICE** ("quali file e perché"): le sezioni tra `vX` e `vY` —
+  ogni voce cita l'IMP e nomina il file toccato. È la mappa del cambiamento. (Il
+  CHANGELOG non è copiato nel progetto: si legge nel repo del framework.)
+- **`git diff` come TESTO ESATTO**, con scope ai soli path del METODO ed ESCLUDENDO la
+  memoria del framework:
+
+  ```bash
+  git diff vX vY -- .claude/docs .claude/commands .claude/settings.json \
+    CLAUDE.md scripts Makefile commitlint.config.cjs .gitignore
+  ```
+
+  L'esclusione di `.claude/memory/` è deliberata: la memoria del framework è la SUA, non
+  deve MAI sovrascrivere quella del progetto.
+
+### Passo 3 — Riconcilia per classe
+
+- **METODO** → porta la versione `vY`.
+- **MEMORIA-DI-PROGETTO** → non toccare; il `diff` su `.claude/memory/` resta vuoto.
+- **IBRIDI** → merge a 3 vie con `base = template@vX`, `loro = template@vY`,
+  `mio = file del progetto` (`git merge-file`/`diff3`). Il 3-way deve ottenere: un
+  marcatore AGGIUNTO da `vY` si **ri-materializza** nel file (nuovo `[DA DEFINIRE]` da
+  compilare); uno RIMOSSO **sparisce**; uno SPOSTATO o co-editato emerge come
+  **conflitto** da risolvere a mano. Ri-applica sempre le risposte `[DA DEFINIRE AL
+  SETUP]` del progetto (nomi dei branch, pattern di `tree`, formatter, allow-list dello
+  stack, l'intera sezione "Regole tecniche" di `CLAUDE.md`). Gli ibridi banali
+  (`.gitignore`, `Makefile`) si INTEGRANO (union additiva: garantisci presenti le righe
+  della base `vY` senza rimuovere quelle di progetto); su `LEARNINGS.md` si aggiorna al
+  più l'header/formato, MAI le voci IMP del progetto.
+
+> **Confine di esecuzione (`docs/04`, sezione omonima).** L'agente PREPARA e committa in
+> LOCALE sul branch di upgrade; NON mergia, NON pusha, NON tagga. Dove `vY` cambia una
+> REGOLA (non è una correzione fattuale), scatta il Livello 2 di `docs/06`: si PROPONE,
+> non si applica in silenzio — *"Mai riscrivere le proprie regole in autonomia"*
+> (`CLAUDE.md`, regola 6).
+
+### Passo 4 — Re-sync degli hook e audit dei marcatori
+
+`make hooks-install` (idempotente; salva un `.bak` del blocco formattazione del
+progetto). Verifica reale: un secret finto bloccato da gitleaks, un messaggio
+non-conventional rifiutato da commitlint. Poi `grep -rn "DA DEFINIRE AL SETUP" .` per
+intercettare i marcatori NUOVI introdotti da `vY`, da compilare con le risposte del
+progetto (riusa il dialogo del passo 2 di questa guida).
+
+### Passo 5 — Verifica prima di finalizzare
+
+- `git diff --stat` e diff per-file; **conferma il `diff` VUOTO su `.claude/memory/`**
+  (invariante forte: un diff non vuoto = bug dell'upgrade, fermati e indaga).
+- Le customizzazioni `[DA DEFINIRE]` del progetto sono sopravvissute nei file
+  riconciliati.
+- `/lint-memory` sulla memoria preservata contro i nuovi doc (rimandi a doc
+  rinominati/spostati, STATE vs git, coerenza `LEARNINGS`↔`STATE`, pagine orfane).
+- Build/test del progetto verdi (anche se l'upgrade è solo-processo, conferma che il
+  progetto continua a compilare e committare).
+
+### Passo 6 — Chiusura e hand-off
+
+`/checkpoint` (nota di sessione dell'upgrade — `vX→vY`, cosa riconciliato, cosa deciso
+dall'utente; `STATE.md` con la versione framework aggiornata; `TREE.md` se la struttura
+è cambiata). Poi `/integrate`: un upgrade solo-processo del progetto NON porta
+feature/fix del prodotto → bump **"nessun tag"** (`chore`, lavoro interno, non una
+release): dichiaralo e ometti il tag. Il merge del branch di upgrade e il push sono
+azioni UMANE. Se alla review qualcosa non torna, si butta il branch: la memoria è salva
+nel commit pre-upgrade.
