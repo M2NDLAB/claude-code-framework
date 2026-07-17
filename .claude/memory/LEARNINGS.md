@@ -25,23 +25,6 @@ tags: [improvement]
 
 ## Proposte APERTE (in attesa di decisione utente)
 
-### IMP-031 — I marcatori `[DA DEFINIRE AL SETUP]` che vanno a capo sfuggono al grep del setup
-- Data: 2026-07-17 | Origine: audit pre-integrate di v0.3.0 (lente internal-consistency)
-- Problema osservato: `SETUP.md` (riga 37) prescrive `grep -rn "DA DEFINIRE AL SETUP" .`
-  per elencare i punti da compilare al setup, ma un marcatore che si spezza su due righe
-  (wrap del testo) è invisibile a quel grep single-line. È già successo DUE volte:
-  `integrate.md` (sanato da 7fc8b8e in questo stesso deliverable) e `docs/04:142` (sanato
-  ora, commit `740b575`). L'istanza è chiusa; resta scoperta la PREVENZIONE della classe.
-- Proposta: convenzione esplicita "un marcatore `[DA DEFINIRE AL SETUP]` sta sempre su
-  una riga fisica" (regole di stile / `SETUP.md`), e/o un controllo in `/lint-memory` o
-  nello script di setup che segnali le occorrenze spezzate (es. `grep -rn "DA DEFINIRE AL$"`
-  come sentinella).
-- Beneficio atteso / rischio: il grep del setup trova TUTTI i marcatori (nessun punto da
-  compilare dimenticato); rischio ~nullo (convenzione + check, nessun cambio di regola
-  sostanziale).
-- Trigger di ripresa: prossima retrospettiva periodica sul backlog, o alla prossima
-  occorrenza di un marcatore spezzato.
-
 ### IMP-032 — `hooks-install.sh`: FORCE_OVERWRITE su symlink dangling aborta prima del backup
 - Data: 2026-07-17 | Origine: audit pre-integrate di v0.3.0 (lente script-safety, confermato empiricamente)
 - Problema osservato: nel ramo `FORCE_OVERWRITE=1` di `scripts/hooks-install.sh`, la
@@ -322,6 +305,14 @@ tags: [improvement]
   primo comando al passo 4, riga allineata nel README. Solo documentazione del
   comportamento esistente: i marcatori senza risposta restano
   `[DA DEFINIRE AL SETUP]`, nessuna invenzione.
+
+### IMP-031 — Marcatori `[DA DEFINIRE AL SETUP]` grep-visibili (mai spezzati dal wrap) → applicata il 2026-07-17, commit —
+- Convenzione in `SETUP.md` §2 (uno slot da compilare sta su UNA sola riga fisica, o
+  sfugge al `grep -rn "DA DEFINIRE AL SETUP" .` del setup e del Passo 4 dell'upgrade);
+  sentinella `grep -rn "DA DEFINIRE AL$" .` come controllo 10 di `/lint-memory`, coi
+  falsi positivi NOTI dichiarati (prosa-guida di `SETUP.md`, record IMP di `LEARNINGS.md`),
+  così esclude la prosa senza sopprimere uno slot spezzato altrove. Chiude con la
+  PREVENZIONE la classe di cui i fix 7fc8b8e/740b575 avevano sanato le sole istanze.
 
 ### IMP-033 — Comando `/harvest-framework` + ponte progetto→framework → applicata il 2026-07-17, commit d2856be, c0df16c, f50816f, 534b41d
 - MARCATURA: attributo `Destinazione: framework` nel formato IMP di `LEARNINGS.md` (riga

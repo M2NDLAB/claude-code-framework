@@ -36,6 +36,12 @@ Poi: `git init` (se non è già un repo) e crea il branch di integrazione (`deve
 
 Cerca i marcatori nel template: `grep -rn "DA DEFINIRE AL SETUP" .`
 
+> **Convenzione (grep-visibilità).** Uno *slot* `[DA DEFINIRE AL SETUP]` da compilare
+> sta SEMPRE su **una sola riga fisica**: se il word-wrap lo spezza a fine riga sfugge
+> al grep qui sopra — e a quello del Passo 4 dell'upgrade — e resta un punto non
+> compilato in silenzio. Vale per gli slot, non per la prosa che nomina il marcatore.
+> `/lint-memory` ha una sentinella che segnala gli slot spezzati (controllo 10).
+
 Due modalità equivalenti — scegli quella che preferisci:
 - **a mano**, spuntando la checklist qui sotto;
 - **in dialogo con Claude Code**: chiedigli di intervistarti sui
