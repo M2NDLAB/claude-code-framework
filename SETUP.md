@@ -170,9 +170,11 @@ L'esistenza della cartella da sola NON basta a decidere: guarda cosa contiene.
 
 - **CASO A — innesto precedente del framework** (c'è `CLAUDE.md` alla root del
   progetto e `.claude/` contiene `docs/` e `memory/` del framework): NON ricopiare
-  il template sopra — quella è la memoria del progetto. Riprendi da `STATE.md`;
-  se vuoi aggiornare il framework a una versione più recente, riconcilia file per
-  file dichiarando le differenze all'utente.
+  il template sopra — quella è la memoria del progetto. Riprendi da `STATE.md`; se
+  vuoi aggiornare il framework a una versione più recente, **segui la procedura
+  dedicata *«Aggiornare il framework su un progetto già innestato»*** in coda a
+  questa guida — riconciliazione file-per-file per classe (metodo / memoria di
+  progetto / ibridi), con le differenze dichiarate all'utente.
 - **CASO B — soli artefatti locali dell'harness** (tipicamente
   `settings.local.json` creato dalle approvazioni dei permessi; nessun doc o
   memoria del framework): procedi con la copia del template e PRESERVA quei file
