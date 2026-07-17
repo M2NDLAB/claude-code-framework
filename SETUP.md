@@ -15,6 +15,11 @@ Tempo stimato: 15-30 minuti, la maggior parte per compilare le regole tecniche.
 
 ## 1. Copia il template nel nuovo progetto
 
+> **Progetto ESISTENTE?** Leggi prima la sezione *Innesto su un progetto
+> ESISTENTE (brownfield)* in coda a questa guida: la lista di copia qui sotto
+> assume file assenti, e lì trovi le regole di riconciliazione per quelli già
+> presenti (più il criterio per un `.claude/` preesistente).
+
 Copia nella root del nuovo repo: la cartella `.claude/`, `CLAUDE.md`, `Makefile`,
 `commitlint.config.cjs`, `.gitignore`, `scripts/`. (README.md e questo SETUP.md
 puoi lasciarli fuori dal progetto finale, o tenerli come riferimento.)
@@ -30,6 +35,15 @@ Poi: `git init` (se non è già un repo) e crea il branch di integrazione (`deve
 ## 2. Riempi i `[DA DEFINIRE AL SETUP]`
 
 Cerca i marcatori nel template: `grep -rn "DA DEFINIRE AL SETUP" .`
+
+Due modalità equivalenti — scegli quella che preferisci:
+- **a mano**, spuntando la checklist qui sotto;
+- **in dialogo con Claude Code**: chiedigli di intervistarti sui
+  `[DA DEFINIRE AL SETUP]` (guidato da questa checklist) e di scrivere le tue
+  risposte nei file giusti. Non inventa nulla: ciò che non rispondi resta
+  `[DA DEFINIRE AL SETUP]`, e lo completi quando vuoi. (Vedi anche la variante
+  del primo comando, passo 4.)
+
 Ecco la lista completa, raggruppata per file:
 
 ### `CLAUDE.md` (il più importante)
@@ -40,6 +54,9 @@ Ecco la lista completa, raggruppata per file:
       build/test/lint/run, struttura standard di un componente, convenzioni di codice,
       API design, datastore, test/coverage, deploy. È qui che il framework diventa
       *il tuo* progetto.
+- [ ] **Lingua/e del progetto** (nelle regole tecniche): quale lingua per
+      memoria/processo, quale per la doc pubblica — da dichiarare se diverse
+      (es. metodo in una lingua, README del progetto in un'altra).
 
 ### `.claude/docs/`
 - [ ] `02-code-quality.md`: strumento di doc-comment, formato d'errore esposto ai
@@ -51,6 +68,8 @@ Ecco la lista completa, raggruppata per file:
 
 ### `.claude/commands/`
 - [ ] `checkpoint.md`: pattern da ignorare per `tree`, nome del branch di integrazione.
+- [ ] `integrate.md`: nomi reali dei branch di integrazione e stabile (i RUOLI di
+      `docs/04`) usati nel blocco di integrazione.
 - [ ] `new-component.md`: struttura standard di un componente del progetto
       (finché CLAUDE.md e questo file non sono compilati, `/new-component` è inerte).
 
@@ -91,6 +110,13 @@ make hooks-install
 Verifica: un commit con un messaggio non-conventional deve essere rifiutato; un file
 con un secret finto deve essere bloccato da gitleaks.
 
+> **Il repo ha già una storia?** (innesto su un progetto esistente) L'hook protegge
+> solo i commit da ora in poi: completa la baseline con una scansione one-off
+> dell'INTERA storia, `gitleaks detect` (dalla root del repo). Valuta ogni finding
+> PRIMA di proseguire: un secret nella storia pushata resta esposto anche se lo
+> togli dai file correnti — ruotalo/revocalo subito; l'eventuale riscrittura della
+> storia è un'operazione a parte, da decidere con giudizio (`docs/03`, baseline).
+
 ## 4. Primo comando a Claude Code
 
 Apri Claude Code nella root del progetto e dài un comando come questo:
@@ -102,6 +128,12 @@ Apri Claude Code nella root del progetto e dài un comando come questo:
 > genera `TREE.md` dalla struttura attuale, e popola `INDEX.md`. Infine, fammi un
 > riepilogo del metodo come l'hai capito e segnalami eventuali `[DA DEFINIRE]` ancora
 > aperti. Non scrivere codice applicativo in questo passaggio.
+
+*(Se al passo 2 hai scelto la modalità in dialogo)* aggiungi in coda al comando:
+
+> Poi intervistami sui `[DA DEFINIRE AL SETUP]` ancora aperti, seguendo la
+> checklist del passo 2 di `SETUP.md`, e scrivi le mie risposte nei file giusti;
+> ciò che non so ancora rispondere resta `[DA DEFINIRE AL SETUP]`.
 
 Da qui in poi il ciclo è quello di `.claude/docs/00-overview.md` (vedi "Il ciclo di
 fine deliverable"). Per ogni prompt oneroso Claude Code genererà un piano in
@@ -115,3 +147,106 @@ Le lezioni di processo che emergono lavorando finiscono in `LEARNINGS.md` come
 proposte IMP. Quelle che si rivelano utili a *qualsiasi* progetto sono candidate a
 tornare nel template del framework, per il prossimo progetto. È il loop descritto
 nella *Filosofia* del README.
+
+---
+
+## Innesto su un progetto ESISTENTE (brownfield)
+
+I passi 1-5 valgono anche per un progetto già avviato (codice, storia git, doc
+propri), con le differenze di questa sezione. Principio guida: **il progetto
+ospite ha la precedenza** — il template si INTEGRA, non si impone; ogni collisione
+si segnala all'utente invece di risolverla in silenzio.
+
+### Prima di copiare: `.claude/` esiste già?
+
+L'esistenza della cartella da sola NON basta a decidere: guarda cosa contiene.
+
+- **CASO A — innesto precedente del framework** (c'è `CLAUDE.md` alla root del
+  progetto e `.claude/` contiene `docs/` e `memory/` del framework): NON ricopiare
+  il template sopra — quella è la memoria del progetto. Riprendi da `STATE.md`;
+  se vuoi aggiornare il framework a una versione più recente, riconcilia file per
+  file dichiarando le differenze all'utente.
+- **CASO B — soli artefatti locali dell'harness** (tipicamente
+  `settings.local.json` creato dalle approvazioni dei permessi; nessun doc o
+  memoria del framework): procedi con la copia del template e PRESERVA quei file
+  locali (non sono versionati e non vanno sovrascritti).
+
+### Riconciliazione dei file in collisione
+
+La lista di copia del passo 1 assume file assenti. Se il progetto ospite li ha già:
+
+| File | Regola |
+|---|---|
+| `README.md` dell'ospite | Si PRESERVA: è la doc pubblica del progetto (il README del framework non si copia comunque, passo 1). |
+| `.gitignore` | Si INTEGRA: aggiungi al file dell'ospite le voci del template (secrets, `settings.local.json`, ecc.), non sovrascriverlo. |
+| `Makefile` | Si INTEGRA: aggiungi i target di processo (`hooks-install`, `reset-task`) a quello dell'ospite. |
+| `SECURITY.md` | Se l'ospite ne ha già uno, si preserva/integra; lo scaffold del template serve solo se manca. |
+| `LICENSE` | Resta quella dell'ospite (la LICENSE del framework non si copia mai, passo 1). |
+| Hook git esistenti | Vedi passo 3: `hooks-install.sh` si ferma da solo davanti a hook non suoi o a `core.hooksPath` attivo, e ti dice come procedere. |
+
+Regola generale per ogni altra collisione: **preserva il file dell'ospite, integra
+solo il necessario del template, segnala la collisione all'utente**.
+
+### Igiene git ereditata
+
+Su una storia git preesistente, prima di adottare il flusso di `docs/04`:
+
+- [ ] **Storia scansionata**: `gitleaks detect` one-off sull'intera storia (vedi
+      il riquadro del passo 3) — l'hook protegge solo i commit futuri.
+- [ ] **Audit dei tag ereditati**: `git cat-file -t <tag>` su ciascuno (`tag` =
+      annotato, `commit` = leggero). Il regime di `docs/04` (*Versioning*) crea
+      tag annotati SemVer: individua da quale base SemVer riparte il versioning
+      (la guardia di `/integrate` si ferma su una base non-SemVer); l'eventuale
+      normalizzazione dei tag ereditati è una decisione dell'utente — i tag
+      pushati sono storia condivisa.
+- [ ] **Costanti di versione negli script/config dell'ospite**: se una versione è
+      hard-coded, allineala ai tag (o derivala da `git describe`) e annota la
+      scelta — il drift tra costante e tag è un bug latente.
+- [ ] **Topologia dei branch**: davanti a un branch di integrazione remoto
+      dormiente (es. un vecchio `dev`), DECIDI e DICHIARA la scelta: trunk-based
+      (i due ruoli coincidono — caso previsto da `docs/04`) oppure ripristino del
+      branch come integrazione. Registra la scelta nei `[DA DEFINIRE AL SETUP]`
+      di `docs/04` e nei parametri dei comandi (`checkpoint.md`, `integrate.md` —
+      passo 2 di questa guida).
+
+### Il primo comando diventa un ASSESSMENT che popola la memoria
+
+Su un progetto esistente la memoria non parte vuota: parte dalla fotografia
+dell'esistente. Al posto del comando del passo 4, usa:
+
+> Leggi `CLAUDE.md` e tutti i doc in `.claude/docs/`: interiorizza il metodo. Poi
+> fai un **assessment in SOLA LETTURA** del progetto esistente: struttura,
+> componenti, maturità reale (test? doc? build?), difetti evidenti, scelte
+> architetturali visibili nel codice. Con quello **inizializza la memoria**:
+> compila `STATE.md` con lo stato REALE (inclusi difetti e debiti osservati),
+> crea una nota in `.claude/memory/components/` per ogni componente significativo
+> già esistente, registra in `.claude/memory/decisions/` le scelte architetturali
+> ereditate che ricostruisci (decisioni retroattive, marcate come tali), genera
+> `TREE.md` e popola `INDEX.md`. Le divergenze tra la doc dell'ospite e la realtà
+> del codice NON correggerle: registrale in `STATE.md`, sezione "Debito
+> documentazione". Infine riepilogami il metodo e segnalami i `[DA DEFINIRE]`
+> ancora aperti. Non scrivere codice applicativo in questo passaggio.
+
+È il pattern assessment → proposta → decisione di `00-overview.md` e
+`01-task-planning.md`, promosso a passo del setup: l'assessment FOTOGRAFA, le
+decisioni su cosa correggere restano all'utente.
+
+### Divergenze doc-vs-realtà dell'ospite
+
+Un README che documenta feature inesistenti (o simili) NON si corregge durante
+l'innesto: prevale l'igiene di scope (`00-overview.md`, un cambiamento alla
+volta). Si registra in `STATE.md` → "Debito documentazione" e si corregge solo
+come task deciso dall'utente. Il LIVELLO 1 di `06-self-improvement.md`
+(correzioni fattuali immediate) riguarda la doc del METODO e del progetto
+gestito, NON la doc preesistente dell'ospite durante l'innesto — vedi la
+precisazione di perimetro lì. A innesto completato, la doc dell'ospite è a tutti
+gli effetti doc del progetto gestito: le divergenze scoperte DOPO seguono le
+regole normali di `docs/06`; i debiti registrati durante l'innesto si
+smaltiscono come task decisi dall'utente.
+
+### Lingua del progetto ospite
+
+Se la doc pubblica dell'ospite è in una lingua diversa da quella del framework,
+dichiara la convivenza — quale lingua per memoria/processo, quale per la doc
+pubblica — nelle regole tecniche di `CLAUDE.md` (voce "Lingua/e del progetto",
+checklist del passo 2): decisa una volta, non nota-per-nota.

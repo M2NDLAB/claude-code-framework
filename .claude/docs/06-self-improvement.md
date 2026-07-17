@@ -23,6 +23,16 @@ un nome cambiato):
 Qui non c'è giudizio: c'è solo sincronizzazione. Una doc che mente è peggio di una
 doc che manca.
 
+> **Perimetro del LIVELLO 1.** Riguarda la doc del METODO e del progetto GESTITO
+> con questo framework. Durante un INNESTO su un progetto esistente (brownfield —
+> vedi `SETUP.md`, sezione dedicata), la doc preesistente dell'ospite in
+> disaccordo con la realtà NON si corregge d'ufficio: si registra in `STATE.md`
+> ("Debito documentazione") e si corregge solo come task deciso dall'utente —
+> prevale l'igiene di scope di `00-overview.md` (un cambiamento alla volta).
+> A innesto COMPLETATO la doc dell'ospite È la doc del progetto gestito e rientra
+> nel LIVELLO 1; restano fuori solo i debiti già registrati in `STATE.md`
+> durante l'innesto, che si smaltiscono come task decisi dall'utente.
+
 ## LIVELLO 2 — Miglioramenti di regole e processo: PROPONI soltanto
 
 Quando osservi: attrito ricorrente (stessa domanda/errore in più sessioni), una

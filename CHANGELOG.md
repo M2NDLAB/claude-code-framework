@@ -7,6 +7,49 @@ SemVer su tag annotati definito in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-07-17
+
+Lezioni del primo innesto su un progetto esistente, verificate sui file e
+applicate come IMP-027..030 (l'opzione `graft.sh` è rimandata con trigger).
+
+### Added
+- `SETUP.md`: sezione **"Innesto su un progetto ESISTENTE (brownfield)"** —
+  criterio CASO A/B per `.claude/` preesistente, riconciliazione dei file in
+  collisione (l'ospite ha la precedenza), primo comando come assessment
+  read-only che popola la memoria dall'esistente, divergenze doc-vs-realtà
+  registrate come debito, checklist *Igiene git ereditata* (audit dei tag,
+  costanti di versione hard-coded, topologia dei branch decisa-e-dichiarata)
+  (IMP-027, IMP-028a/c).
+- docs/03 + `SETUP.md` passo 3: su un repo con storia preesistente la baseline
+  gitleaks si completa con una scansione one-off dell'intera storia,
+  `gitleaks detect` (IMP-028b).
+- `/integrate`: guardia sulla base del versioning — `git describe --tags`
+  accetta anche tag leggeri e nomi non-SemVer; su base non `vX.Y.Z` ci si ferma
+  (IMP-028a).
+- Voce "Lingua/e del progetto" nelle regole tecniche di `CLAUDE.md` e nella
+  checklist di setup (IMP-029); compilazione dei `[DA DEFINIRE AL SETUP]` anche
+  **in dialogo con Claude Code**, dichiarata come modalità equivalente (IMP-030).
+- docs/06: perimetro del LIVELLO 1 — durante l'innesto la doc dell'ospite non si
+  corregge d'ufficio (debito in `STATE.md`); a innesto completato rientra nel
+  LIVELLO 1 (IMP-027).
+
+### Fixed
+- `hooks-install.sh` non sovrascrive più alla cieca: si ferma davanti a hook di
+  altra origine (symlink degli hook manager inclusi) e a `core.hooksPath` attivo
+  (hook installati-ma-inerti); `FORCE_OVERWRITE=1` fa backup `.bak` senza
+  scrivere attraverso i symlink; le personalizzazioni dei propri hook vengono
+  salvate in `.bak` al rilancio invece di essere distrutte (IMP-028d + review
+  adversariale).
+- docs/04 *Versioning*: razionale dei tag annotati corretto in forma descrittiva
+  (`git describe` senza `--tags` usa i soli annotati; `/integrate` usa `--tags`
+  e per questo verifica la base); marcatori `[DA DEFINIRE AL SETUP]` di
+  `integrate.md` e di docs/04 ricompattati su una riga — erano invisibili al grep
+  dichiarato dal setup.
+
+### Changed
+- Template `STATE.md`: "Debito documentazione" allargato alla doc
+  esistente-ma-errata (IMP-027).
+
 ## [0.2.0] — 2026-07-11
 
 Consolidamento: convenzioni di processo mancanti, sanatoria dei drift, file di

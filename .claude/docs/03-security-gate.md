@@ -4,7 +4,13 @@ La sicurezza ha due livelli in questo framework:
 
 1. **Baseline sempre attiva** — l'hook pre-commit esegue il secret scanning
    (gitleaks) su ogni commit: nessun secret in chiaro entra nel repo (regola 1 di
-   `CLAUDE.md`). Vale per tutto, sempre, senza eccezioni.
+   `CLAUDE.md`). Vale per tutto, sempre, senza eccezioni. L'hook protegge i commit
+   dal momento in cui è installato: su un repo con storia PREESISTENTE (innesto del
+   framework su un progetto esistente) la baseline si COMPLETA con una scansione
+   one-off dell'intera storia — `gitleaks detect` — come passo di setup (vedi
+   `SETUP.md`, passo 3). I finding sulla storia sono decisioni dell'utente: un
+   secret già pushato va ruotato/revocato comunque; riscrivere la storia è un'altra
+   cosa e non si fa alla leggera.
 2. **Gate sui componenti sensibili** — una review di sicurezza manuale, dedicata,
    PRIMA di portare in integrazione un componente critico. È l'oggetto di questo
    documento.

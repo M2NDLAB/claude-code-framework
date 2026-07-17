@@ -39,7 +39,8 @@ riempire, è in **[SETUP.md](SETUP.md)**):
    `.gitignore`, `scripts/`).
 2. **Riempi i `[DA DEFINIRE AL SETUP]`** — soprattutto in `CLAUDE.md` (nome
    progetto, stack, regole tecniche, componenti sensibili) e nei punti elencati in
-   `SETUP.md`.
+   `SETUP.md`. A mano, oppure in dialogo con Claude Code, che ti intervista e
+   scrive le risposte (vedi `SETUP.md`, passo 2).
 3. **Installa gli hook**: `make hooks-install` (richiede `gitleaks` e Node.js per
    commitlint). Abilita la formattazione automatica nell'hook per il tuo linguaggio.
 4. **Primo comando a Claude Code** — fagli leggere `CLAUDE.md` e i doc in
@@ -49,6 +50,11 @@ riempire, è in **[SETUP.md](SETUP.md)**):
 Da lì in poi si lavora con il ciclo descritto in `.claude/docs/00-overview.md`:
 pianifica → esegui per task → [se sensibile] `/security-review` → `/retro` →
 `/checkpoint` → `/integrate` (push deciso dall'umano); se ti blocchi, `/sos`.
+
+> Innesti il framework su un progetto **esistente** (brownfield)? I passi sono
+> gli stessi, con le differenze — riconciliazione dei file in collisione,
+> assessment iniziale che popola la memoria, igiene della storia git ereditata —
+> nella sezione dedicata in coda a `SETUP.md`.
 
 ### Struttura
 

@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-07-11
+updated: 2026-07-17
 tags: [improvement]
 ---
 # Learnings & proposte di miglioramento
@@ -16,7 +16,39 @@ tags: [improvement]
 > vedi `CONTRIBUTING.md`): chi copia il template lo SVUOTA al setup (`SETUP.md`).
 
 ## Proposte APERTE (in attesa di decisione utente)
-_(nessuna proposta aperta)_
+
+### IMP-031 — I marcatori `[DA DEFINIRE AL SETUP]` che vanno a capo sfuggono al grep del setup
+- Data: 2026-07-17 | Origine: audit pre-integrate di v0.3.0 (lente internal-consistency)
+- Problema osservato: `SETUP.md` (riga 37) prescrive `grep -rn "DA DEFINIRE AL SETUP" .`
+  per elencare i punti da compilare al setup, ma un marcatore che si spezza su due righe
+  (wrap del testo) è invisibile a quel grep single-line. È già successo DUE volte:
+  `integrate.md` (sanato da 7fc8b8e in questo stesso deliverable) e `docs/04:142` (sanato
+  ora, commit `740b575`). L'istanza è chiusa; resta scoperta la PREVENZIONE della classe.
+- Proposta: convenzione esplicita "un marcatore `[DA DEFINIRE AL SETUP]` sta sempre su
+  una riga fisica" (regole di stile / `SETUP.md`), e/o un controllo in `/lint-memory` o
+  nello script di setup che segnali le occorrenze spezzate (es. `grep -rn "DA DEFINIRE AL$"`
+  come sentinella).
+- Beneficio atteso / rischio: il grep del setup trova TUTTI i marcatori (nessun punto da
+  compilare dimenticato); rischio ~nullo (convenzione + check, nessun cambio di regola
+  sostanziale).
+- Trigger di ripresa: prossima retrospettiva periodica sul backlog, o alla prossima
+  occorrenza di un marcatore spezzato.
+
+### IMP-032 — `hooks-install.sh`: FORCE_OVERWRITE su symlink dangling aborta prima del backup
+- Data: 2026-07-17 | Origine: audit pre-integrate di v0.3.0 (lente script-safety, confermato empiricamente)
+- Problema osservato: nel ramo `FORCE_OVERWRITE=1` di `scripts/hooks-install.sh`, la
+  sequenza `cp -L "${target}" "${target}.bak"` → `rm -f "${target}"` → AVVISO, sotto
+  `set -euo pipefail`, su un hook che è un symlink DANGLING (bersaglio inesistente):
+  `cp -L` fallisce e lo script esce non-zero PRIMA dell'avviso e prima del `rm`,
+  divergendo dal commento di testata che promette un backup `.bak` garantito con FORCE.
+  Nessuna perdita dati (un symlink dangling è già inerte, niente da salvare) — è un difetto
+  di robustezza/coerenza, non di sicurezza.
+- Proposta: gestire il caso dangling — es. `[[ -e "${target}" ]]` prima del `cp -L`; se il
+  target non esiste, saltare il backup con un avviso dedicato e rimuovere comunque il link.
+  Fix accompagnato da un test RED→GREEN (docs/02) sul caso "symlink dangling + FORCE_OVERWRITE=1".
+- Beneficio atteso / rischio: lo script mantiene la promessa del commento in ogni caso, exit
+  code coerente; rischio basso (ramo di edge già isolato).
+- Trigger di ripresa: prossima retrospettiva, o quando si rimette mano a `hooks-install.sh`.
 
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>
@@ -157,6 +189,45 @@ _(nessuna proposta aperta)_
   e stabile coincidono, caso previsto da docs/04), tag pre-1.0 su `main`; docs/04
   *Formato commit*: niente nomi di progetti/clienti nella storia condivisa.
 
+### IMP-027 — Percorso di setup brownfield → applicata il 2026-07-14, commit ff3c2bc (+7fc8b8e)
+- Sezione "Innesto su un progetto ESISTENTE (brownfield)" in `SETUP.md`: criterio
+  CASO A/B per `.claude/` preesistente (la sola esistenza della cartella non
+  basta), riconciliazione dei file in collisione (l'ospite ha la precedenza; ogni
+  collisione si segnala), primo comando come assessment read-only che POPOLA la
+  memoria dall'esistente (STATE reale, `components/` retroattive, decisioni
+  ereditate), divergenze doc-vs-realtà registrate come debito e mai corrette
+  d'ufficio. Perimetro del LIVELLO 1 precisato in docs/06 (con confine di fine
+  innesto, 7fc8b8e), "Debito documentazione" allargato nel template `STATE.md`
+  alla doc esistente-ma-errata, rimando dal README e forward-pointer al passo 1.
+  L'opzione script `graft.sh` NON è inclusa: rimandata (vedi Rimandate).
+
+### IMP-028 — Igiene git ereditata all'innesto → applicata il 2026-07-14, commit 051d02c, 1103ffb, 4cd4363, c623b82
+- (b) 051d02c: `gitleaks detect` one-off sull'intera storia dichiarato come
+  completamento della baseline (docs/03 + riquadro in SETUP passo 3).
+  (d) 1103ffb + review c623b82: `hooks-install.sh` si ferma su hook di altra
+  origine (symlink inclusi) e su `core.hooksPath` con rimedio a scope corretto;
+  `FORCE_OVERWRITE=1` fa backup `.bak` e non scrive mai attraverso i symlink; le
+  personalizzazioni dei PROPRI hook si salvano in `.bak` al rilancio; commento
+  in testa allineato al comportamento reale. Sei scenari dimostrati su repo
+  usa-e-getta. (a+c) 4cd4363: guardia sulla base SemVer nel passo 1 di
+  `/integrate` + razionale di docs/04 corretto in forma descrittiva (`git
+  describe --tags` accetta anche i lightweight; nessun obbligo nuovo) +
+  checklist "Igiene git ereditata" nella sezione brownfield (audit tag, costanti
+  di versione hard-coded, topologia dei branch decisa-e-dichiarata).
+
+### IMP-029 — Convivenza linguistica dichiarata → applicata il 2026-07-14, commit acdefcb
+- Voce "Lingua/e del progetto" negli esempi delle regole tecniche di `CLAUDE.md`,
+  checkbox nella checklist del passo 2 di `SETUP.md`, rimando nella sezione
+  brownfield: la lingua di memoria/processo vs doc pubblica si decide una volta,
+  non nota-per-nota. Vale anche in greenfield.
+
+### IMP-030 — Compilazione dei [DA DEFINIRE AL SETUP] assistita da Claude Code → applicata il 2026-07-14, commit 42bc00a
+- SETUP passo 2 dichiara le due modalità equivalenti (a mano con la checklist /
+  in dialogo con Claude Code che intervista e scrive le risposte), variante del
+  primo comando al passo 4, riga allineata nel README. Solo documentazione del
+  comportamento esistente: i marcatori senza risposta restano
+  `[DA DEFINIRE AL SETUP]`, nessuna invenzione.
+
 <!-- Formato:
 ### IMP-001 — <titolo> → applicata il YYYY-MM-DD, commit <sha>
 - <sintesi del problema e di cosa è stato cambiato in concreto>
@@ -183,6 +254,15 @@ _(nessuna proposta aperta)_
   Skill diventano il veicolo primario delle procedure di progetto in Claude Code.
   Alla ripresa: convenzione minima agnostica (`.claude/skills/README.md` + agganci
   a `/checkpoint` e `/lint-memory`), MAI una libreria di skill concrete.
+
+### IMP-027 (opzione `graft.sh`) — script di innesto automatizzato → rimandata il 2026-07-14
+- Decisione utente: il resto di IMP-027 è APPLICATO (vedi Applicate); lo script
+  che automatizza l'innesto (copia del sottoinsieme giusto, azzeramento di
+  LEARNINGS/sessions, `gitleaks detect` one-off, gestione hook) NON si fa ora —
+  filtro anti-hype: le collisioni sono decisioni umane (lo script può solo
+  rilevarle) e la sezione brownfield di `SETUP.md` va prima provata sul campo.
+- Trigger di ripresa: dopo 2-3 innesti brownfield reali, quando il pattern
+  comune è distillabile dal testo provato.
 
 ## Rifiutate (con motivo — per non riproporle)
 _(nessuna ancora)_

@@ -38,8 +38,11 @@ tags: [state]
 
 ## Debito documentazione
 <!-- Cosa andrà documentato e non lo è ancora (utile se la doc di progetto nasce
-     dopo il codice). Si svuota man mano che il debito viene saldato. -->
-- <sezione/pagina da scrivere> — <cosa deve contenere>
+     dopo il codice), E la doc ESISTENTE trovata in disaccordo con la realtà —
+     es. all'innesto su un progetto esistente: si registra qui, non si corregge
+     d'ufficio (docs/06, "Perimetro del LIVELLO 1"). Si svuota man mano che il
+     debito viene saldato. -->
+- <sezione/pagina da scrivere o da correggere> — <cosa deve contenere / cosa diverge>
 
 ## Attenzione / problemi aperti
 <!-- Trappole note, debito tecnico accettato, cose fragili da non rompere.
