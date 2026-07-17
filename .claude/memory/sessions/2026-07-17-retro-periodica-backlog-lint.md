@@ -2,7 +2,7 @@
 date: 2026-07-17
 task: retrospettiva periodica sull'intero backlog IMP (031-037) + /lint-memory della memoria del framework
 branch: chore/retro-backlog-imp
-status: in-progress
+status: completed
 tags: [session, improvement, retro, lint]
 ---
 # Session 2026-07-17 — Retro periodica del backlog IMP + lint-memory
@@ -40,19 +40,36 @@ occorrenza). Tabella presentata all'utente → decisioni prese.
 Bump del deliverable: **PATCH** (031/032 sono `fix`; il resto è docs/chore).
 
 ## Piano (un commit per task)
-- [ ] 1. Branch + questa nota (plan-pointer, blocco-piano) — commit: —
-- [ ] 2. IMP-031: convenzione in SETUP.md + sentinella in `/lint-memory` — commit: —
-- [ ] 3. IMP-032: fix `hooks-install.sh` (dangling) + test RED→GREEN + `make test` — commit: —
-- [ ] 4. IMP-034 (A+C): riquadro docs/01 + patch RIPRESA + blocco-piano in sessions/README — commit: —
-- [ ] 5. IMP-035: nota terminologica accanto a IMP-026 — commit: —
-- [ ] 6. Sposta IMP-036/037 in "Rimandate" coi trigger — commit: —
-- [ ] 7. FASE 2 `/lint-memory` + `/checkpoint` (backfill sha, finalizza nota) — commit: —
+- [x] 1. Branch + questa nota (plan-pointer, blocco-piano) — commit: d7194de
+- [x] 2. IMP-031: convenzione in SETUP.md + sentinella in `/lint-memory` — commit: f02e6bb
+- [x] 3. IMP-032: fix `hooks-install.sh` (dangling) + test RED→GREEN + `make test-scripts` — commit: d061f6c
+- [x] 4. IMP-034 (A+C): riquadro docs/01 + patch RIPRESA + blocco-piano in sessions/README — commit: da0e158
+- [x] 5. IMP-035: nota terminologica accanto a IMP-026 — commit: ee5b0f8
+- [x] 6. Sposta IMP-036/037 in "Rimandate" coi trigger — commit: 954d72d
+- [x] 7. FASE 2 `/lint-memory` + `/checkpoint` (backfill sha, finalizza nota) — commit: (questo)
 
 ## FASE 2 — /lint-memory
-<!-- da compilare al task 7 -->
+Health-check sulla memoria viva (regime ibrido IMP-024: vivi `LEARNINGS` + `sessions/`;
+STATE/TREE/INDEX sono template). Esito **VERDE**, 0 correzioni meccaniche necessarie:
+- **Link** — tutti i `[[wikilink]]` di note e LEARNINGS risolvono (4 note datate esistenti +
+  INDEX/LEARNINGS/STATE/TREE). Nessun link rotto. (I `[[ -e … ]]` nei commenti IMP-032 sono
+  sintassi bash, non wikilink.)
+- **LEARNINGS coerente** — APERTE vuota, Applicate 001-035, Rimandate 023/026/027-graft/036/037;
+  numerazione 001-037 completa; sha delle 4 nuove voci Applicate riempiti al checkpoint.
+- **Riferimenti alle IMP spostate** — negli artefatti vivi non-LEARNINGS solo riferimenti
+  corretti (docs/01 = ratifica IMP-034; CHANGELOG [0.5.0] cita IMP-036/037 come storia del
+  rilascio, immutabile). Nessun claim stantio da correggere.
+- **STATE/TREE/INDEX template** — confermato by-design (IMP-024), non un finding.
+- **Orfani** — nessuno; questa nota è la più recente e linka le precedenti.
+- **Osservazione (non-IMP, caso di giudizio)**: in regime ibrido il controllo 9 di
+  `/lint-memory` (coerenza LEARNINGS↔STATE) è strutturalmente inerte, perché STATE è template
+  e non c'è cruscotto vivo iniettato al SessionStart che rifletta un trigger IMP imminente (es.
+  036/037→D3). È conseguenza NOTA e accettata di IMP-024 (il backlog vive in LEARNINGS,
+  consultato on-demand), non un difetto — non aperta come IMP salvo diversa indicazione utente.
 
 ## Correzioni fattuali doc (Livello 1, docs/06)
-<!-- da compilare: il deliverable APPLICA IMP, non corregge doc in disaccordo -->
+- Nessuna: il deliverable APPLICA IMP decise (Livello 2); non corregge doc in disaccordo con
+  la realtà (la convenzione di IMP-031 PREVIENE, non corregge un'istanza).
 
 ## Follow-up
 - Cross-link CONTRIBUTING ↔ docs/01 (regime ibrido / blocco-piano) → **rimandato al deliverable

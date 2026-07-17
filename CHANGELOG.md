@@ -7,6 +7,24 @@ SemVer su tag annotati definito in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+### Fixed
+- `SETUP.md` + `/lint-memory`: uno *slot* `[DA DEFINIRE AL SETUP]` spezzato dal word-wrap
+  sfuggiva al `grep` single-line di setup e del Passo 4 dell'upgrade, restando non compilato
+  in silenzio. Convenzione "uno slot sta su una riga fisica" + sentinella (controllo 10 di
+  `/lint-memory`) che dichiara i falsi positivi in prosa (IMP-031).
+- `hooks-install.sh`: nel ramo `FORCE_OVERWRITE=1` un hook che è un symlink *dangling* faceva
+  fallire `cp -L` sotto `set -euo pipefail` — lo script abortiva prima del backup e della
+  rimozione, contro il commento di testata. Guardia `[[ -e ]]`, `rm` comune ai due rami; test
+  RED→GREEN `scripts/test-hooks-install.sh` + target `make test-scripts` (IMP-032).
+
+### Changed
+- docs/01 + `sessions/README.md`: ratificato che nel repo-framework (regime ibrido) un
+  deliverable oneroso NON usa `plans/`/`decisions/` — il piano vive come voce IMP + nota di
+  sessione (**blocco-piano** standardizzato) + commit `[task N/T]`; patch allo step di RIPRESA
+  che guardava solo `plans/` (IMP-034 A+C).
+- `LEARNINGS.md`: nota terminologica accanto a IMP-026 per disambiguare
+  "comando"/"skill"/tool `Skill` dell'harness (IMP-035).
+
 ## [0.5.0] — 2026-07-17
 
 ### Added

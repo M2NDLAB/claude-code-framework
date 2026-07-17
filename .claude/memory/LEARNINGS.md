@@ -208,7 +208,7 @@ del 2026-07-17: IMP-031/032/034/035 applicate, IMP-036/037 rimandate.)_
   comportamento esistente: i marcatori senza risposta restano
   `[DA DEFINIRE AL SETUP]`, nessuna invenzione.
 
-### IMP-031 — Marcatori `[DA DEFINIRE AL SETUP]` grep-visibili (mai spezzati dal wrap) → applicata il 2026-07-17, commit —
+### IMP-031 — Marcatori `[DA DEFINIRE AL SETUP]` grep-visibili (mai spezzati dal wrap) → applicata il 2026-07-17, commit f02e6bb
 - Convenzione in `SETUP.md` §2 (uno slot da compilare sta su UNA sola riga fisica, o
   sfugge al `grep -rn "DA DEFINIRE AL SETUP" .` del setup e del Passo 4 dell'upgrade);
   sentinella `grep -rn "DA DEFINIRE AL$" .` come controllo 10 di `/lint-memory`, coi
@@ -216,7 +216,7 @@ del 2026-07-17: IMP-031/032/034/035 applicate, IMP-036/037 rimandate.)_
   così esclude la prosa senza sopprimere uno slot spezzato altrove. Chiude con la
   PREVENZIONE la classe di cui i fix 7fc8b8e/740b575 avevano sanato le sole istanze.
 
-### IMP-032 — `hooks-install.sh`: FORCE_OVERWRITE robusto sul symlink dangling → applicata il 2026-07-17, commit —
+### IMP-032 — `hooks-install.sh`: FORCE_OVERWRITE robusto sul symlink dangling → applicata il 2026-07-17, commit d061f6c
 - Nel ramo `FORCE_OVERWRITE=1`, guardia `[[ -e "${target}" ]]` (segue il link → FALSO
   solo sul dangling): il backup `.bak` si fa dove ha senso, il `rm -f` è comune ai due
   rami, i commenti di testata sono allineati (backup "saltato se dangling"). Test
@@ -236,7 +236,7 @@ del 2026-07-17: IMP-031/032/034/035 applicate, IMP-036/037 rimandate.)_
   multi-agente) → decisione utente sui 4 punti strutturali. CHANGELOG `[Unreleased]` alla
   release via `/integrate`.
 
-### IMP-034 — Il piano oneroso sul repo-framework vive nella nota di sessione, non in plans/ → applicata il 2026-07-17, commit — (A+C)
+### IMP-034 — Il piano oneroso sul repo-framework vive nella nota di sessione, non in plans/ → applicata il 2026-07-17, commit da0e158 (A+C)
 - Decisione utente: **A+C** (no B, no D). A (`docs/01`): riquadro "Regime ibrido del
   repo-framework" in FASE 2 — un deliverable oneroso NON crea file in `plans/` né registra
   in `decisions/`; il piano vive come voce IMP + nota di sessione + commit `[task N/T]`
@@ -249,7 +249,7 @@ del 2026-07-17: IMP-031/032/034/035 applicate, IMP-036/037 rimandate.)_
   rimandato al deliverable README/CONTRIBUTING (fuori scope). Dogfood: questo deliverable ha
   applicato la stessa interim (3ª ricorrenza).
 
-### IMP-035 — Disambiguazione "skill"/"comando"/tool `Skill` accanto a IMP-026 → applicata il 2026-07-17, commit —
+### IMP-035 — Disambiguazione "skill"/"comando"/tool `Skill` accanto a IMP-026 → applicata il 2026-07-17, commit ee5b0f8
 - Risolta con UNA riga di nota terminologica accanto a IMP-026 (dove nasce la confusione):
   "comando" = file in `.claude/commands/` (ciò che il repo usa); la FEATURE `.claude/skills/`
   (IMP-026) non è adottata; l'harness chiama "skill" anche i comandi (naming di piattaforma).
