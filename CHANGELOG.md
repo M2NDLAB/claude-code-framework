@@ -7,6 +7,8 @@ SemVer su tag annotati definito in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-07-17
+
 ### Added
 - `SETUP.md`: sezione **"Aggiornare il framework su un progetto già innestato
   (`vX` → `vY`)"** — il terzo caso accanto a greenfield e brownfield. Modello a tre
