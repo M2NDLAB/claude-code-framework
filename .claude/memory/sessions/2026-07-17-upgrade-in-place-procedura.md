@@ -2,7 +2,7 @@
 date: 2026-07-17
 task: deliverable D2 — procedura di upgrade-in-place di un framework già innestato (terzo caso, accanto a greenfield/brownfield)
 branch: feat/upgrade-in-place-procedure
-status: in-progress
+status: completed
 tags: [session, upgrade, setup, brownfield]
 ---
 # Session 2026-07-17 — Procedura di upgrade-in-place (`vX→vY`)
@@ -59,13 +59,22 @@ solo nel repo-framework) → il 3-way non ha base certa. È il cuore del deliver
 6. **Salto multi-versione** `v0.1→v0.4`: il diff agli estremi collassa migrazioni non-commutative → ordinare per versione.
 7. **Pre-flight** puro/ibrido: `docs/02/03/04` sono METODO SALVO fill inline → ispeziona prima di sovrascrivere.
 
-## Piano (un commit per task)
-- [ ] 1. Branch + questa nota (plan pointer) — commit: —
-- [ ] 2. `SETUP.md` sezione dedicata `## Aggiornare il framework (vX→vY)` — commit: —
-- [ ] 3. `SETUP.md` i 7 edge case nella procedura — commit: —
-- [ ] 4. `SETUP.md` stub di rimando nel CASO A — commit: —
-- [ ] 5. `LEARNINGS.md` IMP-036 (provenance-pin) + IMP-037 (`/upgrade-framework`) APERTE — commit: —
-- [ ] 6. `CHANGELOG` `[Unreleased]` + cross-link minimo + `/checkpoint` — commit: —
+## Piano (un commit per task) — COMPLETATO
+- [x] 1. Branch + questa nota (plan pointer) — commit: bd7bc7b
+- [x] 2. `SETUP.md` sezione dedicata `## Aggiornare il framework (vX→vY)` — commit: 8eb3107
+- [x] 3. `SETUP.md` i 7 edge case nella procedura — commit: 3d40c4b
+- [x] 4. `SETUP.md` stub di rimando nel CASO A — commit: add83db
+- [x] 5. `LEARNINGS.md` IMP-036 (provenance-pin) + IMP-037 (`/upgrade-framework`) APERTE — commit: 3a017c7
+- [x] 6. `CHANGELOG` `[Unreleased]` + cross-link README + `/checkpoint` — commit: (questo)
+
+## /retro (riflessione di fine deliverable)
+- **IMP-034 ricorsa una 2ª volta** (dopo il deliverable /harvest-framework): anche questo
+  deliverable oneroso sul repo-framework ha dovuto applicare la risoluzione interim (piano
+  come nota di sessione, niente `plans/`). La ricorrenza RAFFORZA la ratifica di IMP-034 —
+  da valutare alla prossima retrospettiva periodica sul backlog. Nessuna nuova IMP: nessun
+  attrito oltre a quello già tracciato.
+- Nessuna correzione fattuale Livello 1 (il deliverable AGGIUNGE una procedura, non corregge
+  doc in disaccordo con la realtà). STATE.md/TREE.md non toccati (regime ibrido, IMP-024).
 
 ## Agganci a IMP aperte (dichiarati, non risolti)
 - **IMP-031** (marcatori spezzati sfuggono al grep) → l'upgrade eredita la dipendenza per rilevare i nuovi marcatori di `vY`.
