@@ -7,6 +7,30 @@ SemVer su tag annotati definito in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-07-17
+
+Comando `/harvest-framework` e ponte progetto→framework: le lezioni che riguardano
+il metodo, emerse lavorando su un progetto-cliente, ora si marcano e risalgono al
+template con una procedura ripetibile e sotto controllo umano (IMP-033).
+
+### Added
+- **`/harvest-framework`** (`.claude/commands/`): raccoglie dal backlog le IMP marcate
+  `Destinazione: framework` e stampa un blocco copiabile, anonimizzato, pronto da
+  riproporre come IMP nel repo del framework. Solo legge e stampa — nessun
+  clone/copia/push/cross-repo (confine IMP-009, agnosticità); anti-vacuità sul caso
+  vuoto; default sull'intero backlog, restringibile con `$ARGUMENTS` (IMP-033).
+- Attributo **`Destinazione: framework`** nel formato IMP di `LEARNINGS.md` (riga
+  fisica singola, grep-abile): marca, in un progetto-cliente, le lezioni da far
+  risalire al framework; è un attributo di destinazione, non un livello (IMP-033).
+- docs/06: sezione **"Il ponte verso il framework"** — come una lezione framework-bound
+  si marca, come risale (curatela umana, con anonimizzazione) e perché il confine è
+  solo-leggi-e-stampa; cross-link da README (*Filosofia*), `SETUP.md` §5 e
+  `CONTRIBUTING.md` (IMP-033).
+
+### Changed
+- `CLAUDE.md` ("Comandi rapidi") e `README.md` ("Struttura"): `/harvest-framework`
+  aggiunto agli elenchi dei comandi (IMP-033).
+
 ## [0.3.0] — 2026-07-17
 
 Lezioni del primo innesto su un progetto esistente, verificate sui file e
