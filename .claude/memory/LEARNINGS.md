@@ -25,123 +25,8 @@ tags: [improvement]
 
 ## Proposte APERTE (in attesa di decisione utente)
 
-### IMP-031 — I marcatori `[DA DEFINIRE AL SETUP]` che vanno a capo sfuggono al grep del setup
-- Data: 2026-07-17 | Origine: audit pre-integrate di v0.3.0 (lente internal-consistency)
-- Problema osservato: `SETUP.md` (riga 37) prescrive `grep -rn "DA DEFINIRE AL SETUP" .`
-  per elencare i punti da compilare al setup, ma un marcatore che si spezza su due righe
-  (wrap del testo) è invisibile a quel grep single-line. È già successo DUE volte:
-  `integrate.md` (sanato da 7fc8b8e in questo stesso deliverable) e `docs/04:142` (sanato
-  ora, commit `740b575`). L'istanza è chiusa; resta scoperta la PREVENZIONE della classe.
-- Proposta: convenzione esplicita "un marcatore `[DA DEFINIRE AL SETUP]` sta sempre su
-  una riga fisica" (regole di stile / `SETUP.md`), e/o un controllo in `/lint-memory` o
-  nello script di setup che segnali le occorrenze spezzate (es. `grep -rn "DA DEFINIRE AL$"`
-  come sentinella).
-- Beneficio atteso / rischio: il grep del setup trova TUTTI i marcatori (nessun punto da
-  compilare dimenticato); rischio ~nullo (convenzione + check, nessun cambio di regola
-  sostanziale).
-- Trigger di ripresa: prossima retrospettiva periodica sul backlog, o alla prossima
-  occorrenza di un marcatore spezzato.
-
-### IMP-032 — `hooks-install.sh`: FORCE_OVERWRITE su symlink dangling aborta prima del backup
-- Data: 2026-07-17 | Origine: audit pre-integrate di v0.3.0 (lente script-safety, confermato empiricamente)
-- Problema osservato: nel ramo `FORCE_OVERWRITE=1` di `scripts/hooks-install.sh`, la
-  sequenza `cp -L "${target}" "${target}.bak"` → `rm -f "${target}"` → AVVISO, sotto
-  `set -euo pipefail`, su un hook che è un symlink DANGLING (bersaglio inesistente):
-  `cp -L` fallisce e lo script esce non-zero PRIMA dell'avviso e prima del `rm`,
-  divergendo dal commento di testata che promette un backup `.bak` garantito con FORCE.
-  Nessuna perdita dati (un symlink dangling è già inerte, niente da salvare) — è un difetto
-  di robustezza/coerenza, non di sicurezza.
-- Proposta: gestire il caso dangling — es. `[[ -e "${target}" ]]` prima del `cp -L`; se il
-  target non esiste, saltare il backup con un avviso dedicato e rimuovere comunque il link.
-  Fix accompagnato da un test RED→GREEN (docs/02) sul caso "symlink dangling + FORCE_OVERWRITE=1".
-- Beneficio atteso / rischio: lo script mantiene la promessa del commento in ogni caso, exit
-  code coerente; rischio basso (ramo di edge già isolato).
-- Trigger di ripresa: prossima retrospettiva, o quando si rimette mano a `hooks-install.sh`.
-
-### IMP-034 — docs/01 non prevede il deliverable oneroso sul repo-framework in regime ibrido
-- Data: 2026-07-17 | Origine: deliverable /harvest-framework (IMP-033) — scelta di dove vive il piano
-- Problema osservato: `01-task-planning.md` (FASE 2/4) impone, per un prompt oneroso, un
-  file di piano in `.claude/memory/plans/` da committare e spuntare. Ma il regime ibrido
-  del repo-framework (IMP-024, `CONTRIBUTING.md`) tiene `plans/` (e STATE/TREE/INDEX/…)
-  come template PULITO. Le due regole confliggono quando il deliverable oneroso è sul
-  repo-framework stesso: docs/01 non dice come pianificare senza scrivere in `plans/`. In
-  questo deliverable si è deciso con l'utente di non usare `plans/` e tracciare via IMP +
-  nota di sessione + commit `[task N/T]`; la decisione ha tenuto, ma la regola scritta
-  resta ambigua per la prossima sessione.
-- Proposta: dichiarare la gerarchia in docs/01 (o in `CONTRIBUTING.md`/IMP-024): nel regime
-  ibrido del repo-framework un deliverable oneroso NON crea un file in `plans/` — il "piano"
-  vive come voce IMP (il cosa/perché) + nota di sessione (fasi/ripresa) + commit `[task N/T]`
-  (granularità di ripresa), che danno gli stessi checkpoint senza sporcare il template. Nei
-  progetti-cliente (memoria piena) resta valido `plans/`.
-- Beneficio atteso / rischio: la prossima sessione onerosa sul repo-framework non deve
-  ri-derivare la conciliazione; nessuna perdita di resilienza. Rischio ~nullo (chiarimento
-  di una gerarchia già applicata, non una regola nuova).
-- Trigger di ripresa: prossima retrospettiva periodica sul backlog, o al prossimo
-  deliverable oneroso sul repo-framework.
-
-### IMP-035 — "skill" sovraccarico: comando di progetto vs feature Skills vs tool `Skill` dell'harness
-- Data: 2026-07-17 | Origine: assessment di /harvest-framework (disambiguazione di IMP-026)
-- Problema osservato: nel repo un invocabile è un "comando" (file in `.claude/commands/`);
-  ma l'harness di Claude Code espone i project command tramite un tool chiamato `Skill` e
-  li elenca come "skills", e separatamente IMP-026 (rimandata) riguarda l'adozione della
-  FEATURE `.claude/skills/`. Il termine "skill" copre tre cose diverse. Un contributor che
-  legge "IMP-026: skill rimandate" può confondere i comandi esistenti con la feature non
-  adottata (in questo deliverable è servito leggere IMP-026 + verificare che
-  `.claude/skills/` non esista per disambiguare).
-- Proposta: una riga di chiarimento dove serve (`CONTRIBUTING.md` o accanto a IMP-026):
-  "comando" = file in `.claude/commands/` (ciò che il repo usa); la feature Skills
-  (`.claude/skills/`, IMP-026) è altra cosa e non è adottata; l'harness chiama "skill" anche
-  i project command — naming di piattaforma, non del repo.
-- Beneficio atteso / rischio: evita una re-derivazione ricorrente; rischio nullo. Impatto
-  BASSO (chiarezza, non correttezza).
-- Trigger di ripresa: prossima retrospettiva periodica, o quando si riprende IMP-026.
-
-### IMP-036 — Provenance pin: registrare all'innesto la versione framework di partenza
-- Data: 2026-07-17 | Origine: deliverable D2 (procedura di upgrade-in-place, `SETUP.md`)
-- Problema osservato: un progetto innestato NON registra da quale versione (`vX`) del
-  framework è partito — i tag vivono solo nel repo-framework, non vengono copiati. In più
-  il fill dei `[DA DEFINIRE AL SETUP]` è DISTRUTTIVO: a setup fatto un file ibrido è un
-  impasto indistinguibile di prosa-framework + risposte-progetto, senza confine grep-abile.
-  Conseguenza: il 3-way merge — l'unico meccanismo robusto per riconciliare gli ibridi a
-  ownership interleaved (`CLAUDE.md`, `settings.json`, `hooks-install.sh`) durante un
-  upgrade — NON ha una base certa. La procedura di upgrade appena scritta lo gestisce per
-  via umana (Passo 0: chiedi / stima sul contenuto / degrada), ma è il suo punto più fragile.
-- Proposta: al setup scrivere un manifest minimo (es. `.claude/framework-version` con
-  `{version, commit, grafted: data}`) che registra la `vX` innestata; l'upgrade lo legge per
-  avere la base certa del 3-way. Aggancio al passo 1 di `SETUP.md` (innesto) e al primo
-  comando. Fallback per i progetti già innestati senza pin: la stima di `vX` già descritta
-  nella procedura. Alternativa più RADICALE (stesso trigger, non elevata a proposta a sé):
-  distribuire il framework come *upstream* git (subtree/vendor-branch) invece che per copia,
-  così `vX` vive nella storia del progetto e il 3-way è nativo — ma ri-architetta l'innesto
-  (fuori dallo scope di D2) e incrina l'agnosticità (il progetto acquisirebbe un remote verso
-  il framework), quindi resta un'ipotesi da valutare solo se gli upgrade diventano frequenti.
-- Beneficio atteso / rischio: baseline certa del 3-way, meno fragilità umana. Rischio: tocca
-  il flusso d'innesto (`SETUP` passo 1 — "un cambiamento alla volta") e NON è retroattivo (i
-  progetti già innestati per copia non l'avranno) → beneficio solo-futuro. Per questo è
-  RIMANDATA e non applicata: con 0 upgrade reali sarebbe machinery prematura (filtro
-  anti-hype, come IMP-027 `graft.sh`).
-- Trigger di ripresa: dopo il PRIMO upgrade reale (es. un progetto-cliente `v0.2→v0.4`) che
-  dimostri sul campo il costo della baseline mancante.
-
-### IMP-037 — Comando `/upgrade-framework` read-and-print (gemello inverso di `/harvest-framework`)
-- Data: 2026-07-17 | Origine: deliverable D2 (procedura di upgrade-in-place, `SETUP.md`)
-- Problema osservato: la procedura di upgrade è MANUALE — derivare il what-changed
-  framework-side (CHANGELOG come indice + `git diff` scoped tra i tag), applicare la
-  tassonomia per classe e il 3-way sugli ibridi è oneroso e va rifatto a ogni upgrade; per
-  un operatore meno git-fluente è una barriera d'ingresso.
-- Proposta: un comando `/upgrade-framework` che SOLO LEGGE E STAMPA (confine di
-  `/harvest-framework` e IMP-009): dati `vX` e `vY`, stampa il piano di upgrade — delta dal
-  CHANGELOG, tassonomia applicata al repo corrente, blocco di comandi/riconciliazioni pronti
-  — senza eseguire scritture/merge/push né git cross-repo. È il gemello INVERSO di
-  `/harvest-framework` (harvest fa RISALIRE le lezioni cliente→framework; l'upgrade STAMPA il
-  what-changed che SCENDE framework→cliente). È un "comando" in `.claude/commands/`, non la
-  feature Skills (aggancio IMP-035).
-- Beneficio atteso / rischio: abbassa la barriera e riduce l'errore manuale, restando dentro
-  il confine (l'umano riconcilia e integra). Rischio: automazione prematura con 0 upgrade
-  reali (filtro anti-hype, precedente IMP-027 `graft.sh`) → RIMANDATA finché la procedura
-  manuale non è provata sul campo e un pattern comune è distillabile.
-- Trigger di ripresa: dopo 2-3 upgrade reali, quando il pattern comune è distillabile dal
-  testo provato (stesso criterio di IMP-027 `graft.sh`).
+_(nessuna al momento — le 6 proposte aperte sono state decise nella retrospettiva periodica
+del 2026-07-17: IMP-031/032/034/035 applicate, IMP-036/037 rimandate.)_
 
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>
@@ -323,6 +208,22 @@ tags: [improvement]
   comportamento esistente: i marcatori senza risposta restano
   `[DA DEFINIRE AL SETUP]`, nessuna invenzione.
 
+### IMP-031 — Marcatori `[DA DEFINIRE AL SETUP]` grep-visibili (mai spezzati dal wrap) → applicata il 2026-07-17, commit f02e6bb
+- Convenzione in `SETUP.md` §2 (uno slot da compilare sta su UNA sola riga fisica, o
+  sfugge al `grep -rn "DA DEFINIRE AL SETUP" .` del setup e del Passo 4 dell'upgrade);
+  sentinella `grep -rn "DA DEFINIRE AL$" .` come controllo 10 di `/lint-memory`, coi
+  falsi positivi NOTI dichiarati (prosa-guida di `SETUP.md`, record IMP di `LEARNINGS.md`),
+  così esclude la prosa senza sopprimere uno slot spezzato altrove. Chiude con la
+  PREVENZIONE la classe di cui i fix 7fc8b8e/740b575 avevano sanato le sole istanze.
+
+### IMP-032 — `hooks-install.sh`: FORCE_OVERWRITE robusto sul symlink dangling → applicata il 2026-07-17, commit d061f6c
+- Nel ramo `FORCE_OVERWRITE=1`, guardia `[[ -e "${target}" ]]` (segue il link → FALSO
+  solo sul dangling): il backup `.bak` si fa dove ha senso, il `rm -f` è comune ai due
+  rami, i commenti di testata sono allineati (backup "saltato se dangling"). Test
+  RED→GREEN hermetic `scripts/test-hooks-install.sh` (stub gitleaks/npx + repo
+  usa-e-getta) e target `make test-scripts`; RED = abort di `cp -L`, GREEN = exit 0 +
+  link rimosso + hook installato + nessun `.bak` vacuo.
+
 ### IMP-033 — Comando `/harvest-framework` + ponte progetto→framework → applicata il 2026-07-17, commit d2856be, c0df16c, f50816f, 534b41d
 - MARCATURA: attributo `Destinazione: framework` nel formato IMP di `LEARNINGS.md` (riga
   fisica singola grep-abile; assente = lezione-di-progetto; moot nel repo-framework).
@@ -334,6 +235,25 @@ tags: [improvement]
   README Filosofia / SETUP §5 / CONTRIBUTING. Assessment read-only preliminare (workflow
   multi-agente) → decisione utente sui 4 punti strutturali. CHANGELOG `[Unreleased]` alla
   release via `/integrate`.
+
+### IMP-034 — Il piano oneroso sul repo-framework vive nella nota di sessione, non in plans/ → applicata il 2026-07-17, commit da0e158 (A+C)
+- Decisione utente: **A+C** (no B, no D). A (`docs/01`): riquadro "Regime ibrido del
+  repo-framework" in FASE 2 — un deliverable oneroso NON crea file in `plans/` né registra
+  in `decisions/`; il piano vive come voce IMP + nota di sessione + commit `[task N/T]`
+  (stessi checkpoint), regola SPECIFICA (IMP-024) sulla generale nel solo ambito dichiarato;
+  più patch allo step 1 di RIPRESA (guardava solo `plans/` → falso negativo nel regime
+  ibrido). C (`sessions/README.md`): sotto-formato **blocco-piano** standardizzato
+  (`## Piano (un commit per task)`), che risolve la divergenza prosa-vs-checklist delle due
+  applicazioni interim. Scartate: D (lex specialis = astrazione prematura da n=1, vettore di
+  drift) e B (`plans/` effimero, `git rm` dimenticabile). Cross-link `CONTRIBUTING.md`
+  rimandato al deliverable README/CONTRIBUTING (fuori scope). Dogfood: questo deliverable ha
+  applicato la stessa interim (3ª ricorrenza).
+
+### IMP-035 — Disambiguazione "skill"/"comando"/tool `Skill` accanto a IMP-026 → applicata il 2026-07-17, commit ee5b0f8
+- Risolta con UNA riga di nota terminologica accanto a IMP-026 (dove nasce la confusione):
+  "comando" = file in `.claude/commands/` (ciò che il repo usa); la FEATURE `.claude/skills/`
+  (IMP-026) non è adottata; l'harness chiama "skill" anche i comandi (naming di piattaforma).
+  No glossario (overload occorso 1×); la distinzione è già load-bearing (IMP-037 la cita).
 
 <!-- Formato:
 ### IMP-001 — <titolo> → applicata il YYYY-MM-DD, commit <sha>
@@ -352,6 +272,7 @@ tags: [improvement]
   decisione dell'utente di pubblicizzare il repo.
 
 ### IMP-026 — Skill di Claude Code come artefatto gestito → rimandata il 2026-07-11
+- Nota terminologica (IMP-035): "skill" è sovraccarico — "comando" = file in `.claude/commands/` (ciò che il repo usa); questa IMP riguarda la FEATURE `.claude/skills/` (non adottata); l'harness chiama "skill" anche i comandi (naming di piattaforma). Non confonderli.
 - Decisione utente: RIMANDA (interpretazione confermata: convenzione di gestione
   delle Skill come artefatto di prima classe, NON libreria di skill concrete).
   Oggi nessun attrito osservato che le giustifichi: i comandi e il caricamento
@@ -370,6 +291,25 @@ tags: [improvement]
   rilevarle) e la sezione brownfield di `SETUP.md` va prima provata sul campo.
 - Trigger di ripresa: dopo 2-3 innesti brownfield reali, quando il pattern
   comune è distillabile dal testo provato.
+
+### IMP-036 — Provenance pin: registrare all'innesto la `vX` del framework → rimandata il 2026-07-17
+- Decisione utente (retro periodica): RIMANDA (conferma). Manifest minimo
+  (`.claude/framework-version` con `{version, commit, grafted}`) scritto al setup per dare al
+  3-way dell'upgrade una base certa (oggi il Passo 0 la surroga a mano: chiedi/stima/degrada —
+  punto più fragile della procedura). Applicarlo ora = machinery prima ancora del 1° upgrade
+  reale (filtro anti-hype, come IMP-027 `graft.sh`); non retroattivo (beneficio solo-futuro).
+  Contesto pieno: [[2026-07-17-upgrade-in-place-procedura]].
+- Trigger di ripresa: dopo il PRIMO upgrade reale (D3, es. un progetto-cliente `v0.2→v0.4`),
+  che dimostri sul campo il costo della baseline mancante.
+
+### IMP-037 — Comando `/upgrade-framework` read-and-print (gemello inverso di `/harvest-framework`) → rimandata il 2026-07-17
+- Decisione utente (retro periodica): RIMANDA (conferma). Un comando che SOLO LEGGE E STAMPA
+  (confine di `/harvest-framework`/IMP-009) il piano di upgrade `vX→vY` — delta dal CHANGELOG,
+  tassonomia per classe, blocco di riconciliazioni — senza scritture/merge/push né git
+  cross-repo. Astrae la procedura manuale di `SETUP.md`, ma con 0 upgrade reali il pattern
+  comune non è distillabile: automazione prematura (filtro anti-hype, come IMP-027 `graft.sh`).
+- Trigger di ripresa: dopo 2-3 upgrade reali, quando il pattern comune è distillabile dal testo
+  provato (D3 è il caso #1 dei 2-3 necessari; da solo NON fa scattare il trigger).
 
 ## Rifiutate (con motivo — per non riproporle)
 _(nessuna ancora)_
