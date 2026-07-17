@@ -139,9 +139,9 @@ Esistono **due regimi**, e determinano su QUALE BRANCH vive il tag:
 > due regimi: in 0.x si tagga su `develop`, da 1.0.0 su `main`. Non restano due
 > istruzioni in conflitto.
 
-> Modello di branching diverso (es. trunk-based, o nomi differenti — [DA DEFINIRE AL
-> SETUP])? I nomi cambiano, i due regimi no: pre-1.0 si tagga sulla linea di lavoro,
-> post-1.0 sulla linea rilasciata.
+> Modello di branching diverso (es. trunk-based, o nomi differenti —
+> [DA DEFINIRE AL SETUP])? I nomi cambiano, i due regimi no: pre-1.0 si tagga sulla
+> linea di lavoro, post-1.0 sulla linea rilasciata.
 
 **Igiene dei tag e del push (per l'utente che esegue).**
 - Il tag si DIGITA a mano, con un solo `-m` breve e ASCII puro: em-dash, accenti e
