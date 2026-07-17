@@ -7,6 +7,23 @@ SemVer su tag annotati definito in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-07-17
+
+### Added
+- `SETUP.md`: sezione **"Aggiornare il framework su un progetto già innestato
+  (`vX` → `vY`)"** — il terzo caso accanto a greenfield e brownfield. Modello a tre
+  classi (metodo / memoria-di-progetto / ibridi), invariante `diff`-vuoto-su-`memory/`,
+  merge a 3 vie `base=vX` per gli ibridi (il fill dei `[DA DEFINIRE]` è distruttivo),
+  what-changed derivato framework-side (CHANGELOG come indice + `git diff` scoped),
+  **7 casi limite** (orfani, rename, rimandi memoria rotti, hook fuori dal grafo git,
+  regime `0.x→1.0`, salto multi-versione, pre-flight puro/ibrido), confine di esecuzione
+  (agente prepara, umano integra, bump "nessun tag"). Stub di rimando dal CASO A
+  brownfield; cross-link dal README.
+- Automazione dell'upgrade **rimandata** come proposte aperte con trigger "dopo il primo
+  upgrade reale": `provenance-pin` all'innesto (IMP-036) e comando `/upgrade-framework`
+  read-and-print, gemello inverso di `/harvest-framework` (IMP-037) — filtro anti-hype,
+  stesso criterio di `graft.sh`.
+
 ## [0.4.0] — 2026-07-17
 
 Comando `/harvest-framework` e ponte progetto→framework: le lezioni che riguardano

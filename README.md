@@ -55,6 +55,10 @@ pianifica → esegui per task → [se sensibile] `/security-review` → `/retro`
 > gli stessi, con le differenze — riconciliazione dei file in collisione,
 > assessment iniziale che popola la memoria, igiene della storia git ereditata —
 > nella sezione dedicata in coda a `SETUP.md`.
+>
+> Devi invece **aggiornare** a una versione più recente un progetto che ha già il
+> framework innestato, preservando la memoria accumulata? È il terzo caso, con la
+> sua procedura (*«Aggiornare il framework»*) sempre in coda a `SETUP.md`.
 
 ### Struttura
 
