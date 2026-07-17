@@ -50,6 +50,33 @@ tags: [improvement]
   code coerente; rischio basso (ramo di edge già isolato).
 - Trigger di ripresa: prossima retrospettiva, o quando si rimette mano a `hooks-install.sh`.
 
+### IMP-033 — Comando `/harvest-framework` + ponte progetto→framework
+- Data: 2026-07-17 | Origine: attrito reale — le lezioni che riguardano il FRAMEWORK ma
+  emergono lavorando su un progetto-CLIENTE si travasano a mano, senza procedura né
+  marcatura affidabile (assessment: 0 occorrenze di una convenzione di marcatura oggi).
+- Problema osservato: un progetto-cliente registra le sue lezioni come IMP nel PROPRIO
+  `LEARNINGS.md` (che riparte da 001); alcune riguardano il progetto, altre il framework
+  stesso. Non esiste un modo per (a) marcare in modo affidabile quali IMP siano
+  "framework-bound", né (b) raccoglierle per farle risalire al template. Il ritorno al
+  framework è oggi ri-registrazione manuale non documentata (osservata solo nella nota
+  d'innesto brownfield).
+- Proposta: (1) MARCATURA — attributo `Destinazione: framework` nel formato IMP di
+  `LEARNINGS.md` (riga fisica singola, grep-abile; assente = lezione-di-progetto),
+  descritto in docs/06 come attributo di DESTINAZIONE (resta Livello 2, cambia solo dove
+  risale). (2) COMANDO — `.claude/commands/harvest-framework.md`: legge `LEARNINGS.md`,
+  filtra le IMP marcate, default = intero backlog + `$ARGUMENTS` per restringere, e STAMPA
+  un blocco copiabile per la curatela umana (solo-leggi-e-stampa: niente
+  clone/copia/push/cross-repo — confine di IMP-009, agnosticità). (3) PONTE — sottosezione
+  in docs/06 che documenta il flusso lato-progetto → framework, con anonimizzazione prima
+  della ri-registrazione a monte; cross-link da SETUP §5 / README Filosofia / CONTRIBUTING.
+- Beneficio atteso / rischio: il travaso diventa procedura ripetibile e affidabile, la
+  marcatura è meccanica (grep) invece che a giudizio; confine e agnosticità preservati.
+  Rischio basso: solo doc + un comando-prompt, nessuna azione automatica sullo stato.
+- Decisione utente: APPROVATA il 2026-07-17 (meccanismo COMANDO, non Skill → non riapre
+  IMP-026; marcatura come attributo sulla voce IMP; perimetro intero backlog restringibile;
+  confine solo-leggi-e-stampa confermato). In applicazione in questo deliverable → sarà
+  spostata in "Applicate" al `/checkpoint` finale.
+
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>
 - Data: YYYY-MM-DD | Origine: <sessione/problema che l'ha generata>
