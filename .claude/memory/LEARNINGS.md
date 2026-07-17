@@ -25,52 +25,8 @@ tags: [improvement]
 
 ## Proposte APERTE (in attesa di decisione utente)
 
-### IMP-036 — Provenance pin: registrare all'innesto la versione framework di partenza
-- Data: 2026-07-17 | Origine: deliverable D2 (procedura di upgrade-in-place, `SETUP.md`)
-- Problema osservato: un progetto innestato NON registra da quale versione (`vX`) del
-  framework è partito — i tag vivono solo nel repo-framework, non vengono copiati. In più
-  il fill dei `[DA DEFINIRE AL SETUP]` è DISTRUTTIVO: a setup fatto un file ibrido è un
-  impasto indistinguibile di prosa-framework + risposte-progetto, senza confine grep-abile.
-  Conseguenza: il 3-way merge — l'unico meccanismo robusto per riconciliare gli ibridi a
-  ownership interleaved (`CLAUDE.md`, `settings.json`, `hooks-install.sh`) durante un
-  upgrade — NON ha una base certa. La procedura di upgrade appena scritta lo gestisce per
-  via umana (Passo 0: chiedi / stima sul contenuto / degrada), ma è il suo punto più fragile.
-- Proposta: al setup scrivere un manifest minimo (es. `.claude/framework-version` con
-  `{version, commit, grafted: data}`) che registra la `vX` innestata; l'upgrade lo legge per
-  avere la base certa del 3-way. Aggancio al passo 1 di `SETUP.md` (innesto) e al primo
-  comando. Fallback per i progetti già innestati senza pin: la stima di `vX` già descritta
-  nella procedura. Alternativa più RADICALE (stesso trigger, non elevata a proposta a sé):
-  distribuire il framework come *upstream* git (subtree/vendor-branch) invece che per copia,
-  così `vX` vive nella storia del progetto e il 3-way è nativo — ma ri-architetta l'innesto
-  (fuori dallo scope di D2) e incrina l'agnosticità (il progetto acquisirebbe un remote verso
-  il framework), quindi resta un'ipotesi da valutare solo se gli upgrade diventano frequenti.
-- Beneficio atteso / rischio: baseline certa del 3-way, meno fragilità umana. Rischio: tocca
-  il flusso d'innesto (`SETUP` passo 1 — "un cambiamento alla volta") e NON è retroattivo (i
-  progetti già innestati per copia non l'avranno) → beneficio solo-futuro. Per questo è
-  RIMANDATA e non applicata: con 0 upgrade reali sarebbe machinery prematura (filtro
-  anti-hype, come IMP-027 `graft.sh`).
-- Trigger di ripresa: dopo il PRIMO upgrade reale (es. un progetto-cliente `v0.2→v0.4`) che
-  dimostri sul campo il costo della baseline mancante.
-
-### IMP-037 — Comando `/upgrade-framework` read-and-print (gemello inverso di `/harvest-framework`)
-- Data: 2026-07-17 | Origine: deliverable D2 (procedura di upgrade-in-place, `SETUP.md`)
-- Problema osservato: la procedura di upgrade è MANUALE — derivare il what-changed
-  framework-side (CHANGELOG come indice + `git diff` scoped tra i tag), applicare la
-  tassonomia per classe e il 3-way sugli ibridi è oneroso e va rifatto a ogni upgrade; per
-  un operatore meno git-fluente è una barriera d'ingresso.
-- Proposta: un comando `/upgrade-framework` che SOLO LEGGE E STAMPA (confine di
-  `/harvest-framework` e IMP-009): dati `vX` e `vY`, stampa il piano di upgrade — delta dal
-  CHANGELOG, tassonomia applicata al repo corrente, blocco di comandi/riconciliazioni pronti
-  — senza eseguire scritture/merge/push né git cross-repo. È il gemello INVERSO di
-  `/harvest-framework` (harvest fa RISALIRE le lezioni cliente→framework; l'upgrade STAMPA il
-  what-changed che SCENDE framework→cliente). È un "comando" in `.claude/commands/`, non la
-  feature Skills (aggancio IMP-035).
-- Beneficio atteso / rischio: abbassa la barriera e riduce l'errore manuale, restando dentro
-  il confine (l'umano riconcilia e integra). Rischio: automazione prematura con 0 upgrade
-  reali (filtro anti-hype, precedente IMP-027 `graft.sh`) → RIMANDATA finché la procedura
-  manuale non è provata sul campo e un pattern comune è distillabile.
-- Trigger di ripresa: dopo 2-3 upgrade reali, quando il pattern comune è distillabile dal
-  testo provato (stesso criterio di IMP-027 `graft.sh`).
+_(nessuna al momento — le 6 proposte aperte sono state decise nella retrospettiva periodica
+del 2026-07-17: IMP-031/032/034/035 applicate, IMP-036/037 rimandate.)_
 
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>
@@ -335,6 +291,25 @@ tags: [improvement]
   rilevarle) e la sezione brownfield di `SETUP.md` va prima provata sul campo.
 - Trigger di ripresa: dopo 2-3 innesti brownfield reali, quando il pattern
   comune è distillabile dal testo provato.
+
+### IMP-036 — Provenance pin: registrare all'innesto la `vX` del framework → rimandata il 2026-07-17
+- Decisione utente (retro periodica): RIMANDA (conferma). Manifest minimo
+  (`.claude/framework-version` con `{version, commit, grafted}`) scritto al setup per dare al
+  3-way dell'upgrade una base certa (oggi il Passo 0 la surroga a mano: chiedi/stima/degrada —
+  punto più fragile della procedura). Applicarlo ora = machinery prima ancora del 1° upgrade
+  reale (filtro anti-hype, come IMP-027 `graft.sh`); non retroattivo (beneficio solo-futuro).
+  Contesto pieno: [[2026-07-17-upgrade-in-place-procedura]].
+- Trigger di ripresa: dopo il PRIMO upgrade reale (D3, es. un progetto-cliente `v0.2→v0.4`),
+  che dimostri sul campo il costo della baseline mancante.
+
+### IMP-037 — Comando `/upgrade-framework` read-and-print (gemello inverso di `/harvest-framework`) → rimandata il 2026-07-17
+- Decisione utente (retro periodica): RIMANDA (conferma). Un comando che SOLO LEGGE E STAMPA
+  (confine di `/harvest-framework`/IMP-009) il piano di upgrade `vX→vY` — delta dal CHANGELOG,
+  tassonomia per classe, blocco di riconciliazioni — senza scritture/merge/push né git
+  cross-repo. Astrae la procedura manuale di `SETUP.md`, ma con 0 upgrade reali il pattern
+  comune non è distillabile: automazione prematura (filtro anti-hype, come IMP-027 `graft.sh`).
+- Trigger di ripresa: dopo 2-3 upgrade reali, quando il pattern comune è distillabile dal testo
+  provato (D3 è il caso #1 dei 2-3 necessari; da solo NON fa scattare il trigger).
 
 ## Rifiutate (con motivo — per non riproporle)
 _(nessuna ancora)_
