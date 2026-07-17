@@ -7,6 +7,8 @@ SemVer su tag annotati definito in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [0.5.1] — 2026-07-17
+
 ### Fixed
 - `SETUP.md` + `/lint-memory`: uno *slot* `[DA DEFINIRE AL SETUP]` spezzato dal word-wrap
   sfuggiva al `grep` single-line di setup e del Passo 4 dell'upgrade, restando non compilato
