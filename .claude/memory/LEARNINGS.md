@@ -25,23 +25,6 @@ tags: [improvement]
 
 ## Proposte APERTE (in attesa di decisione utente)
 
-### IMP-035 — "skill" sovraccarico: comando di progetto vs feature Skills vs tool `Skill` dell'harness
-- Data: 2026-07-17 | Origine: assessment di /harvest-framework (disambiguazione di IMP-026)
-- Problema osservato: nel repo un invocabile è un "comando" (file in `.claude/commands/`);
-  ma l'harness di Claude Code espone i project command tramite un tool chiamato `Skill` e
-  li elenca come "skills", e separatamente IMP-026 (rimandata) riguarda l'adozione della
-  FEATURE `.claude/skills/`. Il termine "skill" copre tre cose diverse. Un contributor che
-  legge "IMP-026: skill rimandate" può confondere i comandi esistenti con la feature non
-  adottata (in questo deliverable è servito leggere IMP-026 + verificare che
-  `.claude/skills/` non esista per disambiguare).
-- Proposta: una riga di chiarimento dove serve (`CONTRIBUTING.md` o accanto a IMP-026):
-  "comando" = file in `.claude/commands/` (ciò che il repo usa); la feature Skills
-  (`.claude/skills/`, IMP-026) è altra cosa e non è adottata; l'harness chiama "skill" anche
-  i project command — naming di piattaforma, non del repo.
-- Beneficio atteso / rischio: evita una re-derivazione ricorrente; rischio nullo. Impatto
-  BASSO (chiarezza, non correttezza).
-- Trigger di ripresa: prossima retrospettiva periodica, o quando si riprende IMP-026.
-
 ### IMP-036 — Provenance pin: registrare all'innesto la versione framework di partenza
 - Data: 2026-07-17 | Origine: deliverable D2 (procedura di upgrade-in-place, `SETUP.md`)
 - Problema osservato: un progetto innestato NON registra da quale versione (`vX`) del
@@ -310,6 +293,12 @@ tags: [improvement]
   rimandato al deliverable README/CONTRIBUTING (fuori scope). Dogfood: questo deliverable ha
   applicato la stessa interim (3ª ricorrenza).
 
+### IMP-035 — Disambiguazione "skill"/"comando"/tool `Skill` accanto a IMP-026 → applicata il 2026-07-17, commit —
+- Risolta con UNA riga di nota terminologica accanto a IMP-026 (dove nasce la confusione):
+  "comando" = file in `.claude/commands/` (ciò che il repo usa); la FEATURE `.claude/skills/`
+  (IMP-026) non è adottata; l'harness chiama "skill" anche i comandi (naming di piattaforma).
+  No glossario (overload occorso 1×); la distinzione è già load-bearing (IMP-037 la cita).
+
 <!-- Formato:
 ### IMP-001 — <titolo> → applicata il YYYY-MM-DD, commit <sha>
 - <sintesi del problema e di cosa è stato cambiato in concreto>
@@ -327,6 +316,7 @@ tags: [improvement]
   decisione dell'utente di pubblicizzare il repo.
 
 ### IMP-026 — Skill di Claude Code come artefatto gestito → rimandata il 2026-07-11
+- Nota terminologica (IMP-035): "skill" è sovraccarico — "comando" = file in `.claude/commands/` (ciò che il repo usa); questa IMP riguarda la FEATURE `.claude/skills/` (non adottata); l'harness chiama "skill" anche i comandi (naming di piattaforma). Non confonderli.
 - Decisione utente: RIMANDA (interpretazione confermata: convenzione di gestione
   delle Skill come artefatto di prima classe, NON libreria di skill concrete).
   Oggi nessun attrito osservato che le giustifichi: i comandi e il caricamento
