@@ -406,3 +406,70 @@ feature/fix del prodotto → bump **"nessun tag"** (`chore`, lavoro interno, non
 release): dichiaralo e ometti il tag. Il merge del branch di upgrade e il push sono
 azioni UMANE. Se alla review qualcosa non torna, si butta il branch: la memoria è salva
 nel commit pre-upgrade.
+
+### Casi limite (da trattare esplicitamente)
+
+La riconciliazione "porta la versione `vY`" del Passo 3 è un OVERWRITE, non un `sync`, e
+il 3-way copre i co-edit ma non tutto. Questi sette casi vanno gestiti apposta, o
+l'upgrade lascia il progetto in uno stato incoerente:
+
+1. **File CANCELLATO in `vY` (orfano).** Se `vY` rimuove un file di METODO (un doc
+   accorpato, un comando deprecato), sovrascrivere non lo cancella: resta orfano. Il
+   `git diff vX vY` mostra le rimozioni come hunk di delete — **applica anche quelle**
+   (`git rm`), e chiudi con un check anti-orfano: l'insieme dei file di METODO del
+   progetto deve combaciare con quello di `vY`.
+
+2. **File RINOMINATO/RINUMERATO in `vY` (duplicato).** Se `vY` rinomina o rinumera un
+   doc/comando (es. una rinumerazione di `docs/`), l'overwrite crea il nuovo nome e
+   **lascia il vecchio** → due file e un indice `CLAUDE.md`/`TREE.md` ambiguo. Usa
+   `git diff -M` come indice dei rename per applicare lo spostamento (rimuovi il vecchio,
+   porta il nuovo), non un add+delete cieco.
+
+3. **Rimandi della memoria verso doc rinominati — l'unica eccezione all'invariante.**
+   Se `vY` rinomina/rinumera un doc, i `[[wikilink]]` e i rimandi (`docs/04:142`, …) in
+   `STATE.md` e nelle sessioni **penzolano**, e `/lint-memory` li segnalerà rotti. Qui
+   l'invariante "diff vuoto su `memory/`" e la riparazione confliggono: la via d'uscita è
+   trattare la riparazione dei rimandi come **eccezione ESPLICITA e DICHIARATA**, in un
+   **commit separato** (`docs(memory): aggiorna i rimandi ai doc rinominati da vY`),
+   distinto dai commit dell'upgrade. Così l'invariante resta utile (intercetta gli edit
+   ACCIDENTALI della memoria) e la riparazione necessaria non passa di nascosto. È
+   l'unico tocco lecito alla memoria durante un upgrade, e solo se un rename lo impone.
+
+4. **Hook installati (`.git/hooks/*`) fuori dal grafo git.** `make hooks-install` del
+   Passo 4 materializza gli hook in `.git/hooks/`, che NON è tracciato né sul branch. Due
+   conseguenze: (a) se dimentichi il re-run, gli hook installati restano vecchi mentre
+   `hooks-install.sh` è aggiornato — incoerenza silenziosa; (b) **lo scarto del branch
+   NON disinstalla** gli hook nuovi già materializzati, e il commit di sicurezza non li
+   ha mai catturati. Quindi: il re-run è OBBLIGATORIO, non opzionale; e se abortisci
+   l'upgrade dopo il Passo 4, ri-esegui `make hooks-install` dalla versione `vX` per
+   riportare gli hook coerenti col codice ripristinato.
+
+5. **Attraversare la `1.0.0` (`0.x → 1.0`) cambia REGOLE vive.** Aggiornare `docs/04`
+   attraverso la prima release stabile non è solo testo: cambia il regime di versioning
+   (in `0.x` i tag vivono sul branch di sviluppo, da `1.0.0` sul branch stabile) sotto un
+   progetto che sta già operando con la vecchia regola. Se il progetto è a metà di un
+   proprio ciclo di release, **fermati e segnalalo all'utente**: aggiornare un doc di
+   PROCESSO può cambiare semantiche VIVE, non solo prosa.
+
+6. **Salto multi-versione (`v0.1 → v0.4`): ordine delle migrazioni.** Un `git diff` fra
+   gli ESTREMI collassa gli intermedi: va bene per aggiunte/rimozioni che si annullano,
+   ma **perde l'ordine delle migrazioni non-commutative** (es. un file rinominato in `vX+1`
+   e poi ristrutturato in `vX+2`) e conflonde fix multipli sullo stesso file in un unico
+   hunk. Per un salto di più versioni, usa il CHANGELOG **per-versione** come indice
+   dell'ordine e, sui file più intricati (tipicamente `hooks-install.sh`), riconcilia
+   **una versione alla volta** invece che in un colpo solo.
+
+7. **Pre-flight: il file "METODO-puro" è stato personalizzato inline?** La classe METODO
+   assume che `docs/02/03/04` restino template (i loro `[DA DEFINIRE]` si risolvono per
+   convenzione in `CLAUDE.md` con un rimando). Ma se il progetto li ha compilati **inline**
+   — o ha editato liberamente un file altrimenti puro (`commitlint.config.cjs`, un doc) —
+   quel file è di fatto un IBRIDO, e l'overwrite ne distrugge la personalizzazione in
+   silenzio. Prima di sovrascrivere un file di classe METODO, **ispeziona** che sia
+   davvero intatto rispetto a `vX`; se diverge, trattalo come ibrido (3-way).
+
+> **Fuori dal payload dell'upgrade.** `LICENSE`, `CONTRIBUTING.md`, `CHANGELOG.md` sono
+> file del REPO DEL FRAMEWORK (non copiati nel progetto, passo 1): non spingerli nel
+> progetto e non leggerli dal progetto. `SECURITY.md`, `README.md` e questo `SETUP.md`
+> nel progetto sono opzionali/di riferimento — e attenzione a **non sovrascrivere il
+> `README.md` del progetto** con quello del framework. `settings.local.json` (non
+> versionato) resta intatto per costruzione.
