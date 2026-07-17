@@ -25,27 +25,6 @@ tags: [improvement]
 
 ## Proposte APERTE (in attesa di decisione utente)
 
-### IMP-034 — docs/01 non prevede il deliverable oneroso sul repo-framework in regime ibrido
-- Data: 2026-07-17 | Origine: deliverable /harvest-framework (IMP-033) — scelta di dove vive il piano
-- Problema osservato: `01-task-planning.md` (FASE 2/4) impone, per un prompt oneroso, un
-  file di piano in `.claude/memory/plans/` da committare e spuntare. Ma il regime ibrido
-  del repo-framework (IMP-024, `CONTRIBUTING.md`) tiene `plans/` (e STATE/TREE/INDEX/…)
-  come template PULITO. Le due regole confliggono quando il deliverable oneroso è sul
-  repo-framework stesso: docs/01 non dice come pianificare senza scrivere in `plans/`. In
-  questo deliverable si è deciso con l'utente di non usare `plans/` e tracciare via IMP +
-  nota di sessione + commit `[task N/T]`; la decisione ha tenuto, ma la regola scritta
-  resta ambigua per la prossima sessione.
-- Proposta: dichiarare la gerarchia in docs/01 (o in `CONTRIBUTING.md`/IMP-024): nel regime
-  ibrido del repo-framework un deliverable oneroso NON crea un file in `plans/` — il "piano"
-  vive come voce IMP (il cosa/perché) + nota di sessione (fasi/ripresa) + commit `[task N/T]`
-  (granularità di ripresa), che danno gli stessi checkpoint senza sporcare il template. Nei
-  progetti-cliente (memoria piena) resta valido `plans/`.
-- Beneficio atteso / rischio: la prossima sessione onerosa sul repo-framework non deve
-  ri-derivare la conciliazione; nessuna perdita di resilienza. Rischio ~nullo (chiarimento
-  di una gerarchia già applicata, non una regola nuova).
-- Trigger di ripresa: prossima retrospettiva periodica sul backlog, o al prossimo
-  deliverable oneroso sul repo-framework.
-
 ### IMP-035 — "skill" sovraccarico: comando di progetto vs feature Skills vs tool `Skill` dell'harness
 - Data: 2026-07-17 | Origine: assessment di /harvest-framework (disambiguazione di IMP-026)
 - Problema osservato: nel repo un invocabile è un "comando" (file in `.claude/commands/`);
@@ -317,6 +296,19 @@ tags: [improvement]
   README Filosofia / SETUP §5 / CONTRIBUTING. Assessment read-only preliminare (workflow
   multi-agente) → decisione utente sui 4 punti strutturali. CHANGELOG `[Unreleased]` alla
   release via `/integrate`.
+
+### IMP-034 — Il piano oneroso sul repo-framework vive nella nota di sessione, non in plans/ → applicata il 2026-07-17, commit — (A+C)
+- Decisione utente: **A+C** (no B, no D). A (`docs/01`): riquadro "Regime ibrido del
+  repo-framework" in FASE 2 — un deliverable oneroso NON crea file in `plans/` né registra
+  in `decisions/`; il piano vive come voce IMP + nota di sessione + commit `[task N/T]`
+  (stessi checkpoint), regola SPECIFICA (IMP-024) sulla generale nel solo ambito dichiarato;
+  più patch allo step 1 di RIPRESA (guardava solo `plans/` → falso negativo nel regime
+  ibrido). C (`sessions/README.md`): sotto-formato **blocco-piano** standardizzato
+  (`## Piano (un commit per task)`), che risolve la divergenza prosa-vs-checklist delle due
+  applicazioni interim. Scartate: D (lex specialis = astrazione prematura da n=1, vettore di
+  drift) e B (`plans/` effimero, `git rm` dimenticabile). Cross-link `CONTRIBUTING.md`
+  rimandato al deliverable README/CONTRIBUTING (fuori scope). Dogfood: questo deliverable ha
+  applicato la stessa interim (3ª ricorrenza).
 
 <!-- Formato:
 ### IMP-001 — <titolo> → applicata il YYYY-MM-DD, commit <sha>

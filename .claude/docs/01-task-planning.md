@@ -77,6 +77,25 @@ Regole per i task:
 - Dopo aver scritto il piano, COMMITTALO subito (`chore: plan for <prompt>`) prima
   di iniziare i task: così il piano sopravvive anche a un crash immediato.
 
+> **Regime ibrido del repo-framework (IMP-024/IMP-034).** Nel repo del *framework*
+> stesso — dove `plans/`, `decisions/`, `STATE`/`TREE`/`INDEX` restano TEMPLATE PULITI
+> (vivi solo `LEARNINGS.md` e `sessions/`; vedi `CONTRIBUTING.md`) — un deliverable
+> oneroso NON crea un file in `plans/` e non registra la decisione strutturale in
+> `decisions/`: sporcherebbe il template. Il "piano" e l'assessment vivono altrove, con
+> gli STESSI checkpoint di ripresa:
+> - COSA/PERCHÉ (piano + decisione) → una voce in `LEARNINGS.md` (IMP-nnn) e/o la nota
+>   di sessione;
+> - FASI e contesto di ripresa → la nota di sessione, in un **blocco-piano
+>   standardizzato** (`## Piano (un commit per task)` con checklist + sha — vedi
+>   `sessions/README.md`): la nota è insieme plan-pointer e diario;
+> - GRANULARITÀ di ripresa → i commit `[task N/T]` (FASE 3, invariata);
+> - COMPLETAMENTO (FASE 4) → `status: completed` nel frontmatter della NOTA di sessione,
+>   non di un file di piano.
+>
+> È la regola SPECIFICA (IMP-024, il regime ibrido) che prevale sulla generale (`plans/`)
+> nel suo SOLO ambito dichiarato; nei progetti-CLIENTE (memoria piena) `plans/` e
+> `decisions/` restano pienamente validi.
+
 ## FASE 3 — Esecuzione task-per-task
 
 Per ogni task in ordine:
@@ -127,6 +146,9 @@ oneroso (FASE 2 → piano), e applica in più questa disciplina:
 
 L'hook `SessionStart` inietta `STATE.md`. Inoltre, all'avvio:
 1. Controlla se esiste un piano con `status: in-progress` in `.claude/memory/plans/`.
+   (Nel regime ibrido del repo-framework, dove `plans/` resta vuoto, il piano
+   in-progress vive nel **blocco-piano della nota di sessione** più recente — vedi il
+   riquadro in FASE 2: controllalo lì, o concluderesti a torto "niente in corso".)
 2. Se sì E riguarda il prompt che l'utente ti sta chiedendo (o l'utente dice
    "riprendi"): leggi il piano, fai `git log --oneline` sul branch per confermare
    quali task sono già committati, e RIPRENDI dal primo task non spuntato. NON

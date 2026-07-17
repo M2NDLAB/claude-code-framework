@@ -46,4 +46,24 @@ tags: [session, <area>]
 - <eventuali code aperte riprese in una data successiva>
 ```
 
+## Blocco-piano — regime ibrido del repo-framework
+
+Nel repo del *framework* i deliverable onerosi NON usano `plans/` (template pulito,
+IMP-024): la nota di sessione fa da **plan-pointer**, ospitando il piano in un blocco
+STANDARDIZZATO — così piano e diario stanno in un solo artefatto e la ripresa lo trova
+sempre nello stesso posto (vedi il riquadro "Regime ibrido" in
+`docs/01-task-planning.md`). Nei progetti-cliente si usa invece `plans/`.
+
+Stessa struttura della checklist di `plans/`: checkbox + task atomico + sha, uno per task.
+
+```markdown
+## Piano (un commit per task)
+- [x] 1. <task atomico> — commit: <sha>
+- [ ] 2. <task atomico> — commit: —
+```
+
+Committa la nota (con lo scheletro del blocco) come PRIMO task: è il plan-pointer
+resiliente a un crash immediato — l'equivalente del `chore: plan for …` di `plans/`. A
+completamento: `status: completed` nel frontmatter della nota.
+
 > Questo README resta come guida; le note di sessione vivono accanto ad esso.
