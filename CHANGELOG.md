@@ -7,7 +7,7 @@ SemVer su tag annotati definito in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
-## [0.3.0] — 2026-07-14
+## [0.3.0] — 2026-07-17
 
 Lezioni del primo innesto su un progetto esistente, verificate sui file e
 applicate come IMP-027..030 (l'opzione `graft.sh` è rimandata con trigger).
@@ -42,9 +42,9 @@ applicate come IMP-027..030 (l'opzione `graft.sh` è rimandata con trigger).
   adversariale).
 - docs/04 *Versioning*: razionale dei tag annotati corretto in forma descrittiva
   (`git describe` senza `--tags` usa i soli annotati; `/integrate` usa `--tags`
-  e per questo verifica la base); marcatore `[DA DEFINIRE AL SETUP]` di
-  `integrate.md` ricompattato su una riga — era invisibile al grep dichiarato
-  dal setup.
+  e per questo verifica la base); marcatori `[DA DEFINIRE AL SETUP]` di
+  `integrate.md` e di docs/04 ricompattati su una riga — erano invisibili al grep
+  dichiarato dal setup.
 
 ### Changed
 - Template `STATE.md`: "Debito documentazione" allargato alla doc
