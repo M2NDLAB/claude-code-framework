@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-07-14
+updated: 2026-07-17
 tags: [improvement]
 ---
 # Learnings & proposte di miglioramento
@@ -16,7 +16,39 @@ tags: [improvement]
 > vedi `CONTRIBUTING.md`): chi copia il template lo SVUOTA al setup (`SETUP.md`).
 
 ## Proposte APERTE (in attesa di decisione utente)
-_(nessuna proposta aperta)_
+
+### IMP-031 — I marcatori `[DA DEFINIRE AL SETUP]` che vanno a capo sfuggono al grep del setup
+- Data: 2026-07-17 | Origine: audit pre-integrate di v0.3.0 (lente internal-consistency)
+- Problema osservato: `SETUP.md` (riga 37) prescrive `grep -rn "DA DEFINIRE AL SETUP" .`
+  per elencare i punti da compilare al setup, ma un marcatore che si spezza su due righe
+  (wrap del testo) è invisibile a quel grep single-line. È già successo DUE volte:
+  `integrate.md` (sanato da 7fc8b8e in questo stesso deliverable) e `docs/04:142` (sanato
+  ora, commit `740b575`). L'istanza è chiusa; resta scoperta la PREVENZIONE della classe.
+- Proposta: convenzione esplicita "un marcatore `[DA DEFINIRE AL SETUP]` sta sempre su
+  una riga fisica" (regole di stile / `SETUP.md`), e/o un controllo in `/lint-memory` o
+  nello script di setup che segnali le occorrenze spezzate (es. `grep -rn "DA DEFINIRE AL$"`
+  come sentinella).
+- Beneficio atteso / rischio: il grep del setup trova TUTTI i marcatori (nessun punto da
+  compilare dimenticato); rischio ~nullo (convenzione + check, nessun cambio di regola
+  sostanziale).
+- Trigger di ripresa: prossima retrospettiva periodica sul backlog, o alla prossima
+  occorrenza di un marcatore spezzato.
+
+### IMP-032 — `hooks-install.sh`: FORCE_OVERWRITE su symlink dangling aborta prima del backup
+- Data: 2026-07-17 | Origine: audit pre-integrate di v0.3.0 (lente script-safety, confermato empiricamente)
+- Problema osservato: nel ramo `FORCE_OVERWRITE=1` di `scripts/hooks-install.sh`, la
+  sequenza `cp -L "${target}" "${target}.bak"` → `rm -f "${target}"` → AVVISO, sotto
+  `set -euo pipefail`, su un hook che è un symlink DANGLING (bersaglio inesistente):
+  `cp -L` fallisce e lo script esce non-zero PRIMA dell'avviso e prima del `rm`,
+  divergendo dal commento di testata che promette un backup `.bak` garantito con FORCE.
+  Nessuna perdita dati (un symlink dangling è già inerte, niente da salvare) — è un difetto
+  di robustezza/coerenza, non di sicurezza.
+- Proposta: gestire il caso dangling — es. `[[ -e "${target}" ]]` prima del `cp -L`; se il
+  target non esiste, saltare il backup con un avviso dedicato e rimuovere comunque il link.
+  Fix accompagnato da un test RED→GREEN (docs/02) sul caso "symlink dangling + FORCE_OVERWRITE=1".
+- Beneficio atteso / rischio: lo script mantiene la promessa del commento in ogni caso, exit
+  code coerente; rischio basso (ramo di edge già isolato).
+- Trigger di ripresa: prossima retrospettiva, o quando si rimette mano a `hooks-install.sh`.
 
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>
