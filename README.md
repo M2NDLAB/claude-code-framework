@@ -77,11 +77,14 @@ pianifica → esegui per task → [se sensibile] `/security-review` → `/retro`
 └── .claude/
     ├── settings.json          hook SessionStart (inietta STATE.md) + permessi (secret scan: hook pre-commit)
     ├── docs/                  00-overview, 01-task-planning ... 06-self-improvement
-    ├── commands/              /checkpoint /integrate /sos /retro /security-review /new-component /lint-memory
+    ├── commands/              /checkpoint /integrate /sos /retro /security-review /new-component /lint-memory /harvest-framework
     └── memory/                STATE, TREE, INDEX, LEARNINGS (template) + 4 sottocartelle
 ```
 
 ## Filosofia
 
 Il framework migliora con l'uso: ogni progetto che ci costruisci sopra genera
-lezioni di processo che tornano qui come miglioramenti per il prossimo.
+lezioni di processo che tornano qui come miglioramenti per il prossimo. Nel
+progetto quelle lezioni si marcano `Destinazione: framework` e `/harvest-framework`
+le raccoglie in un blocco pronto da riproporre qui (vedi
+`.claude/docs/06-self-improvement.md`, *"Il ponte verso il framework"*).

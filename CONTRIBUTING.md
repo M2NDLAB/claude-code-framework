@@ -60,6 +60,12 @@ progetto SVUOTA la parte viva (istruzioni in `SETUP.md`, passo 2).
 
 ## In pratica, per una proposta di modifica
 
+Una proposta può nascere dal lavoro su questo repo, oppure **risalire da un
+progetto-cliente**: là la lezione si marca `Destinazione: framework` e
+`/harvest-framework` ne produce un blocco copiabile (già anonimizzato) da portare
+qui (vedi `.claude/docs/06-self-improvement.md`, *"Il ponte verso il framework"*).
+In entrambi i casi diventa una voce IMP in `LEARNINGS.md`.
+
 1. Apri un feature branch da `main`.
 2. Commit conventional, hook installati, nessun secret (gitleaks blocca comunque).
 3. Se la modifica tocca regole o doc del metodo: allega la voce IMP (problema →
