@@ -68,6 +68,43 @@ Quando l'utente approva una IMP (direttamente o via risposta di escalation):
 4. Se la modifica cambia una regola numerata di `CLAUDE.md`: verifica che le altre
    regole e i doc restino coerenti (niente riferimenti orfani).
 
+## Il ponte verso il framework — lezioni "framework-bound"
+
+Finora ogni IMP è trattata come una lezione su QUESTO progetto. Ma quando il progetto
+USA il framework (non È il framework), una parte delle lezioni non riguarda il progetto:
+riguarda il METODO — una regola ambigua, un comando che manca, un passo di processo che
+fa attrito ovunque, non solo qui. Quelle lezioni hanno una seconda destinazione, il repo
+del framework, così da migliorare ANCHE il prossimo progetto: è il "loop" della Filosofia
+del README, formalizzato in `SETUP.md` §5 *"Far evolvere il framework"*.
+
+**Come si marca.** Una IMP che riguarda il framework porta, nel suo corpo in
+`LEARNINGS.md`, la riga `- Destinazione: framework` (vedi il formato IMP nell'header di
+`LEARNINGS.md`). È un attributo di DESTINAZIONE, non un terzo livello: la lezione resta di
+Livello 2 (si PROPONE, non si applica in autonomia) e segue il suo normale ciclo NEL
+progetto; il marcatore aggiunge solo "questa, oltre che qui, va fatta risalire". Criterio
+per marcarla: è utile a QUALSIASI progetto che usi il framework, non solo a questo. Riga
+fisica singola, così `/harvest-framework` la raccoglie via grep.
+
+**Come risale — `/harvest-framework`.** Il comando raccoglie dal backlog le IMP marcate
+`Destinazione: framework` e ne STAMPA un blocco copiabile (problema → proposta →
+beneficio), pronto per essere riproposto come IMP nel repo del framework. Il comando
+**solo legge e stampa**: non clona, non copia file tra repo, non esegue git/push verso il
+framework. Il travaso è **curatela umana**: chi lo esegue incolla il blocco, lo
+**anonimizza** (nessun nome di questo progetto/cliente/ambiente nella storia condivisa del
+framework — `04-git-workflow.md`) e lo registra come nuova proposta nel framework, dove
+sarà valutata come un qualsiasi contributo (`CONTRIBUTING.md`).
+
+**Perché questo confine.** Un comando che scrivesse davvero nel repo del framework
+violerebbe due regole insieme: il confine di esecuzione — la storia condivisa la muove
+l'umano, non l'agente (`04-git-workflow.md`) — e l'agnosticità: il template non sa nulla,
+e non deve sapere nulla, dell'istanza concreta che lo usa (non conosce dove vive il repo
+del framework rispetto al progetto). Il blocco copiabile è deliberatamente l'unico output:
+rende il travaso esplicito, revisionabile e sotto controllo umano.
+
+> Nel REPO DEL FRAMEWORK stesso l'attributo è moot: qui ogni IMP è già una lezione sul
+> framework (regime ibrido dichiarato), quindi non si marca nulla e `/harvest-framework`
+> non ha materiale da rastrellare. Il comando serve nei progetti-cliente.
+
 ## Cosa questo protocollo NON è
 
 - Non è refactoring continuo del codice applicativo (quello segue `02-code-quality.md`
