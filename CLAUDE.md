@@ -60,7 +60,7 @@ Stack: [DA DEFINIRE AL SETUP] | Repo: [DA DEFINIRE AL SETUP]
 
 ## Comandi rapidi
 - Slash command: `/checkpoint`, `/integrate`, `/sos`, `/retro`, `/security-review`,
-  `/new-component`, `/lint-memory`
+  `/new-component`, `/lint-memory`, `/harvest-framework`
 - `make hooks-install` — installa gli hook git (gitleaks + commitlint)
 - `./scripts/reset-task.sh` — scarta il mezzo-task interrotto (preserva i commit)
 

@@ -14,6 +14,14 @@ tags: [improvement]
 > La numerazione delle IMP parte da **001**. Questo file nasce VUOTO in un nuovo
 > progetto. NEL REPO DEL FRAMEWORK, invece, è VIVO (regime ibrido dichiarato —
 > vedi `CONTRIBUTING.md`): chi copia il template lo SVUOTA al setup (`SETUP.md`).
+>
+> **Attributo `Destinazione: framework`.** In un progetto-CLIENTE una IMP può
+> riguardare il FRAMEWORK invece che questo progetto: si marca con la riga
+> `- Destinazione: framework` (riga fisica singola, così `/harvest-framework` la
+> raccoglie via grep). Omessa = lezione-di-questo-progetto, che resta nel cliente.
+> È un attributo di DESTINAZIONE, non un livello: la lezione resta di Livello 2 —
+> vedi `docs/06-self-improvement.md`, *"Il ponte verso il framework"*. NEL REPO DEL
+> FRAMEWORK l'attributo è moot (ogni IMP è già framework) e non si usa sulle voci.
 
 ## Proposte APERTE (in attesa di decisione utente)
 
@@ -50,6 +58,44 @@ tags: [improvement]
   code coerente; rischio basso (ramo di edge già isolato).
 - Trigger di ripresa: prossima retrospettiva, o quando si rimette mano a `hooks-install.sh`.
 
+### IMP-034 — docs/01 non prevede il deliverable oneroso sul repo-framework in regime ibrido
+- Data: 2026-07-17 | Origine: deliverable /harvest-framework (IMP-033) — scelta di dove vive il piano
+- Problema osservato: `01-task-planning.md` (FASE 2/4) impone, per un prompt oneroso, un
+  file di piano in `.claude/memory/plans/` da committare e spuntare. Ma il regime ibrido
+  del repo-framework (IMP-024, `CONTRIBUTING.md`) tiene `plans/` (e STATE/TREE/INDEX/…)
+  come template PULITO. Le due regole confliggono quando il deliverable oneroso è sul
+  repo-framework stesso: docs/01 non dice come pianificare senza scrivere in `plans/`. In
+  questo deliverable si è deciso con l'utente di non usare `plans/` e tracciare via IMP +
+  nota di sessione + commit `[task N/T]`; la decisione ha tenuto, ma la regola scritta
+  resta ambigua per la prossima sessione.
+- Proposta: dichiarare la gerarchia in docs/01 (o in `CONTRIBUTING.md`/IMP-024): nel regime
+  ibrido del repo-framework un deliverable oneroso NON crea un file in `plans/` — il "piano"
+  vive come voce IMP (il cosa/perché) + nota di sessione (fasi/ripresa) + commit `[task N/T]`
+  (granularità di ripresa), che danno gli stessi checkpoint senza sporcare il template. Nei
+  progetti-cliente (memoria piena) resta valido `plans/`.
+- Beneficio atteso / rischio: la prossima sessione onerosa sul repo-framework non deve
+  ri-derivare la conciliazione; nessuna perdita di resilienza. Rischio ~nullo (chiarimento
+  di una gerarchia già applicata, non una regola nuova).
+- Trigger di ripresa: prossima retrospettiva periodica sul backlog, o al prossimo
+  deliverable oneroso sul repo-framework.
+
+### IMP-035 — "skill" sovraccarico: comando di progetto vs feature Skills vs tool `Skill` dell'harness
+- Data: 2026-07-17 | Origine: assessment di /harvest-framework (disambiguazione di IMP-026)
+- Problema osservato: nel repo un invocabile è un "comando" (file in `.claude/commands/`);
+  ma l'harness di Claude Code espone i project command tramite un tool chiamato `Skill` e
+  li elenca come "skills", e separatamente IMP-026 (rimandata) riguarda l'adozione della
+  FEATURE `.claude/skills/`. Il termine "skill" copre tre cose diverse. Un contributor che
+  legge "IMP-026: skill rimandate" può confondere i comandi esistenti con la feature non
+  adottata (in questo deliverable è servito leggere IMP-026 + verificare che
+  `.claude/skills/` non esista per disambiguare).
+- Proposta: una riga di chiarimento dove serve (`CONTRIBUTING.md` o accanto a IMP-026):
+  "comando" = file in `.claude/commands/` (ciò che il repo usa); la feature Skills
+  (`.claude/skills/`, IMP-026) è altra cosa e non è adottata; l'harness chiama "skill" anche
+  i project command — naming di piattaforma, non del repo.
+- Beneficio atteso / rischio: evita una re-derivazione ricorrente; rischio nullo. Impatto
+  BASSO (chiarezza, non correttezza).
+- Trigger di ripresa: prossima retrospettiva periodica, o quando si riprende IMP-026.
+
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>
 - Data: YYYY-MM-DD | Origine: <sessione/problema che l'ha generata>
@@ -57,6 +103,8 @@ tags: [improvement]
 - Proposta: <cosa cambiare e dove: CLAUDE.md / docs/NN / comando / hook / processo>
 - Beneficio atteso / rischio:
 - Trigger di ripresa: <se non è applicabile subito: quale evento la fa tornare in gioco>
+- Destinazione: framework   (OPZIONALE — solo in un progetto-cliente e solo se la lezione
+                             va fatta risalire al framework; riga fisica singola per il grep)
 -->
 
 ## Applicate
@@ -227,6 +275,18 @@ tags: [improvement]
   primo comando al passo 4, riga allineata nel README. Solo documentazione del
   comportamento esistente: i marcatori senza risposta restano
   `[DA DEFINIRE AL SETUP]`, nessuna invenzione.
+
+### IMP-033 — Comando `/harvest-framework` + ponte progetto→framework → applicata il 2026-07-17, commit d2856be, c0df16c, f50816f, 534b41d
+- MARCATURA: attributo `Destinazione: framework` nel formato IMP di `LEARNINGS.md` (riga
+  fisica singola grep-abile; assente = lezione-di-progetto; moot nel repo-framework).
+  COMANDO: `.claude/commands/harvest-framework.md` raccoglie le IMP marcate (default intero
+  backlog + `$ARGUMENTS`) e stampa un blocco copiabile ANONIMIZZATO per la curatela umana —
+  solo-leggi-e-stampa: nessun clone/copia/push/cross-repo (confine IMP-009, agnosticità);
+  anti-vacuità sul caso vuoto; dimostrato su fixture. PONTE: sottosezione "Il ponte verso il
+  framework" in docs/06; registrazione in CLAUDE.md + README (Struttura), cross-link in
+  README Filosofia / SETUP §5 / CONTRIBUTING. Assessment read-only preliminare (workflow
+  multi-agente) → decisione utente sui 4 punti strutturali. CHANGELOG `[Unreleased]` alla
+  release via `/integrate`.
 
 <!-- Formato:
 ### IMP-001 — <titolo> → applicata il YYYY-MM-DD, commit <sha>

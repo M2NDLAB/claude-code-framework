@@ -148,6 +148,13 @@ proposte IMP. Quelle che si rivelano utili a *qualsiasi* progetto sono candidate
 tornare nel template del framework, per il prossimo progetto. È il loop descritto
 nella *Filosofia* del README.
 
+In pratica: marca quelle IMP con la riga `- Destinazione: framework` (formato IMP
+nell'header di `LEARNINGS.md`), poi lancia `/harvest-framework` — raccoglie le voci
+marcate e ne stampa un blocco copiabile, già da anonimizzare, pronto da riproporre
+come IMP nel repo del framework (`CONTRIBUTING.md`). Il comando solo legge e stampa:
+il travaso resta un tuo gesto esplicito. Dettagli in
+`.claude/docs/06-self-improvement.md`, *"Il ponte verso il framework"*.
+
 ---
 
 ## Innesto su un progetto ESISTENTE (brownfield)
