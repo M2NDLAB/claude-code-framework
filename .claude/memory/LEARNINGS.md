@@ -25,22 +25,6 @@ tags: [improvement]
 
 ## Proposte APERTE (in attesa di decisione utente)
 
-### IMP-032 — `hooks-install.sh`: FORCE_OVERWRITE su symlink dangling aborta prima del backup
-- Data: 2026-07-17 | Origine: audit pre-integrate di v0.3.0 (lente script-safety, confermato empiricamente)
-- Problema osservato: nel ramo `FORCE_OVERWRITE=1` di `scripts/hooks-install.sh`, la
-  sequenza `cp -L "${target}" "${target}.bak"` → `rm -f "${target}"` → AVVISO, sotto
-  `set -euo pipefail`, su un hook che è un symlink DANGLING (bersaglio inesistente):
-  `cp -L` fallisce e lo script esce non-zero PRIMA dell'avviso e prima del `rm`,
-  divergendo dal commento di testata che promette un backup `.bak` garantito con FORCE.
-  Nessuna perdita dati (un symlink dangling è già inerte, niente da salvare) — è un difetto
-  di robustezza/coerenza, non di sicurezza.
-- Proposta: gestire il caso dangling — es. `[[ -e "${target}" ]]` prima del `cp -L`; se il
-  target non esiste, saltare il backup con un avviso dedicato e rimuovere comunque il link.
-  Fix accompagnato da un test RED→GREEN (docs/02) sul caso "symlink dangling + FORCE_OVERWRITE=1".
-- Beneficio atteso / rischio: lo script mantiene la promessa del commento in ogni caso, exit
-  code coerente; rischio basso (ramo di edge già isolato).
-- Trigger di ripresa: prossima retrospettiva, o quando si rimette mano a `hooks-install.sh`.
-
 ### IMP-034 — docs/01 non prevede il deliverable oneroso sul repo-framework in regime ibrido
 - Data: 2026-07-17 | Origine: deliverable /harvest-framework (IMP-033) — scelta di dove vive il piano
 - Problema osservato: `01-task-planning.md` (FASE 2/4) impone, per un prompt oneroso, un
@@ -313,6 +297,14 @@ tags: [improvement]
   falsi positivi NOTI dichiarati (prosa-guida di `SETUP.md`, record IMP di `LEARNINGS.md`),
   così esclude la prosa senza sopprimere uno slot spezzato altrove. Chiude con la
   PREVENZIONE la classe di cui i fix 7fc8b8e/740b575 avevano sanato le sole istanze.
+
+### IMP-032 — `hooks-install.sh`: FORCE_OVERWRITE robusto sul symlink dangling → applicata il 2026-07-17, commit —
+- Nel ramo `FORCE_OVERWRITE=1`, guardia `[[ -e "${target}" ]]` (segue il link → FALSO
+  solo sul dangling): il backup `.bak` si fa dove ha senso, il `rm -f` è comune ai due
+  rami, i commenti di testata sono allineati (backup "saltato se dangling"). Test
+  RED→GREEN hermetic `scripts/test-hooks-install.sh` (stub gitleaks/npx + repo
+  usa-e-getta) e target `make test-scripts`; RED = abort di `cp -L`, GREEN = exit 0 +
+  link rimosso + hook installato + nessun `.bak` vacuo.
 
 ### IMP-033 — Comando `/harvest-framework` + ponte progetto→framework → applicata il 2026-07-17, commit d2856be, c0df16c, f50816f, 534b41d
 - MARCATURA: attributo `Destinazione: framework` nel formato IMP di `LEARNINGS.md` (riga
