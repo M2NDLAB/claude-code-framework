@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-07-17
+updated: 2026-07-18
 tags: [improvement]
 ---
 # Learnings & proposte di miglioramento
@@ -25,8 +25,19 @@ tags: [improvement]
 
 ## Proposte APERTE (in attesa di decisione utente)
 
-_(nessuna al momento — le 6 proposte aperte sono state decise nella retrospettiva periodica
-del 2026-07-17: IMP-031/032/034/035 applicate, IMP-036/037 rimandate.)_
+### IMP-036 — Provenance pin: registrare all'innesto la `vX` del framework → APPROVATA il 2026-07-18, in attesa del design
+- Decisione utente (retro mirata 2026-07-18): **APPROVATA**. Il trigger dichiarato ("dopo il
+  primo upgrade reale") è scattato: upgrade brew v0.2.0→v0.5.1 del 2026-07-17 — baseline
+  accertata A MANO per contenuto (nessun pin), e, decisivo, il 3-way di `hooks-install.sh`
+  richiedeva la base per-versione: con `vX` sbagliata il merge esce corrotto in SILENZIO
+  (correttezza, non comodità). Obiezione "non retroattivo" sciolta: la procedura di upgrade
+  scrive/aggiorna il pin in CHIUSURA → ogni progetto si auto-retrofitta al primo upgrade utile.
+- Proposta originaria: manifest minimo `.claude/framework-version` con `{version, commit,
+  grafted}` scritto al setup, per dare al 3-way dell'upgrade una base certa (oggi il Passo 0
+  la surroga: chiedi/stima/degrada). Contesto pieno: [[2026-07-17-upgrade-in-place-procedura]].
+- **Applicazione NON automatica**: tocca `SETUP.md` e la procedura di upgrade, con scelte
+  strutturali proprie → design proposto in [[2026-07-18-retro-mirata-imp-036-037]]; si applica
+  SOLO dopo la decisione dell'utente sul design.
 
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>
@@ -292,16 +303,6 @@ del 2026-07-17: IMP-031/032/034/035 applicate, IMP-036/037 rimandate.)_
 - Trigger di ripresa: dopo 2-3 innesti brownfield reali, quando il pattern
   comune è distillabile dal testo provato.
 
-### IMP-036 — Provenance pin: registrare all'innesto la `vX` del framework → rimandata il 2026-07-17
-- Decisione utente (retro periodica): RIMANDA (conferma). Manifest minimo
-  (`.claude/framework-version` con `{version, commit, grafted}`) scritto al setup per dare al
-  3-way dell'upgrade una base certa (oggi il Passo 0 la surroga a mano: chiedi/stima/degrada —
-  punto più fragile della procedura). Applicarlo ora = machinery prima ancora del 1° upgrade
-  reale (filtro anti-hype, come IMP-027 `graft.sh`); non retroattivo (beneficio solo-futuro).
-  Contesto pieno: [[2026-07-17-upgrade-in-place-procedura]].
-- Trigger di ripresa: dopo il PRIMO upgrade reale (D3, es. un progetto-cliente `v0.2→v0.4`),
-  che dimostri sul campo il costo della baseline mancante.
-
 ### IMP-037 — Comando `/upgrade-framework` read-and-print (gemello inverso di `/harvest-framework`) → rimandata il 2026-07-17
 - Decisione utente (retro periodica): RIMANDA (conferma). Un comando che SOLO LEGGE E STAMPA
   (confine di `/harvest-framework`/IMP-009) il piano di upgrade `vX→vY` — delta dal CHANGELOG,
@@ -310,6 +311,12 @@ del 2026-07-17: IMP-031/032/034/035 applicate, IMP-036/037 rimandate.)_
   comune non è distillabile: automazione prematura (filtro anti-hype, come IMP-027 `graft.sh`).
 - Trigger di ripresa: dopo 2-3 upgrade reali, quando il pattern comune è distillabile dal testo
   provato (D3 è il caso #1 dei 2-3 necessari; da solo NON fa scattare il trigger).
+- **Caso #1 avvenuto** (annotazione retro mirata 2026-07-18): primo upgrade reale eseguito il
+  2026-07-17 (brew, v0.2.0→v0.5.1) — vedi [[2026-07-18-retro-mirata-imp-036-037]]. Attrito
+  osservato: il costo era nel GIUDIZIO file-per-file (decisioni R1/R3/R4/R5 + 3-way per-versione
+  di `hooks-install.sh`), che un comando read-and-print non elimina; la procedura manuale di
+  `SETUP.md` ha retto (invariante memoria rispettata, verifica funzionale hook dimostrata).
+  Contatore: **1 di 2-3**, trigger NON scattato. Decisione utente: rimando CONFERMATO.
 
 ## Rifiutate (con motivo — per non riproporle)
 _(nessuna ancora)_
