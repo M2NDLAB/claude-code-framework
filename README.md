@@ -1,5 +1,8 @@
 # Claude Code Framework
 
+[![Licenza: MIT](https://img.shields.io/badge/licenza-MIT-green.svg)](LICENSE)
+[![Versione](https://img.shields.io/github/v/tag/M2NDLAB/claude-code-framework?label=versione&sort=semver)](https://github.com/M2NDLAB/claude-code-framework/tags)
+
 Un framework di lavoro riutilizzabile per progetti gestiti con Claude Code,
 **agnostico allo stack tecnologico**. Non contiene codice applicativo né scelte
 tecnologiche: porta il *metodo* — come strutturare la collaborazione con Claude
@@ -19,10 +22,15 @@ un commit ciascuno; un'interruzione non costa il rifacimento da zero.
 - **Protocollo di escalation** — quando Claude Code si blocca su un bivio, genera
 un report strutturato invece di insistere alla cieca.
 - **Auto-miglioramento (IMP)** — le lezioni di processo diventano proposte di
-miglioramento approvate dall'umano, mai auto-applicate.
+miglioramento approvate dall'umano, mai auto-applicate; quelle utili a qualsiasi
+progetto risalgono al template col ponte progetto→framework (`/harvest-framework`).
 - **Security gate & git workflow** — review obbligatoria sui componenti sensibili,
 conventional commits, versioning SemVer su tag annotati, blocco "pronto per
 integrazione" da incollare, hook pre-commit (secret scan + formattazione).
+- **Innesto e aggiornamento** — parte da zero (greenfield), si innesta su un
+progetto esistente (brownfield) e si aggiorna in place (`vX → vY`) preservando la
+memoria accumulata, col provenance pin `.claude/framework-version` come baseline
+certa dell'upgrade (procedure in `SETUP.md`).
 
 ## Cosa NON include (per scelta)
 
@@ -36,7 +44,8 @@ riempire, è in **[SETUP.md](SETUP.md)**):
 
 1. **Copia** il contenuto del framework nella root del tuo nuovo progetto (la
    cartella `.claude/`, più `CLAUDE.md`, `Makefile`, `commitlint.config.cjs`,
-   `.gitignore`, `scripts/`).
+   `.gitignore`, `scripts/`), poi crea il provenance pin
+   `.claude/framework-version` con la versione appena copiata (`SETUP.md`, passo 1).
 2. **Riempi i `[DA DEFINIRE AL SETUP]`** — soprattutto in `CLAUDE.md` (nome
    progetto, stack, regole tecniche, componenti sensibili) e nei punti elencati in
    `SETUP.md`. A mano, oppure in dialogo con Claude Code, che ti intervista e
