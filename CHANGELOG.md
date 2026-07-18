@@ -7,6 +7,8 @@ SemVer su tag annotati definito in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-07-18
+
 ### Added
 - `SETUP.md`: **provenance pin `.claude/framework-version`** — righe `chiave: valore`
   (`version`/`commit`/`grafted`), niente parser. Creato al passo 1 di ogni innesto,
