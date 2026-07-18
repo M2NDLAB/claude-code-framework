@@ -7,6 +7,23 @@ SemVer su tag annotati definito in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-07-18
+
+### Added
+- `SETUP.md`: **provenance pin `.claude/framework-version`** — righe `chiave: valore`
+  (`version`/`commit`/`grafted`), niente parser. Creato al passo 1 di ogni innesto,
+  dichiarato come QUARTA classe **"stato dell'innesto"** nella tassonomia della procedura
+  di upgrade (vive fuori da `.claude/memory/`: l'invariante diff-vuoto resta intatta),
+  letto come preferenza 0 del Passo 0 (baseline certa del 3-way; chiedi/stima/degrada
+  restano come fallback pre-pin) e riscritto in chiusura (Passo 6) con **retrofit** per
+  gli innesti pre-pin (IMP-036, approvata dopo il primo upgrade reale).
+
+### Changed
+- Riquadro *"Nessuna automazione, per ora"* della procedura di upgrade: resta rimandato
+  il solo comando `/upgrade-framework` (IMP-037, contatore upgrade reali 1 di 2-3); il
+  pin è promosso — la baseline accertata a mano si è dimostrata il punto più fragile
+  della procedura sul campo.
+
 ## [0.5.1] — 2026-07-17
 
 ### Fixed

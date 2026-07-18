@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-07-17
+updated: 2026-07-18
 tags: [improvement]
 ---
 # Learnings & proposte di miglioramento
@@ -25,8 +25,8 @@ tags: [improvement]
 
 ## Proposte APERTE (in attesa di decisione utente)
 
-_(nessuna al momento — le 6 proposte aperte sono state decise nella retrospettiva periodica
-del 2026-07-17: IMP-031/032/034/035 applicate, IMP-036/037 rimandate.)_
+_(nessuna al momento — IMP-036, approvata nella retro mirata del 2026-07-18, è stata
+applicata lo stesso giorno: vedi Applicate.)_
 
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>
@@ -255,6 +255,20 @@ del 2026-07-17: IMP-031/032/034/035 applicate, IMP-036/037 rimandate.)_
   (IMP-026) non è adottata; l'harness chiama "skill" anche i comandi (naming di piattaforma).
   No glossario (overload occorso 1×); la distinzione è già load-bearing (IMP-037 la cita).
 
+### IMP-036 — Provenance pin: registrare all'innesto la `vX` del framework → applicata il 2026-07-18, commit 6de868f
+- Approvata nella retro mirata post-primo-upgrade-reale (brew v0.2.0→v0.5.1, 2026-07-17):
+  baseline accertata A MANO per contenuto, e il 3-way di `hooks-install.sh` richiedeva la base
+  per-versione — con `vX` sbagliata il merge esce corrotto in SILENZIO. Design D1-D6 approvato
+  in blocco: [[2026-07-18-retro-mirata-imp-036-037]].
+- Applicata in `SETUP.md`: pin `.claude/framework-version` (righe `chiave: valore` —
+  `version`/`commit`/`grafted`, niente parser) creato al passo 1 di ogni innesto; QUARTA
+  classe **"stato dell'innesto"** dichiarata esplicitamente nella tassonomia dell'upgrade
+  (fuori da `memory/`: l'invariante diff-vuoto resta intatta); preferenza 0 del Passo 0
+  (chiedi/stima/degrada restano come fallback pre-pin); riscrittura + RETROFIT in chiusura
+  (Passo 6) — scioglie la non-retroattività; riquadro "Nessuna automazione" aggiornato (resta
+  rimandato il solo `/upgrade-framework`, IMP-037); clausola nel CASO A (il pin mancante
+  arriva dal retrofit, non si crea a mano). Zero nuovi tool/permessi; contenuto agnostico.
+
 <!-- Formato:
 ### IMP-001 — <titolo> → applicata il YYYY-MM-DD, commit <sha>
 - <sintesi del problema e di cosa è stato cambiato in concreto>
@@ -292,16 +306,6 @@ del 2026-07-17: IMP-031/032/034/035 applicate, IMP-036/037 rimandate.)_
 - Trigger di ripresa: dopo 2-3 innesti brownfield reali, quando il pattern
   comune è distillabile dal testo provato.
 
-### IMP-036 — Provenance pin: registrare all'innesto la `vX` del framework → rimandata il 2026-07-17
-- Decisione utente (retro periodica): RIMANDA (conferma). Manifest minimo
-  (`.claude/framework-version` con `{version, commit, grafted}`) scritto al setup per dare al
-  3-way dell'upgrade una base certa (oggi il Passo 0 la surroga a mano: chiedi/stima/degrada —
-  punto più fragile della procedura). Applicarlo ora = machinery prima ancora del 1° upgrade
-  reale (filtro anti-hype, come IMP-027 `graft.sh`); non retroattivo (beneficio solo-futuro).
-  Contesto pieno: [[2026-07-17-upgrade-in-place-procedura]].
-- Trigger di ripresa: dopo il PRIMO upgrade reale (D3, es. un progetto-cliente `v0.2→v0.4`),
-  che dimostri sul campo il costo della baseline mancante.
-
 ### IMP-037 — Comando `/upgrade-framework` read-and-print (gemello inverso di `/harvest-framework`) → rimandata il 2026-07-17
 - Decisione utente (retro periodica): RIMANDA (conferma). Un comando che SOLO LEGGE E STAMPA
   (confine di `/harvest-framework`/IMP-009) il piano di upgrade `vX→vY` — delta dal CHANGELOG,
@@ -310,6 +314,12 @@ del 2026-07-17: IMP-031/032/034/035 applicate, IMP-036/037 rimandate.)_
   comune non è distillabile: automazione prematura (filtro anti-hype, come IMP-027 `graft.sh`).
 - Trigger di ripresa: dopo 2-3 upgrade reali, quando il pattern comune è distillabile dal testo
   provato (D3 è il caso #1 dei 2-3 necessari; da solo NON fa scattare il trigger).
+- **Caso #1 avvenuto** (annotazione retro mirata 2026-07-18): primo upgrade reale eseguito il
+  2026-07-17 (brew, v0.2.0→v0.5.1) — vedi [[2026-07-18-retro-mirata-imp-036-037]]. Attrito
+  osservato: il costo era nel GIUDIZIO file-per-file (decisioni R1/R3/R4/R5 + 3-way per-versione
+  di `hooks-install.sh`), che un comando read-and-print non elimina; la procedura manuale di
+  `SETUP.md` ha retto (invariante memoria rispettata, verifica funzionale hook dimostrata).
+  Contatore: **1 di 2-3**, trigger NON scattato. Decisione utente: rimando CONFERMATO.
 
 ## Rifiutate (con motivo — per non riproporle)
 _(nessuna ancora)_
