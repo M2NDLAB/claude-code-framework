@@ -71,12 +71,13 @@ pianifica → esegui per task → [se sensibile] `/security-review` → `/retro`
 ├── CONTRIBUTING.md            come contribuire AL framework (workflow reale del repo)
 ├── SECURITY.md                policy di sicurezza (reale per il repo + scaffold [DA DEFINIRE])
 ├── CHANGELOG.md               Keep a Changelog, agganciato al versioning di docs/04
-├── Makefile                   solo target di processo (hooks-install, reset-task)
+├── Makefile                   solo target di processo (hooks-install, reset-task, test-scripts)
 ├── commitlint.config.cjs      tipi Conventional Commits
 ├── .gitignore                 base (secrets + IDE/OS) + sezione [DA DEFINIRE]
 ├── scripts/
 │   ├── hooks-install.sh       gitleaks + commitlint (sempre) + formattazione (esempio)
 │   ├── reset-task.sh          cleanup chirurgico del task interrotto
+│   ├── test-hooks-install.sh  self-test di hooks-install (make test-scripts)
 │   └── README.md
 └── .claude/
     ├── settings.json          hook SessionStart (inietta STATE.md) + permessi (secret scan: hook pre-commit)
