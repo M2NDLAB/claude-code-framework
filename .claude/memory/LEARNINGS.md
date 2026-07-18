@@ -25,19 +25,8 @@ tags: [improvement]
 
 ## Proposte APERTE (in attesa di decisione utente)
 
-### IMP-036 — Provenance pin: registrare all'innesto la `vX` del framework → APPROVATA il 2026-07-18, in attesa del design
-- Decisione utente (retro mirata 2026-07-18): **APPROVATA**. Il trigger dichiarato ("dopo il
-  primo upgrade reale") è scattato: upgrade brew v0.2.0→v0.5.1 del 2026-07-17 — baseline
-  accertata A MANO per contenuto (nessun pin), e, decisivo, il 3-way di `hooks-install.sh`
-  richiedeva la base per-versione: con `vX` sbagliata il merge esce corrotto in SILENZIO
-  (correttezza, non comodità). Obiezione "non retroattivo" sciolta: la procedura di upgrade
-  scrive/aggiorna il pin in CHIUSURA → ogni progetto si auto-retrofitta al primo upgrade utile.
-- Proposta originaria: manifest minimo `.claude/framework-version` con `{version, commit,
-  grafted}` scritto al setup, per dare al 3-way dell'upgrade una base certa (oggi il Passo 0
-  la surroga: chiedi/stima/degrada). Contesto pieno: [[2026-07-17-upgrade-in-place-procedura]].
-- **Applicazione NON automatica**: tocca `SETUP.md` e la procedura di upgrade, con scelte
-  strutturali proprie → design proposto in [[2026-07-18-retro-mirata-imp-036-037]]; si applica
-  SOLO dopo la decisione dell'utente sul design.
+_(nessuna al momento — IMP-036, approvata nella retro mirata del 2026-07-18, è stata
+applicata lo stesso giorno: vedi Applicate.)_
 
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>
@@ -265,6 +254,20 @@ tags: [improvement]
   "comando" = file in `.claude/commands/` (ciò che il repo usa); la FEATURE `.claude/skills/`
   (IMP-026) non è adottata; l'harness chiama "skill" anche i comandi (naming di piattaforma).
   No glossario (overload occorso 1×); la distinzione è già load-bearing (IMP-037 la cita).
+
+### IMP-036 — Provenance pin: registrare all'innesto la `vX` del framework → applicata il 2026-07-18, commit 6de868f
+- Approvata nella retro mirata post-primo-upgrade-reale (brew v0.2.0→v0.5.1, 2026-07-17):
+  baseline accertata A MANO per contenuto, e il 3-way di `hooks-install.sh` richiedeva la base
+  per-versione — con `vX` sbagliata il merge esce corrotto in SILENZIO. Design D1-D6 approvato
+  in blocco: [[2026-07-18-retro-mirata-imp-036-037]].
+- Applicata in `SETUP.md`: pin `.claude/framework-version` (righe `chiave: valore` —
+  `version`/`commit`/`grafted`, niente parser) creato al passo 1 di ogni innesto; QUARTA
+  classe **"stato dell'innesto"** dichiarata esplicitamente nella tassonomia dell'upgrade
+  (fuori da `memory/`: l'invariante diff-vuoto resta intatta); preferenza 0 del Passo 0
+  (chiedi/stima/degrada restano come fallback pre-pin); riscrittura + RETROFIT in chiusura
+  (Passo 6) — scioglie la non-retroattività; riquadro "Nessuna automazione" aggiornato (resta
+  rimandato il solo `/upgrade-framework`, IMP-037); clausola nel CASO A (il pin mancante
+  arriva dal retrofit, non si crea a mano). Zero nuovi tool/permessi; contenuto agnostico.
 
 <!-- Formato:
 ### IMP-001 — <titolo> → applicata il YYYY-MM-DD, commit <sha>
