@@ -7,6 +7,33 @@ SemVer su tag annotati definito in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [0.6.1] — 2026-07-18
+
+### Fixed
+- Liste-inventario ferme a pre-v0.5.1: `CLAUDE.md` ("Comandi rapidi") senza
+  `make test-scripts`, README ("Struttura") senza `scripts/test-hooks-install.sh`
+  e con la riga Makefile a due target, tabella di `scripts/README.md` senza lo
+  script di test. Seconda ricorrenza della classe "lista parziale" (cfr. la legenda
+  TREE di IMP-018): registrata la proposta IMP-038 — controllo inventari-vs-realtà
+  in `/lint-memory`.
+- `SECURITY.md`: la voce "Prevenzione già attiva" completava la baseline col solo
+  hook pre-commit; aggiunta la scansione one-off `gitleaks detect` della storia
+  preesistente (IMP-028b, in vigore dalla v0.3.0).
+
+### Added
+- README: badge **licenza MIT** (statico, linkato a `LICENSE`) e **versione**
+  (dinamico dai tag GitHub, `sort=semver`). Solo i due veri: niente badge di
+  build/CI/size — rifletterebbero fatti inesistenti.
+
+### Changed
+- README allineato allo stato v0.6.0: voce **"Innesto e aggiornamento"** in "Cosa
+  include" (greenfield, brownfield, upgrade in place col provenance pin come
+  baseline certa), ponte progetto→framework nella voce Auto-miglioramento
+  (`/harvest-framework`), creazione del pin citata nel passo 1 di "Come si usa".
+- `CONTRIBUTING.md`: cross-link al blocco-piano del regime ibrido — il piano di un
+  deliverable oneroso vive nella nota di sessione, non in `plans/` (debito
+  dichiarato in IMP-034, saldato qui).
+
 ## [0.6.0] — 2026-07-18
 
 ### Added

@@ -58,6 +58,11 @@ Non è una dimenticanza: è la scelta che tiene il template copiabile senza
 rinunciare al loop di auto-miglioramento. Chi copia il template nel proprio
 progetto SVUOTA la parte viva (istruzioni in `SETUP.md`, passo 2).
 
+Conseguenza operativa del regime: un deliverable oneroso qui NON crea file in
+`plans/` — il piano vive nella nota di sessione come blocco-piano standardizzato,
+un commit per task (vedi `.claude/docs/01-task-planning.md`, riquadro sul regime
+ibrido, e `.claude/memory/sessions/README.md`).
+
 ## In pratica, per una proposta di modifica
 
 Una proposta può nascere dal lavoro su questo repo, oppure **risalire da un
