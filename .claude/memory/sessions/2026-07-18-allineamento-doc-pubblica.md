@@ -67,8 +67,15 @@ il resto di SECURITY/CONTRIBUTING, template memoria, settings.json, docs/00-06.
 - `/integrate` emesso a valle di questo checkpoint: bump **PATCH → v0.6.1**
   (describe alla mano nel blocco). Merge/tag/push = utente; trunk-based su
   `main` (integrazione = stabile, tag pre-1.0 su `main`).
-- Post-integrazione: riconciliare questa nota (sha del merge, tag, branch
-  eliminato) al prossimo checkpoint, come da prassi.
+- **Riconciliazione post-integrazione** (checkpoint 2026-07-18): blocco eseguito
+  dall'utente — merge `ad65ac7` su `main`, tag annotato **v0.6.1** su `main`
+  (describe `v0.6.1` esatto; oggetto tag `f143ec8` presente ANCHE sul remoto,
+  verificato con `ls-remote`), feature branch eliminato, `main` allineato a
+  `origin/main` (push di branch e tag avvenuti — incluso il checkpoint `95e43bd`
+  della sessione precedente, come anticipato nel blocco). Il badge versione del
+  README ora risolve v0.6.1 dai tag GitHub. Nessun branch attivo oltre `main`,
+  nessun piano in-progress, working tree pulito. Prossimo passo di roadmap:
+  valutazione della promozione v1.0 (deliverable a sé, su decisione utente).
 
 ## Collegamenti
 [[LEARNINGS]] · [[2026-07-18-retro-mirata-imp-036-037]] ·
