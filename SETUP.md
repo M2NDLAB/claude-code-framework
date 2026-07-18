@@ -30,6 +30,21 @@ puoi lasciarli fuori dal progetto finale, o tenerli come riferimento.)
 > Root qui sotto). `SECURITY.md` invece è uno scaffold riusabile: puoi copiarlo e
 > compilare i suoi `[DA DEFINIRE AL SETUP]`.
 
+Poi **scrivi il provenance pin**: crea `.claude/framework-version` (NON esiste nel
+repo del framework e non va cercato lì — si CREA a ogni innesto) con la versione che
+stai copiando. È la base certa del merge a 3 vie di un futuro upgrade (vedi
+*Aggiornare il framework*, Passo 0):
+
+```
+version: vX.Y.Z     # il tag del framework che stai copiando
+commit: <sha>       # git rev-parse <tag>^{commit}, eseguito nel repo del framework
+grafted: YYYY-MM-DD # oggi: la data dell'innesto (non cambierà mai)
+```
+
+Righe piatte `chiave: valore`, niente parser: si legge con `cat`/`grep`. Se il
+framework ti è arrivato come export senza storia git, `commit: n/d` — è `version`
+il campo che conta. Il file si committa (non è un artefatto locale).
+
 Poi: `git init` (se non è già un repo) e crea il branch di integrazione (`develop`).
 
 ## 2. Riempi i `[DA DEFINIRE AL SETUP]`
@@ -180,7 +195,9 @@ L'esistenza della cartella da sola NON basta a decidere: guarda cosa contiene.
   vuoi aggiornare il framework a una versione più recente, **segui la procedura
   dedicata *«Aggiornare il framework su un progetto già innestato»*** in coda a
   questa guida — riconciliazione file-per-file per classe (metodo / memoria di
-  progetto / ibridi), con le differenze dichiarate all'utente.
+  progetto / ibridi), con le differenze dichiarate all'utente. (Se manca il
+  provenance pin `.claude/framework-version`, non crearlo a mano qui: arriva dal
+  retrofit in chiusura dell'upgrade, Passo 6.)
 - **CASO B — soli artefatti locali dell'harness** (tipicamente
   `settings.local.json` creato dalle approvazioni dei permessi; nessun doc o
   memoria del framework): procedi con la copia del template e PRESERVA quei file
@@ -286,13 +303,14 @@ il veicolo con cui i fix del framework (es. a `hooks-install.sh`) e i nuovi
 > **Nessuna automazione, per ora — è una scelta, non una mancanza.** Con pochi upgrade
 > reali alle spalle questa è una procedura MANUALE guidata che orchestra primitive già
 > esistenti (branch usa-e-getta, `reset-task.sh`, `/checkpoint`, `/integrate`,
-> `make hooks-install`, `/lint-memory`). Un comando/script che la automatizzi — e un
-> *pin* che registri all'innesto da quale versione si è partiti, per irrobustirne la
-> baseline — restano rimandati finché più upgrade reali non li giustificano: stesso
-> criterio anti-hype con cui il framework rimanda l'innesto automatizzato. Si documenta
-> prima, si prova sul campo, si automatizza dopo.
+> `make hooks-install`, `/lint-memory`). Un comando/script che la automatizzi resta
+> rimandato finché più upgrade reali non lo giustificano: stesso criterio anti-hype
+> con cui il framework rimanda l'innesto automatizzato. Si documenta prima, si prova
+> sul campo, si automatizza dopo. (Il *provenance pin* `.claude/framework-version`,
+> nato anch'esso rimandato, è stato promosso dopo il primo upgrade reale: la baseline
+> accertata a mano si è dimostrata il punto più fragile della procedura.)
 
-### Il modello mentale: tre classi di file
+### Il modello mentale: tre classi di file, più lo stato dell'innesto
 
 Un upgrade tocca SOLO il layer di PROCESSO, MAI la memoria di progetto. Ogni file
 ricade in una di tre classi:
@@ -316,6 +334,15 @@ ricade in una di tre classi:
 > riconciliarli è il **merge a 3 vie** con il template alla versione DI PARTENZA (`vX`)
 > come base comune.
 
+A parte sta il **provenance pin** `.claude/framework-version` — la QUARTA specie,
+**stato dell'innesto**, che non ricade in nessuna delle tre classi: non è METODO
+(nel repo del framework non esiste: si crea a ogni innesto, passo 1), non è
+MEMORIA-DI-PROGETTO (lo scrive la procedura, non il progetto), e non si riconcilia
+a 3 vie — si RISCRIVE. Lo crea il setup, lo legge il Passo 0 come baseline, lo
+aggiorna la chiusura dell'upgrade (Passo 6). Vive fuori da `.claude/memory/`
+apposta: così l'invariante "diff vuoto su `memory/`" resta intatta anche quando
+l'upgrade lo tocca.
+
 ### Precondizione: procurati il framework a `vX` e `vY`
 
 Il progetto ha COPIATO i file del framework, non la sua storia git: i tag di versione
@@ -327,9 +354,13 @@ TARGET (`vY`). Sono la *base* e i *loro* del merge a 3 vie.
 
 ### Passo 0 — Determina la baseline `vX`
 
-Il progetto non registra da quale versione è stato innestato. Determina `vX` così, in
-ordine di preferenza:
+Determina `vX` così, in ordine di preferenza:
 
+0. **Leggi il provenance pin** `.claude/framework-version` (c'è in ogni progetto
+   innestato — o già aggiornato una volta — da quando il pin esiste): il campo
+   `version` È la baseline, fine del passo. I fallback qui sotto servono agli
+   innesti pre-pin, e servono UNA volta sola: il Passo 6 scrive il pin in
+   chiusura (retrofit).
 1. **Chiedila** a chi ha fatto l'innesto (spesso la ricorda o l'ha annotata).
 2. **Stimala** sul contenuto: scegli il tag del framework la cui copia dei file di
    classe METODO combacia meglio con quelli attuali del progetto — un confronto sul
@@ -406,6 +437,13 @@ progetto (riusa il dialogo del passo 2 di questa guida).
   progetto continua a compilare e committare).
 
 ### Passo 6 — Chiusura e hand-off
+
+**Aggiorna il provenance pin**: riscrivi in `.claude/framework-version` i campi
+`version` e `commit` con la `vY` appena portata; `grafted` non si tocca (è la data
+dell'innesto originale). Se il progetto NON ha il pin (innesto pre-pin), CREALO ora —
+è il retrofit: da questo upgrade in poi la baseline è certa; `grafted` ignota →
+`n/d (retrofit YYYY-MM-DD)`. Il pin vive fuori da `.claude/memory/`, quindi
+l'invariante del Passo 5 resta intatta.
 
 `/checkpoint` (nota di sessione dell'upgrade — `vX→vY`, cosa riconciliato, cosa deciso
 dall'utente; `STATE.md` con la versione framework aggiornata; `TREE.md` se la struttura
