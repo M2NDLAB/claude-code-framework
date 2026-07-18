@@ -28,6 +28,8 @@ l'ultima versione taggata (`git tag -l`).
 Le difese vivono nel metodo, non duplicate qui:
 
 - baseline anti-secret: hook pre-commit **gitleaks** (`make hooks-install`,
-  regola 1 di `CLAUDE.md`);
+  regola 1 di `CLAUDE.md`); su un repo con storia preesistente si completa con
+  la scansione one-off `gitleaks detect` dell'intera storia
+  (`.claude/docs/03-security-gate.md`);
 - review obbligatoria sui componenti sensibili: **security gate**,
   `.claude/docs/03-security-gate.md` (comando `/security-review`).
