@@ -65,10 +65,17 @@ modo ROBUSTO processo vs progetto anche nei progetti-cliente.
   stessa coppia sanatoria+sentinella).
 
 ## Follow-up
-- `/integrate` emesso a valle di questo checkpoint; merge/tag/push = utente
-  (trunk-based su `main`).
-- Prossimo passo di roadmap: **valutazione della promozione v1.0** (deliverable a
-  sé, su decisione utente) — ora senza IMP aperte pendenti.
+- `/integrate` emesso a valle di questo checkpoint: bump **PATCH → v0.6.2**
+  (describe alla mano nel blocco). Merge/tag/push = utente; trunk-based su
+  `main` (integrazione = stabile, tag pre-1.0 su `main`).
+- **Riconciliazione post-integrazione** (checkpoint 2026-07-19): blocco eseguito
+  dall'utente — merge `9246cd8` su `main`, tag annotato **v0.6.2** su `main`
+  (describe `v0.6.2` esatto; oggetto tag `930eaeb` presente ANCHE sul remoto,
+  verificato con `ls-remote`), feature branch eliminato, `main` allineato a
+  `origin/main` (push di branch e tag avvenuti). Nessun branch attivo oltre
+  `main`, nessun piano in-progress, working tree pulito. Backlog IMP: APERTE
+  vuoto. Prossimo passo di roadmap: **valutazione della promozione v1.0**
+  (deliverable a sé, su decisione utente) — senza IMP aperte pendenti.
 
 ## Collegamenti
 [[LEARNINGS]] · [[2026-07-18-allineamento-doc-pubblica]] ·
