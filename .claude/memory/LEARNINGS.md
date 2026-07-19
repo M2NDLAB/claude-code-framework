@@ -25,25 +25,7 @@ tags: [improvement]
 
 ## Proposte APERTE (in attesa di decisione utente)
 
-### IMP-038 — Controllo di completezza delle liste-inventario in /lint-memory
-- Data: 2026-07-18 | Origine: deliverable allineamento doc pubblica v0.6.0 (D1/D2/D5)
-- Problema osservato: SECONDA ricorrenza della classe "lista-inventario parziale".
-  Prima: legenda TREE 5/7 (sanata da IMP-018 de-duplicando verso CLAUDE.md). Ora:
-  TRE liste ferme a pre-IMP-032 — CLAUDE.md "Comandi rapidi" senza `make
-  test-scripts`, README "Struttura" senza `test-hooks-install.sh` e col Makefile a
-  2 target, `scripts/README.md` senza lo script di test. La regola 5 ("doc
-  aggiornata INSIEME alle modifiche") non è bastata: chi aggiunge un target/script
-  non percepisce le liste-inventario ALTROVE come "doc della modifica".
-- Proposta: estendere `/lint-memory` con un controllo "inventari vs realtà",
-  read-only: (a) file in `.claude/commands/` vs elenco "Comandi rapidi" di
-  CLAUDE.md (e la riga commands/ della Struttura del README, dove presente);
-  (b) target di processo del Makefile vs gli stessi elenchi; (c) file in
-  `scripts/` vs tabella di `scripts/README.md`. Mismatch = BUG da correggere
-  (semantica del lint). Formulazione agnostica: nei progetti-cliente valgono i
-  file che il template vi copia (il README del framework non è tra questi).
-- Beneficio atteso / rischio: la classe di drift che ha generato metà di questo
-  deliverable si intercetta da sola al prossimo health-check. Rischio basso
-  (controllo read-only in un comando esistente); da tarare i falsi positivi.
+_(nessuna al momento)_
 
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>
@@ -285,6 +267,20 @@ tags: [improvement]
   (Passo 6) — scioglie la non-retroattività; riquadro "Nessuna automazione" aggiornato (resta
   rimandato il solo `/upgrade-framework`, IMP-037); clausola nel CASO A (il pin mancante
   arriva dal retrofit, non si crea a mano). Zero nuovi tool/permessi; contenuto agnostico.
+
+### IMP-038 — Controllo di completezza delle liste-inventario in /lint-memory → applicata il 2026-07-19, commit 2f69413
+- Approvata in retro mirata dedicata (precondizione della valutazione v1.0), col design
+  verificato in applicazione. Controllo 11 "Inventari vs realtà" in `lint-memory.md`:
+  confronto insiemistico nei DUE versi (esiste-ma-non-elencato / elencato-ma-inesistente)
+  tra le liste ENUMERATE — "Comandi rapidi" di CLAUDE.md; righe `commands/`/Makefile
+  della "Struttura" del README, dove presenti; tabella di `scripts/README.md` — e il
+  filesystem; mai le menzioni in prosa (l'enumerazione evita i falsi positivi
+  lista-vs-prosa). Target di processo del Makefile per ancoraggio STRUTTURALE (ricetta
+  che invoca `scripts/`; `help` escluso): sostituisce il criterio posizionale
+  "sopra il banner [DA DEFINIRE]" del design iniziale — fragile perché il setup
+  compila/rimuove il banner — e tiene i target di progetto del cliente fuori perimetro.
+  Equivalenze di forma ammesse (`make reset-task` ≡ `./scripts/reset-task.sh`); esclusi
+  per dichiarazione CHANGELOG e record IMP (stati passati, non inventari correnti).
 
 <!-- Formato:
 ### IMP-001 — <titolo> → applicata il YYYY-MM-DD, commit <sha>
