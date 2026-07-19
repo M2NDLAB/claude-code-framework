@@ -38,11 +38,20 @@ stesso). In concreto:
 - i deliverable passano da un feature branch mergiato in `main` con `--no-ff` via
   blocco `/integrate`, eseguito da un umano (una PR verso se stessi non aggiunge
   controllo);
-- in regime pre-1.0 i tag annotati (`v0.x.y`) vivono su `main`, che qui È la
-  linea di integrazione;
+- i tag annotati vivono su `main` in ENTRAMBI i regimi (trunk-based: integrazione e
+  stabile coincidono). Fino alla `v0.6.2` il repo era pre-1.0 (`v0.x.y`); **dalla
+  `v1.0.0` è nel regime post-1.0** — il contratto del metodo è dichiarato stabile e
+  cambia solo la semantica del bump (un breaking change costa un MAJOR);
 - nella storia condivisa (commit, merge, tag) niente nomi di progetti o clienti
   specifici — vedi la regola in docs/04, *Formato commit*: per un template
   l'agnosticità vale anche nei messaggi, perché la storia pushata non si riscrive.
+
+**Cosa è un breaking change per questo framework** (ciò che, post-1.0, fa scattare il
+MAJOR): la rimozione o la rinomina di un comando, un cambio incompatibile del formato
+della memoria o dei marcatori `[DA DEFINIRE AL SETUP]`, o una modifica della struttura
+che rompe gli innesti o gli upgrade già in corso su un progetto. È la promessa di
+stabilità di un'API, applicata a un metodo — il criterio generale, agnostico, è in
+`.claude/docs/04-git-workflow.md`, *Versioning*.
 
 ## La memoria di questo repo: regime "ibrido dichiarato"
 
