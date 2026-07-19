@@ -7,6 +7,21 @@ SemVer su tag annotati definito in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [0.6.2] — 2026-07-19
+
+### Fixed
+- La classe di drift "lista-inventario parziale" (due ricorrenze: legenda TREE
+  sanata da IMP-018, liste D1/D2/D5 di v0.6.1) ora si intercetta da sola:
+  controllo 11 **"Inventari vs realtà"** in `/lint-memory` — confronto
+  insiemistico nei due versi tra le liste ENUMERATE (`CLAUDE.md` "Comandi
+  rapidi"; righe `commands/`/Makefile della "Struttura" del README, dove
+  presenti; tabella di `scripts/README.md`) e il filesystem, mai le menzioni in
+  prosa. Target di processo del Makefile riconosciuti per ancoraggio
+  STRUTTURALE (ricetta che invoca `scripts/`; `help` escluso), così i target di
+  progetto aggiunti al setup non generano falsi positivi nei progetti-cliente;
+  esclusi per dichiarazione CHANGELOG e record IMP, che registrano stati
+  passati (IMP-038).
+
 ## [0.6.1] — 2026-07-18
 
 ### Fixed
