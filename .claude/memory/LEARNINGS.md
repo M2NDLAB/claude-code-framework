@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-07-18
+updated: 2026-07-19
 tags: [improvement]
 ---
 # Learnings & proposte di miglioramento
@@ -281,6 +281,20 @@ _(nessuna al momento)_
   compila/rimuove il banner — e tiene i target di progetto del cliente fuori perimetro.
   Equivalenze di forma ammesse (`make reset-task` ≡ `./scripts/reset-task.sh`); esclusi
   per dichiarazione CHANGELOG e record IMP (stati passati, non inventari correnti).
+
+### IMP-039 — Regime post-1.0 e definizione di «breaking change» per il framework → applicata il 2026-07-19, commit 4604da4
+- Origine: deliverable di promozione a v1.0.0. Il regime post-1.0 esisteva in `docs/04`
+  come sola tabella dei bump; mancavano (a) la DEFINIZIONE del criterio MAJOR — cos'è un
+  breaking change per un progetto di METODO, non di codice — e (b) un inquadramento della
+  1.0 non più come evento futuro. Applicata (user-directed nel deliverable, quindi diretta
+  in Applicate): `docs/04` (template, agnostico) definisce breaking change sul *contratto
+  pubblico* con esempi per progetti di codice e di metodo/tooling, e presenta i regimi come
+  metodo permanente; `CONTRIBUTING.md` (doc NON-template del repo) porta il modello git a
+  post-1.0 e la promessa concreta di breaking change per il framework (comando
+  rimosso/rinominato, formato memoria/marcatori incompatibile, struttura che rompe
+  innesti/upgrade). Scelta di design NON ovvia: lo status «siamo a 1.0» vive solo nei doc
+  NON-template (`CONTRIBUTING`/`CHANGELOG`), mai nel template `docs/04`, per non rompere
+  l'agnosticità. Commit doc `4604da4`, CHANGELOG `e8b7ad3`.
 
 <!-- Formato:
 ### IMP-001 — <titolo> → applicata il YYYY-MM-DD, commit <sha>

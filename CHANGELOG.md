@@ -7,6 +7,46 @@ SemVer su tag annotati definito in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [1.0.0] — 2026-07-19
+
+Primo release **stabile**. Da questa versione il framework promette stabilità del
+proprio contratto di metodo: un breaking change costa un MAJOR. Cosa sia un breaking
+change per un framework di metodo — rimozione o rinomina di un comando, formato di
+memoria o marcatori incompatibile, struttura che rompe gli innesti o gli upgrade
+esistenti — è definito in `.claude/docs/04-git-workflow.md` (*Versioning*) e in
+`CONTRIBUTING.md`. La definizione è essa stessa parte della promessa.
+
+Il percorso `0.1 → 1.0` ha consolidato le capacità che il framework ora garantisce:
+
+- **Memoria persistente** — STATE/TREE/INDEX, sessioni, decisioni, piani, backlog IMP,
+  con health-check di coerenza (`/lint-memory`, 11 controlli, inclusi marcatori
+  grep-visibili e inventari-vs-realtà).
+- **Task-planning resiliente** — i prompt onerosi in task atomici, un commit per task,
+  ripresa chirurgica dopo un'interruzione senza rifare il lavoro già committato.
+- **Security gate** — review obbligatoria sui componenti sensibili, adversariale per
+  raggio di propagazione; baseline gitleaks (hook pre-commit + scan one-off della storia).
+- **Git workflow con versioning** — Conventional Commits, SemVer su tag annotati, due
+  regimi pre/post-1.0, confine di esecuzione locale/condivisa, blocco `/integrate`.
+- **Ciclo di fine deliverable** — [se sensibile] `/security-review` → `/retro` →
+  `/checkpoint` → `/integrate`, con auto-miglioramento controllato: le regole si
+  PROPONGONO (IMP), l'umano dispone.
+- **Innesto greenfield e brownfield** — parte da zero o si innesta su un progetto
+  esistente, riconciliando i file in collisione e l'igiene della storia git ereditata.
+- **Upgrade-in-place** — aggiorna il framework innestato (`vX → vY`) preservando la
+  memoria, col provenance pin `.claude/framework-version` come baseline certa.
+- **Ponte progetto → framework** — le lezioni di metodo risalgono al template sotto
+  curatela umana (`/harvest-framework`).
+
+### Added
+- `.claude/docs/04-git-workflow.md`: definizione agnostica di **«breaking change»** come
+  criterio del MAJOR (contratto pubblico del progetto; esempi per progetti di codice e di
+  metodo/tooling) e regime post-1.0 come regime corrente e pienamente specificato (IMP-039).
+
+### Changed
+- `CONTRIBUTING.md`: il modello git del repo passa al **regime post-1.0** — i tag restano
+  su `main` (trunk-based), con la promessa di stabilità e la definizione di breaking change
+  per il framework (IMP-039).
+
 ## [0.6.2] — 2026-07-19
 
 ### Fixed
