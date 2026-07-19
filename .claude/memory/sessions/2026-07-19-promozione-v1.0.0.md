@@ -39,7 +39,7 @@ meccanicamente: la v1.0 è una PROMESSA pubblica, non un tag più alto. Base: v0
 ## Piano (un commit per task)
 - [x] 1. GAP 1 — docs/04 (breaking change + reframe post-1.0) + CONTRIBUTING (modello git post-1.0 + promessa) — commit: 4604da4
 - [x] 2. GAP 2 — CHANGELOG voce [1.0.0] — commit: e8b7ad3
-- [x] 3. Checkpoint — IMP-039 in LEARNINGS + questa nota — commit: (questo checkpoint)
+- [x] 3. Checkpoint — IMP-039 in LEARNINGS + questa nota — commit: ea49091
 
 ## Decisioni prese (non ovvie)
 1. **Dove vive «siamo a 1.0».** `docs/04` è un file TEMPLATE copiato nei progetti-cliente
@@ -63,12 +63,14 @@ meccanicamente: la v1.0 è una PROMESSA pubblica, non un tag più alto. Base: v0
   (stesso filtro anti-hype di IMP-027/037). Se le promozioni MAJOR ricorrono, una retro
   futura potrà distillarlo.
 
-## Follow-up — /integrate (da eseguire con l'utente)
-- Variante release trunk-based: merge `docs/promozione-v1.0.0` → `main`, tag **v1.0.0** su
-  `main` (integrazione = stabile), base v0.6.2. CHANGELOG già committato (GAP 2), quindi
-  `/integrate` non sposta nulla da `[Unreleased]`.
-- Merge/tag/push = UTENTE. Questo tag (il più significativo del progetto) si verifica
-  insieme PRIMA di pubblicarlo: `git rev-parse v1.0.0` + `git log origin/main..main`.
+## Chiusura integrazione (eseguita dall'utente)
+Integrazione v1.0.0 completata e verificata sul reale (questo checkpoint post-integrazione):
+- Merge `--no-ff` `e3f1f51` (`docs(process): merge promozione v1.0.0 in main`) su `main`.
+- Tag **annotato `v1.0.0`** sul merge — `git describe` = `v1.0.0` esatto — **pushato**
+  (presente su `origin`, `refs/tags/v1.0.0`; oggetto tag `74a9741`).
+- `main` == `origin/main` == `e3f1f51`; feature branch `docs/promozione-v1.0.0` eliminato.
+  Nessun branch attivo oltre `main`.
+- **Il framework è ufficialmente a v1.0.0** — regime post-1.0 in vigore (breaking → MAJOR).
 
 ## Collegamenti
 [[LEARNINGS]] · [[2026-07-19-retro-mirata-imp-038]] · [[2026-07-18-allineamento-doc-pubblica]]
