@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-07-19
+updated: 2026-07-20
 tags: [improvement]
 ---
 # Learnings & proposte di miglioramento
@@ -25,7 +25,63 @@ tags: [improvement]
 
 ## Proposte APERTE (in attesa di decisione utente)
 
-_(nessuna al momento)_
+> Nota transitoria: IMP-040/041/042 sono scritte in inglese perché registrano — e
+> anticipano — la regola linguistica decisa dall'utente (artefatti futuri in
+> inglese). Il resto del file sarà allineato dalla FASE 2 di IMP-041.
+
+### IMP-040 — Two-axis language rule: interaction configurable, artifacts always English
+- Data: 2026-07-20 | Origine: user decision, language deliverable phase 1 (session
+  [[2026-07-20-language-rule-phase1]])
+- Problema osservato: the IMP-029 model ("memory/process language vs public-doc
+  language, default = the framework's language") made the ARTIFACT language a
+  per-project choice. Result: an Italian-language template, mixed-language
+  artifacts across projects, and reduced adoptability — against open-source
+  practice, where repo artifacts are conventionally English.
+- Proposta: REPLACE the IMP-029 model (do not accumulate two conflicting models)
+  with two axes: (1) **INTERACTION** — the language Claude Code uses with the user
+  in session — CONFIGURABLE, a `[TO BE DEFINED AT SETUP]` slot in CLAUDE.md's
+  technical rules; the ONLY configurable axis. (2) **ARTIFACTS** — everything that
+  lands in the repo: code, comments, files, README, documentation, memory, FUTURE
+  commits, IMP entries, notes — ALWAYS English; a fixed framework rule (new
+  numbered rule in CLAUDE.md), NOT a setup marker. Past git history is immutable
+  and is never translated. Where it lands: new global rule in CLAUDE.md; the
+  "Lingua/e del progetto" slot in the technical-rules section becomes "Interaction
+  language"; SETUP.md §2 checklist and the brownfield "host language" paragraph
+  rewritten accordingly.
+- Beneficio atteso / rischio: coherent template and portable artifacts; the rule
+  is one line, no per-note decisions. Risk: it removes pure agnosticism on the
+  language axis — an imposed value choice. OPEN POINT for the user: fixed rule
+  (current decision) vs `[TO BE DEFINED AT SETUP]` defaulting to English but
+  overridable — raised explicitly in the phase-1 report, to be confirmed before
+  application.
+- Stato: decision taken in principle by the user (2026-07-20, "definitive");
+  awaiting confirmation of non-configurability + phase-1 review, then applied as
+  task 1 of IMP-041 phase 2.
+
+### IMP-041 — Translate the entire framework to English (option 2 — user decision)
+- Data: 2026-07-20 | Origine: user decision, language deliverable phase 1 (session
+  [[2026-07-20-language-rule-phase1]])
+- Decisione registrata (structural, hybrid regime — recorded here instead of
+  `decisions/`): translate ALL framework content from Italian to English —
+  docs/, commands/, memory templates and live memory (LEARNINGS, sessions),
+  README/SETUP/CONTRIBUTING/SECURITY/CHANGELOG, CLAUDE.md, script comments and
+  user-facing messages. NOT translated: past commits (immutable history), file
+  NAMES (renames would break references and history), identifiers in scripts,
+  conventional-commit types (already English).
+- Esecuzione: phase 1 (this session) = assessment, rule text, translation
+  inventory, glossary, risk analysis — STOP for user approval (glossary above
+  all). Phase 2 = the translation, task-per-commit on branch
+  `feat/english-translation`, behavior-bearing strings switched atomically with
+  their greps (marker `[DA DEFINIRE AL SETUP]`, `Destinazione: framework`, hook
+  MARKER with legacy recognition, `PRONTO PER INTEGRAZIONE`, escalation block
+  delimiters, SessionStart banner).
+- Bump proposto: **MAJOR (v2.0.0)** — changing the marker format and the
+  grep-recognized memory strings is exactly the breaking-change definition of
+  CONTRIBUTING.md/docs/04 (it breaks greps in existing grafts and upgrades);
+  replacing the IMP-029 model removes a configuration axis from the method's
+  contract. Final call stays with the user at `/integrate`.
+
+## Applicate
 
 <!-- Formato di una proposta:
 ### IMP-001 — <titolo breve>
@@ -347,6 +403,16 @@ _(nessuna al momento)_
   di `hooks-install.sh`), che un comando read-and-print non elimina; la procedura manuale di
   `SETUP.md` ha retto (invariante memoria rispettata, verifica funzionale hook dimostrata).
   Contatore: **1 di 2-3**, trigger NON scattato. Decisione utente: rimando CONFERMATO.
+
+### IMP-042 — `/change-language` (automated translation command) → deferred on 2026-07-20
+- User decision (language deliverable, phase 1): DEFER — same anti-hype filter as
+  IMP-027 (`graft.sh`) and IMP-037 (`/upgrade-framework`). A command that
+  automates switching a project's artifact language (or grafting the framework
+  into a non-English context) is premature with a single manual translation
+  behind us: the common pattern is not yet distillable.
+- Trigger di ripresa: after 2-3 real manual uses (full translations or language
+  switches performed by hand), when the repeatable steps are distillable from
+  practice. The framework's own translation (IMP-041) is case #1 once completed.
 
 ## Rifiutate (con motivo — per non riproporle)
 _(nessuna ancora)_
