@@ -1,521 +1,535 @@
-# SETUP — iniziare un nuovo progetto da questo template
+# SETUP — starting a new project from this template
 
-Questa guida porta da "template vuoto" a "progetto pronto a lavorare con Claude Code".
-Tempo stimato: 15-30 minuti, la maggior parte per compilare le regole tecniche.
+This guide takes you from "empty template" to "project ready to work with Claude
+Code". Estimated time: 15-30 minutes, most of it spent filling in the technical rules.
 
-## 0. Prerequisiti
+## 0. Prerequisites
 
-- **git** (il framework è git-centrico: branch, commit per-task, hook).
-- **gitleaks** — secret scanning negli hook. macOS: `brew install gitleaks`.
-- **Node.js / npx** — usato da commitlint (Conventional Commits).
-- *(opzionale)* **tree** — per rigenerare `TREE.md`. Fallback: `git ls-files`.
-- *(opzionale)* **Obsidian** — la cartella `.claude/` si apre come vault; i wikilink
-  `[[...]]` diventano un graph navigabile. Non è necessario: i link funzionano come
-  rimandi in qualsiasi editor.
+- **git** (the framework is git-centric: branches, per-task commits, hooks).
+- **gitleaks** — secret scanning in the hooks. macOS: `brew install gitleaks`.
+- **Node.js / npx** — used by commitlint (Conventional Commits).
+- *(optional)* **tree** — to regenerate `TREE.md`. Fallback: `git ls-files`.
+- *(optional)* **Obsidian** — the `.claude/` directory opens as a vault; the `[[...]]`
+  wikilinks become a navigable graph. It is not required: the links work as pointers
+  in any editor.
 
-## 1. Copia il template nel nuovo progetto
+## 1. Copy the template into the new project
 
-> **Progetto ESISTENTE?** Leggi prima la sezione *Innesto su un progetto
-> ESISTENTE (brownfield)* in coda a questa guida: la lista di copia qui sotto
-> assume file assenti, e lì trovi le regole di riconciliazione per quelli già
-> presenti (più il criterio per un `.claude/` preesistente).
+> **An EXISTING project?** Read the *Grafting onto an EXISTING project (brownfield)*
+> section at the end of this guide first: the copy list below assumes the files are
+> absent, and there you will find the reconciliation rules for the ones already
+> present (plus the criterion for a pre-existing `.claude/`).
 
-Copia nella root del nuovo repo: la cartella `.claude/`, `CLAUDE.md`, `Makefile`,
-`commitlint.config.cjs`, `.gitignore`, `scripts/`. (README.md e questo SETUP.md
-puoi lasciarli fuori dal progetto finale, o tenerli come riferimento.)
+Copy into the root of the new repo: the `.claude/` directory, `CLAUDE.md`, `Makefile`,
+`commitlint.config.cjs`, `.gitignore`, `scripts/`. (README.md and this SETUP.md you
+may leave out of the final project, or keep them for reference.)
 
-> **`LICENSE`, `CONTRIBUTING.md` e `CHANGELOG.md` NON si copiano.** Sono file del
-> repo del framework (la sua licenza, il suo flusso di contributi, la sua storia):
-> la licenza del TUO progetto è una scelta tua ([DA DEFINIRE AL SETUP], checklist
-> Root qui sotto). `SECURITY.md` invece è uno scaffold riusabile: puoi copiarlo e
-> compilare i suoi `[DA DEFINIRE AL SETUP]`.
+> **`LICENSE`, `CONTRIBUTING.md` and `CHANGELOG.md` are NOT copied.** They are files of
+> the framework repo (its licence, its contribution flow, its history): the licence of
+> YOUR project is your own choice ([TO BE DEFINED AT SETUP], Root checklist below).
+> `SECURITY.md`, on the other hand, is a reusable scaffold: you can copy it and fill in
+> its `[TO BE DEFINED AT SETUP]` slots.
 
-Poi **scrivi il provenance pin**: crea `.claude/framework-version` (NON esiste nel
-repo del framework e non va cercato lì — si CREA a ogni innesto) con la versione che
-stai copiando. È la base certa del merge a 3 vie di un futuro upgrade (vedi
-*Aggiornare il framework*, Passo 0):
+Then **write the provenance pin**: create `.claude/framework-version` (it does NOT
+exist in the framework repo and must not be looked for there — it is CREATED at every
+graft) with the version you are copying. It is the certain base of the 3-way merge of a
+future upgrade (see *Upgrading the framework*, Step 0):
 
 ```
-version: vX.Y.Z     # il tag del framework che stai copiando
-commit: <sha>       # git rev-parse <tag>^{commit}, eseguito nel repo del framework
-grafted: YYYY-MM-DD # oggi: la data dell'innesto (non cambierà mai)
+version: vX.Y.Z     # the framework tag you are copying
+commit: <sha>       # git rev-parse <tag>^{commit}, run in the framework repo
+grafted: YYYY-MM-DD # today: the date of the graft (it will never change)
 ```
 
-Righe piatte `chiave: valore`, niente parser: si legge con `cat`/`grep`. Se il
-framework ti è arrivato come export senza storia git, `commit: n/d` — è `version`
-il campo che conta. Il file si committa (non è un artefatto locale).
+Flat `key: value` lines, no parser: it is read with `cat`/`grep`. If the framework
+reached you as an export without git history, `commit: n/a` — `version` is the field
+that matters. The file is committed (it is not a local artifact).
 
-Poi: `git init` (se non è già un repo) e crea il branch di integrazione (`develop`).
+Then: `git init` (if it is not a repo already) and create the integration branch
+(`develop`).
 
-## 2. Riempi i `[DA DEFINIRE AL SETUP]`
+## 2. Fill in the `[TO BE DEFINED AT SETUP]` slots
 
-Cerca i marcatori nel template: `grep -rn "DA DEFINIRE AL SETUP" .`
+Look for the markers in the template:
+`grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" .`
 
-> **Convenzione (grep-visibilità).** Uno *slot* `[DA DEFINIRE AL SETUP]` da compilare
-> sta SEMPRE su **una sola riga fisica**: se il word-wrap lo spezza a fine riga sfugge
-> al grep qui sopra — e a quello del Passo 4 dell'upgrade — e resta un punto non
-> compilato in silenzio. Vale per gli slot, non per la prosa che nomina il marcatore.
-> `/lint-memory` ha una sentinella che segnala gli slot spezzati (controllo 10).
+> **Convention (grep visibility).** A `[TO BE DEFINED AT SETUP]` *slot* to be filled
+> in ALWAYS sits on **a single physical line**: if word wrap breaks it at the end of a
+> line it escapes the grep above — and the one in Step 4 of the upgrade — and silently
+> stays unfilled. This holds for slots, not for prose that merely names the marker.
+> `/lint-memory` has a sentinel that flags broken slots (check 10). The grep also
+> accepts the legacy Italian marker, so a project grafted before the English marker
+> was introduced is still covered.
 
-Due modalità equivalenti — scegli quella che preferisci:
-- **a mano**, spuntando la checklist qui sotto;
-- **in dialogo con Claude Code**: chiedigli di intervistarti sui
-  `[DA DEFINIRE AL SETUP]` (guidato da questa checklist) e di scrivere le tue
-  risposte nei file giusti. Non inventa nulla: ciò che non rispondi resta
-  `[DA DEFINIRE AL SETUP]`, e lo completi quando vuoi. (Vedi anche la variante
-  del primo comando, passo 4.)
+Two equivalent modes — pick the one you prefer:
+- **by hand**, ticking the checklist below;
+- **in dialogue with Claude Code**: ask it to interview you about the
+  `[TO BE DEFINED AT SETUP]` slots (guided by this checklist) and to write your
+  answers into the right files. It invents nothing: whatever you do not answer stays
+  `[TO BE DEFINED AT SETUP]`, and you complete it whenever you like. (See also the
+  variant of the first command, step 4.)
 
-Ecco la lista completa, raggruppata per file:
+Here is the complete list, grouped by file:
 
-### `CLAUDE.md` (il più importante)
-- [ ] Header: **nome progetto**, **stack**, **repo**.
-- [ ] Regola 5: **dove vive la documentazione di progetto**.
-- [ ] Regola 8: **quali componenti sono "sensibili"** (soggetti al security gate).
-- [ ] Sezione finale **"Regole tecniche specifiche del progetto"**: stack, comandi
-      build/test/lint/run, struttura standard di un componente, convenzioni di codice,
-      API design, datastore, test/coverage, deploy. È qui che il framework diventa
-      *il tuo* progetto.
-- [ ] **Lingua/e del progetto** (nelle regole tecniche): quale lingua per
-      memoria/processo, quale per la doc pubblica — da dichiarare se diverse
-      (es. metodo in una lingua, README del progetto in un'altra).
+### `CLAUDE.md` (the most important one)
+- [ ] Header: **project name**, **stack**, **repo**.
+- [ ] Rule 5: **where the project documentation lives**.
+- [ ] Rule 8: **which components are "sensitive"** (subject to the security gate).
+- [ ] Final section **"Project-specific technical rules"**: stack, build/test/lint/run
+      commands, standard structure of a component, code conventions, API design,
+      datastores, tests/coverage, deployment. This is where the framework becomes
+      *your* project.
+- [ ] **Interaction language** (in the technical rules): which language the agent
+      speaks with you in session. The language of the ARTIFACTS is not configurable —
+      it is always English (rule 9); only this axis is yours.
 
 ### `.claude/docs/`
-- [ ] `02-code-quality.md`: strumento di doc-comment, formato d'errore esposto ai
-      client, formatter/linter, posizione della doc, formato dell'artefatto di
-      produzione. (Spesso basta definirli in CLAUDE.md e qui lasciare il rimando.)
-- [ ] `03-security-gate.md`: elenco esplicito dei componenti sensibili (allineato a
-      CLAUDE.md regola 8).
-- [ ] `04-git-workflow.md`: modello di branching, **se** diverso da main/develop/feat.
+- [ ] `02-code-quality.md`: doc-comment tool, error format exposed to clients,
+      formatter/linter, where the documentation lives, production artifact format.
+      (It is often enough to define them in CLAUDE.md and leave a pointer here.)
+- [ ] `03-security-gate.md`: explicit list of the sensitive components (aligned with
+      CLAUDE.md rule 8).
+- [ ] `04-git-workflow.md`: branching model, **if** different from main/develop/feat.
 
 ### `.claude/commands/`
-- [ ] `checkpoint.md`: pattern da ignorare per `tree`, nome del branch di integrazione.
-- [ ] `integrate.md`: nomi reali dei branch di integrazione e stabile (i RUOLI di
-      `docs/04`) usati nel blocco di integrazione.
-- [ ] `new-component.md`: struttura standard di un componente del progetto
-      (finché CLAUDE.md e questo file non sono compilati, `/new-component` è inerte).
+- [ ] `checkpoint.md`: patterns to ignore for `tree`, name of the integration branch.
+- [ ] `integrate.md`: real names of the integration and stable branches (the ROLES of
+      `docs/04`) used in the integration block.
+- [ ] `new-component.md`: standard structure of a component in this project (until
+      CLAUDE.md and this file are filled in, `/new-component` is inert).
 
 ### `.claude/memory/`
-- [ ] `TREE.md`: il pattern `-I '...'` per `tree` adatto al tuo stack.
-- [ ] **SVUOTA la memoria VIVA del framework**: `LEARNINGS.md` arriva con le IMP
-      del framework stesso (regime ibrido, vedi il suo `CONTRIBUTING.md`) — riporta
-      le sezioni a vuote: le IMP del TUO progetto ripartono da 001. Elimina le note
-      in `sessions/` (tieni il README).
-- [ ] (I template `STATE.md`, `INDEX.md` si popolano al primo comando — vedi
-      punto 4; per ora lascia i blocchi di istruzioni.)
+- [ ] `TREE.md`: the `-I '...'` pattern for `tree` suited to your stack.
+- [ ] **EMPTY OUT the framework's LIVE memory**: `LEARNINGS.md` arrives with the IMPs
+      of the framework itself (hybrid regime, see its `CONTRIBUTING.md`) — bring the
+      sections back to empty: the IMPs of YOUR project restart from 001. Delete the
+      notes in `sessions/` (keep the README).
+- [ ] (The `STATE.md` and `INDEX.md` templates are populated by the first command —
+      see point 4; for now leave the instruction blocks in place.)
 
 ### `.claude/settings.json`
-- [ ] Aggiungi alla `allow` SOLO i comandi **read-only** dei tuoi tool (build tool,
-      package manager, container CLI) per ridurre i prompt — es. il comando di
-      build/test. La baseline è già impostata (`allow`: ispezione git + `add`/`commit`
-      sicuri; `deny`: push, `reset --hard`, cancellazioni distruttive, lettura secret)
-      — i principi sono in `04-git-workflow.md` ("Configurazione dei permessi").
-- [ ] Lascia `settings.local.json` fuori dal versionamento (è già in `.gitignore`) e
-      parti vuoto: i permessi personali NON si committano, niente concessioni vaghe
-      tipo "non chiedere più per comandi simili".
+- [ ] Add to `allow` ONLY the **read-only** commands of your tools (build tool,
+      package manager, container CLI) to reduce prompts — e.g. the build/test command.
+      The baseline is already set (`allow`: git inspection + safe `add`/`commit`;
+      `deny`: push, `reset --hard`, destructive deletions, reading secrets) — the
+      principles are in `04-git-workflow.md` ("Permission configuration").
+- [ ] Leave `settings.local.json` out of version control (it is already in
+      `.gitignore`) and start empty: personal permissions are NOT committed, no vague
+      grants of the "stop asking for similar commands" kind.
 
 ### Root
-- [ ] `scripts/hooks-install.sh`: abilita e adatta il blocco **formattazione** per il
-      tuo linguaggio (vedi gli esempi commentati nell'hook pre-commit).
-- [ ] `Makefile`: aggiungi i target `build` / `test` / `run` del progetto.
-- [ ] `.gitignore`: decommenta/aggiungi gli artefatti di build del tuo stack.
-- [ ] **Licenza del progetto**: scegli la licenza del TUO progetto e crea la sua
-      `LICENSE` (holder e anno tuoi). Quella del framework non si eredita; registra
-      la scelta anche in `CLAUDE.md` (regole tecniche).
+- [ ] `scripts/hooks-install.sh`: enable and adapt the **formatting** block for your
+      language (see the commented examples in the pre-commit hook).
+- [ ] `Makefile`: add the project's `build` / `test` / `run` targets.
+- [ ] `.gitignore`: uncomment/add the build artifacts of your stack.
+- [ ] **Project licence**: choose the licence of YOUR project and create its `LICENSE`
+      (your holder and year). The framework's is not inherited; record the choice in
+      `CLAUDE.md` too (technical rules).
 
-## 3. Installa gli hook git
+## 3. Install the git hooks
 
 ```bash
 make hooks-install
 ```
 
-Verifica: un commit con un messaggio non-conventional deve essere rifiutato; un file
-con un secret finto deve essere bloccato da gitleaks.
+Check: a commit with a non-conventional message must be rejected; a file with a fake
+secret must be blocked by gitleaks.
 
-> **Il repo ha già una storia?** (innesto su un progetto esistente) L'hook protegge
-> solo i commit da ora in poi: completa la baseline con una scansione one-off
-> dell'INTERA storia, `gitleaks detect` (dalla root del repo). Valuta ogni finding
-> PRIMA di proseguire: un secret nella storia pushata resta esposto anche se lo
-> togli dai file correnti — ruotalo/revocalo subito; l'eventuale riscrittura della
-> storia è un'operazione a parte, da decidere con giudizio (`docs/03`, baseline).
+> **Does the repo already have a history?** (a graft onto an existing project) The hook
+> only protects commits from now on: complete the baseline with a one-off scan of the
+> ENTIRE history, `gitleaks detect` (from the repo root). Assess every finding BEFORE
+> going on: a secret in pushed history stays exposed even if you remove it from the
+> current files — rotate/revoke it immediately; rewriting the history is a separate
+> operation, to be decided with judgement (`docs/03`, baseline).
 
-## 4. Primo comando a Claude Code
+## 4. First command to Claude Code
 
-Apri Claude Code nella root del progetto e dài un comando come questo:
+Open Claude Code in the project root and give it a command like this one:
 
-> Leggi `CLAUDE.md` e tutti i doc in `.claude/docs/`: voglio che tu interiorizzi il
-> metodo di lavoro (memoria, task-planning, escalation, security gate, git workflow,
-> auto-miglioramento). Poi **inizializza la memoria**: compila `STATE.md` con lo stato
-> iniziale reale del progetto (rimuovendo i blocchi di istruzioni dei template),
-> genera `TREE.md` dalla struttura attuale, e popola `INDEX.md`. Infine, fammi un
-> riepilogo del metodo come l'hai capito e segnalami eventuali `[DA DEFINIRE]` ancora
-> aperti. Non scrivere codice applicativo in questo passaggio.
+> Read `CLAUDE.md` and all the docs in `.claude/docs/`: I want you to internalise the
+> way of working (memory, task planning, escalation, security gate, git workflow,
+> self-improvement). Then **initialise the memory**: fill `STATE.md` with the real
+> initial state of the project (removing the templates' instruction blocks), generate
+> `TREE.md` from the current structure, and populate `INDEX.md`. Finally, give me a
+> summary of the method as you understood it and flag any `[TO BE DEFINED]` still open.
+> Do not write application code in this pass.
 
-*(Se al passo 2 hai scelto la modalità in dialogo)* aggiungi in coda al comando:
+*(If at step 2 you chose the dialogue mode)* append to the command:
 
-> Poi intervistami sui `[DA DEFINIRE AL SETUP]` ancora aperti, seguendo la
-> checklist del passo 2 di `SETUP.md`, e scrivi le mie risposte nei file giusti;
-> ciò che non so ancora rispondere resta `[DA DEFINIRE AL SETUP]`.
+> Then interview me about the `[TO BE DEFINED AT SETUP]` slots still open, following
+> the checklist of step 2 of `SETUP.md`, and write my answers into the right files;
+> whatever I cannot answer yet stays `[TO BE DEFINED AT SETUP]`.
 
-Da qui in poi il ciclo è quello di `.claude/docs/00-overview.md` (vedi "Il ciclo di
-fine deliverable"). Per ogni prompt oneroso Claude Code genererà un piano in
-`.claude/memory/plans/`; a fine deliverable seguirà la sequenza [se sensibile]
-`/security-review` → `/retro` → `/checkpoint` → `/integrate`; quando si blocca, `/sos`.
-La review periodica del backlog IMP resta `/retro` sull'intero `LEARNINGS.md`.
+From here on the cycle is the one in `.claude/docs/00-overview.md` (see "The
+end-of-deliverable cycle"). For every heavy prompt Claude Code will produce a plan in
+`.claude/memory/plans/`; at the end of a deliverable it will follow the sequence [if
+sensitive] `/security-review` → `/retro` → `/checkpoint` → `/integrate`; when it gets
+stuck, `/sos`. The periodic review of the IMP backlog stays `/retro` over the whole
+`LEARNINGS.md`.
 
-## 5. Far evolvere il framework
+## 5. Evolving the framework
 
-Le lezioni di processo che emergono lavorando finiscono in `LEARNINGS.md` come
-proposte IMP. Quelle che si rivelano utili a *qualsiasi* progetto sono candidate a
-tornare nel template del framework, per il prossimo progetto. È il loop descritto
-nella *Filosofia* del README.
+The process lessons that emerge while working end up in `LEARNINGS.md` as IMP
+proposals. The ones that turn out to be useful to *any* project are candidates to go
+back into the framework template, for the next project. It is the loop described in
+the README's *Philosophy*.
 
-In pratica: marca quelle IMP con la riga `- Destinazione: framework` (formato IMP
-nell'header di `LEARNINGS.md`), poi lancia `/harvest-framework` — raccoglie le voci
-marcate e ne stampa un blocco copiabile, già da anonimizzare, pronto da riproporre
-come IMP nel repo del framework (`CONTRIBUTING.md`). Il comando solo legge e stampa:
-il travaso resta un tuo gesto esplicito. Dettagli in
-`.claude/docs/06-self-improvement.md`, *"Il ponte verso il framework"*.
+In practice: mark those IMPs with the line `- Destination: framework` (IMP format in
+the header of `LEARNINGS.md`), then run `/harvest-framework` — it collects the marked
+entries and prints a copyable block for them, ready to be anonymised and re-proposed
+as an IMP in the framework repo (`CONTRIBUTING.md`). The command only reads and
+prints: the transfer stays your explicit gesture. Details in
+`.claude/docs/06-self-improvement.md`, *"The bridge to the framework"*.
 
 ---
 
-## Innesto su un progetto ESISTENTE (brownfield)
+## Grafting onto an EXISTING project (brownfield)
 
-I passi 1-5 valgono anche per un progetto già avviato (codice, storia git, doc
-propri), con le differenze di questa sezione. Principio guida: **il progetto
-ospite ha la precedenza** — il template si INTEGRA, non si impone; ogni collisione
-si segnala all'utente invece di risolverla in silenzio.
+Steps 1-5 hold for an already-started project too (code, git history, its own docs),
+with the differences in this section. Guiding principle: **the host project takes
+precedence** — the template INTEGRATES, it does not impose itself; every collision is
+reported to the user instead of being resolved silently.
 
-### Prima di copiare: `.claude/` esiste già?
+### Before copying: does `.claude/` already exist?
 
-L'esistenza della cartella da sola NON basta a decidere: guarda cosa contiene.
+The existence of the directory alone is NOT enough to decide: look at what it contains.
 
-- **CASO A — innesto precedente del framework** (c'è `CLAUDE.md` alla root del
-  progetto e `.claude/` contiene `docs/` e `memory/` del framework): NON ricopiare
-  il template sopra — quella è la memoria del progetto. Riprendi da `STATE.md`; se
-  vuoi aggiornare il framework a una versione più recente, **segui la procedura
-  dedicata *«Aggiornare il framework su un progetto già innestato»*** in coda a
-  questa guida — riconciliazione file-per-file per classe (metodo / memoria di
-  progetto / ibridi), con le differenze dichiarate all'utente. (Se manca il
-  provenance pin `.claude/framework-version`, non crearlo a mano qui: arriva dal
-  retrofit in chiusura dell'upgrade, Passo 6.)
-- **CASO B — soli artefatti locali dell'harness** (tipicamente
-  `settings.local.json` creato dalle approvazioni dei permessi; nessun doc o
-  memoria del framework): procedi con la copia del template e PRESERVA quei file
-  locali (non sono versionati e non vanno sovrascritti).
+- **CASE A — a previous graft of the framework** (there is a `CLAUDE.md` at the project
+  root and `.claude/` contains the framework's `docs/` and `memory/`): do NOT copy the
+  template over it — that is the project's memory. Resume from `STATE.md`; if you want
+  to update the framework to a more recent version, **follow the dedicated procedure
+  *«Upgrading the framework on an already-grafted project»*** at the end of this guide
+  — file-by-file reconciliation by class (method / project memory / hybrids), with the
+  differences declared to the user. (If the provenance pin
+  `.claude/framework-version` is missing, do not create it by hand here: it arrives
+  from the retrofit at the close of the upgrade, Step 6.)
+- **CASE B — only local harness artifacts** (typically `settings.local.json` created by
+  permission approvals; no framework docs or memory): go ahead and copy the template,
+  and PRESERVE those local files (they are not versioned and must not be overwritten).
 
-### Riconciliazione dei file in collisione
+### Reconciling colliding files
 
-La lista di copia del passo 1 assume file assenti. Se il progetto ospite li ha già:
+The copy list of step 1 assumes the files are absent. If the host project already has
+them:
 
-| File | Regola |
+| File | Rule |
 |---|---|
-| `README.md` dell'ospite | Si PRESERVA: è la doc pubblica del progetto (il README del framework non si copia comunque, passo 1). |
-| `.gitignore` | Si INTEGRA: aggiungi al file dell'ospite le voci del template (secrets, `settings.local.json`, ecc.), non sovrascriverlo. |
-| `Makefile` | Si INTEGRA: aggiungi i target di processo (`hooks-install`, `reset-task`) a quello dell'ospite. |
-| `SECURITY.md` | Se l'ospite ne ha già uno, si preserva/integra; lo scaffold del template serve solo se manca. |
-| `LICENSE` | Resta quella dell'ospite (la LICENSE del framework non si copia mai, passo 1). |
-| Hook git esistenti | Vedi passo 3: `hooks-install.sh` si ferma da solo davanti a hook non suoi o a `core.hooksPath` attivo, e ti dice come procedere. |
+| The host's `README.md` | It is PRESERVED: it is the project's public documentation (the framework's README is not copied anyway, step 1). |
+| `.gitignore` | It is INTEGRATED: add the template's entries (secrets, `settings.local.json`, etc.) to the host's file, do not overwrite it. |
+| `Makefile` | It is INTEGRATED: add the process targets (`hooks-install`, `reset-task`) to the host's one. |
+| `SECURITY.md` | If the host already has one, it is preserved/integrated; the template's scaffold is only needed if it is missing. |
+| `LICENSE` | The host's stays (the framework's LICENSE is never copied, step 1). |
+| Existing git hooks | See step 3: `hooks-install.sh` stops by itself in front of hooks that are not its own or an active `core.hooksPath`, and tells you how to proceed. |
 
-Regola generale per ogni altra collisione: **preserva il file dell'ospite, integra
-solo il necessario del template, segnala la collisione all'utente**.
+General rule for every other collision: **preserve the host's file, integrate only
+what is needed from the template, report the collision to the user**.
 
-### Igiene git ereditata
+### Inherited git hygiene
 
-Su una storia git preesistente, prima di adottare il flusso di `docs/04`:
+On a pre-existing git history, before adopting the flow of `docs/04`:
 
-- [ ] **Storia scansionata**: `gitleaks detect` one-off sull'intera storia (vedi
-      il riquadro del passo 3) — l'hook protegge solo i commit futuri.
-- [ ] **Audit dei tag ereditati**: `git cat-file -t <tag>` su ciascuno (`tag` =
-      annotato, `commit` = leggero). Il regime di `docs/04` (*Versioning*) crea
-      tag annotati SemVer: individua da quale base SemVer riparte il versioning
-      (la guardia di `/integrate` si ferma su una base non-SemVer); l'eventuale
-      normalizzazione dei tag ereditati è una decisione dell'utente — i tag
-      pushati sono storia condivisa.
-- [ ] **Costanti di versione negli script/config dell'ospite**: se una versione è
-      hard-coded, allineala ai tag (o derivala da `git describe`) e annota la
-      scelta — il drift tra costante e tag è un bug latente.
-- [ ] **Topologia dei branch**: davanti a un branch di integrazione remoto
-      dormiente (es. un vecchio `dev`), DECIDI e DICHIARA la scelta: trunk-based
-      (i due ruoli coincidono — caso previsto da `docs/04`) oppure ripristino del
-      branch come integrazione. Registra la scelta nei `[DA DEFINIRE AL SETUP]`
-      di `docs/04` e nei parametri dei comandi (`checkpoint.md`, `integrate.md` —
-      passo 2 di questa guida).
+- [ ] **History scanned**: a one-off `gitleaks detect` over the whole history (see the
+      box in step 3) — the hook only protects future commits.
+- [ ] **Audit of inherited tags**: `git cat-file -t <tag>` on each one (`tag` =
+      annotated, `commit` = lightweight). The regime of `docs/04` (*Versioning*)
+      creates annotated SemVer tags: work out which SemVer base the versioning
+      restarts from (the `/integrate` guard stops on a non-SemVer base); any
+      normalisation of the inherited tags is the user's decision — pushed tags are
+      shared history.
+- [ ] **Version constants in the host's scripts/config**: if a version is hard-coded,
+      align it with the tags (or derive it from `git describe`) and record the choice —
+      drift between a constant and a tag is a latent bug.
+- [ ] **Branch topology**: faced with a dormant remote integration branch (e.g. an old
+      `dev`), DECIDE and DECLARE the choice: trunk-based (the two roles coincide — a
+      case `docs/04` provides for) or restoring the branch as the integration one.
+      Record the choice in the `[TO BE DEFINED AT SETUP]` slots of `docs/04` and in the
+      commands' parameters (`checkpoint.md`, `integrate.md` — step 2 of this guide).
 
-### Il primo comando diventa un ASSESSMENT che popola la memoria
+### The first command becomes an ASSESSMENT that populates the memory
 
-Su un progetto esistente la memoria non parte vuota: parte dalla fotografia
-dell'esistente. Al posto del comando del passo 4, usa:
+On an existing project the memory does not start empty: it starts from a snapshot of
+what is there. Instead of the command of step 4, use:
 
-> Leggi `CLAUDE.md` e tutti i doc in `.claude/docs/`: interiorizza il metodo. Poi
-> fai un **assessment in SOLA LETTURA** del progetto esistente: struttura,
-> componenti, maturità reale (test? doc? build?), difetti evidenti, scelte
-> architetturali visibili nel codice. Con quello **inizializza la memoria**:
-> compila `STATE.md` con lo stato REALE (inclusi difetti e debiti osservati),
-> crea una nota in `.claude/memory/components/` per ogni componente significativo
-> già esistente, registra in `.claude/memory/decisions/` le scelte architetturali
-> ereditate che ricostruisci (decisioni retroattive, marcate come tali), genera
-> `TREE.md` e popola `INDEX.md`. Le divergenze tra la doc dell'ospite e la realtà
-> del codice NON correggerle: registrale in `STATE.md`, sezione "Debito
-> documentazione". Infine riepilogami il metodo e segnalami i `[DA DEFINIRE]`
-> ancora aperti. Non scrivere codice applicativo in questo passaggio.
+> Read `CLAUDE.md` and all the docs in `.claude/docs/`: internalise the method. Then
+> make a **READ-ONLY assessment** of the existing project: structure, components, real
+> maturity (tests? docs? build?), evident defects, architectural choices visible in the
+> code. With that, **initialise the memory**: fill `STATE.md` with the REAL state
+> (including the defects and debts you observed), create a note in
+> `.claude/memory/components/` for every significant component that already exists,
+> record in `.claude/memory/decisions/` the inherited architectural choices you can
+> reconstruct (retroactive decisions, marked as such), generate `TREE.md` and populate
+> `INDEX.md`. Do NOT fix the divergences between the host's documentation and the
+> reality of the code: record them in `STATE.md`, section "Documentation debt".
+> Finally, summarise the method back to me and flag the `[TO BE DEFINED]` slots still
+> open. Do not write application code in this pass.
 
-È il pattern assessment → proposta → decisione di `00-overview.md` e
-`01-task-planning.md`, promosso a passo del setup: l'assessment FOTOGRAFA, le
-decisioni su cosa correggere restano all'utente.
+It is the assessment → proposal → decision pattern of `00-overview.md` and
+`01-task-planning.md`, promoted to a setup step: the assessment TAKES A SNAPSHOT, the
+decisions about what to fix stay with the user.
 
-### Divergenze doc-vs-realtà dell'ospite
+### The host's docs-versus-reality divergences
 
-Un README che documenta feature inesistenti (o simili) NON si corregge durante
-l'innesto: prevale l'igiene di scope (`00-overview.md`, un cambiamento alla
-volta). Si registra in `STATE.md` → "Debito documentazione" e si corregge solo
-come task deciso dall'utente. Il LIVELLO 1 di `06-self-improvement.md`
-(correzioni fattuali immediate) riguarda la doc del METODO e del progetto
-gestito, NON la doc preesistente dell'ospite durante l'innesto — vedi la
-precisazione di perimetro lì. A innesto completato, la doc dell'ospite è a tutti
-gli effetti doc del progetto gestito: le divergenze scoperte DOPO seguono le
-regole normali di `docs/06`; i debiti registrati durante l'innesto si
-smaltiscono come task decisi dall'utente.
+A README documenting features that do not exist (or the like) is NOT fixed during the
+graft: scope hygiene prevails (`00-overview.md`, one change at a time). It is recorded
+in `STATE.md` → "Documentation debt" and fixed only as a task decided by the user.
+LEVEL 1 of `06-self-improvement.md` (immediate factual corrections) concerns the
+documentation of the METHOD and of the managed project, NOT the host's pre-existing
+documentation during the graft — see the scope note there. Once the graft is complete,
+the host's documentation is to all effects documentation of the managed project:
+divergences discovered AFTERWARDS follow the normal rules of `docs/06`; the debts
+recorded during the graft are worked off as tasks decided by the user.
 
-### Lingua del progetto ospite
+### Language of the host project
 
-Se la doc pubblica dell'ospite è in una lingua diversa da quella del framework,
-dichiara la convivenza — quale lingua per memoria/processo, quale per la doc
-pubblica — nelle regole tecniche di `CLAUDE.md` (voce "Lingua/e del progetto",
-checklist del passo 2): decisa una volta, non nota-per-nota.
+Rule 9 of `CLAUDE.md` — artifacts always English — applies to the artifacts of the
+METHOD and to the NEW artifacts the project produces from the graft onwards. It is
+**not** a mandate to bulk-translate what is already there: the host's pre-existing
+documentation, written in another language, is left as it is, exactly like past
+commits. Translating it is a task like any other, decided by the user, and it follows
+scope hygiene (`00-overview.md`, one change at a time) — never something the graft
+does on its own initiative.
+
+What you do declare at graft time is the **interaction language** (technical rules of
+`CLAUDE.md`, checklist of step 2): decided once, not note by note.
 
 ---
 
-## Aggiornare il framework su un progetto già innestato (`vX` → `vY`)
+## Upgrading the framework on an already-grafted project (`vX` → `vY`)
 
-Il **terzo caso**, accanto a greenfield (passi 0-5) e brownfield (innesto su un
-progetto SENZA framework). Qui il progetto ha GIÀ una versione del framework
-innestata — `CLAUDE.md` alla root, `.claude/docs/` e `.claude/memory/` popolati: è
-esattamente la condizione del **CASO A** più sopra — e va portato a una versione più
-recente **preservando la memoria di progetto accumulata** (STATE, sessioni, decisioni,
-componenti, il backlog IMP).
+The **third case**, alongside greenfield (steps 0-5) and brownfield (grafting onto a
+project WITHOUT the framework). Here the project ALREADY has a version of the framework
+grafted — `CLAUDE.md` at the root, `.claude/docs/` and `.claude/memory/` populated: it
+is exactly the condition of **CASE A** above — and it must be brought to a more recent
+version **while preserving the accumulated project memory** (STATE, sessions,
+decisions, components, the IMP backlog).
 
-È il verso DISCENDENTE del ponte descritto in `docs/06` (*"Il ponte verso il
-framework"*): mentre `/harvest-framework` fa RISALIRE le lezioni dal progetto al
-framework, l'upgrade fa SCENDERE una nuova versione del framework nel progetto. È anche
-il veicolo con cui i fix del framework (es. a `hooks-install.sh`) e i nuovi
-`[DA DEFINIRE AL SETUP]` di una versione raggiungono i progetti già avviati.
+It is the DESCENDING direction of the bridge described in `docs/06* (*"The bridge to
+the framework"*): while `/harvest-framework` sends lessons UP from the project to the
+framework, the upgrade sends a new version of the framework DOWN into the project. It
+is also the vehicle by which the framework's fixes (e.g. to `hooks-install.sh`) and a
+version's new `[TO BE DEFINED AT SETUP]` slots reach already-started projects.
 
-> **Nessuna automazione, per ora — è una scelta, non una mancanza.** Con pochi upgrade
-> reali alle spalle questa è una procedura MANUALE guidata che orchestra primitive già
-> esistenti (branch usa-e-getta, `reset-task.sh`, `/checkpoint`, `/integrate`,
-> `make hooks-install`, `/lint-memory`). Un comando/script che la automatizzi resta
-> rimandato finché più upgrade reali non lo giustificano: stesso criterio anti-hype
-> con cui il framework rimanda l'innesto automatizzato. Si documenta prima, si prova
-> sul campo, si automatizza dopo. (Il *provenance pin* `.claude/framework-version`,
-> nato anch'esso rimandato, è stato promosso dopo il primo upgrade reale: la baseline
-> accertata a mano si è dimostrata il punto più fragile della procedura.)
+> **No automation, for now — a choice, not an omission.** With few real upgrades behind
+> us this is a guided MANUAL procedure that orchestrates primitives that already exist
+> (throwaway branch, `reset-task.sh`, `/checkpoint`, `/integrate`,
+> `make hooks-install`, `/lint-memory`). A command/script automating it stays deferred
+> until more real upgrades justify it: the same anti-hype filter with which the
+> framework defers the automated graft. Document first, try it in the field, automate
+> afterwards. (The *provenance pin* `.claude/framework-version`, itself born deferred,
+> was promoted after the first real upgrade: the baseline established by hand proved
+> to be the most fragile point of the procedure.)
 
-### Il modello mentale: tre classi di file, più lo stato dell'innesto
+### The mental model: three classes of file, plus the graft state
 
-Un upgrade tocca SOLO il layer di PROCESSO, MAI la memoria di progetto. Ogni file
-ricade in una di tre classi:
+An upgrade touches ONLY the PROCESS layer, NEVER the project memory. Every file falls
+into one of three classes:
 
-- **METODO** (puro-framework, si porta a `vY`): `.claude/docs/00-06`, i comandi in
-  `.claude/commands/` non personalizzati, i README-guida dentro `.claude/memory/*/`,
-  `scripts/reset-task.sh`, `scripts/README.md`, `commitlint.config.cjs`.
-- **MEMORIA-DI-PROGETTO** (resta INTATTA): `.claude/memory/STATE.md`, `TREE.md`,
-  `INDEX.md`, `sessions/`, `components/`, `decisions/`, `plans/`. **Invariante di
-  verifica: dopo l'upgrade il `git diff` su `.claude/memory/` deve essere VUOTO** (unica
-  eccezione: i rimandi rotti da un rename di doc — vedi *Casi limite*).
-- **IBRIDO** (parte-framework che evolve + parte-progetto da preservare, si
-  riconcilia): `CLAUDE.md`, `.claude/settings.json`, `scripts/hooks-install.sh`,
-  `.gitignore`, `Makefile`, `LEARNINGS.md`, e i comandi personalizzati al setup
-  (`checkpoint.md`, `integrate.md`, `new-component.md`).
+- **METHOD** (pure framework, brought to `vY`): `.claude/docs/00-06`, the
+  non-customised commands in `.claude/commands/`, the guide READMEs inside
+  `.claude/memory/*/`, `scripts/reset-task.sh`, `scripts/README.md`,
+  `commitlint.config.cjs`.
+- **PROJECT-MEMORY** (stays UNTOUCHED): `.claude/memory/STATE.md`, `TREE.md`,
+  `INDEX.md`, `sessions/`, `components/`, `decisions/`, `plans/`. **Verification
+  invariant: after the upgrade the `git diff` on `.claude/memory/` must be EMPTY** (the
+  only exception: pointers broken by a doc rename — see *Edge cases*).
+- **HYBRID** (a framework part that evolves + a project part to preserve, reconciled):
+  `CLAUDE.md`, `.claude/settings.json`, `scripts/hooks-install.sh`, `.gitignore`,
+  `Makefile`, `LEARNINGS.md`, and the commands customised at setup (`checkpoint.md`,
+  `integrate.md`, `new-component.md`).
 
-> **Perché gli ibridi non si separano "a sezioni".** Il fill dei `[DA DEFINIRE AL
-> SETUP]` è DISTRUTTIVO: quando il progetto compila un marcatore, la stringa sparisce e
-> viene sostituita dalla risposta. A setup fatto il file è un impasto di prosa-framework
-> + risposte-progetto senza più un confine grep-abile. L'unico meccanismo robusto per
-> riconciliarli è il **merge a 3 vie** con il template alla versione DI PARTENZA (`vX`)
-> come base comune.
+> **Why hybrids cannot be split "by section".** Filling in the
+> `[TO BE DEFINED AT SETUP]` slots is DESTRUCTIVE: when the project fills a marker, the
+> string disappears and is replaced by the answer. Once setup is done the file is a
+> blend of framework prose + project answers with no greppable boundary left. The only
+> robust mechanism for reconciling them is the **3-way merge** with the template at the
+> STARTING version (`vX`) as the common base.
 
-A parte sta il **provenance pin** `.claude/framework-version` — la QUARTA specie,
-**stato dell'innesto**, che non ricade in nessuna delle tre classi: non è METODO
-(nel repo del framework non esiste: si crea a ogni innesto, passo 1), non è
-MEMORIA-DI-PROGETTO (lo scrive la procedura, non il progetto), e non si riconcilia
-a 3 vie — si RISCRIVE. Lo crea il setup, lo legge il Passo 0 come baseline, lo
-aggiorna la chiusura dell'upgrade (Passo 6). Vive fuori da `.claude/memory/`
-apposta: così l'invariante "diff vuoto su `memory/`" resta intatta anche quando
-l'upgrade lo tocca.
+Apart from these stands the **provenance pin** `.claude/framework-version` — the FOURTH
+species, the **graft state**, which falls into none of the three classes: it is not
+METHOD (it does not exist in the framework repo: it is created at every graft, step 1),
+it is not PROJECT-MEMORY (the procedure writes it, not the project), and it is not
+reconciled 3-way — it is REWRITTEN. Setup creates it, Step 0 reads it as the baseline,
+the close of the upgrade updates it (Step 6). It lives outside `.claude/memory/` on
+purpose: that way the "empty diff on `memory/`" invariant stays intact even when the
+upgrade touches it.
 
-### Precondizione: procurati il framework a `vX` e `vY`
+### Precondition: get hold of the framework at `vX` and `vY`
 
-Il progetto ha COPIATO i file del framework, non la sua storia git: i tag di versione
-vivono solo nel repo del framework. Il "cosa è cambiato" si deriva perciò LÌ, non nel
-progetto (aggiungere il framework come *remote* del progetto è sconsigliato: inquina il
-grafo e mescola due linee di versione). Prima di iniziare, procurati due checkout (o
-export) del repo del framework: uno alla versione INNESTATA (`vX`) e uno alla versione
-TARGET (`vY`). Sono la *base* e i *loro* del merge a 3 vie.
+The project COPIED the framework's files, not its git history: the version tags live
+only in the framework repo. "What changed" is therefore derived THERE, not in the
+project (adding the framework as a *remote* of the project is discouraged: it pollutes
+the graph and mixes two version lines). Before starting, get two checkouts (or exports)
+of the framework repo: one at the GRAFTED version (`vX`) and one at the TARGET version
+(`vY`). They are the *base* and the *theirs* of the 3-way merge.
 
-### Passo 0 — Determina la baseline `vX`
+### Step 0 — Determine the `vX` baseline
 
-Determina `vX` così, in ordine di preferenza:
+Determine `vX` like this, in order of preference:
 
-0. **Leggi il provenance pin** `.claude/framework-version` (c'è in ogni progetto
-   innestato — o già aggiornato una volta — da quando il pin esiste): il campo
-   `version` È la baseline, fine del passo. I fallback qui sotto servono agli
-   innesti pre-pin, e servono UNA volta sola: il Passo 6 scrive il pin in
-   chiusura (retrofit).
-1. **Chiedila** a chi ha fatto l'innesto (spesso la ricorda o l'ha annotata).
-2. **Stimala** sul contenuto: scegli il tag del framework la cui copia dei file di
-   classe METODO combacia meglio con quelli attuali del progetto — un confronto sul
-   contenuto reale batte l'euristica "tag più vicino alla data d'innesto".
-3. **Degrada** con onestà: se `vX` resta incerta, NON fingere un 3-way pulito. Ricadi
-   sulla riconciliazione file-per-file guidata dal CHANGELOG come indice (è ciò che il
-   CASO A già prescrive), ispezionando ogni file dubbio.
+0. **Read the provenance pin** `.claude/framework-version` (it is in every project
+   grafted — or already upgraded once — since the pin exists): the `version` field IS
+   the baseline, end of step. The fallbacks below are for pre-pin grafts, and they are
+   needed ONCE only: Step 6 writes the pin at the close (retrofit).
+1. **Ask** whoever did the graft (they often remember it or wrote it down).
+2. **Estimate it** from the content: pick the framework tag whose copy of the
+   METHOD-class files matches the project's current ones best — a comparison on the
+   real content beats the "tag closest to the graft date" heuristic.
+3. **Degrade** honestly: if `vX` stays uncertain, do NOT fake a clean 3-way. Fall back
+   to file-by-file reconciliation guided by the CHANGELOG as an index (which is what
+   CASE A already prescribes), inspecting every doubtful file.
 
-### Passo 1 — Punto di ripristino e branch usa-e-getta
+### Step 1 — Restore point and throwaway branch
 
-Da branch di integrazione con working tree pulito:
-`git checkout -b chore/framework-upgrade-vX-to-vY`. L'HEAD pre-upgrade è il punto di
-ripristino: **la memoria vive in git, quindi il commit di sicurezza È già il backup**
-(ripristino selettivo con `git checkout <sha-pre-upgrade> -- .claude/memory/`). L'intero
-upgrade è un'unità buttabile — se va male, si cancella il branch (vedi *Rollback* in
-`docs/04`). Nessuna copia extra della memoria fuori dal tree è necessaria.
+From the integration branch with a clean working tree:
+`git checkout -b chore/framework-upgrade-vX-to-vY`. The pre-upgrade HEAD is the restore
+point: **the memory lives in git, so the safety commit IS already the backup**
+(selective restore with `git checkout <pre-upgrade-sha> -- .claude/memory/`). The whole
+upgrade is a throwaway unit — if it goes wrong, the branch is deleted (see *Rollback*
+in `docs/04`). No extra copy of the memory outside the tree is needed.
 
-### Passo 2 — Deriva il "cosa è cambiato" (framework-side)
+### Step 2 — Derive "what changed" (framework side)
 
-Nel repo del framework, combina due fonti complementari:
+In the framework repo, combine two complementary sources:
 
-- **Il CHANGELOG come INDICE** ("quali file e perché"): le sezioni tra `vX` e `vY` —
-  ogni voce cita l'IMP e nomina il file toccato. È la mappa del cambiamento. (Il
-  CHANGELOG non è copiato nel progetto: si legge nel repo del framework.)
-- **`git diff` come TESTO ESATTO**, con scope ai soli path del METODO ed ESCLUDENDO la
-  memoria del framework:
+- **The CHANGELOG as an INDEX** ("which files and why"): the sections between `vX` and
+  `vY` — every entry cites the IMP and names the file touched. It is the map of the
+  change. (The CHANGELOG is not copied into the project: it is read in the framework
+  repo.)
+- **`git diff` as the EXACT TEXT**, scoped to the METHOD paths only and EXCLUDING the
+  framework's memory:
 
   ```bash
   git diff vX vY -- .claude/docs .claude/commands .claude/settings.json \
     CLAUDE.md scripts Makefile commitlint.config.cjs .gitignore
   ```
 
-  L'esclusione di `.claude/memory/` è deliberata: la memoria del framework è la SUA, non
-  deve MAI sovrascrivere quella del progetto.
+  Excluding `.claude/memory/` is deliberate: the framework's memory is ITS own, it must
+  NEVER overwrite the project's.
 
-### Passo 3 — Riconcilia per classe
+### Step 3 — Reconcile by class
 
-- **METODO** → porta la versione `vY`.
-- **MEMORIA-DI-PROGETTO** → non toccare; il `diff` su `.claude/memory/` resta vuoto.
-- **IBRIDI** → merge a 3 vie con `base = template@vX`, `loro = template@vY`,
-  `mio = file del progetto` (`git merge-file`/`diff3`). Il 3-way deve ottenere: un
-  marcatore AGGIUNTO da `vY` si **ri-materializza** nel file (nuovo `[DA DEFINIRE]` da
-  compilare); uno RIMOSSO **sparisce**; uno SPOSTATO o co-editato emerge come
-  **conflitto** da risolvere a mano. Ri-applica sempre le risposte `[DA DEFINIRE AL
-  SETUP]` del progetto (nomi dei branch, pattern di `tree`, formatter, allow-list dello
-  stack, l'intera sezione "Regole tecniche" di `CLAUDE.md`). Gli ibridi banali
-  (`.gitignore`, `Makefile`) si INTEGRANO (union additiva: garantisci presenti le righe
-  della base `vY` senza rimuovere quelle di progetto); su `LEARNINGS.md` si aggiorna al
-  più l'header/formato, MAI le voci IMP del progetto.
+- **METHOD** → bring the `vY` version over.
+- **PROJECT-MEMORY** → do not touch; the `diff` on `.claude/memory/` stays empty.
+- **HYBRIDS** → 3-way merge with `base = template@vX`, `theirs = template@vY`,
+  `mine = the project's file` (`git merge-file`/`diff3`). The 3-way must achieve this: a
+  marker ADDED by `vY` **re-materialises** in the file (a new `[TO BE DEFINED]` to fill
+  in); one that was REMOVED **disappears**; one that was MOVED or co-edited surfaces as
+  a **conflict** to resolve by hand. Always re-apply the project's
+  `[TO BE DEFINED AT SETUP]` answers (branch names, `tree` patterns, formatter, the
+  stack's allow-list, the whole "Technical rules" section of `CLAUDE.md`). Trivial
+  hybrids (`.gitignore`, `Makefile`) are INTEGRATED (additive union: make sure the lines
+  of the `vY` base are present without removing the project's); on `LEARNINGS.md` at
+  most the header/format is updated, NEVER the project's IMP entries.
 
-> **Confine di esecuzione (`docs/04`, sezione omonima).** L'agente PREPARA e committa in
-> LOCALE sul branch di upgrade; NON mergia, NON pusha, NON tagga. Dove `vY` cambia una
-> REGOLA (non è una correzione fattuale), scatta il Livello 2 di `docs/06`: si PROPONE,
-> non si applica in silenzio — *"Mai riscrivere le proprie regole in autonomia"*
-> (`CLAUDE.md`, regola 6).
+> **Execution boundary (`docs/04`, section of the same name).** The agent PREPARES and
+> commits LOCALLY on the upgrade branch; it does NOT merge, does NOT push, does NOT tag.
+> Where `vY` changes a RULE (rather than being a factual correction), Level 2 of
+> `docs/06` kicks in: it is PROPOSED, not applied silently — *"Never rewrite your own
+> rules on your own initiative"* (`CLAUDE.md`, rule 6).
 
-### Passo 4 — Re-sync degli hook e audit dei marcatori
+### Step 4 — Re-sync the hooks and audit the markers
 
-`make hooks-install` (idempotente; salva un `.bak` del blocco formattazione del
-progetto). Verifica reale: un secret finto bloccato da gitleaks, un messaggio
-non-conventional rifiutato da commitlint. Poi `grep -rn "DA DEFINIRE AL SETUP" .` per
-intercettare i marcatori NUOVI introdotti da `vY`, da compilare con le risposte del
-progetto (riusa il dialogo del passo 2 di questa guida).
+`make hooks-install` (idempotent; it saves a `.bak` of the project's formatting block).
+Real verification: a fake secret blocked by gitleaks, a non-conventional message
+rejected by commitlint. Then
+`grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" .` to catch the NEW markers
+introduced by `vY`, to be filled in with the project's answers (reuse the dialogue of
+step 2 of this guide). The dual-form grep matters here: a project grafted before the
+English marker existed still carries the Italian one.
 
-### Passo 5 — Verifica prima di finalizzare
+### Step 5 — Verify before finalising
 
-- `git diff --stat` e diff per-file; **conferma il `diff` VUOTO su `.claude/memory/`**
-  (invariante forte: un diff non vuoto = bug dell'upgrade, fermati e indaga).
-- Le customizzazioni `[DA DEFINIRE]` del progetto sono sopravvissute nei file
-  riconciliati.
-- `/lint-memory` sulla memoria preservata contro i nuovi doc (rimandi a doc
-  rinominati/spostati, STATE vs git, coerenza `LEARNINGS`↔`STATE`, pagine orfane).
-- Build/test del progetto verdi (anche se l'upgrade è solo-processo, conferma che il
-  progetto continua a compilare e committare).
+- `git diff --stat` and a per-file diff; **confirm the EMPTY `diff` on
+  `.claude/memory/`** (a strong invariant: a non-empty diff = a bug in the upgrade,
+  stop and investigate).
+- The project's `[TO BE DEFINED]` customisations survived in the reconciled files.
+- `/lint-memory` on the preserved memory against the new docs (pointers to
+  renamed/moved docs, STATE vs git, `LEARNINGS`↔`STATE` coherence, orphan pages).
+- The project's build/tests green (even if the upgrade is process-only, confirm the
+  project still builds and commits).
 
-### Passo 6 — Chiusura e hand-off
+### Step 6 — Closing and hand-off
 
-**Aggiorna il provenance pin**: riscrivi in `.claude/framework-version` i campi
-`version` e `commit` con la `vY` appena portata; `grafted` non si tocca (è la data
-dell'innesto originale). Se il progetto NON ha il pin (innesto pre-pin), CREALO ora —
-è il retrofit: da questo upgrade in poi la baseline è certa; `grafted` ignota →
-`n/d (retrofit YYYY-MM-DD)`. Il pin vive fuori da `.claude/memory/`, quindi
-l'invariante del Passo 5 resta intatta.
+**Update the provenance pin**: rewrite in `.claude/framework-version` the `version` and
+`commit` fields with the `vY` you have just brought over; `grafted` is not touched (it
+is the date of the original graft). If the project does NOT have the pin (a pre-pin
+graft), CREATE it now — that is the retrofit: from this upgrade on the baseline is
+certain; unknown `grafted` → `n/a (retrofit YYYY-MM-DD)`. The pin lives outside
+`.claude/memory/`, so the invariant of Step 5 stays intact.
 
-`/checkpoint` (nota di sessione dell'upgrade — `vX→vY`, cosa riconciliato, cosa deciso
-dall'utente; `STATE.md` con la versione framework aggiornata; `TREE.md` se la struttura
-è cambiata). Poi `/integrate`: un upgrade solo-processo del progetto NON porta
-feature/fix del prodotto → bump **"nessun tag"** (`chore`, lavoro interno, non una
-release): dichiaralo e ometti il tag. Il merge del branch di upgrade e il push sono
-azioni UMANE. Se alla review qualcosa non torna, si butta il branch: la memoria è salva
-nel commit pre-upgrade.
+`/checkpoint` (the upgrade's session note — `vX→vY`, what was reconciled, what the user
+decided; `STATE.md` with the updated framework version; `TREE.md` if the structure
+changed). Then `/integrate`: a process-only upgrade of the project does NOT bring
+product features/fixes → bump **"no tag"** (`chore`, internal work, not a release):
+declare it and omit the tag. The merge of the upgrade branch and the push are HUMAN
+actions. If something does not add up at review time, the branch is thrown away: the
+memory is safe in the pre-upgrade commit.
 
-### Casi limite (da trattare esplicitamente)
+### Edge cases (to be handled explicitly)
 
-La riconciliazione "porta la versione `vY`" del Passo 3 è un OVERWRITE, non un `sync`, e
-il 3-way copre i co-edit ma non tutto. Questi sette casi vanno gestiti apposta, o
-l'upgrade lascia il progetto in uno stato incoerente:
+The "bring the `vY` version over" reconciliation of Step 3 is an OVERWRITE, not a
+`sync`, and the 3-way covers co-edits but not everything. These seven cases must be
+handled on purpose, or the upgrade leaves the project in an incoherent state:
 
-1. **File CANCELLATO in `vY` (orfano).** Se `vY` rimuove un file di METODO (un doc
-   accorpato, un comando deprecato), sovrascrivere non lo cancella: resta orfano. Il
-   `git diff vX vY` mostra le rimozioni come hunk di delete — **applica anche quelle**
-   (`git rm`), e chiudi con un check anti-orfano: l'insieme dei file di METODO del
-   progetto deve combaciare con quello di `vY`.
+1. **A file DELETED in `vY` (orphan).** If `vY` removes a METHOD file (a merged doc, a
+   deprecated command), overwriting does not delete it: it stays orphaned. The
+   `git diff vX vY` shows removals as delete hunks — **apply those too** (`git rm`), and
+   close with an anti-orphan check: the set of the project's METHOD files must match
+   `vY`'s.
 
-2. **File RINOMINATO/RINUMERATO in `vY` (duplicato).** Se `vY` rinomina o rinumera un
-   doc/comando (es. una rinumerazione di `docs/`), l'overwrite crea il nuovo nome e
-   **lascia il vecchio** → due file e un indice `CLAUDE.md`/`TREE.md` ambiguo. Usa
-   `git diff -M` come indice dei rename per applicare lo spostamento (rimuovi il vecchio,
-   porta il nuovo), non un add+delete cieco.
+2. **A file RENAMED/RENUMBERED in `vY` (duplicate).** If `vY` renames or renumbers a
+   doc/command (e.g. a renumbering of `docs/`), the overwrite creates the new name and
+   **leaves the old one** → two files and an ambiguous `CLAUDE.md`/`TREE.md` index. Use
+   `git diff -M` as an index of the renames to apply the move (remove the old one, bring
+   the new one), not a blind add+delete.
 
-3. **Rimandi della memoria verso doc rinominati — l'unica eccezione all'invariante.**
-   Se `vY` rinomina/rinumera un doc, i `[[wikilink]]` e i rimandi (`docs/04:142`, …) in
-   `STATE.md` e nelle sessioni **penzolano**, e `/lint-memory` li segnalerà rotti. Qui
-   l'invariante "diff vuoto su `memory/`" e la riparazione confliggono: la via d'uscita è
-   trattare la riparazione dei rimandi come **eccezione ESPLICITA e DICHIARATA**, in un
-   **commit separato** (`docs(memory): aggiorna i rimandi ai doc rinominati da vY`),
-   distinto dai commit dell'upgrade. Così l'invariante resta utile (intercetta gli edit
-   ACCIDENTALI della memoria) e la riparazione necessaria non passa di nascosto. È
-   l'unico tocco lecito alla memoria durante un upgrade, e solo se un rename lo impone.
+3. **Memory pointers towards renamed docs — the only exception to the invariant.** If
+   `vY` renames/renumbers a doc, the `[[wikilink]]`s and the pointers (`docs/04:142`, …)
+   in `STATE.md` and in the sessions **dangle**, and `/lint-memory` will flag them as
+   broken. Here the "empty diff on `memory/`" invariant and the repair conflict: the way
+   out is to treat the repair of the pointers as an **EXPLICIT and DECLARED exception**,
+   in a **separate commit** (`docs(memory): update the pointers to the docs renamed by
+   vY`), distinct from the upgrade's commits. That way the invariant stays useful (it
+   catches ACCIDENTAL edits to the memory) and the necessary repair does not slip
+   through unnoticed. It is the only legitimate touch to the memory during an upgrade,
+   and only if a rename forces it.
 
-4. **Hook installati (`.git/hooks/*`) fuori dal grafo git.** `make hooks-install` del
-   Passo 4 materializza gli hook in `.git/hooks/`, che NON è tracciato né sul branch. Due
-   conseguenze: (a) se dimentichi il re-run, gli hook installati restano vecchi mentre
-   `hooks-install.sh` è aggiornato — incoerenza silenziosa; (b) **lo scarto del branch
-   NON disinstalla** gli hook nuovi già materializzati, e il commit di sicurezza non li
-   ha mai catturati. Quindi: il re-run è OBBLIGATORIO, non opzionale; e se abortisci
-   l'upgrade dopo il Passo 4, ri-esegui `make hooks-install` dalla versione `vX` per
-   riportare gli hook coerenti col codice ripristinato.
+4. **Installed hooks (`.git/hooks/*`) live outside the git graph.** The
+   `make hooks-install` of Step 4 materialises the hooks in `.git/hooks/`, which is
+   neither tracked nor on the branch. Two consequences: (a) if you forget the re-run,
+   the installed hooks stay old while `hooks-install.sh` is updated — a silent
+   incoherence; (b) **throwing away the branch does NOT uninstall** the new hooks
+   already materialised, and the safety commit never captured them. Therefore: the
+   re-run is MANDATORY, not optional; and if you abort the upgrade after Step 4, re-run
+   `make hooks-install` from version `vX` to bring the hooks back in line with the
+   restored code.
 
-5. **Attraversare la `1.0.0` (`0.x → 1.0`) cambia REGOLE vive.** Aggiornare `docs/04`
-   attraverso la prima release stabile non è solo testo: cambia il regime di versioning
-   (in `0.x` i tag vivono sul branch di sviluppo, da `1.0.0` sul branch stabile) sotto un
-   progetto che sta già operando con la vecchia regola. Se il progetto è a metà di un
-   proprio ciclo di release, **fermati e segnalalo all'utente**: aggiornare un doc di
-   PROCESSO può cambiare semantiche VIVE, non solo prosa.
+5. **Crossing `1.0.0` (`0.x → 1.0`) changes LIVE rules.** Updating `docs/04` across the
+   first stable release is not just text: it changes the versioning regime (in `0.x` the
+   tags live on the development branch, from `1.0.0` on the stable one) underneath a
+   project that is already operating with the old rule. If the project is in the middle
+   of a release cycle of its own, **stop and tell the user**: updating a PROCESS doc can
+   change LIVE semantics, not just prose.
 
-6. **Salto multi-versione (`v0.1 → v0.4`): ordine delle migrazioni.** Un `git diff` fra
-   gli ESTREMI collassa gli intermedi: va bene per aggiunte/rimozioni che si annullano,
-   ma **perde l'ordine delle migrazioni non-commutative** (es. un file rinominato in `vX+1`
-   e poi ristrutturato in `vX+2`) e conflonde fix multipli sullo stesso file in un unico
-   hunk. Per un salto di più versioni, usa il CHANGELOG **per-versione** come indice
-   dell'ordine e, sui file più intricati (tipicamente `hooks-install.sh`), riconcilia
-   **una versione alla volta** invece che in un colpo solo.
+6. **A multi-version jump (`v0.1 → v0.4`): the order of the migrations.** A `git diff`
+   between the ENDPOINTS collapses the intermediate steps: fine for additions/removals
+   that cancel out, but it **loses the order of non-commutative migrations** (e.g. a file
+   renamed in `vX+1` and then restructured in `vX+2`) and merges multiple fixes to the
+   same file into a single hunk. For a jump of several versions, use the **per-version**
+   CHANGELOG as an index of the order and, on the most intricate files (typically
+   `hooks-install.sh`), reconcile **one version at a time** instead of in one go.
 
-7. **Pre-flight: il file "METODO-puro" è stato personalizzato inline?** La classe METODO
-   assume che `docs/02/03/04` restino template (i loro `[DA DEFINIRE]` si risolvono per
-   convenzione in `CLAUDE.md` con un rimando). Ma se il progetto li ha compilati **inline**
-   — o ha editato liberamente un file altrimenti puro (`commitlint.config.cjs`, un doc) —
-   quel file è di fatto un IBRIDO, e l'overwrite ne distrugge la personalizzazione in
-   silenzio. Prima di sovrascrivere un file di classe METODO, **ispeziona** che sia
-   davvero intatto rispetto a `vX`; se diverge, trattalo come ibrido (3-way).
+7. **Pre-flight: has the "pure METHOD" file been customised inline?** The METHOD class
+   assumes that `docs/02/03/04` stay templates (their `[TO BE DEFINED]` slots are
+   resolved by convention in `CLAUDE.md` with a pointer). But if the project filled them
+   in **inline** — or freely edited an otherwise pure file (`commitlint.config.cjs`, a
+   doc) — that file is in fact a HYBRID, and the overwrite destroys its customisation
+   silently. Before overwriting a METHOD-class file, **inspect** that it really is
+   untouched with respect to `vX`; if it diverges, treat it as a hybrid (3-way).
 
-> **Fuori dal payload dell'upgrade.** `LICENSE`, `CONTRIBUTING.md`, `CHANGELOG.md` sono
-> file del REPO DEL FRAMEWORK (non copiati nel progetto, passo 1): non spingerli nel
-> progetto e non leggerli dal progetto. `SECURITY.md`, `README.md` e questo `SETUP.md`
-> nel progetto sono opzionali/di riferimento — e attenzione a **non sovrascrivere il
-> `README.md` del progetto** con quello del framework. `settings.local.json` (non
-> versionato) resta intatto per costruzione.
+> **Outside the upgrade payload.** `LICENSE`, `CONTRIBUTING.md`, `CHANGELOG.md` are
+> files of the FRAMEWORK REPO (not copied into the project, step 1): do not push them
+> into the project and do not read them from the project. `SECURITY.md`, `README.md` and
+> this `SETUP.md` inside the project are optional/for reference — and be careful **not
+> to overwrite the project's `README.md`** with the framework's. `settings.local.json`
+> (unversioned) stays intact by construction.
