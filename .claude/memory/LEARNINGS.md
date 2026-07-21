@@ -27,7 +27,24 @@ tags: [improvement]
 
 ## OPEN proposals (awaiting the user's decision)
 
-_(none at the moment)_
+### IMP-043 — Pin cross-file section titles in a canonical map before multi-file work
+- Date: 2026-07-21 | Origin: framework translation to English, v1.1.0 (IMP-041 series)
+- Observed problem: in multi-file work that touches cross-references (a translation, a
+  wide refactor), the GLOSSARY covers terms but NOT the section titles that other files
+  cite by name. A title renamed in file A while file B still points at the old wording
+  produces a broken cross-reference that no term-level check catches — exactly the single
+  broken pointer this deliverable produced.
+- Proposal: before starting the work, fix in a canonical MAP the section titles cited
+  across files (target title → files that cite it), and translate/rename them only through
+  that map. Where to put it: `01-task-planning.md` (PHASE 2, as an artifact preceding the
+  tasks in the cross-file case) and/or as an explicit item of the cross-module refactor
+  discipline in the same doc.
+- Expected benefit / risk: benefit — cross-references stay verifiable mechanically instead
+  of by memory, at a one-off cost paid before the first edit. Risk — one more artifact for
+  deliverables that do not need it; it must stay CONDITIONAL on the work touching
+  cross-file citations, not become a standing ritual.
+- Resumption trigger: the next heavy deliverable that rewrites section titles across
+  several files (a translation, a docs restructuring, a wide rename).
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
