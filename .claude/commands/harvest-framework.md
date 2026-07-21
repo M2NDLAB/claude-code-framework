@@ -21,8 +21,11 @@ serve nei progetti-CLIENTE, dove `LEARNINGS.md` è il backlog del progetto e sol
 IMP sono framework-bound.
 
 ## 2. Raccogli (read-only)
-1. Trova le voci marcate: `grep -n "Destinazione: framework" .claude/memory/LEARNINGS.md`
-   (il marcatore è per convenzione una riga fisica singola).
+1. Trova le voci marcate:
+   `grep -nE "Destination: framework|Destinazione: framework" .claude/memory/LEARNINGS.md`
+   (il marcatore è per convenzione una riga fisica singola). La forma italiana è
+   riconosciuta come LEGACY: i backlog scritti prima della release che ha introdotto
+   il marcatore inglese continuano a essere rastrellati.
 2. Definisci il perimetro:
    - default (`$ARGUMENTS` vuoto): TUTTE le IMP marcate, in qualunque sezione
      (APERTE / Applicate / Rimandate) — il backlog intero;

@@ -40,11 +40,13 @@ una regola: allora è un bug di processo, non di memoria, e va in escalation/IMP
    problemi aperti di `STATE.md` (e viceversa); il debito accettato dal security
    gate (docs/03) vive in `STATE.md` col motivo; ogni voce di debito ha il suo
    TRIGGER esplicito, non è generica.
-10. **Marcatori `[DA DEFINIRE AL SETUP]` grep-visibili.** Nessuno *slot* da compilare
-    è spezzato dal word-wrap su due righe fisiche: sfuggirebbe al `grep -rn "DA
-    DEFINIRE AL SETUP" .` del setup (`SETUP.md`, §2) e del Passo 4 dell'upgrade,
-    restando non compilato in silenzio. Sentinella: `grep -rn "DA DEFINIRE AL$" .` —
-    ogni hit è un candidato. Falsi positivi NOTI da ignorare (prosa che *discute* il
+10. **Marcatori `[TO BE DEFINED AT SETUP]` grep-visibili.** Nessuno *slot* da compilare
+    è spezzato dal word-wrap su due righe fisiche: sfuggirebbe al
+    `grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" .` del setup
+    (`SETUP.md`, §2) e del Passo 4 dell'upgrade, restando non compilato in silenzio.
+    Sentinella: `grep -rnE "TO BE DEFINED AT$|DA DEFINIRE AL$" .` — ogni hit è un
+    candidato. La forma italiana è riconosciuta come LEGACY: i progetti innestati
+    prima della release che ha introdotto il marcatore inglese non si rompono. Falsi positivi NOTI da ignorare (prosa che *discute* il
     marcatore, non uno slot): il riquadro-guida di `SETUP.md` e i record IMP di
     `LEARNINGS.md`. Un hit altrove, o che è davvero uno slot fillable, va ricompattato
     su una sola riga fisica (convenzione in `SETUP.md`, §2).
@@ -58,7 +60,7 @@ una regola: allora è un bug di processo, non di memoria, e va in escalation/IMP
     (b) target di PROCESSO del `Makefile` ↔ gli stessi elenchi. Di processo = la
         ricetta invoca uno script di `scripts/` (ancoraggio STRUTTURALE, non
         posizionale: regge anche quando il setup compila o rimuove il banner
-        `[DA DEFINIRE AL SETUP]`); `help` è escluso (meta-target che stampa la
+        `[TO BE DEFINED AT SETUP]`); `help` è escluso (meta-target che stampa la
         lista) e i target di PROGETTO (build/test/run dello stack) sono FUORI
         perimetro — mai segnalarli;
     (c) file in `scripts/` ↔ tabella di `scripts/README.md`.
