@@ -1,89 +1,87 @@
-# Contribuire al claude-code-framework
+# Contributing to claude-code-framework
 
-La collaborazione è GRADITA, non obbligatoria: la licenza [MIT](LICENSE) ti
-permette di usare, copiare e modificare il framework senza dovere nulla in
-cambio. Se però vuoi restituire qualcosa — una correzione, una lezione di
-processo, un miglioramento del metodo — questo file dice come farlo, nel modo che
-il framework stesso usa su di sé.
+Collaboration is WELCOME, not required: the [MIT](LICENSE) licence lets you use,
+copy and modify the framework without owing anything in return. But if you do
+want to give something back — a correction, a process lesson, an improvement to
+the method — this file says how, in the way the framework itself uses on itself.
 
-> Vuoi USARE il template in un tuo progetto, non contribuirvi? Parti da
-> [SETUP.md](SETUP.md).
+> Want to USE the template in a project of your own rather than contribute to it?
+> Start from [SETUP.md](SETUP.md).
 
-## Il workflow di questo repo
+## This repo's workflow
 
-Questo repo si auto-applica il metodo che descrive (`.claude/docs/`):
+This repo applies to itself the method it describes (`.claude/docs/`):
 
-- **Feature branch** per ogni modifica significativa (`feat/...`, `fix/...`,
-  `docs/...`): mai lavoro diretto sul branch di integrazione.
-- **Conventional Commits**, verificati dall'hook commit-msg: tipi in
-  `commitlint.config.cjs`, formato e regole in
-  `.claude/docs/04-git-workflow.md`. Installa gli hook con `make hooks-install`
-  (richiede gitleaks e Node.js).
-- **Ciclo di fine deliverable** (`.claude/docs/00-overview.md`): [se sensibile]
+- **Feature branch** for every significant change (`feat/...`, `fix/...`,
+  `docs/...`): never work directly on the integration branch.
+- **Conventional Commits**, checked by the commit-msg hook: types in
+  `commitlint.config.cjs`, format and rules in
+  `.claude/docs/04-git-workflow.md`. Install the hooks with `make hooks-install`
+  (requires gitleaks and Node.js).
+- **End-of-deliverable cycle** (`.claude/docs/00-overview.md`): [if sensitive]
   `/security-review` → `/retro` → `/checkpoint` → `/integrate`.
-- **I cambi alle REGOLE passano da una proposta IMP** in
-  `.claude/memory/LEARNINGS.md` (`.claude/docs/06-self-improvement.md`): prima la
-  proposta, poi la decisione umana, poi l'applicazione con un commit dedicato.
-- **Agnosticità non negoziabile**: il template non contiene istanze specifiche di
-  un progetto (stack, nomi, valori concreti); dove serve concretezza si usa
-  `[DA DEFINIRE AL SETUP]`.
+- **Changes to the RULES go through an IMP proposal** in
+  `.claude/memory/LEARNINGS.md` (`.claude/docs/06-self-improvement.md`): first the
+  proposal, then the human decision, then the application in a dedicated commit.
+- **Non-negotiable agnosticism**: the template contains no project-specific
+  instances (stack, names, concrete values); where concreteness is needed, use
+  `[TO BE DEFINED AT SETUP]`.
 
-## Il modello git di questo repo (eccezione dichiarata)
+## This repo's git model (a declared exception)
 
-Il default che il framework DESCRIVE è a due branch (`.claude/docs/04`), ma il
-repo del framework stesso è **trunk-based su `main`**: i due RUOLI del doc —
-branch di integrazione e branch stabile — qui COINCIDONO (caso previsto dal doc
-stesso). In concreto:
+The default the framework DESCRIBES has two branches (`.claude/docs/04`), but the
+framework repo itself is **trunk-based on `main`**: the doc's two ROLES —
+integration branch and stable branch — COINCIDE here (a case the doc itself
+foresees). Concretely:
 
-- i deliverable passano da un feature branch mergiato in `main` con `--no-ff` via
-  blocco `/integrate`, eseguito da un umano (una PR verso se stessi non aggiunge
-  controllo);
-- i tag annotati vivono su `main` in ENTRAMBI i regimi (trunk-based: integrazione e
-  stabile coincidono). Fino alla `v0.6.2` il repo era pre-1.0 (`v0.x.y`); **dalla
-  `v1.0.0` è nel regime post-1.0** — il contratto del metodo è dichiarato stabile e
-  cambia solo la semantica del bump (un breaking change costa un MAJOR);
-- nella storia condivisa (commit, merge, tag) niente nomi di progetti o clienti
-  specifici — vedi la regola in docs/04, *Formato commit*: per un template
-  l'agnosticità vale anche nei messaggi, perché la storia pushata non si riscrive.
+- deliverables go through a feature branch merged into `main` with `--no-ff` via
+  the `/integrate` block, run by a human (a PR to yourself adds no control);
+- annotated tags live on `main` in BOTH regimes (trunk-based: integration and
+  stable coincide). Up to `v0.6.2` the repo was pre-1.0 (`v0.x.y`); **from
+  `v1.0.0` it is in the post-1.0 regime** — the method's contract is declared
+  stable and only the bump semantics change (a breaking change costs a MAJOR);
+- in the shared history (commits, merges, tags) no specific project or client
+  names — see the rule in docs/04, *Commit format*: for a template, agnosticism
+  applies to the messages too, because pushed history is not rewritten.
 
-**Cosa è un breaking change per questo framework** (ciò che, post-1.0, fa scattare il
-MAJOR): la rimozione o la rinomina di un comando, un cambio incompatibile del formato
-della memoria o dei marcatori `[DA DEFINIRE AL SETUP]`, o una modifica della struttura
-che rompe gli innesti o gli upgrade già in corso su un progetto. È la promessa di
-stabilità di un'API, applicata a un metodo — il criterio generale, agnostico, è in
+**What counts as a breaking change for this framework** (what, post-1.0, triggers
+a MAJOR): removing or renaming a command, an incompatible change to the memory
+format or to the `[TO BE DEFINED AT SETUP]` markers, or a structural change that
+breaks grafts or upgrades already under way on a project. It is an API's promise
+of stability, applied to a method — the general, agnostic criterion is in
 `.claude/docs/04-git-workflow.md`, *Versioning*.
 
-## La memoria di questo repo: regime "ibrido dichiarato"
+## This repo's memory: the "declared hybrid" regime
 
-Il repo usa su di sé solo UNA PARTE del proprio sistema di memoria:
+The repo uses on itself only PART of its own memory system:
 
-- **VIVI**: `.claude/memory/LEARNINGS.md` (il backlog IMP del framework — è il
-  loop della *Filosofia* del README: le lezioni d'uso tornano nel template) e
-  `.claude/memory/sessions/` (il diario del lavoro sul framework).
-- **Template puliti**, mai popolati qui: `STATE.md`, `TREE.md`, `INDEX.md`,
-  `components/`, `decisions/`, `plans/` — restano pronti da copiare.
+- **LIVE**: `.claude/memory/LEARNINGS.md` (the framework's IMP backlog — it is the
+  loop from the README's *Philosophy*: lessons from use flow back into the
+  template) and `.claude/memory/sessions/` (the journal of work on the framework).
+- **Clean templates**, never populated here: `STATE.md`, `TREE.md`, `INDEX.md`,
+  `components/`, `decisions/`, `plans/` — they stay ready to copy.
 
-Non è una dimenticanza: è la scelta che tiene il template copiabile senza
-rinunciare al loop di auto-miglioramento. Chi copia il template nel proprio
-progetto SVUOTA la parte viva (istruzioni in `SETUP.md`, passo 2).
+This is not an oversight: it is the choice that keeps the template copyable
+without giving up the self-improvement loop. Whoever copies the template into
+their own project EMPTIES the live part (instructions in `SETUP.md`, step 2).
 
-Conseguenza operativa del regime: un deliverable oneroso qui NON crea file in
-`plans/` — il piano vive nella nota di sessione come blocco-piano standardizzato,
-un commit per task (vedi `.claude/docs/01-task-planning.md`, riquadro sul regime
-ibrido, e `.claude/memory/sessions/README.md`).
+Operational consequence of the regime: a heavy deliverable here does NOT create a
+file in `plans/` — the plan lives in the session note as a standardised plan
+block, one commit per task (see `.claude/docs/01-task-planning.md`, the box on the
+hybrid regime, and `.claude/memory/sessions/README.md`).
 
-## In pratica, per una proposta di modifica
+## In practice, for a proposed change
 
-Una proposta può nascere dal lavoro su questo repo, oppure **risalire da un
-progetto-cliente**: là la lezione si marca `Destinazione: framework` e
-`/harvest-framework` ne produce un blocco copiabile (già anonimizzato) da portare
-qui (vedi `.claude/docs/06-self-improvement.md`, *"Il ponte verso il framework"*).
-In entrambi i casi diventa una voce IMP in `LEARNINGS.md`.
+A proposal can arise from work on this repo, or **come up from a client
+project**: there the lesson is marked `Destination: framework` and
+`/harvest-framework` produces a copyable block (already anonymised) to bring here
+(see `.claude/docs/06-self-improvement.md`, *"The bridge to the framework"*).
+Either way it becomes an IMP entry in `LEARNINGS.md`.
 
-1. Apri un feature branch da `main`.
-2. Commit conventional, hook installati, nessun secret (gitleaks blocca comunque).
-3. Se la modifica tocca regole o doc del metodo: allega la voce IMP (problema →
-   proposta → beneficio/rischio) in `LEARNINGS.md`.
-4. Nessun riferimento a progetti o stack specifici nei file del template.
+1. Open a feature branch from `main`.
+2. Conventional commits, hooks installed, no secrets (gitleaks blocks them anyway).
+3. If the change touches the method's rules or docs: attach the IMP entry (problem
+   → proposal → benefit/risk) in `LEARNINGS.md`.
+4. No references to specific projects or stacks in the template's files.
 
-Per segnalare una vulnerabilità: [SECURITY.md](SECURITY.md).
+To report a vulnerability: [SECURITY.md](SECURITY.md).

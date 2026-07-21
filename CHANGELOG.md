@@ -1,263 +1,292 @@
 # Changelog
 
-Le modifiche rilevanti di questo repo, nel formato
-[Keep a Changelog](https://keepachangelog.com/it/1.1.0/); le versioni seguono il
-SemVer su tag annotati definito in `.claude/docs/04-git-workflow.md`
-(*Versioning*). Si aggiorna dentro `/integrate`, prima del blocco di merge+tag.
+The relevant changes to this repo, in the
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format; versions follow the
+SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
+(*Versioning*). It is updated inside `/integrate`, before the merge+tag block.
 
 ## [Unreleased]
 
-## [1.0.0] — 2026-07-19
-
-Primo release **stabile**. Da questa versione il framework promette stabilità del
-proprio contratto di metodo: un breaking change costa un MAJOR. Cosa sia un breaking
-change per un framework di metodo — rimozione o rinomina di un comando, formato di
-memoria o marcatori incompatibile, struttura che rompe gli innesti o gli upgrade
-esistenti — è definito in `.claude/docs/04-git-workflow.md` (*Versioning*) e in
-`CONTRIBUTING.md`. La definizione è essa stessa parte della promessa.
-
-Il percorso `0.1 → 1.0` ha consolidato le capacità che il framework ora garantisce:
-
-- **Memoria persistente** — STATE/TREE/INDEX, sessioni, decisioni, piani, backlog IMP,
-  con health-check di coerenza (`/lint-memory`, 11 controlli, inclusi marcatori
-  grep-visibili e inventari-vs-realtà).
-- **Task-planning resiliente** — i prompt onerosi in task atomici, un commit per task,
-  ripresa chirurgica dopo un'interruzione senza rifare il lavoro già committato.
-- **Security gate** — review obbligatoria sui componenti sensibili, adversariale per
-  raggio di propagazione; baseline gitleaks (hook pre-commit + scan one-off della storia).
-- **Git workflow con versioning** — Conventional Commits, SemVer su tag annotati, due
-  regimi pre/post-1.0, confine di esecuzione locale/condivisa, blocco `/integrate`.
-- **Ciclo di fine deliverable** — [se sensibile] `/security-review` → `/retro` →
-  `/checkpoint` → `/integrate`, con auto-miglioramento controllato: le regole si
-  PROPONGONO (IMP), l'umano dispone.
-- **Innesto greenfield e brownfield** — parte da zero o si innesta su un progetto
-  esistente, riconciliando i file in collisione e l'igiene della storia git ereditata.
-- **Upgrade-in-place** — aggiorna il framework innestato (`vX → vY`) preservando la
-  memoria, col provenance pin `.claude/framework-version` come baseline certa.
-- **Ponte progetto → framework** — le lezioni di metodo risalgono al template sotto
-  curatela umana (`/harvest-framework`).
-
 ### Added
-- `.claude/docs/04-git-workflow.md`: definizione agnostica di **«breaking change»** come
-  criterio del MAJOR (contratto pubblico del progetto; esempi per progetti di codice e di
-  metodo/tooling) e regime post-1.0 come regime corrente e pienamente specificato (IMP-039).
+- **Language rule with two axes** (IMP-040), as rule 9 of `CLAUDE.md`. ARTIFACTS —
+  everything that lands in the repo, including future commit messages, IMP entries and
+  session notes — are **always English**: a deliberate, declared opinionated choice
+  rather than an implicit leftover, because English artifacts are the universal
+  practice of open source and keep a project portable. INTERACTION — the language the
+  agent speaks with you in session — stays configurable and is the only configurable
+  axis. It REPLACES the IMP-029 model (now marked superseded) instead of coexisting
+  with it: the "Lingua/e del progetto" slot becomes "Interaction language" in the
+  technical rules, in the `SETUP.md` step-2 checklist and in the brownfield section.
 
 ### Changed
-- `CONTRIBUTING.md`: il modello git del repo passa al **regime post-1.0** — i tag restano
-  su `main` (trunk-based), con la promessa di stabilità e la definizione di breaking change
-  per il framework (IMP-039).
+- **The whole framework is translated to English** (IMP-041): `CLAUDE.md`, the seven
+  process docs, the eight slash commands, the memory templates and their READMEs, the
+  live memory (`LEARNINGS.md` and the ten historical session notes), `README.md`,
+  `SETUP.md`, `CONTRIBUTING.md`, `SECURITY.md`, this CHANGELOG, and the comments and
+  user-facing messages of the scripts and config. Not translated, by design: past
+  commits (immutable history), file names, wikilink targets and session slugs,
+  identifiers in scripts, and conventional-commit types.
+- **Behavior-bearing strings switched WITH backward compatibility, so this is not a
+  breaking change.** `[DA DEFINIRE AL SETUP]` → `[TO BE DEFINED AT SETUP]`,
+  `Destinazione: framework` → `Destination: framework`, the `hooks-install.sh` marker,
+  the `PRONTO PER INTEGRAZIONE` / `RACCOLTA PER IL FRAMEWORK` blocks and the escalation
+  delimiters. Every READER accepts the legacy Italian form as well — the `/lint-memory`
+  sentinel and setup grep, the `/harvest-framework` grep, and `hooks-install.sh` via a
+  `LEGACY_MARKER` — so a project grafted or upgraded with an earlier release keeps
+  working untouched. Upgrading is optional and needs no migration.
+
+## [1.0.0] — 2026-07-19
+
+First **stable** release. From this version on the framework promises stability of
+its own method contract: a breaking change costs a MAJOR. What a breaking change is
+for a method framework — removing or renaming a command, an incompatible memory or
+marker format, a structure that breaks existing grafts or upgrades — is defined in
+`.claude/docs/04-git-workflow.md` (*Versioning*) and in `CONTRIBUTING.md`. The
+definition is itself part of the promise.
+
+The `0.1 → 1.0` path consolidated the capabilities the framework now guarantees:
+
+- **Persistent memory** — STATE/TREE/INDEX, sessions, decisions, plans, IMP backlog,
+  with a consistency health-check (`/lint-memory`, 11 checks, including grep-visible
+  markers and inventories-vs-reality).
+- **Resilient task planning** — heavy prompts turned into atomic tasks, one commit per
+  task, surgical resumption after an interruption without redoing committed work.
+- **Security gate** — mandatory review on sensitive components, adversarial by
+  propagation radius; gitleaks baseline (pre-commit hook + one-off scan of the history).
+- **Git workflow with versioning** — Conventional Commits, SemVer on annotated tags, two
+  pre/post-1.0 regimes, local/shared execution boundary, `/integrate` block.
+- **End-of-deliverable cycle** — [if sensitive] `/security-review` → `/retro` →
+  `/checkpoint` → `/integrate`, with controlled self-improvement: rules are
+  PROPOSED (IMP), the human disposes.
+- **Greenfield and brownfield grafting** — start from scratch or graft onto an existing
+  project, reconciling colliding files and the inherited git history hygiene.
+- **Upgrade-in-place** — updates the grafted framework (`vX → vY`) preserving the
+  memory, with the provenance pin `.claude/framework-version` as a certain baseline.
+- **Project → framework bridge** — method lessons rise back to the template under
+  human curation (`/harvest-framework`).
+
+### Added
+- `.claude/docs/04-git-workflow.md`: agnostic definition of **“breaking change”** as the
+  MAJOR criterion (the project's public contract; examples for code projects and for
+  method/tooling projects) and the post-1.0 regime as the current, fully specified
+  regime (IMP-039).
+
+### Changed
+- `CONTRIBUTING.md`: the repo's git model moves to the **post-1.0 regime** — tags stay
+  on `main` (trunk-based), with the stability promise and the definition of breaking
+  change for the framework (IMP-039).
 
 ## [0.6.2] — 2026-07-19
 
 ### Fixed
-- La classe di drift "lista-inventario parziale" (due ricorrenze: legenda TREE
-  sanata da IMP-018, liste D1/D2/D5 di v0.6.1) ora si intercetta da sola:
-  controllo 11 **"Inventari vs realtà"** in `/lint-memory` — confronto
-  insiemistico nei due versi tra le liste ENUMERATE (`CLAUDE.md` "Comandi
-  rapidi"; righe `commands/`/Makefile della "Struttura" del README, dove
-  presenti; tabella di `scripts/README.md`) e il filesystem, mai le menzioni in
-  prosa. Target di processo del Makefile riconosciuti per ancoraggio
-  STRUTTURALE (ricetta che invoca `scripts/`; `help` escluso), così i target di
-  progetto aggiunti al setup non generano falsi positivi nei progetti-cliente;
-  esclusi per dichiarazione CHANGELOG e record IMP, che registrano stati
-  passati (IMP-038).
+- The "partial inventory list" drift class (two recurrences: the TREE legend
+  fixed by IMP-018, the D1/D2/D5 lists of v0.6.1) now catches itself:
+  check 11 **"Inventories vs reality"** in `/lint-memory` — a two-way set
+  comparison between the ENUMERATED lists (`CLAUDE.md` "Quick commands"; the
+  `commands/`/Makefile lines of the README's "Structure", where present; the
+  table in `scripts/README.md`) and the filesystem, never the prose mentions.
+  Makefile process targets recognised by STRUCTURAL anchoring (a recipe that
+  invokes `scripts/`; `help` excluded), so project targets added at setup do
+  not produce false positives in client projects; CHANGELOG and IMP records
+  excluded by declaration, since they record past states (IMP-038).
 
 ## [0.6.1] — 2026-07-18
 
 ### Fixed
-- Liste-inventario ferme a pre-v0.5.1: `CLAUDE.md` ("Comandi rapidi") senza
-  `make test-scripts`, README ("Struttura") senza `scripts/test-hooks-install.sh`
-  e con la riga Makefile a due target, tabella di `scripts/README.md` senza lo
-  script di test. Seconda ricorrenza della classe "lista parziale" (cfr. la legenda
-  TREE di IMP-018): registrata la proposta IMP-038 — controllo inventari-vs-realtà
-  in `/lint-memory`.
-- `SECURITY.md`: la voce "Prevenzione già attiva" completava la baseline col solo
-  hook pre-commit; aggiunta la scansione one-off `gitleaks detect` della storia
-  preesistente (IMP-028b, in vigore dalla v0.3.0).
+- Inventory lists stuck at pre-v0.5.1: `CLAUDE.md` ("Quick commands") without
+  `make test-scripts`, the README ("Structure") without `scripts/test-hooks-install.sh`
+  and with the Makefile line listing two targets, the table in `scripts/README.md`
+  without the test script. Second recurrence of the "partial list" class (cf. the
+  TREE legend of IMP-018): improvement proposal IMP-038 registered — an
+  inventories-vs-reality check in `/lint-memory`.
+- `SECURITY.md`: the "Prevention already active" entry completed the baseline with the
+  pre-commit hook alone; added the one-off `gitleaks detect` scan of the
+  pre-existing history (IMP-028b, in force since v0.3.0).
 
 ### Added
-- README: badge **licenza MIT** (statico, linkato a `LICENSE`) e **versione**
-  (dinamico dai tag GitHub, `sort=semver`). Solo i due veri: niente badge di
-  build/CI/size — rifletterebbero fatti inesistenti.
+- README: **MIT licence** badge (static, linked to `LICENSE`) and **version** badge
+  (dynamic from the GitHub tags, `sort=semver`). Only the two real ones: no
+  build/CI/size badges — they would reflect facts that do not exist.
 
 ### Changed
-- README allineato allo stato v0.6.0: voce **"Innesto e aggiornamento"** in "Cosa
-  include" (greenfield, brownfield, upgrade in place col provenance pin come
-  baseline certa), ponte progetto→framework nella voce Auto-miglioramento
-  (`/harvest-framework`), creazione del pin citata nel passo 1 di "Come si usa".
-- `CONTRIBUTING.md`: cross-link al blocco-piano del regime ibrido — il piano di un
-  deliverable oneroso vive nella nota di sessione, non in `plans/` (debito
-  dichiarato in IMP-034, saldato qui).
+- README aligned with the v0.6.0 state: **"Grafting and upgrading"** entry in "What it
+  includes" (greenfield, brownfield, upgrade in place with the provenance pin as a
+  certain baseline), project→framework bridge in the Self-improvement entry
+  (`/harvest-framework`), pin creation mentioned in step 1 of "How to use it".
+- `CONTRIBUTING.md`: cross-link to the hybrid regime's plan block — the plan of a
+  heavy deliverable lives in the session note, not in `plans/` (debt declared in
+  IMP-034, settled here).
 
 ## [0.6.0] — 2026-07-18
 
 ### Added
-- `SETUP.md`: **provenance pin `.claude/framework-version`** — righe `chiave: valore`
-  (`version`/`commit`/`grafted`), niente parser. Creato al passo 1 di ogni innesto,
-  dichiarato come QUARTA classe **"stato dell'innesto"** nella tassonomia della procedura
-  di upgrade (vive fuori da `.claude/memory/`: l'invariante diff-vuoto resta intatta),
-  letto come preferenza 0 del Passo 0 (baseline certa del 3-way; chiedi/stima/degrada
-  restano come fallback pre-pin) e riscritto in chiusura (Passo 6) con **retrofit** per
-  gli innesti pre-pin (IMP-036, approvata dopo il primo upgrade reale).
+- `SETUP.md`: **provenance pin `.claude/framework-version`** — `key: value` lines
+  (`version`/`commit`/`grafted`), no parser. Created at step 1 of every graft,
+  declared as the FOURTH class **"graft state"** in the taxonomy of the upgrade
+  procedure (it lives outside `.claude/memory/`: the empty-diff invariant stays intact),
+  read as preference 0 of Step 0 (the certain baseline of the 3-way; ask/estimate/degrade
+  remain as pre-pin fallbacks) and rewritten at the close (Step 6) with a **retrofit**
+  for pre-pin grafts (IMP-036, approved after the first real upgrade).
 
 ### Changed
-- Riquadro *"Nessuna automazione, per ora"* della procedura di upgrade: resta rimandato
-  il solo comando `/upgrade-framework` (IMP-037, contatore upgrade reali 1 di 2-3); il
-  pin è promosso — la baseline accertata a mano si è dimostrata il punto più fragile
-  della procedura sul campo.
+- The *"No automation, for now"* box of the upgrade procedure: only the
+  `/upgrade-framework` command remains deferred (IMP-037, real-upgrade counter 1 of 2-3);
+  the pin is promoted — the manually ascertained baseline proved to be the most fragile
+  point of the procedure in the field.
 
 ## [0.5.1] — 2026-07-17
 
 ### Fixed
-- `SETUP.md` + `/lint-memory`: uno *slot* `[DA DEFINIRE AL SETUP]` spezzato dal word-wrap
-  sfuggiva al `grep` single-line di setup e del Passo 4 dell'upgrade, restando non compilato
-  in silenzio. Convenzione "uno slot sta su una riga fisica" + sentinella (controllo 10 di
-  `/lint-memory`) che dichiara i falsi positivi in prosa (IMP-031).
-- `hooks-install.sh`: nel ramo `FORCE_OVERWRITE=1` un hook che è un symlink *dangling* faceva
-  fallire `cp -L` sotto `set -euo pipefail` — lo script abortiva prima del backup e della
-  rimozione, contro il commento di testata. Guardia `[[ -e ]]`, `rm` comune ai due rami; test
-  RED→GREEN `scripts/test-hooks-install.sh` + target `make test-scripts` (IMP-032).
+- `SETUP.md` + `/lint-memory`: a `[TO BE DEFINED AT SETUP]` *slot* broken by word-wrap
+  escaped the single-line `grep` of setup and of Step 4 of the upgrade, silently staying
+  unfilled. Convention "one slot stays on one physical line" + a sentinel (check 10 of
+  `/lint-memory`) that declares the false positives in prose (IMP-031).
+- `hooks-install.sh`: in the `FORCE_OVERWRITE=1` branch a hook that is a *dangling*
+  symlink made `cp -L` fail under `set -euo pipefail` — the script aborted before the
+  backup and the removal, against its header comment. `[[ -e ]]` guard, `rm` shared by
+  the two branches; RED→GREEN test `scripts/test-hooks-install.sh` + `make test-scripts`
+  target (IMP-032).
 
 ### Changed
-- docs/01 + `sessions/README.md`: ratificato che nel repo-framework (regime ibrido) un
-  deliverable oneroso NON usa `plans/`/`decisions/` — il piano vive come voce IMP + nota di
-  sessione (**blocco-piano** standardizzato) + commit `[task N/T]`; patch allo step di RIPRESA
-  che guardava solo `plans/` (IMP-034 A+C).
-- `LEARNINGS.md`: nota terminologica accanto a IMP-026 per disambiguare
-  "comando"/"skill"/tool `Skill` dell'harness (IMP-035).
+- docs/01 + `sessions/README.md`: ratified that in the framework repo (hybrid regime) a
+  heavy deliverable does NOT use `plans/`/`decisions/` — the plan lives as an IMP entry +
+  a session note (standardised **plan block**) + `[task N/T]` commits; patch to the
+  RESUMPTION step that only looked at `plans/` (IMP-034 A+C).
+- `LEARNINGS.md`: terminological note next to IMP-026 to disambiguate
+  "command"/"skill"/the harness's `Skill` tool (IMP-035).
 
 ## [0.5.0] — 2026-07-17
 
 ### Added
-- `SETUP.md`: sezione **"Aggiornare il framework su un progetto già innestato
-  (`vX` → `vY`)"** — il terzo caso accanto a greenfield e brownfield. Modello a tre
-  classi (metodo / memoria-di-progetto / ibridi), invariante `diff`-vuoto-su-`memory/`,
-  merge a 3 vie `base=vX` per gli ibridi (il fill dei `[DA DEFINIRE]` è distruttivo),
-  what-changed derivato framework-side (CHANGELOG come indice + `git diff` scoped),
-  **7 casi limite** (orfani, rename, rimandi memoria rotti, hook fuori dal grafo git,
-  regime `0.x→1.0`, salto multi-versione, pre-flight puro/ibrido), confine di esecuzione
-  (agente prepara, umano integra, bump "nessun tag"). Stub di rimando dal CASO A
-  brownfield; cross-link dal README.
-- Automazione dell'upgrade **rimandata** come proposte aperte con trigger "dopo il primo
-  upgrade reale": `provenance-pin` all'innesto (IMP-036) e comando `/upgrade-framework`
-  read-and-print, gemello inverso di `/harvest-framework` (IMP-037) — filtro anti-hype,
-  stesso criterio di `graft.sh`.
+- `SETUP.md`: **"Upgrading the framework on an already-grafted project
+  (`vX` → `vY`)"** section — the third case alongside greenfield and brownfield.
+  Three-class model (method / project-memory / hybrids), empty-`diff`-on-`memory/`
+  invariant, 3-way merge `base=vX` for the hybrids (filling the `[TO BE DEFINED]` slots
+  is destructive), what-changed derived framework-side (CHANGELOG as index + scoped
+  `git diff`), **7 edge cases** (orphans, renames, broken memory pointers, hooks outside
+  the git graph, `0.x→1.0` regime, multi-version jump, pure/hybrid pre-flight), execution
+  boundary (the agent prepares, the human integrates, "no tag" bump). Pointer stub from
+  brownfield CASE A; cross-link from the README.
+- Upgrade automation **deferred** as open proposals with the trigger "after the first
+  real upgrade": `provenance-pin` at graft time (IMP-036) and the read-and-print
+  `/upgrade-framework` command, the inverse twin of `/harvest-framework` (IMP-037) —
+  anti-hype filter, same criterion as `graft.sh`.
 
 ## [0.4.0] — 2026-07-17
 
-Comando `/harvest-framework` e ponte progetto→framework: le lezioni che riguardano
-il metodo, emerse lavorando su un progetto-cliente, ora si marcano e risalgono al
-template con una procedura ripetibile e sotto controllo umano (IMP-033).
+The `/harvest-framework` command and the project→framework bridge: the lessons that
+concern the method, emerged while working on a client project, are now marked and rise
+back to the template through a repeatable procedure under human control (IMP-033).
 
 ### Added
-- **`/harvest-framework`** (`.claude/commands/`): raccoglie dal backlog le IMP marcate
-  `Destinazione: framework` e stampa un blocco copiabile, anonimizzato, pronto da
-  riproporre come IMP nel repo del framework. Solo legge e stampa — nessun
-  clone/copia/push/cross-repo (confine IMP-009, agnosticità); anti-vacuità sul caso
-  vuoto; default sull'intero backlog, restringibile con `$ARGUMENTS` (IMP-033).
-- Attributo **`Destinazione: framework`** nel formato IMP di `LEARNINGS.md` (riga
-  fisica singola, grep-abile): marca, in un progetto-cliente, le lezioni da far
-  risalire al framework; è un attributo di destinazione, non un livello (IMP-033).
-- docs/06: sezione **"Il ponte verso il framework"** — come una lezione framework-bound
-  si marca, come risale (curatela umana, con anonimizzazione) e perché il confine è
-  solo-leggi-e-stampa; cross-link da README (*Filosofia*), `SETUP.md` §5 e
+- **`/harvest-framework`** (`.claude/commands/`): rakes up from the backlog the IMPs
+  marked `Destination: framework` and prints a copyable, anonymised block, ready to be
+  re-proposed as an IMP in the framework repo. It only reads and prints — no
+  clone/copy/push/cross-repo (the IMP-009 boundary, agnosticity); anti-vacuity on the
+  empty case; defaults to the whole backlog, narrowable with `$ARGUMENTS` (IMP-033).
+- **`Destination: framework`** attribute in the IMP format of `LEARNINGS.md` (single
+  physical line, greppable): it marks, in a client project, the lessons to be raised
+  back to the framework; it is a destination attribute, not a level (IMP-033).
+- docs/06: **"The bridge to the framework"** section — how a framework-bound lesson
+  is marked, how it rises back (human curation, with anonymisation) and why the boundary
+  is read-and-print only; cross-links from the README (*Philosophy*), `SETUP.md` §5 and
   `CONTRIBUTING.md` (IMP-033).
 
 ### Changed
-- `CLAUDE.md` ("Comandi rapidi") e `README.md` ("Struttura"): `/harvest-framework`
-  aggiunto agli elenchi dei comandi (IMP-033).
+- `CLAUDE.md` ("Quick commands") and `README.md` ("Structure"): `/harvest-framework`
+  added to the command lists (IMP-033).
 
 ## [0.3.0] — 2026-07-17
 
-Lezioni del primo innesto su un progetto esistente, verificate sui file e
-applicate come IMP-027..030 (l'opzione `graft.sh` è rimandata con trigger).
+Lessons from the first graft onto an existing project, verified against the files and
+applied as IMP-027..030 (the `graft.sh` option is deferred with a trigger).
 
 ### Added
-- `SETUP.md`: sezione **"Innesto su un progetto ESISTENTE (brownfield)"** —
-  criterio CASO A/B per `.claude/` preesistente, riconciliazione dei file in
-  collisione (l'ospite ha la precedenza), primo comando come assessment
-  read-only che popola la memoria dall'esistente, divergenze doc-vs-realtà
-  registrate come debito, checklist *Igiene git ereditata* (audit dei tag,
-  costanti di versione hard-coded, topologia dei branch decisa-e-dichiarata)
+- `SETUP.md`: **"Grafting onto an EXISTING project (brownfield)"** section —
+  CASE A/B criterion for a pre-existing `.claude/`, reconciliation of the colliding
+  files (the host takes precedence), first command as a read-only assessment
+  that populates the memory from what exists, doc-vs-reality divergences
+  recorded as debt, *Inherited git hygiene* checklist (tag audit, hard-coded
+  version constants, branch topology decided-and-declared)
   (IMP-027, IMP-028a/c).
-- docs/03 + `SETUP.md` passo 3: su un repo con storia preesistente la baseline
-  gitleaks si completa con una scansione one-off dell'intera storia,
+- docs/03 + `SETUP.md` step 3: on a repo with pre-existing history the gitleaks
+  baseline is completed with a one-off scan of the whole history,
   `gitleaks detect` (IMP-028b).
-- `/integrate`: guardia sulla base del versioning — `git describe --tags`
-  accetta anche tag leggeri e nomi non-SemVer; su base non `vX.Y.Z` ci si ferma
-  (IMP-028a).
-- Voce "Lingua/e del progetto" nelle regole tecniche di `CLAUDE.md` e nella
-  checklist di setup (IMP-029); compilazione dei `[DA DEFINIRE AL SETUP]` anche
-  **in dialogo con Claude Code**, dichiarata come modalità equivalente (IMP-030).
-- docs/06: perimetro del LIVELLO 1 — durante l'innesto la doc dell'ospite non si
-  corregge d'ufficio (debito in `STATE.md`); a innesto completato rientra nel
-  LIVELLO 1 (IMP-027).
+- `/integrate`: guard on the versioning base — `git describe --tags`
+  also accepts lightweight tags and non-SemVer names; on a base that is not `vX.Y.Z`
+  it stops (IMP-028a).
+- "Project language(s)" entry in the technical rules of `CLAUDE.md` and in the
+  setup checklist (IMP-029); filling the `[TO BE DEFINED AT SETUP]` slots also
+  **in dialogue with Claude Code**, declared an equivalent mode (IMP-030).
+- docs/06: perimeter of LEVEL 1 — during the graft the host's documentation is not
+  corrected as a matter of course (debt in `STATE.md`); once the graft is complete it
+  falls back under LEVEL 1 (IMP-027).
 
 ### Fixed
-- `hooks-install.sh` non sovrascrive più alla cieca: si ferma davanti a hook di
-  altra origine (symlink degli hook manager inclusi) e a `core.hooksPath` attivo
-  (hook installati-ma-inerti); `FORCE_OVERWRITE=1` fa backup `.bak` senza
-  scrivere attraverso i symlink; le personalizzazioni dei propri hook vengono
-  salvate in `.bak` al rilancio invece di essere distrutte (IMP-028d + review
-  adversariale).
-- docs/04 *Versioning*: razionale dei tag annotati corretto in forma descrittiva
-  (`git describe` senza `--tags` usa i soli annotati; `/integrate` usa `--tags`
-  e per questo verifica la base); marcatori `[DA DEFINIRE AL SETUP]` di
-  `integrate.md` e di docs/04 ricompattati su una riga — erano invisibili al grep
-  dichiarato dal setup.
+- `hooks-install.sh` no longer overwrites blindly: it stops in front of hooks of
+  another origin (hook managers' symlinks included) and of an active `core.hooksPath`
+  (hooks installed-but-inert); `FORCE_OVERWRITE=1` makes a `.bak` backup without
+  writing through the symlinks; customisations of one's own hooks are saved
+  to `.bak` on re-run instead of being destroyed (IMP-028d + adversarial review).
+- docs/04 *Versioning*: the rationale for annotated tags corrected into descriptive form
+  (`git describe` without `--tags` uses annotated tags only; `/integrate` uses `--tags`
+  and for that reason verifies the base); the `[TO BE DEFINED AT SETUP]` markers of
+  `integrate.md` and of docs/04 re-compacted onto one line — they were invisible to the
+  grep declared by the setup.
 
 ### Changed
-- Template `STATE.md`: "Debito documentazione" allargato alla doc
-  esistente-ma-errata (IMP-027).
+- `STATE.md` template: "Documentation debt" widened to cover existing-but-wrong
+  documentation (IMP-027).
 
 ## [0.2.0] — 2026-07-11
 
-Consolidamento: convenzioni di processo mancanti, sanatoria dei drift, file di
-progetto del repo (IMP-009..025; IMP-023 e IMP-026 rimandate con trigger).
+Consolidation: missing process conventions, remediation of the drifts, the repo's
+project files (IMP-009..025; IMP-023 and IMP-026 deferred with a trigger).
 
 ### Added
-- `LICENSE` MIT del framework; licenza del progetto-cliente esplicitamente
-  `[DA DEFINIRE AL SETUP]` (IMP-021).
-- `SECURITY.md` (canale reale: GitHub Security Advisories + scaffold riusabile),
-  `CONTRIBUTING.md` (workflow reale del repo), `CHANGELOG.md` con aggiornamento
-  cablato in `/integrate` (IMP-022).
-- docs/04: sezione *Confine di esecuzione e blocchi per l'utente* (IMP-009);
-  igiene dei tag e verifiche pre-push, anche nel blocco di `/integrate` (IMP-010);
-  regola "storia condivisa = per sempre" (niente nomi di progetti specifici)
+- The framework's MIT `LICENSE`; the client project's licence explicitly
+  `[TO BE DEFINED AT SETUP]` (IMP-021).
+- `SECURITY.md` (real channel: GitHub Security Advisories + reusable scaffold),
+  `CONTRIBUTING.md` (the repo's real workflow), `CHANGELOG.md` with its update
+  wired into `/integrate` (IMP-022).
+- docs/04: *Execution boundary and blocks for the user* section (IMP-009);
+  tag hygiene and pre-push checks, also in the `/integrate` block (IMP-010);
+  the "shared history = forever" rule (no specific project names)
   (IMP-025).
-- docs/00: fasi a monte del deliverable strutturale (IMP-011), igiene di scope e
-  di sessione (IMP-012), principio memoria-su-disco (IMP-013), effort
-  proporzionale alle conseguenze (IMP-017), trigger di `/lint-memory` (IMP-018).
-- docs/02: verifica su artefatti reali e *Test che dimostrano* (IMP-015);
-  docs/03: review adversariale per raggio di propagazione e completezza dei
-  finding (IMP-016).
-- Debiti con trigger esplicito nel template `STATE.md`, verifica di sopravvivenza
-  in `/checkpoint`, controllo coerenza LEARNINGS↔STATE in `/lint-memory` (IMP-014).
+- docs/00: the phases upstream of a structural deliverable (IMP-011), scope and
+  session hygiene (IMP-012), the memory-on-disk principle (IMP-013), effort
+  proportional to the consequences (IMP-017), `/lint-memory` triggers (IMP-018).
+- docs/02: verification against real artefacts and *Tests that demonstrate* (IMP-015);
+  docs/03: adversarial review by propagation radius and completeness of the
+  findings (IMP-016).
+- Debts with an explicit trigger in the `STATE.md` template, survival check
+  in `/checkpoint`, LEARNINGS↔STATE consistency check in `/lint-memory` (IMP-014).
 
 ### Changed
-- Merge parametrico in docs/04: sempre azione umana, via PR (team) o via blocco
-  `/integrate` (sviluppatore singolo) — risolta la contraddizione interna (IMP-019).
-- Regime di memoria del repo dichiarato "ibrido": vivi solo `LEARNINGS.md` e
-  `sessions/`; svuotamento alla copia istruito in `SETUP.md` (IMP-024); modello
-  trunk-based su `main` dichiarato in `CONTRIBUTING.md` (IMP-025).
+- Parametric merge in docs/04: always a human action, via PR (team) or via the
+  `/integrate` block (single developer) — the internal contradiction resolved (IMP-019).
+- The repo's memory regime declared "hybrid": only `LEARNINGS.md` and
+  `sessions/` are live; emptying on copy instructed in `SETUP.md` (IMP-024); the
+  trunk-based model on `main` declared in `CONTRIBUTING.md` (IMP-025).
 
 ### Removed
-- Hook PreToolUse gitleaks da `settings.json`: non poteva mai bloccare (falsa
-  sicurezza dimostrata); la difesa reale resta l'hook pre-commit (IMP-020).
+- The gitleaks PreToolUse hook from `settings.json`: it could never block (false
+  security demonstrated); the real defence remains the pre-commit hook (IMP-020).
 
 ## [0.1.0] — 2026-06-16
 
-Prima versione taggata del template metodologico, estratto da un progetto reale.
+First tagged version of the methodological template, extracted from a real project.
 
 ### Added
-- Sistema di memoria persistente: `STATE`, `TREE`, `INDEX`, `sessions/`,
-  `components/`, `decisions/`, `plans/`, backlog dei miglioramenti (`LEARNINGS`).
-- Doc di processo `00`–`06`: metodo e ciclo di fine deliverable (IMP-006/007),
-  task planning resiliente con protocollo di refactor cross-modulo (IMP-003),
-  code quality, security gate, git workflow con versioning SemVer (IMP-001) e
-  branch di integrazione parametrico (IMP-008), escalation, auto-miglioramento.
-- Slash command: `/checkpoint`, `/integrate` (IMP-002), `/sos`, `/retro`,
+- Persistent memory system: `STATE`, `TREE`, `INDEX`, `sessions/`,
+  `components/`, `decisions/`, `plans/`, improvement backlog (`LEARNINGS`).
+- Process documentation `00`–`06`: the method and the end-of-deliverable cycle
+  (IMP-006/007), resilient task planning with a cross-module refactor protocol
+  (IMP-003), code quality, security gate, git workflow with SemVer versioning
+  (IMP-001) and a parametric integration branch (IMP-008), escalation,
+  self-improvement.
+- Slash commands: `/checkpoint`, `/integrate` (IMP-002), `/sos`, `/retro`,
   `/security-review`, `/new-component`, `/lint-memory` (IMP-005).
-- Hook git (`make hooks-install`): gitleaks (pre-commit) + commitlint
-  (commit-msg); baseline dei permessi in `.claude/settings.json` (IMP-004).
-- Script di processo: `hooks-install.sh`, `reset-task.sh`.
+- Git hooks (`make hooks-install`): gitleaks (pre-commit) + commitlint
+  (commit-msg); permission baseline in `.claude/settings.json` (IMP-004).
+- Process scripts: `hooks-install.sh`, `reset-task.sh`.

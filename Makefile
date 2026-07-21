@@ -1,32 +1,32 @@
-# Comandi di processo del framework — agnostici allo stack.
-# `make` o `make help` per la lista.
-# I target di build/test/run del progetto NON stanno qui: aggiungili nella
-# sezione "[DA DEFINIRE AL SETUP]" in fondo.
+# Framework process commands — stack-agnostic.
+# `make` or `make help` for the list.
+# The project's build/test/run targets do NOT belong here: add them in the
+# "[TO BE DEFINED AT SETUP]" section at the bottom.
 
 .DEFAULT_GOAL := help
 
-help: ## Mostra questo help
+help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
 
-hooks-install: ## Installa gli hook git (gitleaks + commitlint; formattazione da abilitare)
+hooks-install: ## Install the git hooks (gitleaks + commitlint; formatting to be enabled)
 	bash scripts/hooks-install.sh
 
-reset-task: ## Scarta il mezzo-task interrotto, preservando branch e commit (task planning)
+reset-task: ## Discard the interrupted half-done task, preserving branch and commits (task planning)
 	bash scripts/reset-task.sh
 
-test-scripts: ## Self-test degli script del framework (hooks-install, ...)
+test-scripts: ## Self-test of the framework scripts (hooks-install, ...)
 	bash scripts/test-hooks-install.sh
 
 # ============================================================================
-# [DA DEFINIRE AL SETUP] — target di build/test/run del progetto.
-# Esempi (da adattare allo stack):
+# [TO BE DEFINED AT SETUP] — the project's build/test/run targets.
+# Examples (adapt them to your stack):
 #
-# build: ## Builda il progetto
-# 	<comando di build>
+# build: ## Build the project
+# 	<build command>
 #
-# test: ## Esegue i test
-# 	<comando di test>
+# test: ## Run the tests
+# 	<test command>
 #
-# run: ## Avvia in locale
-# 	<comando di avvio>
+# run: ## Start locally
+# 	<start command>
 # ============================================================================

@@ -1,37 +1,37 @@
 ---
-description: Checkpoint completo - memoria + documentazione + commit Git
+description: Full checkpoint - memory + documentation + Git commit
 ---
-Esegui la procedura di checkpoint per il lavoro corrente: $ARGUMENTS
+Run the checkpoint procedure for the current work: $ARGUMENTS
 
-1. Leggi @.claude/docs/04-git-workflow.md per le regole di commit.
-2. `git status` e `git diff --stat`: elenca cosa è cambiato e verifica che non ci
-   siano file inattesi o sospetti (secret, file di ambiente, artefatti di build).
-3. Aggiorna la memoria (.claude/memory/):
-   - crea/aggiorna la nota di sessione di oggi con cosa è stato fatto e perché;
-   - aggiorna le note components/ dei componenti toccati;
-   - riscrivi STATE.md con lo stato corrente; DOPO la riscrittura verifica che le
-     voci preesistenti di "Attenzione / problemi aperti" siano ancora presenti o
-     consapevolmente chiuse (un debito critico non deve morire in una riscrittura)
-     e che ogni voce abbia il suo TRIGGER esplicito, mai generica;
-   - riconcilia lo stato dei branch in STATE con la realtà git (i merge nel branch
-     di integrazione avvengono FUORI sessione, quindi STATE può essere stale):
-     `git branch --merged <branch-integrazione>` e `git log --oneline -5
-     <branch-integrazione>`; aggiorna "Branch attivi" e l'avanzamento di conseguenza;
-   - se la struttura del filesystem è cambiata (file/directory creati, spostati o
-     rimossi): RIGENERA TREE.md con
-     `tree -L 3 --dirsfirst -I '<pattern-da-ignorare-per-lo-stack>'`
-     (fallback se manca `tree`: `git ls-files`) e riallinea la legenda;
-   - aggiorna INDEX.md se ci sono nuove note da collegare.
-4. Documentazione di progetto (regola "doc aggiornata" di CLAUDE.md):
-   - se la doc di progetto ESISTE: verifica se le modifiche toccano funzionalità
-     utente, procedure operative, API o deploy, e aggiorna le pagine pertinenti —
-     sintetico ma reale, niente placeholder;
-   - se la doc di progetto NON esiste ancora: aggiungi/aggiorna la sezione "Debito
-     documentazione" in STATE.md con cosa andrà documentato.
-5. `git add` ESPLICITO dei file rilevanti (mai `git add .`), incluse memoria e doc.
-6. Commit con Conventional Commit: tipo e scope corretti, body con il PERCHÉ.
-7. Mostra il commit creato. NON pushare: il push lo decide l'utente. A fine
-   deliverable, per i comandi di merge + tag pronti da incollare usa `/integrate`.
+1. Read @.claude/docs/04-git-workflow.md for the commit rules.
+2. `git status` and `git diff --stat`: list what has changed and check that there
+   are no unexpected or suspicious files (secrets, environment files, build artefacts).
+3. Update the memory (.claude/memory/):
+   - create/update today's session note with what was done and why;
+   - update the components/ notes of the components touched;
+   - rewrite STATE.md with the current state; AFTER the rewrite check that the
+     pre-existing entries of "Caution & open issues" are still present or
+     knowingly closed (a critical debt must not die in a rewrite)
+     and that every entry has its explicit TRIGGER, never a generic one;
+   - reconcile the branch state in STATE with the git reality (merges into the
+     integration branch happen OUTSIDE the session, so STATE can be stale):
+     `git branch --merged <integration>` and `git log --oneline -5
+     <integration>`; update "Active branches" and the progress accordingly;
+   - if the filesystem structure has changed (files/directories created, moved or
+     removed): REGENERATE TREE.md with
+     `tree -L 3 --dirsfirst -I '<pattern-to-ignore-for-the-stack>'`
+     (fallback if `tree` is missing: `git ls-files`) and realign the legend;
+   - update INDEX.md if there are new notes to link.
+4. Project documentation ("documentation updated" rule of CLAUDE.md):
+   - if the project doc EXISTS: check whether the changes touch user-facing
+     features, operating procedures, APIs or deploy, and update the relevant pages —
+     concise but real, no placeholders;
+   - if the project doc does NOT exist yet: add/update the "Documentation debt"
+     section in STATE.md with what will have to be documented.
+5. EXPLICIT `git add` of the relevant files (never `git add .`), memory and doc included.
+6. Commit with a Conventional Commit: correct type and scope, body with the WHY.
+7. Show the commit created. Do NOT push: the push is the user's decision. At the end
+   of a deliverable, for the merge + tag commands ready to paste use `/integrate`.
 
-Se il codice non compila o i test falliscono: commit con prefisso `wip:` SOLO se
-siamo su feature branch, altrimenti FERMATI e segnala.
+If the code does not compile or the tests fail: commit with the `wip:` prefix ONLY if
+we are on a feature branch, otherwise STOP and report.

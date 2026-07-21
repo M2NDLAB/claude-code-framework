@@ -1,92 +1,92 @@
 ---
 date: 2026-07-17
-task: deliverable D2 — procedura di upgrade-in-place di un framework già innestato (terzo caso, accanto a greenfield/brownfield)
+task: deliverable D2 — in-place upgrade procedure for an already-grafted framework (third case, alongside greenfield/brownfield)
 branch: feat/upgrade-in-place-procedure
 status: completed
 tags: [session, upgrade, setup, brownfield]
 ---
-# Session 2026-07-17 — Procedura di upgrade-in-place (`vX→vY`)
+# Session 2026-07-17 — In-place upgrade procedure (`vX→vY`)
 
-## Contesto
-Nuovo deliverable scollegato dai precedenti (repo a `v0.4.0`). Problema reale non coperto:
-`SETUP.md` guida greenfield e brownfield (innesto su progetto SENZA framework, IMP-027), ma
-manca il **terzo caso**: un progetto che ha GIÀ una versione del framework innestata e va
-aggiornato a una nuova, PRESERVANDO la memoria di progetto accumulata (caso atteso:
-brew-manager `v0.2.0` → `v0.4.0`, che è D3, altro repo, dopo — NON qui).
+## Context
+New deliverable unconnected to the previous ones (repo at `v0.4.0`). Real problem not covered:
+`SETUP.md` guides greenfield and brownfield (graft onto a project WITHOUT the framework, IMP-027), but
+the **third case** is missing: a project that has ALREADY got a version of the framework grafted and must be
+upgraded to a new one, PRESERVING the accumulated project memory (expected case:
+brew-manager `v0.2.0` → `v0.4.0`, which is D3, another repo, later — NOT here).
 
-Deliverable con SCELTE STRUTTURALI → pattern docs/01 FASE 2: assessment read-only → proposta
-con alternative → **decisione utente** → esecuzione. Questa nota è il **plan pointer**
-(risoluzione interim di **IMP-034**, aggancio dichiarato non risolto: sul repo-framework in
-regime ibrido il piano NON vive in `plans/` ma come nota di sessione + commit `[task N/T]`).
+Deliverable with STRUCTURAL CHOICES → docs/01 PHASE 2 pattern: read-only assessment → proposal
+with alternatives → **user decision** → execution. This note is the **plan pointer**
+(interim resolution of **IMP-034**, declared hook not resolved: on the framework repo in
+hybrid regime the plan does NOT live in `plans/` but as a session note + `[task N/T]` commits).
 
-## Assessment (sola lettura, workflow multi-agente)
-6 lettori paralleli (tassonomia dei 41 file, anatomia ibridi, marcatori, what-changed,
-sicurezza, precedenti) + panel adversariale di 3 approcci + critico di completezza.
+## Assessment (read-only, multi-agent workflow)
+6 parallel readers (taxonomy of the 41 files, anatomy of the hybrids, markers, what-changed,
+security, precedents) + adversarial panel of 3 approaches + completeness critic.
 
-**Insight strutturale chiave:** il fill dei `[DA DEFINIRE AL SETUP]` è **distruttivo** — a
-setup fatto il file è un impasto indistinguibile prosa-framework + risposte-progetto, senza
-confine grep-abile. Per gli ibridi a ownership interleaved (`CLAUDE.md`, `settings.json`,
-`hooks-install.sh`) l'unico meccanismo robusto è il **3-way merge** con `base = template@vX`.
-Ma il progetto **non registra da quale `vX` è partito** (nessun provenance pin; i tag vivono
-solo nel repo-framework) → il 3-way non ha base certa. È il cuore del deliverable.
+**Key structural insight:** filling in the `[TO BE DEFINED AT SETUP]` slots is **destructive** — once
+setup is done the file is an indistinguishable mash of framework-prose + project-answers, with no
+grep-able boundary. For the hybrids with interleaved ownership (`CLAUDE.md`, `settings.json`,
+`hooks-install.sh`) the only robust mechanism is the **3-way merge** with `base = template@vX`.
+But the project **does not record which `vX` it started from** (no provenance pin; the tags live
+only in the framework repo) → the 3-way has no certain base. This is the heart of the deliverable.
 
-## Decisioni utente (3 forks)
-1. **Machinery = Approccio A (doc-only)**: ZERO artefatti nuovi ora; `provenance-pin` e
-   `/upgrade-framework` rimandati come IMP APERTE (trigger: 1° upgrade reale), gemelle di
-   IMP-027 `graft.sh`. Motivo: 1 innesto, 0 upgrade → automazione prematura; precedente
-   vincolante IMP-027 ("documenta prima, prova sul campo, automatizza dopo 2-3 casi").
-2. **Collocazione = Mix**: stub di rimando nel CASO A brownfield + **sezione dedicata**
-   `## Aggiornare il framework (vX→vY)` in `SETUP.md`.
-3. **Edge case = tutti e 7 obbligatori** nella prosa della procedura.
+## User decisions (3 forks)
+1. **Machinery = Approach A (doc-only)**: ZERO new artefacts for now; `provenance-pin` and
+   `/upgrade-framework` deferred as OPEN IMPs (trigger: 1st real upgrade), twins of
+   IMP-027 `graft.sh`. Reason: 1 graft, 0 upgrades → premature automation; binding
+   precedent IMP-027 ("document first, prove in the field, automate after 2-3 cases").
+2. **Placement = Mix**: pointer stub in brownfield CASE A + **dedicated section**
+   `## Upgrading the framework (vX→vY)` in `SETUP.md`.
+3. **Edge cases = all 7 mandatory** in the prose of the procedure.
 
-## Modello dell'upgrade (tassonomia)
-- **METODO** (→ `vY`): `docs/00-06`, commands puri, i 4 README di `memory/*/`, `reset-task.sh`,
+## Upgrade model (taxonomy)
+- **METHOD** (→ `vY`): `docs/00-06`, pure commands, the 4 READMEs of `memory/*/`, `reset-task.sh`,
   `scripts/README.md`, `commitlint.config.cjs`.
-- **MEMORIA-DI-PROGETTO** (intatta, invariante `diff` vuoto su `memory/`): `STATE`/`TREE`/`INDEX`
-  pieni, `sessions/*`, e nel cliente `components/decisions/plans/*`.
-- **IBRIDI** (3-way `base=vX`): `CLAUDE.md` (ALTA), `settings.json` (media), `hooks-install.sh`
-  (ALTA, richiede `make hooks-install` post-merge), `LEARNINGS.md` (do-not-touch sulle voci),
-  `.gitignore`/`Makefile` (INTEGRA), `checkpoint`/`integrate`/`new-component.md` (leggeri).
-- **What-changed**: framework-side (unico coi tag) = CHANGELOG per-versione (indice) +
-  `git diff vX vY -- <metodo, escluso .claude/memory>` (testo esatto). Mai `git apply` cieco.
+- **PROJECT-MEMORY** (untouched, invariant: empty `diff` on `memory/`): filled-in `STATE`/`TREE`/`INDEX`,
+  `sessions/*`, and in the client `components/decisions/plans/*`.
+- **HYBRID** (3-way `base=vX`): `CLAUDE.md` (HIGH), `settings.json` (medium), `hooks-install.sh`
+  (HIGH, requires `make hooks-install` post-merge), `LEARNINGS.md` (do-not-touch on the entries),
+  `.gitignore`/`Makefile` (MERGE IN), `checkpoint`/`integrate`/`new-component.md` (light).
+- **What-changed**: framework-side (the only one with the tags) = per-version CHANGELOG (index) +
+  `git diff vX vY -- <method, excluding .claude/memory>` (exact text). Never a blind `git apply`.
 
-## 7 edge case che la procedura DEVE coprire
-1. File **cancellato** in `vY` resta orfano (overwrite ≠ sync) → applica anche le delete + check anti-orfano.
-2. File **rinominato/rinumerato** genera duplicato → gestione rename (`git diff -M`).
-3. **Tensione `diff-vuoto-su-memory` ↔ wikilink rotti** da rename doc → via d'uscita: eccezione esplicita + commit separato dichiarato.
-4. Hook `.git/hooks/*` **fuori dal grafo git**: `make hooks-install` ha effetti che il rollback branch-based non annulla → passo di verifica/disinstallazione.
-5. Regime **`0.x→1.0`** di `docs/04`: aggiornare un doc di processo cambia semantiche vive → avviso "cambio-regole".
-6. **Salto multi-versione** `v0.1→v0.4`: il diff agli estremi collassa migrazioni non-commutative → ordinare per versione.
-7. **Pre-flight** puro/ibrido: `docs/02/03/04` sono METODO SALVO fill inline → ispeziona prima di sovrascrivere.
+## 7 edge cases the procedure MUST cover
+1. A file **deleted** in `vY` stays orphaned (overwrite ≠ sync) → apply the deletes too + anti-orphan check.
+2. A **renamed/renumbered** file produces a duplicate → rename handling (`git diff -M`).
+3. **Tension `empty-diff-on-memory` ↔ broken wikilinks** from doc renames → way out: explicit exception + declared separate commit.
+4. Hooks `.git/hooks/*` **outside the git graph**: `make hooks-install` has effects that a branch-based rollback does not undo → verification/uninstallation step.
+5. The **`0.x→1.0`** regime of `docs/04`: updating a process doc changes live semantics → "rule-change" warning.
+6. **Multi-version jump** `v0.1→v0.4`: the diff between the endpoints collapses non-commutative migrations → order by version.
+7. **Pre-flight** pure/hybrid: `docs/02/03/04` are METHOD EXCEPT for inline fills → inspect before overwriting.
 
-## Piano (un commit per task) — COMPLETATO
-- [x] 1. Branch + questa nota (plan pointer) — commit: bd7bc7b
-- [x] 2. `SETUP.md` sezione dedicata `## Aggiornare il framework (vX→vY)` — commit: 8eb3107
-- [x] 3. `SETUP.md` i 7 edge case nella procedura — commit: 3d40c4b
-- [x] 4. `SETUP.md` stub di rimando nel CASO A — commit: add83db
-- [x] 5. `LEARNINGS.md` IMP-036 (provenance-pin) + IMP-037 (`/upgrade-framework`) APERTE — commit: 3a017c7
-- [x] 6. `CHANGELOG` `[Unreleased]` + cross-link README + `/checkpoint` — commit: (questo)
+## Plan (one commit per task) — COMPLETED
+- [x] 1. Branch + this note (plan pointer) — commit: bd7bc7b
+- [x] 2. `SETUP.md` dedicated section `## Upgrading the framework (vX→vY)` — commit: 8eb3107
+- [x] 3. `SETUP.md` the 7 edge cases in the procedure — commit: 3d40c4b
+- [x] 4. `SETUP.md` pointer stub in CASE A — commit: add83db
+- [x] 5. `LEARNINGS.md` IMP-036 (provenance-pin) + IMP-037 (`/upgrade-framework`) OPEN — commit: 3a017c7
+- [x] 6. `CHANGELOG` `[Unreleased]` + README cross-link + `/checkpoint` — commit: (this one)
 
-## /retro (riflessione di fine deliverable)
-- **IMP-034 ricorsa una 2ª volta** (dopo il deliverable /harvest-framework): anche questo
-  deliverable oneroso sul repo-framework ha dovuto applicare la risoluzione interim (piano
-  come nota di sessione, niente `plans/`). La ricorrenza RAFFORZA la ratifica di IMP-034 —
-  da valutare alla prossima retrospettiva periodica sul backlog. Nessuna nuova IMP: nessun
-  attrito oltre a quello già tracciato.
-- Nessuna correzione fattuale Livello 1 (il deliverable AGGIUNGE una procedura, non corregge
-  doc in disaccordo con la realtà). STATE.md/TREE.md non toccati (regime ibrido, IMP-024).
+## /retro (end-of-deliverable reflection)
+- **IMP-034 recurred a 2nd time** (after the /harvest-framework deliverable): this heavy
+  deliverable on the framework repo too had to apply the interim resolution (plan
+  as a session note, no `plans/`). The recurrence STRENGTHENS the ratification of IMP-034 —
+  to be assessed at the next periodic retrospective on the backlog. No new IMP: no
+  friction beyond what is already tracked.
+- No Level 1 factual correction (the deliverable ADDS a procedure, it does not correct
+  docs at odds with reality). STATE.md/TREE.md untouched (hybrid regime, IMP-024).
 
-## Agganci a IMP aperte (dichiarati, non risolti)
-- **IMP-031** (marcatori spezzati sfuggono al grep) → l'upgrade eredita la dipendenza per rilevare i nuovi marcatori di `vY`.
-- **IMP-032** (fix `hooks-install`) → l'upgrade è il veicolo con cui la fix arriva ai progetti esistenti.
-- **IMP-034** (docs/01 ↔ regime ibrido) → costruire questa procedura È un deliverable oneroso sul repo-framework: segue la risoluzione interim (questa nota come plan pointer, niente `plans/`).
-- **IMP-035** (naming "comando") → l'eventuale `/upgrade-framework` sarà un "comando", non la feature Skills.
-- Sibling **rimandata**: IMP-027 opzione `graft.sh`.
+## Hooks into open IMPs (declared, not resolved)
+- **IMP-031** (broken markers escape the grep) → the upgrade inherits the dependency for detecting the new markers of `vY`.
+- **IMP-032** (`hooks-install` fix) → the upgrade is the vehicle by which the fix reaches existing projects.
+- **IMP-034** (docs/01 ↔ hybrid regime) → building this procedure IS a heavy deliverable on the framework repo: it follows the interim resolution (this note as plan pointer, no `plans/`).
+- **IMP-035** ("command" naming) → any future `/upgrade-framework` will be a "command", not the Skills feature.
+- **Deferred** sibling: IMP-027 `graft.sh` option.
 
 ## Follow-up
-- **Security gate**: non sensibile (documentazione) → `/security-review` saltato.
-- **`/integrate`**: bump da valutare (coerenza col precedente brownfield `[0.3.0]` MINOR). CHANGELOG `[Unreleased]` compilato dentro `/integrate`. Merge + tag + push = umano.
-- **Disciplina di scope**: espandere CASO A senza riscrivere le regole d'innesto esistenti; le 2 IMP separate dalla procedura.
+- **Security gate**: not sensitive (documentation) → `/security-review` skipped.
+- **`/integrate`**: bump to be assessed (consistency with the previous brownfield `[0.3.0]` MINOR). CHANGELOG `[Unreleased]` filled in inside `/integrate`. Merge + tag + push = human.
+- **Scope discipline**: expand CASE A without rewriting the existing graft rules; the 2 IMPs kept separate from the procedure.
 
-## Collegamenti
+## Links
 [[LEARNINGS]] · [[STATE]] · [[2026-07-17-harvest-framework-ponte]]

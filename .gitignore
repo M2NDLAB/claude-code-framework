@@ -1,9 +1,9 @@
 # ============================================================================
-# .gitignore base del framework — agnostico allo stack.
-# Aggiungi sotto gli artefatti del TUO stack (vedi sezione in fondo).
+# Framework base .gitignore — stack-agnostic.
+# Add your OWN stack's artifacts below (see the section at the bottom).
 # ============================================================================
 
-# Environment & secrets — MAI committare (regola 1)
+# Environment & secrets — NEVER commit (rule 1)
 .env
 .env.*
 !.env.example
@@ -24,15 +24,15 @@ vault-keys.json
 # Log
 *.log
 
-# Claude Code locale (settings personali, non condivisi)
+# Local Claude Code (personal settings, not shared)
 .claude/settings.local.json
 
-# (Opzionale) config locale del vault Obsidian, se apri .claude/ in Obsidian
+# (Optional) local config of the Obsidian vault, if you open .claude/ in Obsidian
 .obsidian/
 
 # ============================================================================
-# [DA DEFINIRE AL SETUP] — artefatti di build/dipendenze del tuo stack.
-# Decommenta/aggiungi ciò che serve. Esempi comuni:
+# [TO BE DEFINED AT SETUP] — build artifacts/dependencies of your stack.
+# Uncomment/add what you need. Common examples:
 # ----------------------------------------------------------------------------
 # Node:    node_modules/  dist/  build/  .next/  out/  *.tsbuildinfo  coverage/
 # Java:    target/  *.class  *.jar

@@ -1,104 +1,105 @@
 # Claude Code Framework
 
-[![Licenza: MIT](https://img.shields.io/badge/licenza-MIT-green.svg)](LICENSE)
-[![Versione](https://img.shields.io/github/v/tag/M2NDLAB/claude-code-framework?label=versione&sort=semver)](https://github.com/M2NDLAB/claude-code-framework/tags)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Version](https://img.shields.io/github/v/tag/M2NDLAB/claude-code-framework?label=version&sort=semver)](https://github.com/M2NDLAB/claude-code-framework/tags)
 
-Un framework di lavoro riutilizzabile per progetti gestiti con Claude Code,
-**agnostico allo stack tecnologico**. Non contiene codice applicativo né scelte
-tecnologiche: porta il *metodo* — come strutturare la collaborazione con Claude
-Code perché sia resiliente, tracciabile e auto-migliorante.
+A reusable working framework for projects run with Claude Code, **agnostic to the
+technology stack**. It contains no application code and no technology choices: what
+it carries is the *method* — how to structure the collaboration with Claude Code so
+that it is resilient, traceable and self-improving.
 
-Estratto da un progetto reale (una piattaforma enterprise) e raffinato attraverso
-decine di sessioni, questo framework cattura ciò che funziona indipendentemente
-dal dominio: e-commerce, SaaS, data pipeline, qualsiasi cosa.
+Extracted from a real project (an enterprise platform) and refined over dozens of
+sessions, this framework captures what works regardless of the domain: e-commerce,
+SaaS, data pipelines, anything.
 
-## Cosa include
+## What it includes
 
-- **Sistema di memoria persistente** — STATE, TREE, INDEX, sessioni, decisioni,
-piani, backlog di miglioramenti, con un health-check di coerenza (`/lint-memory`).
-Claude Code mantiene contesto tra le sessioni.
-- **Task-planning resiliente** — i prompt onerosi si spezzano in task atomici con
-un commit ciascuno; un'interruzione non costa il rifacimento da zero.
-- **Protocollo di escalation** — quando Claude Code si blocca su un bivio, genera
-un report strutturato invece di insistere alla cieca.
-- **Auto-miglioramento (IMP)** — le lezioni di processo diventano proposte di
-miglioramento approvate dall'umano, mai auto-applicate; quelle utili a qualsiasi
-progetto risalgono al template col ponte progetto→framework (`/harvest-framework`).
-- **Security gate & git workflow** — review obbligatoria sui componenti sensibili,
-conventional commits, versioning SemVer su tag annotati, blocco "pronto per
-integrazione" da incollare, hook pre-commit (secret scan + formattazione).
-- **Innesto e aggiornamento** — parte da zero (greenfield), si innesta su un
-progetto esistente (brownfield) e si aggiorna in place (`vX → vY`) preservando la
-memoria accumulata, col provenance pin `.claude/framework-version` come baseline
-certa dell'upgrade (procedure in `SETUP.md`).
+- **Persistent memory system** — STATE, TREE, INDEX, sessions, decisions,
+plans, improvement backlog, with a consistency health-check (`/lint-memory`).
+Claude Code keeps context across sessions.
+- **Resilient task planning** — heavy prompts are broken into atomic tasks with
+one commit each; an interruption never costs you a restart from scratch.
+- **Escalation protocol** — when Claude Code gets stuck at a fork, it produces
+a structured report instead of pushing on blindly.
+- **Self-improvement (IMP)** — process lessons become improvement proposals
+approved by the human, never self-applied; the ones useful to any project travel
+back up to the template through the project→framework bridge (`/harvest-framework`).
+- **Security gate & git workflow** — mandatory review on sensitive components,
+conventional commits, SemVer versioning on annotated tags, a paste-ready "ready for
+integration" block, pre-commit hooks (secret scan + formatting).
+- **Grafting and upgrading** — it starts from scratch (greenfield), grafts onto an
+existing project (brownfield) and upgrades in place (`vX → vY`) preserving the
+memory accumulated so far, with the `.claude/framework-version` provenance pin as a
+certain baseline for the upgrade (procedures in `SETUP.md`).
 
-## Cosa NON include (per scelta)
+## What it does NOT include (by design)
 
-Nessuna tecnologia specifica. Niente linguaggi, framework, database. Quelli li
-aggiunge ogni progetto al setup, nei punti segnalati come `[DA DEFINIRE]`.
+No specific technology. No languages, no frameworks, no databases. Those are added
+by each project at setup, in the spots marked `[TO BE DEFINED]`.
 
-## Come si usa
+## How to use it
 
-In breve (la guida completa, con l'elenco di tutti i `[DA DEFINIRE AL SETUP]` da
-riempire, è in **[SETUP.md](SETUP.md)**):
+In short (the full guide, with the list of every `[TO BE DEFINED AT SETUP]` to fill
+in, is in **[SETUP.md](SETUP.md)**):
 
-1. **Copia** il contenuto del framework nella root del tuo nuovo progetto (la
-   cartella `.claude/`, più `CLAUDE.md`, `Makefile`, `commitlint.config.cjs`,
-   `.gitignore`, `scripts/`), poi crea il provenance pin
-   `.claude/framework-version` con la versione appena copiata (`SETUP.md`, passo 1).
-2. **Riempi i `[DA DEFINIRE AL SETUP]`** — soprattutto in `CLAUDE.md` (nome
-   progetto, stack, regole tecniche, componenti sensibili) e nei punti elencati in
-   `SETUP.md`. A mano, oppure in dialogo con Claude Code, che ti intervista e
-   scrive le risposte (vedi `SETUP.md`, passo 2).
-3. **Installa gli hook**: `make hooks-install` (richiede `gitleaks` e Node.js per
-   commitlint). Abilita la formattazione automatica nell'hook per il tuo linguaggio.
-4. **Primo comando a Claude Code** — fagli leggere `CLAUDE.md` e i doc in
-   `.claude/docs/`, poi inizializzare la memoria (`STATE.md`, `TREE.md`). Il comando
-   esatto suggerito è in `SETUP.md`.
+1. **Copy** the framework contents into the root of your new project (the
+   `.claude/` folder, plus `CLAUDE.md`, `Makefile`, `commitlint.config.cjs`,
+   `.gitignore`, `scripts/`), then create the provenance pin
+   `.claude/framework-version` with the version you just copied (`SETUP.md`, step 1).
+2. **Fill in the `[TO BE DEFINED AT SETUP]`** — above all in `CLAUDE.md` (project
+   name, stack, technical rules, sensitive components) and in the spots listed in
+   `SETUP.md`. By hand, or in dialogue with Claude Code, which interviews you and
+   writes the answers down (see `SETUP.md`, step 2).
+3. **Install the hooks**: `make hooks-install` (requires `gitleaks` and Node.js for
+   commitlint). Enable automatic formatting in the hook for your language.
+4. **First command to Claude Code** — have it read `CLAUDE.md` and the docs in
+   `.claude/docs/`, then initialise the memory (`STATE.md`, `TREE.md`). The exact
+   suggested command is in `SETUP.md`.
 
-Da lì in poi si lavora con il ciclo descritto in `.claude/docs/00-overview.md`:
-pianifica → esegui per task → [se sensibile] `/security-review` → `/retro` →
-`/checkpoint` → `/integrate` (push deciso dall'umano); se ti blocchi, `/sos`.
+From there on you work with the cycle described in `.claude/docs/00-overview.md`:
+plan → execute task by task → [if sensitive] `/security-review` → `/retro` →
+`/checkpoint` → `/integrate` (push decided by the human); if you get stuck, `/sos`.
 
-> Innesti il framework su un progetto **esistente** (brownfield)? I passi sono
-> gli stessi, con le differenze — riconciliazione dei file in collisione,
-> assessment iniziale che popola la memoria, igiene della storia git ereditata —
-> nella sezione dedicata in coda a `SETUP.md`.
+> Grafting the framework onto an **existing** project (brownfield)? The steps are
+> the same, with the differences — reconciling colliding files, an initial
+> assessment that populates the memory, inherited git hygiene — covered in the
+> dedicated section at the end of `SETUP.md`.
 >
-> Devi invece **aggiornare** a una versione più recente un progetto che ha già il
-> framework innestato, preservando la memoria accumulata? È il terzo caso, con la
-> sua procedura (*«Aggiornare il framework»*) sempre in coda a `SETUP.md`.
+> Do you instead need to **upgrade** to a newer version a project that already has
+> the framework grafted, preserving the memory accumulated so far? That is the third
+> case, with its own procedure (*"Upgrading the framework on an already-grafted
+> project"*), also at the end of `SETUP.md`.
 
-### Struttura
+### Structure
 
 ```
 .
-├── CLAUDE.md                  indice + regole di processo + regole tecniche [DA DEFINIRE]
-├── README.md                  questo file
-├── SETUP.md                   come partire da zero, elenco dei [DA DEFINIRE]
-├── LICENSE                    MIT — copre il framework, non i progetti che lo usano
-├── CONTRIBUTING.md            come contribuire AL framework (workflow reale del repo)
-├── SECURITY.md                policy di sicurezza (reale per il repo + scaffold [DA DEFINIRE])
-├── CHANGELOG.md               Keep a Changelog, agganciato al versioning di docs/04
-├── Makefile                   solo target di processo (hooks-install, reset-task, test-scripts)
-├── commitlint.config.cjs      tipi Conventional Commits
-├── .gitignore                 base (secrets + IDE/OS) + sezione [DA DEFINIRE]
+├── CLAUDE.md                  index + process rules + technical rules [TO BE DEFINED]
+├── README.md                  this file
+├── SETUP.md                   how to start from scratch, list of the [TO BE DEFINED]
+├── LICENSE                    MIT — covers the framework, not the projects using it
+├── CONTRIBUTING.md            how to contribute TO the framework (the repo's real workflow)
+├── SECURITY.md                security policy (real for the repo + scaffold [TO BE DEFINED])
+├── CHANGELOG.md               Keep a Changelog, wired to the versioning of docs/04
+├── Makefile                   process targets only (hooks-install, reset-task, test-scripts)
+├── commitlint.config.cjs      Conventional Commits types
+├── .gitignore                 baseline (secrets + IDE/OS) + [TO BE DEFINED] section
 ├── scripts/
-│   ├── hooks-install.sh       gitleaks + commitlint (sempre) + formattazione (esempio)
-│   ├── reset-task.sh          cleanup chirurgico del task interrotto
-│   ├── test-hooks-install.sh  self-test di hooks-install (make test-scripts)
+│   ├── hooks-install.sh       gitleaks + commitlint (always) + formatting (example)
+│   ├── reset-task.sh          surgical cleanup of the interrupted task
+│   ├── test-hooks-install.sh  self-test of hooks-install (make test-scripts)
 │   └── README.md
 └── .claude/
-    ├── settings.json          hook SessionStart (inietta STATE.md) + permessi (secret scan: hook pre-commit)
+    ├── settings.json          SessionStart hook (injects STATE.md) + permissions (secret scan: pre-commit hook)
     ├── docs/                  00-overview, 01-task-planning ... 06-self-improvement
     ├── commands/              /checkpoint /integrate /sos /retro /security-review /new-component /lint-memory /harvest-framework
-    └── memory/                STATE, TREE, INDEX, LEARNINGS (template) + 4 sottocartelle
+    └── memory/                STATE, TREE, INDEX, LEARNINGS (template) + 4 subfolders
 ```
 
-## Filosofia
+## Philosophy
 
-Il framework migliora con l'uso: ogni progetto che ci costruisci sopra genera
-lezioni di processo che tornano qui come miglioramenti per il prossimo. Nel
-progetto quelle lezioni si marcano `Destinazione: framework` e `/harvest-framework`
-le raccoglie in un blocco pronto da riproporre qui (vedi
-`.claude/docs/06-self-improvement.md`, *"Il ponte verso il framework"*).
+The framework improves with use: every project you build on top of it generates
+process lessons that come back here as improvements for the next one. In the
+project those lessons are marked `Destination: framework`, and `/harvest-framework`
+collects them into a block ready to be re-proposed here (see
+`.claude/docs/06-self-improvement.md`, *"The bridge to the framework"*).

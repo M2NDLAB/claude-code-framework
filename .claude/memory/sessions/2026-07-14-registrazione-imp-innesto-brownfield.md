@@ -1,123 +1,121 @@
 ---
 date: 2026-07-14
-task: registrazione IMP-027..030 dalle lezioni del primo innesto reale (brownfield)
+task: registration of IMP-027..030 from the lessons of the first real graft (brownfield)
 branch: chore/imp-innesto-brownfield
 status: completed
 tags: [session, improvement, brownfield]
 ---
-# Session 2026-07-14 — Registrazione IMP dal primo innesto brownfield
+# Session 2026-07-14 — Registration of IMPs from the first brownfield graft
 
-## Contesto
-Primo innesto reale del framework su un progetto esistente (brew-manager, tool
-shell/zsh, brownfield): l'attrito è stato documentato in presa diretta nella nota
-d'innesto del progetto ospite. Questa sessione REGISTRA le lezioni come IMP
-(regola 6 di CLAUDE.md: i cambi a regole/doc si propongono, si applicano solo
-dopo approvazione). Nessun file di regole/doc/script toccato: solo LEARNINGS.md
-e questa nota.
+## Context
+First real graft of the framework onto an existing project (brew-manager, a
+shell/zsh tool, brownfield): the friction was documented live in the graft note
+of the host project. This session REGISTERS the lessons as IMPs (rule 6 of
+CLAUDE.md: changes to rules/docs are proposed, and applied only after approval).
+No rules/docs/script file touched: only LEARNINGS.md and this note.
 
-## Fatto
-- Verificate le 10 frizioni della nota d'innesto contro i file REALI del
-  framework (docs/02: mai agire sulla sola memoria) — verifica multi-agente
-  read-only, un verificatore per frizione con evidenze file:riga; le 2 verifiche
-  morte per session-limit (F6 ".claude/ preesistente" e lo sweep) rifatte a mano
-  con grep. Esito: TUTTE confermate; nessuna già coperta per intero da regole
-  esistenti.
-- Registrate 4 IMP APERTE in [[LEARNINGS]] (raggruppamento, non 1:1 con le
-  frizioni): IMP-027 percorso di setup brownfield (collisioni file, assessment
-  che popola la memoria, criterio CASO A/B per `.claude/` preesistente,
-  divergenze doc-vs-realtà dell'ospite; opzione `graft.sh` presentata coi due
-  lati, NON decisa); IMP-028 igiene git ereditata (tag lightweight, gitleaks
-  detect one-off sulla storia, topologia branch dormiente, hook preesistenti);
-  IMP-029 convivenza linguistica (a sé: vale anche greenfield); IMP-030
-  compilazione dei [DA DEFINIRE AL SETUP] assistita da Code (a sé: non
+## Done
+- Verified the 10 friction points of the graft note against the REAL files of the
+  framework (docs/02: never act on memory alone) — multi-agent read-only
+  verification, one verifier per friction point with file:line evidence; the 2
+  verifications that died to the session limit (F6 "pre-existing .claude/" and the
+  sweep) redone by hand with grep. Outcome: ALL confirmed; none already covered in
+  full by existing rules.
+- Registered 4 OPEN IMPs in [[LEARNINGS]] (grouped, not 1:1 with the friction
+  points): IMP-027 brownfield setup path (file collisions, an assessment that
+  populates memory, CASE A/B criterion for a pre-existing `.claude/`,
+  doc-vs-reality divergences of the host; `graft.sh` option presented with both
+  sides, NOT decided); IMP-028 inherited git hygiene (lightweight tags, one-off
+  gitleaks detect over the history, dormant branch topology, pre-existing hooks);
+  IMP-029 language coexistence (on its own: it applies to greenfield too); IMP-030
+  filling in the [TO BE DEFINED AT SETUP] markers assisted by Code (on its own: not
   brownfield).
-- Agganci alle regole esistenti dichiarati invece di duplicare: IMP-011
-  (pattern assessment→proposta→decisione, da promuovere a passo del setup),
-  IMP-008 (ruoli branch parametrici: la meccanica c'è, manca la guida alla
-  scelta), baseline gitleaks di docs/03 (il detect one-off ne è il
-  completamento, non una regola nuova), IMP-010 (igiene dei tag creati ≠ tag
-  ereditati).
+- Hooks into existing rules declared instead of duplicated: IMP-011
+  (assessment→proposal→decision pattern, to be promoted to a setup step),
+  IMP-008 (parametric branch roles: the mechanics are there, the guidance for the
+  choice is missing), the gitleaks baseline of docs/03 (the one-off detect is its
+  completion, not a new rule), IMP-010 (hygiene of created tags ≠ inherited tags).
 
-## Scoperte non ovvie della verifica (oltre la nota d'innesto)
-1. `/integrate` su tag lightweight NON si rompe: usa `git describe --tags`, che
-   li accetta in silenzio (il razionale "annotati perché git describe li usa" di
-   docs/04 vale per `git describe` SENZA `--tags`). La degradazione è silenziosa,
-   peggio di un errore.
-2. docs/06 LIVELLO 1 letto alla lettera prescrive l'OPPOSTO del comportamento
-   giusto all'innesto: "allinea la doc alla realtà... applica direttamente" non
-   distingue la doc del METODO dalla doc dell'OSPITE (che va registrata come
-   debito, non corretta d'ufficio).
-3. Hook + husky: con `core.hooksPath` attivo gli hook del framework finirebbero
-   in `.git/hooks` che git ignora — installati ma inerti. E il commento di
-   hooks-install.sh r.6 promette meno di ciò che lo script fa (sovrascrive
-   QUALSIASI hook, non solo i propri).
+## Non-obvious discoveries from the verification (beyond the graft note)
+1. `/integrate` on lightweight tags does NOT break: it uses `git describe --tags`,
+   which accepts them silently (the "annotated because git describe uses them"
+   rationale of docs/04 holds for `git describe` WITHOUT `--tags`). The degradation
+   is silent, which is worse than an error.
+2. docs/06 LEVEL 1 read literally prescribes the OPPOSITE of the right behaviour at
+   graft time: "align the doc to reality... apply directly" does not distinguish the
+   METHOD doc from the HOST doc (which is to be registered as debt, not corrected
+   ex officio).
+3. Hooks + husky: with `core.hooksPath` active the framework hooks would end up in
+   `.git/hooks`, which git ignores — installed but inert. And the comment in
+   hooks-install.sh l.6 promises less than what the script does (it overwrites ANY
+   hook, not only its own).
 
-## Problemi incontrati → causa → soluzione
-1. Workflow di verifica fallito al primo lancio → gli `args` non arrivavano
-   allo script (`args.frictions` undefined) → frizioni incorporate nello script
-   e rilancio.
-2. Due verifiche su 11 morte a metà → session-limit dell'harness → completate a
-   mano con grep al reset (i 9 risultati arrivati restavano validi).
+## Problems encountered → cause → solution
+1. Verification workflow failed on the first run → the `args` were not reaching the
+   script (`args.frictions` undefined) → friction points embedded into the script
+   and relaunched.
+2. Two verifications out of 11 died halfway → session limit of the harness →
+   completed by hand with grep at the reset (the 9 results that had arrived stayed
+   valid).
 
-## Proposte
-- IMP-027, IMP-028, IMP-029, IMP-030 in [[LEARNINGS]] — APERTE, in attesa di
-  decisione utente.
+## Proposals
+- IMP-027, IMP-028, IMP-029, IMP-030 in [[LEARNINGS]] — OPEN, awaiting user
+  decision.
 
 ## Follow-up
-- Decisioni utente sulle 4 IMP → solo dopo, applicazione (un commit per IMP,
-  secondo docs/06).
-- Merge di questo branch in `main`: azione umana via blocco `/integrate`
-  (nessun tag: solo memoria → "nessun bump").
+- User decisions on the 4 IMPs → application only afterwards (one commit per IMP,
+  according to docs/06).
+- Merge of this branch into `main`: a human action via the `/integrate` block
+  (no tag: memory only → "no bump").
 
-## APPLICAZIONE (stessa data, dopo le decisioni utente)
-Decisioni: APPROVATE 027 (senza `graft.sh` → Rimandate col trigger "dopo 2-3
-innesti reali"), 028 (i due punti seri b/d in commit curati separati), 029, 030.
-Vincolo su 028(a): correzione del razionale di docs/04 DESCRITTIVA, nessun
-obbligo nuovo. Guardia di completezza pre-applicazione (S1-S3) superata con una
-integrazione: la correzione del razionale docs/04 esplicitata nella proposta (a)
-di IMP-028 prima di applicare.
+## APPLICATION (same date, after the user decisions)
+Decisions: APPROVED 027 (without `graft.sh` → Deferred with the trigger "after 2-3
+real grafts"), 028 (the two serious points b/d in separate curated commits), 029,
+030. Constraint on 028(a): the correction of the docs/04 rationale is DESCRIPTIVE,
+no new obligation. The pre-application completeness guard (S1-S3) passed with one
+addition: the correction of the docs/04 rationale made explicit in proposal (a) of
+IMP-028 before applying.
 
-Commit di applicazione (il piano "un commit per IMP" del Follow-up sopra è stato
-raffinato dalle decisioni: 028 in tre commit + un fix da review):
-- 051d02c `docs(security)` IMP-028b — gitleaks detect one-off (docs/03 + SETUP p.3)
-- 1103ffb `fix(scripts)` IMP-028d — guardie hook preesistenti + core.hooksPath
-- ff3c2bc `feat(setup)` IMP-027 — sezione brownfield + docs/06 perimetro L1 +
-  STATE template + rimando README
-- 4cd4363 `fix(git)` IMP-028a/c — guardia base SemVer in /integrate + razionale
-  docs/04 + checklist igiene git ereditata
-- acdefcb `docs(setup)` IMP-029 — lingua/e del progetto
-- 42bc00a `docs(setup)` IMP-030 — [DA DEFINIRE] a mano o in dialogo
-- c623b82 `fix(scripts)` review 028d — personalizzazioni salvate in .bak,
-  symlink mai attraversati, hint hooksPath a scope corretto
-- 7fc8b8e `docs(setup)` rifiniture review — forward-pointer p.1, checkbox
-  integrate.md al p.2, marcatore ricompattato (fix L1), confine temporale del
-  perimetro L1
-- 0662cec `chore(claude)` marcatura: 027..030 → Applicate, graft.sh → Rimandate
+Application commits (the "one commit per IMP" plan of the Follow-up above was
+refined by the decisions: 028 in three commits + one fix from the review):
+- 051d02c `docs(security)` IMP-028b — one-off gitleaks detect (docs/03 + SETUP s.3)
+- 1103ffb `fix(scripts)` IMP-028d — pre-existing hook guards + core.hooksPath
+- ff3c2bc `feat(setup)` IMP-027 — brownfield section + docs/06 L1 perimeter +
+  STATE template + README pointer
+- 4cd4363 `fix(git)` IMP-028a/c — SemVer base guard in /integrate + docs/04
+  rationale + inherited git hygiene checklist
+- acdefcb `docs(setup)` IMP-029 — project language(s)
+- 42bc00a `docs(setup)` IMP-030 — [TO BE DEFINED] by hand or in dialogue
+- c623b82 `fix(scripts)` review 028d — customisations saved to .bak, symlinks never
+  traversed, hooksPath hint at the correct scope
+- 7fc8b8e `docs(setup)` review polish — forward pointer s.1, integrate.md checkbox
+  at s.2, marker re-compacted (L1 fix), temporal boundary of the L1 perimeter
+- 0662cec `chore(claude)` marking: 027..030 → Applied, graft.sh → Deferred
 
-## Review adversariale post-apply (autore ≠ giudice)
-Sei lenti indipendenti con mandato di refutare (rimandi/orfani, greenfield
-intatto, docs/06 integro, agnosticità, script, memoria). 9 finding, 0 blocker;
-i fondati applicati nei due commit di review sopra. I due più seri, entrambi
-dimostrati empiricamente dai revisori su repo usa-e-getta:
-1. il rilancio di hooks-install distruggeva le personalizzazioni del blocco
-   formattazione che lo script stesso chiede di fare (il marcatore le
-   qualificava come "proprie") → rigenerazione via .new + confronto + .bak;
-2. FORCE_OVERWRITE su un hook-symlink scriveva ATTRAVERSO il link corrompendo
-   il file dell'ospite fuori da .git/hooks → symlink sempre trattati come
-   estranei, backup e rimozione del link prima della scrittura.
-Lente agnosticità: zero finding (nessun nome di progetto nei testi del
-framework né nei messaggi di commit).
+## Post-apply adversarial review (author ≠ judge)
+Six independent lenses with a mandate to refute (pointers/orphans, greenfield
+intact, docs/06 intact, agnosticity, scripts, memory). 9 findings, 0 blockers;
+the well-founded ones applied in the two review commits above. The two most
+serious ones, both demonstrated empirically by the reviewers on throwaway repos:
+1. re-running hooks-install destroyed the customisations of the formatting block
+   that the script itself asks you to make (the marker qualified them as "its
+   own") → regeneration via .new + comparison + .bak;
+2. FORCE_OVERWRITE on a hook symlink wrote THROUGH the link, corrupting the host's
+   file outside .git/hooks → symlinks always treated as foreign, backup and removal
+   of the link before writing.
+Agnosticity lens: zero findings (no project name in the framework texts nor in the
+commit messages).
 
-## Problemi incontrati → causa → soluzione (applicazione)
-1. Comando di test negato dai permessi → conteneva `rm -rf` (deny attiva,
-   correttamente) → rieseguito con `mktemp -d` e directory usa-e-getta nuove.
-2. Rimando "passo 2" per integrate.md non risolvibile → il marcatore
-   [DA DEFINIRE AL SETUP] di integrate.md era spezzato su due righe, invisibile
-   al grep dichiarato dal passo 2 (bug preesistente, scoperto dalla review) →
-   ricompattato + checkbox dedicata al passo 2 (7fc8b8e).
+## Problems encountered → cause → solution (application)
+1. Test command denied by the permissions → it contained `rm -rf` (deny active,
+   correctly) → re-run with `mktemp -d` and fresh throwaway directories.
+2. The "step 2" pointer for integrate.md not resolvable → the
+   [TO BE DEFINED AT SETUP] marker of integrate.md was broken across two lines,
+   invisible to the grep declared by step 2 (pre-existing bug, discovered by the
+   review) → re-compacted + dedicated checkbox at step 2 (7fc8b8e).
 
-## Checkpoint (regime ibrido dichiarato)
-STATE/TREE/INDEX restano template puliti: la modifica a STATE.md di ff3c2bc è
-al TEMPLATE (definizione di "Debito documentazione"), non un popolamento.
-Nessun componente in components/ (repo del metodo). Struttura invariata →
-TREE.md non rigenerato. CHANGELOG: [Unreleased] si compila dentro /integrate.
+## Checkpoint (declared hybrid regime)
+STATE/TREE/INDEX remain clean templates: the change to STATE.md in ff3c2bc is to
+the TEMPLATE (definition of "Documentation debt"), not a population.
+No component in components/ (repo of the method). Structure unchanged →
+TREE.md not regenerated. CHANGELOG: [Unreleased] is filled in within /integrate.
