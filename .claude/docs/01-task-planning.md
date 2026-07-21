@@ -138,6 +138,11 @@ plan), and apply this additional discipline:
   and — if it touches sensitive components — the security gate (docs/03), check that
   the extraction is coherent everywhere: no consumer left on the old copy, no
   leftover duplication, the shared API used the same way everywhere.
+  **The shared contract can be TEXTUAL, not only code**: section titles cited BY NAME
+  from other files are an API as well. If the work renames them (a translation, a wide
+  documentation restructuring), grep the OLD and the NEW wording before the merge —
+  having flagged the risk while planning is not a check (IMP-043: it was flagged, and
+  the broken cross-reference passed anyway).
 
 > The "wiring" between modules is exactly what isolated unit tests do not see: for a
 > cross-module refactor the smoke test of the wired system (DoD, docs/02 point 3)
