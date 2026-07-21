@@ -1,79 +1,79 @@
 ---
 date: 2026-07-17
-task: chiusura del deliverable IMP-027..030 — audit pre-integrate, close-out, rilascio v0.3.0
+task: closing the IMP-027..030 deliverable — pre-integrate audit, close-out, v0.3.0 release
 branch: chore/checkpoint-2026-07-17 (nota); lavoro su chore/imp-innesto-brownfield (mergiato+eliminato)
 status: completed
 tags: [session, improvement, brownfield, release]
 ---
-# Session 2026-07-17 — Audit pre-integrate e chiusura v0.3.0
+# Session 2026-07-17 — Pre-integrate audit and v0.3.0 close-out
 
-## Contesto
-Ripresa ("continua") del deliverable della nota
-[[2026-07-14-registrazione-imp-innesto-brownfield]]: le IMP-027..030 (lezioni del
-primo innesto brownfield) erano già applicate e checkpointate; restava solo il passo
-`/integrate` del ciclo di fine deliverable. Regime memoria ibrido (IMP-024):
-STATE/TREE/INDEX restano template; vivi solo `LEARNINGS.md` e `sessions/`.
+## Context
+Resumption ("continue") of the deliverable of the note
+[[2026-07-14-registrazione-imp-innesto-brownfield]]: IMP-027..030 (lessons of the
+first brownfield graft) were already applied and checkpointed; only the
+`/integrate` step of the end-of-deliverable cycle remained. Hybrid memory regime
+(IMP-024): STATE/TREE/INDEX stay templates; only `LEARNINGS.md` and `sessions/` are live.
 
-## Fatto
-- **Audit adversariale pre-integrate** (workflow multi-agente: 6 lenti indipendenti
-  con mandato di REFUTARE "sicuro da mergiare come v0.3.0", ognuna verificata da un
-  secondo passaggio di refutazione). Esito **VERDE**: 0 blocker, 0 concern, 5 finding
-  INFO. Lenti: version-bump, changelog-fidelity, learnings-coherence,
+## Done
+- **Adversarial pre-integrate audit** (multi-agent workflow: 6 independent lenses
+  with a mandate to REFUTE "safe to merge as v0.3.0", each verified by a second
+  refutation pass). Outcome **GREEN**: 0 blockers, 0 concerns, 5 INFO findings.
+  Lenses: version-bump, changelog-fidelity, learnings-coherence,
   agnosticity-secrets, internal-consistency, script-safety.
-- **Close-out dei finding INFO azionabili** (3 commit, poi entrati nel merge):
-  - `740b575` docs(git): ricompattato il 2° marcatore `[DA DEFINIRE AL SETUP]`
-    rimasto spezzato su due righe in `docs/04:142` — invisibile al
-    `grep -rn "DA DEFINIRE AL SETUP" .` che SETUP.md:37 prescrive. Stessa classe del
-    fix `7fc8b8e` (integrate.md) già fatto nel deliverable → correzione fattuale L1.
-  - `ed71724` docs(changelog): data di `[0.3.0]` portata a 2026-07-17 (data del tag,
-    non di chiusura dei commit) e bullet *Fixed* esteso a docs/04.
-  - `72a897c` chore(claude): registrate **IMP-031** (prevenzione dei marcatori
-    spezzati) e **IMP-032** (robustezza di `hooks-install.sh` sul symlink dangling
-    sotto FORCE) come APERTE — LIVELLO 2, si propongono.
-- **`/integrate`**: preparato il blocco merge+tag. Bump **MINOR** (un solo `feat`,
-  `ff3c2bc`, tra 15 commit; regime pre-1.0 trunk-based → tag su `main`): v0.2.0 →
-  **v0.3.0**. Eseguito dall'UTENTE fuori sessione: merge `--no-ff` `d1b593a`
-  (`feat(metodo): merge …`), tag annotato `v0.3.0` sul merge, push `main` + tag,
-  branch `chore/imp-innesto-brownfield` eliminato.
+- **Close-out of the actionable INFO findings** (3 commits, later folded into the merge):
+  - `740b575` docs(git): re-compacted the 2nd `[TO BE DEFINED AT SETUP]` marker
+    left split across two lines in `docs/04:142` — invisible to the
+    `grep -rn "DA DEFINIRE AL SETUP" .` that SETUP.md:37 prescribes. Same class as the
+    `7fc8b8e` (integrate.md) fix already done in the deliverable → L1 factual correction.
+  - `ed71724` docs(changelog): date of `[0.3.0]` moved to 2026-07-17 (the tag's date,
+    not the date the commits closed) and the *Fixed* bullet extended to docs/04.
+  - `72a897c` chore(claude): recorded **IMP-031** (prevention of split markers)
+    and **IMP-032** (robustness of `hooks-install.sh` against the dangling symlink
+    under FORCE) as OPEN — LEVEL 2, they are proposed.
+- **`/integrate`**: prepared the merge+tag block. **MINOR** bump (a single `feat`,
+  `ff3c2bc`, among 15 commits; pre-1.0 trunk-based regime → tag on `main`): v0.2.0 →
+  **v0.3.0**. Executed by the USER outside the session: `--no-ff` merge `d1b593a`
+  (`feat(metodo): merge …`), annotated tag `v0.3.0` on the merge, push `main` + tag,
+  branch `chore/imp-innesto-brownfield` deleted.
 
-## Finding INFO non azionati subito (registrati, non persi)
-- **brew-manager** (agnosticity): il nome del progetto ospite compare SOLO in
-  [[2026-07-14-registrazione-imp-innesto-brownfield]], mai nei file del template né
-  nei messaggi di commit/merge/tag. Non viola l'agnosticità (IMP-025 vincola i
-  *messaggi* della storia condivisa) e `sessions/` si svuota alla copia su un
-  progetto cliente. **Raccomandato di accettarlo** (è memoria di sviluppo utile);
-  nessuna anonimizzazione richiesta dall'utente.
-- Le altre INFO (bump/regime corretti) erano conferme senza azione.
+## INFO findings not acted on immediately (recorded, not lost)
+- **brew-manager** (agnosticity): the host project's name appears ONLY in
+  [[2026-07-14-registrazione-imp-innesto-brownfield]], never in the template's files nor
+  in the commit/merge/tag messages. It does not violate agnosticity (IMP-025 constrains
+  the *messages* of the shared history) and `sessions/` is emptied when copied onto a
+  client project. **Recommended to accept it** (it is useful development memory);
+  no anonymisation requested by the user.
+- The other INFO findings (correct bump/regime) were confirmations with no action.
 
-## Problemi incontrati → causa → soluzione
-1. Il `git status` iniziale del checkpoint mostrava un commit di **merge** su `main`
-   inatteso → l'utente aveva già eseguito l'intero blocco `/integrate` (merge + tag +
-   push + delete) FUORI sessione → riconciliato: è lo scenario previsto dal
-   `/checkpoint` ("i merge avvengono fuori sessione"); nessun'azione correttiva.
+## Problems encountered → cause → solution
+1. The initial `git status` of the checkpoint showed an unexpected **merge** commit on
+   `main` → the user had already executed the whole `/integrate` block (merge + tag +
+   push + delete) OUTSIDE the session → reconciled: it is the scenario foreseen by
+   `/checkpoint` ("merges happen outside the session"); no corrective action.
 
-## Nota di processo (non IMP)
-- La nota di sessione di OGGI non era stata scritta PRIMA del blocco `/integrate`:
-  l'utente ha eseguito il merge, quindi questa nota è **trailing** (post-merge) e
-  vive su un branch dedicato `chore/checkpoint-2026-07-17`, da mergiare con una
-  mini-`/integrate` (chore → nessun tag). Nel flusso ideale il session note (parte di
-  `/checkpoint`) precede `/integrate` ed entra nel merge. Non registrata come IMP:
-  `docs/00` prevede già SIA il checkpoint pre-integrate SIA la riconciliazione
-  post-integrate (chiusura di `integrate.md`); è disciplina di esecuzione, non un gap
-  di doc.
+## Process note (not an IMP)
+- TODAY's session note had not been written BEFORE the `/integrate` block:
+  the user executed the merge, so this note is **trailing** (post-merge) and
+  lives on a dedicated branch `chore/checkpoint-2026-07-17`, to be merged with a
+  mini-`/integrate` (chore → no tag). In the ideal flow the session note (part of
+  `/checkpoint`) precedes `/integrate` and goes into the merge. Not recorded as an IMP:
+  `docs/00` already foresees BOTH the pre-integrate checkpoint AND the post-integrate
+  reconciliation (closing of `integrate.md`); it is execution discipline, not a doc
+  gap.
 
-## Riconciliazione git (parte del /checkpoint)
-- `main == origin/main == d1b593a` = **v0.3.0** (tag annotato sul merge), pushato.
-- Feature branch `chore/imp-innesto-brownfield` mergiato ed **eliminato**.
-- Tag presenti: `v0.1.0`, `v0.2.0`, `v0.3.0` — tutti annotati.
-- STATE/TREE/INDEX invariati (template, regime ibrido).
+## Git reconciliation (part of the /checkpoint)
+- `main == origin/main == d1b593a` = **v0.3.0** (annotated tag on the merge), pushed.
+- Feature branch `chore/imp-innesto-brownfield` merged and **deleted**.
+- Tags present: `v0.1.0`, `v0.2.0`, `v0.3.0` — all annotated.
+- STATE/TREE/INDEX unchanged (templates, hybrid regime).
 
-## Proposte
-- **IMP-031**, **IMP-032** in [[LEARNINGS]] — APERTE, in attesa di decisione utente.
+## Proposals
+- **IMP-031**, **IMP-032** in [[LEARNINGS]] — OPEN, awaiting the user's decision.
 
 ## Follow-up
-- Mergiare questa nota (branch `chore/checkpoint-2026-07-17`) in `main` via
-  mini-`/integrate` — solo chore/docs → **nessun tag**.
-- Decidere IMP-031/032 alla prossima retrospettiva periodica sul backlog.
+- Merge this note (branch `chore/checkpoint-2026-07-17`) into `main` via a
+  mini-`/integrate` — chore/docs only → **no tag**.
+- Decide on IMP-031/032 at the next periodic retrospective on the backlog.
 
-## Collegamenti
+## Links
 [[2026-07-14-registrazione-imp-innesto-brownfield]] · [[LEARNINGS]]

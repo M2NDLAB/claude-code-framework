@@ -1,72 +1,73 @@
 ---
 date: 2026-07-17
-task: deliverable /harvest-framework + ponte progetto→framework (comando + marcatura + doc del ponte)
+task: deliverable /harvest-framework + project→framework bridge (command + marking + bridge doc)
 branch: feat/commands-harvest-framework
 status: completed
 tags: [session, improvement, harvest, ponte]
 ---
-# Session 2026-07-17 — `/harvest-framework` + ponte progetto→framework
+# Session 2026-07-17 — `/harvest-framework` + project→framework bridge
 
-## Contesto
-Nuovo deliverable, scollegato dal precedente (v0.3.0). Nasce da attrito reale: le lezioni
-che riguardano il FRAMEWORK ma emergono lavorando su un progetto-CLIENTE si travasavano a
-mano, senza procedura né marcatura. Deliverable con SCELTE STRUTTURALI → seguito il pattern
-docs/01 FASE 2: assessment read-only → proposta con alternative → decisione utente → esecuzione.
-Registrato come [[LEARNINGS]] IMP-033.
+## Context
+New deliverable, unrelated to the previous one (v0.3.0). Born out of real friction: the
+lessons that concern the FRAMEWORK but emerge while working on a CLIENT project were
+carried over by hand, with no procedure and no marking. Deliverable with STRUCTURAL
+CHOICES → followed the docs/01 PHASE 2 pattern: read-only assessment → proposal with
+alternatives → user decision → execution. Recorded as [[LEARNINGS]] IMP-033.
 
-## Fatto
-- **Assessment read-only** (workflow multi-agente, 5 lettori paralleli + gap-check
-  adversariale): struttura note di sessione, convenzione di marcatura, comandi-modello, IMP
-  rilevanti (009/021/026/027-032), boundary cross-repo, topologia memoria e adozione lato
-  progetto. Fonte delle 4 decisioni.
-- **4 decisioni strutturali dell'utente**: (1) meccanismo = COMANDO in `.claude/commands/`
-  (non Skill → non riapre IMP-026); (2) marcatura = attributo `Destinazione: framework` sulla
-  voce IMP (riga singola grep-abile); (3) perimetro = intero backlog `LEARNINGS.md`,
-  restringibile con `$ARGUMENTS`; (4) confine = solo-leggi-e-stampa, confermato.
-- **6 task, un commit ciascuno** `[task N/T]`: IMP-033 registrata (c66acae) → attributo nel
-  formato IMP (d2856be) → sottosezione "Il ponte verso il framework" in docs/06 (c0df16c) →
-  comando `harvest-framework.md` (f50816f) → registrazione in CLAUDE.md/README + cross-link
-  SETUP §5/CONTRIBUTING/README Filosofia (534b41d) → questo checkpoint.
-- **Comando dimostrato su fixture** (nel repo-framework è moot): grep seleziona solo l'IMP
-  marcata, ignora quelle di progetto; caso senza marcatore → anti-vacuità (0 match, nessun
-  blocco vuoto).
+## Done
+- **Read-only assessment** (multi-agent workflow, 5 parallel readers + adversarial
+  gap-check): session-note structure, marking convention, model commands, relevant IMPs
+  (009/021/026/027-032), cross-repo boundary, memory topology and project-side adoption.
+  Source of the 4 decisions.
+- **4 structural decisions by the user**: (1) mechanism = COMMAND in `.claude/commands/`
+  (not Skill → does not reopen IMP-026); (2) marking = `Destination: framework` attribute on
+  the IMP entry (single grep-able line); (3) perimeter = the whole `LEARNINGS.md` backlog,
+  narrowable with `$ARGUMENTS`; (4) boundary = read-and-print-only, confirmed.
+- **6 tasks, one commit each** `[task N/T]`: IMP-033 recorded (c66acae) → attribute in the
+  IMP format (d2856be) → "The bridge to the framework" subsection in docs/06 (c0df16c) →
+  `harvest-framework.md` command (f50816f) → registration in CLAUDE.md/README + cross-link
+  SETUP §5/CONTRIBUTING/README Philosophy (534b41d) → this checkpoint.
+- **Command demonstrated on a fixture** (in the framework repo it is moot): grep selects only
+  the marked IMP, ignores the project ones; case with no marker → anti-vacuity (0 matches, no
+  empty block).
 
-## Problemi incontrati → causa → soluzione
-- **Premessa del prompt errata**: l'utente riteneva che le lezioni-framework fossero già
-  marcate come testo libero ("materiale per il FRAMEWORK") nelle note. → CAUSA: la marcatura
-  non è mai esistita (grep sui 4 termini candidati = 0 occorrenze; verifica su artefatti reali,
-  docs/02). → SOLUZIONE: dichiarata la correzione nell'assessment; la marcatura è diventata
-  parte del deliverable (progettata da zero come attributo IMP).
-- **Dove vive il "piano" (docs/01 vs regime ibrido)**: docs/01 impone un file in `plans/`,
-  ma IMP-024 tiene `plans/` template-pulito nel repo-framework. → CAUSA: docs/01 non prevede
-  il deliverable oneroso sul repo-framework. → SOLUZIONE (decisa con l'utente): IMP-024
-  (specifica sul repo-framework) prevale su docs/01 (generale) nel suo ambito; il piano vive
-  come IMP-033 + questa nota + commit `[task N/T]`, stessi checkpoint di ripresa. Buco di
-  processo registrato come IMP-034 (da valutare a freddo, non risolto qui).
+## Problems encountered → cause → solution
+- **Wrong premise in the prompt**: the user believed the framework lessons were already
+  marked as free text ("material for the FRAMEWORK") in the notes. → CAUSE: the marking
+  never existed (grep on the 4 candidate terms = 0 occurrences; verification on real
+  artefacts, docs/02). → SOLUTION: the correction was declared in the assessment; the marking
+  became part of the deliverable (designed from scratch as an IMP attribute).
+- **Where the "plan" lives (docs/01 vs hybrid regime)**: docs/01 mandates a file in `plans/`,
+  but IMP-024 keeps `plans/` template-clean in the framework repo. → CAUSE: docs/01 does not
+  foresee a heavy deliverable on the framework repo. → SOLUTION (decided with the user):
+  IMP-024 (specific to the framework repo) prevails over docs/01 (general) within its scope;
+  the plan lives as IMP-033 + this note + `[task N/T]` commits, same resumption checkpoints.
+  Process gap recorded as IMP-034 (to be assessed with a cool head, not resolved here).
 
-## Correzioni fattuali doc (Livello 1, docs/06)
-- Nessuna: il deliverable AGGIUNGE convenzioni/doc, non corregge doc in disaccordo con la realtà.
+## Factual doc corrections (Level 1, docs/06)
+- None: the deliverable ADDS conventions/docs, it does not correct docs at odds with reality.
 
-## Proposte
-- IMP-033 (in [[LEARNINGS]]): comando `/harvest-framework` + attributo `Destinazione: framework`
-  + ponte in docs/06 — **APPLICATA** in questo deliverable.
-- IMP-034 (in [[LEARNINGS]]): docs/01 ↔ regime ibrido su `plans/` per deliverable onerosi sul
-  repo-framework — **APERTA** (rimanda, valutare a freddo, come indicato dall'utente).
-- IMP-035 (in [[LEARNINGS]]): "skill" sovraccarico (comando / feature Skills IMP-026 / tool
-  `Skill` dell'harness) — **APERTA** (impatto basso).
+## Proposals
+- IMP-033 (in [[LEARNINGS]]): `/harvest-framework` command + `Destination: framework`
+  attribute + bridge in docs/06 — **APPLIED** in this deliverable.
+- IMP-034 (in [[LEARNINGS]]): docs/01 ↔ hybrid regime on `plans/` for heavy deliverables on
+  the framework repo — **OPEN** (deferred, to be assessed with a cool head, as indicated by
+  the user).
+- IMP-035 (in [[LEARNINGS]]): "skill" overloaded (command / Skills feature IMP-026 / the
+  harness's `Skill` tool) — **OPEN** (low impact).
 
-## Nota di processo (non IMP)
-- Disambiguazione persistita per la prossima sessione: nel repo un invocabile è un COMANDO
-  (file in `.claude/commands/`); la feature Skills (`.claude/skills/`, non adottata) è oggetto
-  di IMP-026 (rimandata); l'harness chiama "skill" anche i project command (naming di
-  piattaforma). Alla creazione di `harvest-framework.md` l'harness l'ha subito esposto come
-  "skill" — conferma dell'overload, tracciato in IMP-035.
+## Process note (not an IMP)
+- Disambiguation persisted for the next session: in this repo an invocable is a COMMAND
+  (a file in `.claude/commands/`); the Skills feature (`.claude/skills/`, not adopted) is the
+  subject of IMP-026 (deferred); the harness calls project commands "skills" too (platform
+  naming). On the creation of `harvest-framework.md` the harness immediately exposed it as a
+  "skill" — confirmation of the overload, tracked in IMP-035.
 
 ## Follow-up
-- **`/integrate`**: bump atteso **MINOR** (c'è `feat` — comando + attributo), pre-1.0 → tag
-  `v0.4.0` su `main` (regime trunk-based dichiarato, IMP-025). CHANGELOG `[Unreleased]` si
-  compila dentro `/integrate`. Merge + tag + push = azione umana.
-- Terminata l'anonimizzazione: ricordata dentro il comando stesso (non serve azione qui).
+- **`/integrate`**: expected bump **MINOR** (there is a `feat` — command + attribute), pre-1.0
+  → tag `v0.4.0` on `main` (declared trunk-based regime, IMP-025). CHANGELOG `[Unreleased]` is
+  filled in inside `/integrate`. Merge + tag + push = human action.
+- Anonymisation finished: recalled inside the command itself (no action needed here).
 
-## Collegamenti
+## Links
 [[LEARNINGS]] · [[2026-07-17-audit-preintegrate-closeout-v0.3.0]]

@@ -1,148 +1,148 @@
 ---
 date: 2026-07-11
-task: consolidamento del framework — assessment (FASE 1), registrazione IMP (FASE 2), applicazione (FASE 3)
+task: framework consolidation — assessment (PHASE 1), IMP registration (PHASE 2), application (PHASE 3)
 branch: feat/consolidamento
 status: completed
 tags: [session, consolidamento, assessment]
 ---
-# Session 2026-07-11 — Consolidamento: assessment e registrazione IMP
+# Session 2026-07-11 — Consolidation: assessment and IMP registration
 
-## Contesto
-Prompt di consolidamento in tre fasi: (1) assessment in sola lettura dell'intero
-framework; (2) registrazione delle proposte come IMP in [[LEARNINGS]], SENZA
-applicarle; (3) applicazione delle sole IMP approvate dall'utente. Questa nota
-persiste l'assessment della FASE 1 così la FASE 3 può PUNTARE qui senza rifare
-il lavoro (una sessione futura riparte da questa nota + le IMP approvate).
+## Context
+Consolidation prompt in three phases: (1) read-only assessment of the whole
+framework; (2) registration of the proposals as IMPs in [[LEARNINGS]], WITHOUT
+applying them; (3) application of only the IMPs approved by the user. This note
+persists the PHASE 1 assessment so that PHASE 3 can POINT here without redoing
+the work (a future session restarts from this note + the approved IMPs).
 
-## Fatto
-- Letti TUTTI i file del repo (31 file tracciati): CLAUDE.md, docs/00..06, i 7
-  comandi, memoria (STATE/TREE/INDEX/LEARNINGS + 4 README), scripts/*,
+## Done
+- Read ALL the files in the repo (31 tracked files): CLAUDE.md, docs/00..06, the 7
+  commands, memory (STATE/TREE/INDEX/LEARNINGS + 4 READMEs), scripts/*,
   settings.json, commitlint.config.cjs, Makefile, SETUP.md, README.md, .gitignore.
-- Verificata l'ASSENZA di: LICENSE, SECURITY.md, CONTRIBUTING.md,
+- Verified the ABSENCE of: LICENSE, SECURITY.md, CONTRIBUTING.md,
   CODE_OF_CONDUCT.md, CHANGELOG.md, `.github/`, `.claude/skills/`.
-- Stato git reale al momento dell'assessment: `main` = `origin/main` = tag
-  annotato `v0.1.0` su `6a1fe9e` (merge commit a due parent); `git describe
-  --tags --long` = `v0.1.0-0-g6a1fe9e`; esiste un residuo `origin/master` stantio
-  (→ `3b4f6d8`, pre-template); hook git locali NON installati in questo repo.
-- Registrate le IMP-009..026 in [[LEARNINGS]] (12 meccaniche + 6 con decisione
-  utente). Creato il branch `feat/consolidamento`; commit della sola
-  registrazione (registrare ≠ applicare).
+- Real git state at the time of the assessment: `main` = `origin/main` = annotated
+  tag `v0.1.0` on `6a1fe9e` (merge commit with two parents); `git describe
+  --tags --long` = `v0.1.0-0-g6a1fe9e`; a stale `origin/master` leftover exists
+  (→ `3b4f6d8`, pre-template); local git hooks NOT installed in this repo.
+- Registered IMP-009..026 in [[LEARNINGS]] (12 mechanical + 6 requiring a user
+  decision). Created the `feat/consolidamento` branch; commit of the registration
+  only (registering ≠ applying).
 
-## Assessment — INPUT 1 (22 convenzioni): sintesi della mappatura
-- PRESENTI in sostanza: A7 (un task = un commit, docs/01 FASE 3).
-- PRESENTI IN FORMA PARZIALE/DIVERSA → colmate dalle IMP indicate:
-  A1 confine di esecuzione (implicito in docs/04 + /integrate, mai dichiarato) → IMP-009;
-  A2 valori reali nei blocchi utente (solo dentro /integrate) → IMP-009;
-  A4 igiene tag ASCII (parziale in /integrate §4; manca rev-parse/tag -d condizionato) → IMP-010;
-  A5 verifica pre-push (git log origin/.. usato solo per il bump) → IMP-010;
-  B6 fasi a monte (decisions/README dice DOVE, nessun doc dice QUANDO) → IMP-011;
-  C10 prompt-che-puntano (meccanica presente in plans/, principio non scritto) → IMP-013;
-  C13 trigger sui debiti (esiste solo per le IMP Rimandate, non per STATE) → IMP-014;
-  D20 placeholder esecutore≠utente (implicito in /integrate) → IMP-009.
-- ASSENTI → IMP: A3 distruttivi isolati (IMP-009); B8 scope discipline e B9 igiene
-  /clear (IMP-012); C11-C12 persistenza prima di /clear/cambio modello (IMP-013);
-  C14 sopravvivenza dei debiti alle riscritture di STATE (IMP-014); D15-D17
-  verifica su artefatti reali, RED→GREEN, invarianti (IMP-015); D18-D19 review
-  adversariale per raggio di propagazione, completezza finding (IMP-016); E21
-  modello per task (IMP-017); E22 ripresa senza turni a vuoto (IMP-013).
+## Assessment — INPUT 1 (22 conventions): summary of the mapping
+- PRESENT in substance: A7 (one task = one commit, docs/01 PHASE 3).
+- PRESENT IN PARTIAL/DIFFERENT FORM → filled by the indicated IMPs:
+  A1 execution boundary (implicit in docs/04 + /integrate, never stated) → IMP-009;
+  A2 real values in user blocks (only inside /integrate) → IMP-009;
+  A4 ASCII tag hygiene (partial in /integrate §4; rev-parse/conditional tag -d missing) → IMP-010;
+  A5 pre-push verification (git log origin/.. used only for the bump) → IMP-010;
+  B6 upstream phases (decisions/README says WHERE, no doc says WHEN) → IMP-011;
+  C10 prompts-that-point (mechanics present in plans/, principle unwritten) → IMP-013;
+  C13 triggers on debts (exists only for Deferred IMPs, not for STATE) → IMP-014;
+  D20 executor≠user placeholders (implicit in /integrate) → IMP-009.
+- ABSENT → IMP: A3 isolated destructive commands (IMP-009); B8 scope discipline and B9
+  /clear hygiene (IMP-012); C11-C12 persistence before /clear/model switch (IMP-013);
+  C14 survival of debts across STATE rewrites (IMP-014); D15-D17
+  verification on real artifacts, RED→GREEN, invariants (IMP-015); D18-D19 adversarial
+  review by radius of propagation, finding completeness (IMP-016); E21
+  model per task (IMP-017); E22 resumption without wasted turns (IMP-013).
 
-## Assessment — INPUT 2 (riverifica sui file reali)
-- `/lint-memory` senza trigger dichiarato: CONFERMATO (00-overview e
-  lint-memory.md non dicono QUANDO eseguirlo) → IMP-018.
-- Legenda TREE.md 5/7 comandi: CONFERMATO (riga 35: mancano /integrate e
-  /lint-memory) → IMP-018 (fix Livello 1 tracciata lì).
-- Dogfooding: CONFERMATO e più ampio del previsto — LEARNINGS reale ma
-  STATE/TREE/INDEX template, sessions/ vuota nonostante ~14 commit reali, chi
-  copia eredita le IMP del framework, hook git non installati nel repo → IMP-024
-  (APERTA con 3 opzioni, consigliata "ibrido dichiarato").
-- `/new-component` inerte: CONFERMATO in forma attenuata (SETUP.md §2 ha già la
-  checklist; manca solo l'avviso di inerzia) → IMP-018.
-- Storia git "lineare senza merge": SMENTITO in parte — esiste il merge a due
-  parent `6a1fe9e`; restano: merge locale senza PR (tensione con docs/04 →
-  IMP-019), modello di branching MAI dichiarato, messaggio del merge non a
-  formato + nome specifico "VORTEX" nella storia condivisa (non riscrivibile,
-  evitabile in futuro), residuo `origin/master` → IMP-025 (APERTA).
+## Assessment — INPUT 2 (re-verification on the real files)
+- `/lint-memory` with no declared trigger: CONFIRMED (00-overview and
+  lint-memory.md do not say WHEN to run it) → IMP-018.
+- TREE.md legend 5/7 commands: CONFIRMED (line 35: /integrate and
+  /lint-memory missing) → IMP-018 (Level 1 fix tracked there).
+- Dogfooding: CONFIRMED and broader than expected — LEARNINGS real but
+  STATE/TREE/INDEX template, sessions/ empty despite ~14 real commits, whoever
+  copies inherits the framework's IMPs, git hooks not installed in the repo → IMP-024
+  (OPEN with 3 options, recommended "declared hybrid").
+- `/new-component` inert: CONFIRMED in an attenuated form (SETUP.md §2 already has the
+  checklist; only the inertness warning is missing) → IMP-018.
+- Git history "linear with no merge": PARTLY DISPROVED — the two-parent merge
+  `6a1fe9e` does exist; what remains: local merge without a PR (tension with docs/04 →
+  IMP-019), branching model NEVER declared, merge message not in the proper format
+  + the specific name "VORTEX" in the shared history (not rewritable,
+  avoidable in future), `origin/master` leftover → IMP-025 (OPEN).
 
-## Assessment — trovato OLTRE gli input (FASE 1.4)
-- CONTRADDIZIONE INTERNA: docs/04 "Merge: SEMPRE via PR, mai merge locale
-  diretto" vs blocco merge LOCALE stampato da /integrate → IMP-019.
-- Hook PreToolUse gitleaks in settings.json è DECORATIVO: l'`||` inghiotte anche
-  il leak trovato, exit sempre 0 (mai blocco), bersaglio --staged sbagliato al
-  momento di Write/Edit → IMP-020.
-- Nessuna tensione tra le convenzioni INPUT 1 e le regole esistenti, con due
-  note di coerenza: B9 (doc scollegata su branch separato) NON confligge con la
-  regola 5 di CLAUDE.md (che riguarda la doc COLLEGATA al cambiamento); E21 va
-  scritta tool-agnostica per non invecchiare (recepito in IMP-017).
+## Assessment — found BEYOND the inputs (PHASE 1.4)
+- INTERNAL CONTRADICTION: docs/04 "Merge: ALWAYS via PR, never a direct local
+  merge" vs the LOCAL merge block printed by /integrate → IMP-019.
+- The gitleaks PreToolUse hook in settings.json is DECORATIVE: the `||` swallows even
+  a found leak, exit always 0 (never blocks), the --staged target is wrong at the
+  moment of Write/Edit → IMP-020.
+- No tension between the INPUT 1 conventions and the existing rules, with two
+  notes on consistency: B9 (unrelated doc on a separate branch) does NOT conflict with
+  rule 5 of CLAUDE.md (which concerns the doc TIED to the change); E21 must be
+  written tool-agnostic so it does not age (taken up in IMP-017).
 
-## Assessment — INPUT 3/4 (file di progetto e Skill)
-- Tutti i file di progetto sono ASSENTI. Classificazione due-livelli: LICENSE =
-  reale sul repo + placeholder nel template (IMP-021, decisione); SECURITY =
-  scaffold a placeholder utile a entrambi i livelli, CONTRIBUTING e CHANGELOG =
-  livello repo-framework con contenuto reale (IMP-022, decisione); CoC e
-  .github/ = rimandare con trigger, filtro anti-hype (IMP-023, decisione).
-- Skill: `.claude/skills/` non esiste; valutazione scettica = NON giustificate
-  ora (nessun attrito osservato; i comandi + caricamento selettivo coprono la
-  funzione); rimandare con trigger esplicito (IMP-026, decisione; interpretazione
-  del mandato dichiarata e da confermare).
+## Assessment — INPUT 3/4 (project files and Skills)
+- All the project files are ABSENT. Two-level classification: LICENSE =
+  real in the repo + placeholder in the template (IMP-021, decision); SECURITY =
+  placeholder scaffold useful at both levels, CONTRIBUTING and CHANGELOG =
+  framework-repo level with real content (IMP-022, decision); CoC and
+  .github/ = defer with a trigger, anti-hype filter (IMP-023, decision).
+- Skills: `.claude/skills/` does not exist; sceptical evaluation = NOT justified
+  now (no observed friction; the commands + selective loading cover the
+  function); defer with an explicit trigger (IMP-026, decision; interpretation
+  of the mandate declared and to be confirmed).
 
-## Lint concettuale della memoria (FASE 1.6)
-- Wikilink dei file template ([[STATE]], [[TREE]], [[INDEX]], [[LEARNINGS]]):
-  tutti risolvibili. Nessun link rotto nei file reali.
-- Claim stantio: legenda TREE.md (sopra). Contraddizione di regime: LEARNINGS
-  vivo vs resto template (sopra, dogfooding). STATE.md/INDEX.md volutamente non
-  toccati in questa sessione: sono template puri e riempirli PRE-giudicherebbe
-  la decisione IMP-024.
-- README/SETUP coerenti con la struttura reale; ciclo citato in README §"Come si
-  usa" allineato a 00-overview.
+## Conceptual lint of the memory (PHASE 1.6)
+- Wikilinks of the template files ([[STATE]], [[TREE]], [[INDEX]], [[LEARNINGS]]):
+  all resolvable. No broken links in the real files.
+- Stale claim: TREE.md legend (above). Regime contradiction: LEARNINGS
+  alive vs the rest template (above, dogfooding). STATE.md/INDEX.md deliberately not
+  touched in this session: they are pure templates and filling them would PRE-judge
+  the IMP-024 decision.
+- README/SETUP consistent with the real structure; the cycle cited in README §"Come si
+  usa" aligned with 00-overview.
 
-## Problemi incontrati → causa → soluzione
-1. Rischio di pre-giudicare IMP-024 aggiornando STATE/INDEX con dati reali →
-   scelto di NON toccarli finché l'utente non decide il regime di dogfooding;
-   la memoria di questa sessione vive in questa nota + LEARNINGS.
+## Problems encountered → cause → solution
+1. Risk of pre-judging IMP-024 by updating STATE/INDEX with real data →
+   chose NOT to touch them until the user decides the dogfooding regime;
+   the memory of this session lives in this note + LEARNINGS.
 
-## Proposte
-- IMP-009..026 in [[LEARNINGS]] — 12 meccaniche (009-020) + 6 con decisione
-  utente (021-026: licenza, file community, CoC/.github, dogfooding, branching
-  del repo, skill).
+## Proposals
+- IMP-009..026 in [[LEARNINGS]] — 12 mechanical (009-020) + 6 requiring a user
+  decision (021-026: licence, community files, CoC/.github, dogfooding, repo
+  branching, skills).
 
 ## Follow-up
-- FASE 3 SOLO dopo le decisioni dell'utente sulle IMP: un commit per IMP
-  applicata, poi /checkpoint e /integrate (bump atteso: le sole 009-020 sono
-  docs/chore → NESSUN tag; se passano IMP-021/022 — nuovi file di progetto
-  sostanziali — → MINOR, v0.1.0→v0.2.0).
-- La rimozione di `origin/master` (se approvata in IMP-025) è azione UTENTE su
-  storia condivisa: blocco separato con verifica preventiva, mai inline.
+- PHASE 3 ONLY after the user's decisions on the IMPs: one commit per applied
+  IMP, then /checkpoint and /integrate (expected bump: 009-020 alone are
+  docs/chore → NO tag; if IMP-021/022 pass — substantial new project files
+  — → MINOR, v0.1.0→v0.2.0).
+- The removal of `origin/master` (if approved in IMP-025) is a USER action on
+  shared history: separate block with a preventive check, never inline.
 
-## FASE 3 — applicazione (stessa data, ripresa dalla nota sopra)
-Decisioni utente: APPLICATE 009-022 + 024-025 (021: MIT, holder "M2NDLAB", 2026;
-024: opzione 3 "ibrido dichiarato"; 025: trunk-based dichiarato). RIMANDATE
-023 e 026 col trigger. Applicazione: un commit per IMP sul branch
-`feat/consolidamento` — sha in [[LEARNINGS]], sezione Applicate. Marcatura in
-commit separato (58c107e): lo sha di un commit non può stare dentro se stesso
-(stesso precedente di IMP-001..008).
+## PHASE 3 — application (same date, resumed from the note above)
+User decisions: APPLIED 009-022 + 024-025 (021: MIT, holder "M2NDLAB", 2026;
+024: option 3 "declared hybrid"; 025: declared trunk-based). DEFERRED
+023 and 026 with their trigger. Application: one commit per IMP on the branch
+`feat/consolidamento` — shas in [[LEARNINGS]], Applied section. Marking in a
+separate commit (58c107e): the sha of a commit cannot live inside itself
+(same precedent as IMP-001..008).
 
-Note di esecuzione:
-1. IMP-020 dimostrata RED→GREEN sulla catena reale (repo usa-e-getta con finto
-   secret AWS): comando dell'hook PreToolUse → exit 0 con warning fuorviante
-   nonostante `leaks found: 1` (gitleaks nudo: exit 1); hook pre-commit di
-   hooks-install.sh → commit BLOCCATO. Scelta: rimozione dell'hook decorativo
-   (un fix onesto richiederebbe jq/parsing JSON e modalità stdin di gitleaks
-   version-dipendenti, fuori baseline template); la difesa dichiarata dalla
-   regola 1 è il pre-commit, che funziona.
-2. IMP-019 estesa alle TRE occorrenze della contraddizione (Merge, modello di
-   branching riga 19, Versioning/promozione 1.0.0): risolta, non spostata.
-3. Coerenza post-modifiche verificata a grep: nessun residuo "SEMPRE via PR",
-   nessun riferimento orfano all'hook PreToolUse (restano solo le citazioni
-   STORICHE in questa nota e in LEARNINGS, corrette), numerazione /integrate
-   coerente dopo l'inserimento del passo CHANGELOG (1-5 + variante release).
-4. Checkpoint secondo opzione 3: STATE.md/TREE.md/INDEX.md NON popolati (restano
-   template puliti — riempirli violerebbe il regime appena deciso); la mappa
-   reale del repo è il diagramma di struttura del README (aggiornato da
-   IMP-021/022); la legenda di TREE.md è stata riallineata da IMP-018.
-   L'istruzione "rigenera TREE.md" del prompt di chiusura è stata risolta così,
-   dichiarandolo: TREE è template, il regime ibrido non lo include tra i vivi.
+Execution notes:
+1. IMP-020 demonstrated RED→GREEN on the real chain (throwaway repo with a fake
+   AWS secret): PreToolUse hook command → exit 0 with a misleading warning
+   despite `leaks found: 1` (bare gitleaks: exit 1); pre-commit hook of
+   hooks-install.sh → commit BLOCKED. Choice: removal of the decorative hook
+   (an honest fix would require jq/JSON parsing and gitleaks stdin modes that are
+   version-dependent, outside the template baseline); the defence declared by
+   rule 1 is the pre-commit, which works.
+2. IMP-019 extended to ALL THREE occurrences of the contradiction (Merge, branching
+   model line 19, Versioning/promotion to 1.0.0): resolved, not moved.
+3. Post-change consistency verified by grep: no "SEMPRE via PR" leftovers,
+   no orphan reference to the PreToolUse hook (only the HISTORICAL citations
+   in this note and in LEARNINGS remain, which are correct), /integrate numbering
+   consistent after inserting the CHANGELOG step (1-5 + release variant).
+4. Checkpoint according to option 3: STATE.md/TREE.md/INDEX.md NOT populated (they
+   remain clean templates — filling them would violate the regime just decided); the
+   real map of the repo is the structure diagram in the README (updated by
+   IMP-021/022); the TREE.md legend was realigned by IMP-018.
+   The closing prompt's instruction "regenerate TREE.md" was resolved this way,
+   declaring it: TREE is a template, the hybrid regime does not count it among the
+   live ones.
 
-## Problemi incontrati → causa → soluzione (FASE 3)
-1. Comando demo IMP-020 negato dai permessi → conteneva `rm -rf` (deny attiva,
-   correttamente) → rieseguito senza cancellazioni, directory usa-e-getta nuova.
-
+## Problems encountered → cause → solution (PHASE 3)
+1. IMP-020 demo command denied by the permissions → it contained `rm -rf` (deny
+   active, correctly) → re-run without deletions, new throwaway directory.
