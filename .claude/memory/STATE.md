@@ -1,61 +1,61 @@
 ---
 type: state
 updated: YYYY-MM-DD
-branch: <branch di integrazione, es. develop>
+branch: <integration branch, e.g. develop>
 tags: [state]
 ---
-# STATE — [NOME PROGETTO]
+# STATE — [PROJECT NAME]
 
-> **Cos'è questo file.** È il punto d'ingresso della memoria: l'hook `SessionStart`
-> lo inietta in ogni nuova sessione di Claude Code (vedi `.claude/settings.json`).
-> Deve sempre rispondere a: *dove siamo, cosa esiste, cosa è stato deciso e non è
-> ovvio dal codice, cosa è in sospeso*. Si RISCRIVE a ogni `/checkpoint` (non è
-> append-only come le sessioni). Tienilo sintetico: è un cruscotto, non un diario.
+> **What this file is.** It is the entry point of the memory: the `SessionStart` hook
+> injects it into every new Claude Code session (see `.claude/settings.json`).
+> It must always answer: *where we are, what exists, what has been decided and is not
+> obvious from the code, what is pending*. It is REWRITTEN at every `/checkpoint` (it
+> is not append-only like the sessions). Keep it terse: it is a dashboard, not a journal.
 >
-> Cancella questo blocco di istruzioni quando inizializzi il progetto e sostituisci
-> i contenuti di esempio qui sotto con quelli reali.
+> Delete this block of instructions when you initialise the project and replace
+> the example contents below with the real ones.
 
-> Aggiornato: YYYY-MM-DD | Ultimo: **<ultima cosa completata>** | Indice: [[INDEX]]
+> Updated: YYYY-MM-DD | Last: **<last thing completed>** | Index: [[INDEX]]
 
-## Stato avanzamento
-<!-- Checklist degli obiettivi / milestone / "prompt" di alto livello. Spunta ciò
-     che è fatto e annota il riferimento (commit/branch). Esempio: -->
-- [ ] 01 — <primo blocco di lavoro> ← PROSSIMO
+## Progress
+<!-- Checklist of goals / milestones / high-level "prompts". Tick what is done
+     and note the reference (commit/branch). Example: -->
+- [ ] 01 — <first block of work> ← NEXT
 - [ ] 02 — <...>
 
-## Cosa esiste adesso
-<!-- Sintesi di ciò che è stato costruito, con rimando alle note di componente e
-     di sessione (wikilink [[...]]). Una riga o due per componente, non un dump. -->
-- Albero directory: vedi [[TREE]].
-- <componente> — <stato (es. production-ready / scaffold / WIP)>, vedi
-  [[<componente>]] e [[sessions/YYYY-MM-DD-<slug>]].
+## What exists now
+<!-- Summary of what has been built, pointing at the component and session notes
+     (wikilinks [[...]]). One line or two per component, not a dump. -->
+- Directory tree: see [[TREE]].
+- <component> — <state (e.g. production-ready / scaffold / WIP)>, see
+  [[<component>]] and [[sessions/YYYY-MM-DD-<slug>]].
 
-## Decisioni prese (non ovvie dal codice)
-<!-- Solo ciò che NON si capisce leggendo il codice: scelte, alternative scartate,
-     insidie. Le decisioni architetturali formali vanno in decisions/ (vedi il suo
-     README); qui resta la sintesi + il rimando. -->
-- <decisione> → motivo / alternativa scartata. Rimando: [[YYYY-MM-DD-<slug>]].
+## Decisions made (not obvious from the code)
+<!-- Only what you CANNOT grasp by reading the code: choices, discarded alternatives,
+     pitfalls. Formal architectural decisions go in decisions/ (see its
+     README); here stays the summary + the pointer. -->
+- <decision> → reason / discarded alternative. Pointer: [[YYYY-MM-DD-<slug>]].
 
-## Debito documentazione
-<!-- Cosa andrà documentato e non lo è ancora (utile se la doc di progetto nasce
-     dopo il codice), E la doc ESISTENTE trovata in disaccordo con la realtà —
-     es. all'innesto su un progetto esistente: si registra qui, non si corregge
-     d'ufficio (docs/06, "Perimetro del LIVELLO 1"). Si svuota man mano che il
-     debito viene saldato. -->
-- <sezione/pagina da scrivere o da correggere> — <cosa deve contenere / cosa diverge>
+## Documentation debt
+<!-- What will need documenting and is not documented yet (useful if the project doc
+     is born after the code), AND the EXISTING doc found in disagreement with reality —
+     e.g. when grafting onto an existing project: it is recorded here, not corrected
+     ex officio (docs/06, "Scope of LEVEL 1"). It is emptied as the
+     debt is paid off. -->
+- <section/page to write or to correct> — <what it must contain / what diverges>
 
-## Attenzione / problemi aperti
-<!-- Trappole note, debito tecnico accettato, cose fragili da non rompere.
-     Il debito di sicurezza accettato dal security gate (docs/03) va QUI, col motivo.
-     Ogni voce col suo TRIGGER esplicito ("X → precondizione bloccante di Y",
-     "riprendere quando Z"), MAI generica ("X da sistemare"): un debito col trigger
-     riemerge al momento giusto, uno generico affoga nel rumore. Le voci devono
-     SOPRAVVIVERE alle riscritture di questo file (verifica di /checkpoint). -->
-- <problema aperto / debito accettato> — <motivo> → <trigger: quando blocca/riprende>
-- [[LEARNINGS]]: stato delle proposte IMP (aperte / applicate / rimandate).
+## Caution & open issues
+<!-- Known traps, accepted technical debt, fragile things not to break.
+     The security debt accepted by the security gate (docs/03) goes HERE, with the reason.
+     Every entry with its explicit TRIGGER ("X → blocking precondition of Y",
+     "resume when Z"), NEVER generic ("X to be fixed"): a debt with a trigger
+     resurfaces at the right moment, a generic one drowns in the noise. The entries must
+     SURVIVE the rewrites of this file (a /checkpoint check). -->
+- <open issue / accepted debt> — <reason> → <trigger: when it blocks/resumes>
+- [[LEARNINGS]]: state of the IMP proposals (open / applied / deferred).
 
-## Branch attivi
-<!-- Quali branch esistono e a cosa servono. /checkpoint riconcilia questa sezione
-     con `git branch --merged <integrazione>` perché i merge avvengono fuori sessione. -->
-- **<branch di integrazione>** = integrazione.
-- **feat/<...>** = <feature in corso>.
+## Active branches
+<!-- Which branches exist and what they are for. /checkpoint reconciles this section
+     with `git branch --merged <integration>` because merges happen outside the session. -->
+- **<integration branch>** = integration.
+- **feat/<...>** = <feature in progress>.

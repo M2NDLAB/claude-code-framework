@@ -4,39 +4,39 @@ updated: YYYY-MM-DD
 generated-by: /checkpoint
 tags: [structure]
 ---
-# Struttura del progetto
+# Project structure
 
-> **Cos'è questo file.** Una mappa della struttura del repository, da consultare
-> PRIMA di esplorare il filesystem a mano (risparmia tempo e token). Si RIGENERA
-> meccanicamente, **non si edita a mano**:
+> **What this file is.** A map of the repository structure, to be consulted
+> BEFORE exploring the filesystem by hand (it saves time and tokens). It is
+> REGENERATED mechanically, **never edited by hand**:
 >
 > ```
-> tree -L 3 --dirsfirst -I '<pattern da ignorare per il tuo stack>'
+> tree -L 3 --dirsfirst -I '<pattern to ignore for your stack>'
 > ```
 >
-> Il pattern da ignorare dipende dallo stack — [DA DEFINIRE AL SETUP]. Esempi tipici
-> di cartelle da escludere: `node_modules`, `dist`, `build`, `target`, `.git`,
-> `coverage`, cartelle di output dei build. Se `tree` non è installato, fallback:
-> `git ls-files | tree --fromfile` oppure `git ls-files`.
+> The pattern to ignore depends on the stack — [TO BE DEFINED AT SETUP]. Typical
+> examples of folders to exclude: `node_modules`, `dist`, `build`, `target`, `.git`,
+> `coverage`, build output folders. If `tree` is not installed, fallback:
+> `git ls-files | tree --fromfile` or `git ls-files`.
 >
-> Cancella questo blocco di istruzioni quando inizializzi il progetto.
+> Delete this block of instructions when you initialise the project.
 
-## Albero (generato)
+## Tree (generated)
 ```
-<incolla qui l'output di `tree` rigenerato all'ultimo /checkpoint>
+<paste here the output of `tree` regenerated at the last /checkpoint>
 ```
 
-## Legenda directory chiave
-<!-- Spiega cosa contiene ogni cartella di primo livello: serve a chi (umano o
-     Claude) atterra nel repo senza conoscerlo. -->
-| Path | Cosa contiene |
+## Key directory legend
+<!-- Explain what each top-level folder contains: it serves whoever (human or
+     Claude) lands in the repo without knowing it. -->
+| Path | What it contains |
 |---|---|
-| .claude/docs/ | documentazione di processo (il "metodo") — caricare solo i file rilevanti |
-| .claude/commands/ | slash command del metodo — l'elenco autorevole è in `CLAUDE.md`, "Comandi rapidi" |
-| .claude/memory/ | questa memoria: [[STATE]], [[TREE]], [[INDEX]], sessions/, decisions/, components/, plans/ |
-| <path> | <cosa contiene> |
+| .claude/docs/ | process documentation (the "method") — load only the relevant files |
+| .claude/commands/ | slash commands of the method — the authoritative list is in `CLAUDE.md`, "Quick commands" |
+| .claude/memory/ | this memory: [[STATE]], [[TREE]], [[INDEX]], sessions/, decisions/, components/, plans/ |
+| <path> | <what it contains> |
 
-## Note
-<!-- Convenzioni di lettura dell'albero (es. profondità ridotta per componenti
-     dalla struttura identica, dotfile non mostrati da `tree`, ecc.). -->
-- `tree` non mostra i dotfile: esistono anche `.claude/`, `.gitignore`, ecc.
+## Notes
+<!-- Reading conventions for the tree (e.g. reduced depth for components with an
+     identical structure, dotfiles not shown by `tree`, etc.). -->
+- `tree` does not show dotfiles: `.claude/`, `.gitignore`, etc. also exist.

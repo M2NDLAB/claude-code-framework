@@ -3,34 +3,34 @@ type: index
 updated: YYYY-MM-DD
 tags: [moc]
 ---
-# INDEX — memoria persistente [NOME PROGETTO] (MOC)
+# INDEX — persistent memory [PROJECT NAME] (MOC)
 
-> **Cos'è questo file.** La mappa dei contenuti (Map Of Content) della memoria.
-> [[STATE]] è il punto d'ingresso operativo (iniettato dall'hook); da qui invece
-> si naviga tutto il resto. La cartella `.claude/` è pensata per aprirsi anche
-> come vault Obsidian: i wikilink `[[...]]` generano il graph view, ma funzionano
-> comunque come semplici rimandi in qualsiasi editor.
+> **What this file is.** The Map Of Content of the memory. [[STATE]] is the
+> operational entry point (injected by the hook); from here, instead, you navigate
+> everything else. The `.claude/` folder is designed to open as an Obsidian vault
+> too: the `[[...]]` wikilinks generate the graph view, but they work just as well
+> as plain pointers in any editor.
 >
-> Cancella questo blocco di istruzioni quando inizializzi il progetto e popola
-> le sezioni man mano che nascono le note.
+> Delete this block of instructions when you initialise the project and populate
+> the sections as the notes come into being.
 
-## Stato
-- [[STATE]] — stato corrente: avanzamento, decisioni, debito doc, problemi aperti
-- [[TREE]] — struttura del repository (rigenerata, mai editata a mano)
-- [[LEARNINGS]] — backlog dei miglioramenti di processo (IMP): aperte / applicate / rimandate
+## State
+- [[STATE]] — current state: progress, decisions, doc debt, open issues
+- [[TREE]] — repository structure (regenerated, never edited by hand)
+- [[LEARNINGS]] — backlog of process improvements (IMP): open / applied / deferred
 
-## Per componente
-<!-- Un rimando per ogni nota in components/. Stub finché il componente non nasce. -->
-- [[<componente>]] — <una riga di stato>
+## By component
+<!-- One pointer for every note in components/. A stub until the component exists. -->
+- [[<component>]] — <a one-line status>
 
-## Per fase (sessioni — append-only)
-<!-- Un rimando per ogni nota in sessions/, in ordine cronologico. -->
-- [[sessions/YYYY-MM-DD-<slug>]] — <cosa è successo in quella sessione>
+## By phase (sessions — append-only)
+<!-- One pointer for every note in sessions/, in chronological order. -->
+- [[sessions/YYYY-MM-DD-<slug>]] — <what happened in that session>
 
-## Decisioni
-<!-- Un rimando per ogni nota in decisions/ (o ai tuoi ADR formali). -->
-- [[YYYY-MM-DD-<slug>]] — <sintesi della decisione>
+## Decisions
+<!-- One pointer for every note in decisions/ (or to your formal ADRs). -->
+- [[YYYY-MM-DD-<slug>]] — <summary of the decision>
 
-## Piani
-<!-- Piani di task per i prompt onerosi (vedi docs/01-task-planning.md). -->
-- [[plans/<id-prompt>]] — <obiettivo> (status: in-progress | completed)
+## Plans
+<!-- Task plans for heavy prompts (see docs/01-task-planning.md). -->
+- [[plans/<id-prompt>]] — <objective> (status: in-progress | completed)

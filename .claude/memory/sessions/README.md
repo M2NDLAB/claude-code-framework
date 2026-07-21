@@ -1,69 +1,69 @@
-# sessions/ — diario di lavoro (append-only)
+# sessions/ — working journal (append-only)
 
-Una nota per ogni **sessione di lavoro** significativa. È la memoria narrativa del
-progetto: *cosa è stato fatto, cosa è andato storto e come si è risolto, cosa è
-stato deciso al volo*. A differenza di `STATE.md` (che si riscrive ed è un
-cruscotto del presente), le note di sessione sono **append-only**: non si
-modificano a posteriori, si accumulano. Sono la prima linea di difesa contro il
-"perché diavolo l'avevamo fatto così?" — e la fonte migliore di proposte di
-miglioramento (vedi `docs/06-self-improvement.md`).
+One note for every significant **working session**. It is the project's narrative
+memory: *what was done, what went wrong and how it was solved, what was decided on
+the fly*. Unlike `STATE.md` (which gets rewritten and is a dashboard of the
+present), session notes are **append-only**: they are not modified after the fact,
+they accumulate. They are the first line of defence against "why on earth did we do
+it this way?" — and the best source of improvement proposals (see
+`docs/06-self-improvement.md`).
 
-## Quando si scrive
-A fine task/sessione, tipicamente dentro `/checkpoint`. Anche un'escalation
-(`docs/05`) va registrata qui con il suo ID. E SEMPRE prima di un `/clear` o di un
-cambio di modello, se in chat c'è lavoro costoso non ancora persistito (un
-assessment, una review, decisioni prese al volo): il contesto di chat si perde, la
-nota no — e il prompt successivo potrà PUNTARE alla nota invece di ricostruire.
+## When to write one
+At the end of a task/session, typically inside `/checkpoint`. An escalation
+(`docs/05`) is recorded here too, with its ID. And ALWAYS before a `/clear` or a
+model switch, if the chat holds expensive work not yet persisted (an assessment, a
+review, decisions taken on the fly): the chat context is lost, the note is not —
+and the next prompt will be able to POINT at the note instead of rebuilding it.
 
 ## Naming
-`YYYY-MM-DD-<slug-breve>.md` — es. `2026-06-14-setup-iniziale.md`,
-`2026-06-15-modulo-pagamenti.md`. La data davanti tiene l'ordine cronologico.
+`YYYY-MM-DD-<short-slug>.md` — e.g. `2026-06-14-setup-iniziale.md`,
+`2026-06-15-modulo-pagamenti.md`. The leading date keeps the chronological order.
 
-## Formato
+## Format
 ```markdown
 ---
 date: YYYY-MM-DD
-task: <cosa si stava facendo>
-branch: <branch git>
+task: <what was being done>
+branch: <git branch>
 status: completed | in-progress | blocked
 tags: [session, <area>]
 ---
-# Session YYYY-MM-DD — <titolo>
+# Session YYYY-MM-DD — <title>
 
-## Fatto
-- <elenco puntuale di ciò che è stato prodotto, con i commit/sha rilevanti>
+## Done
+- <itemised list of what was produced, with the relevant commits/shas>
 
-## Problemi incontrati → causa → soluzione
-1. <sintomo> → <causa radice> → <fix>
+## Problems encountered → cause → solution
+1. <symptom> → <root cause> → <fix>
 
-## Correzioni fattuali doc (Livello 1, docs/06)
-- <doc allineata alla realtà, se è successo>
+## Factual doc corrections (Level 1, docs/06)
+- <doc aligned to reality, if it happened>
 
-## Proposte
-- IMP-nnn (in LEARNINGS.md): <eventuale proposta di miglioramento emersa>
+## Proposals
+- IMP-nnn (in LEARNINGS.md): <any improvement proposal that emerged>
 
 ## Follow-up
-- <eventuali code aperte riprese in una data successiva>
+- <any open threads picked up at a later date>
 ```
 
-## Blocco-piano — regime ibrido del repo-framework
+## Plan block — the framework repo's hybrid regime
 
-Nel repo del *framework* i deliverable onerosi NON usano `plans/` (template pulito,
-IMP-024): la nota di sessione fa da **plan-pointer**, ospitando il piano in un blocco
-STANDARDIZZATO — così piano e diario stanno in un solo artefatto e la ripresa lo trova
-sempre nello stesso posto (vedi il riquadro "Regime ibrido" in
-`docs/01-task-planning.md`). Nei progetti-cliente si usa invece `plans/`.
+In the *framework* repo heavy deliverables do NOT use `plans/` (clean template,
+IMP-024): the session note acts as a **plan-pointer**, hosting the plan in a
+STANDARDISED block — so plan and journal live in a single artefact and resumption
+always finds it in the same place (see the "Hybrid regime" box in
+`docs/01-task-planning.md`). In client projects `plans/` is used instead.
 
-Stessa struttura della checklist di `plans/`: checkbox + task atomico + sha, uno per task.
+Same structure as the `plans/` checklist: checkbox + atomic task + sha, one per task.
 
 ```markdown
-## Piano (un commit per task)
-- [x] 1. <task atomico> — commit: <sha>
-- [ ] 2. <task atomico> — commit: —
+## Plan (one commit per task)
+- [x] 1. <atomic task> — commit: <sha>
+- [ ] 2. <atomic task> — commit: —
 ```
 
-Committa la nota (con lo scheletro del blocco) come PRIMO task: è il plan-pointer
-resiliente a un crash immediato — l'equivalente del `chore: plan for …` di `plans/`. A
-completamento: `status: completed` nel frontmatter della nota.
+Commit the note (with the block's skeleton) as the FIRST task: it is the
+plan-pointer resilient to an immediate crash — the equivalent of `plans/`'s
+`chore: plan for …`. On completion: `status: completed` in the note's frontmatter.
 
-> Questo README resta come guida; le note di sessione vivono accanto ad esso.
+> This README stays as a guide; the session notes live alongside it.
