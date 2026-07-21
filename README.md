@@ -67,8 +67,8 @@ plan → execute task by task → [if sensitive] `/security-review` → `/retro`
 >
 > Do you instead need to **upgrade** to a newer version a project that already has
 > the framework grafted, preserving the memory accumulated so far? That is the third
-> case, with its own procedure (*"Evolving the framework"*), also at the end of
-> `SETUP.md`.
+> case, with its own procedure (*"Upgrading the framework on an already-grafted
+> project"*), also at the end of `SETUP.md`.
 
 ### Structure
 
