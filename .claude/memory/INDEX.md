@@ -15,7 +15,7 @@ tags: [moc]
 > the sections as the notes come into being.
 
 ## State
-- [[STATE]] — current state: progress, decisions, doc debt, open issues
+- [[STATE]] — current state: progress, decisions, documentation debt, open issues
 - [[TREE]] — repository structure (regenerated, never edited by hand)
 - [[LEARNINGS]] — backlog of process improvements (IMP): open / applied / deferred
 

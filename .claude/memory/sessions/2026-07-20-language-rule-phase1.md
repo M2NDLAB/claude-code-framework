@@ -2,7 +2,7 @@
 date: 2026-07-20
 task: Language rule (two axes) + full English translation of the framework — PHASE 1 (assessment, rule, glossary), PHASE 2 (translation)
 branch: feat/english-translation
-status: in-progress
+status: completed
 tags: [session, language, translation, plan]
 ---
 # Session 2026-07-20 — Language rule + English translation
@@ -64,32 +64,64 @@ the stable branch, after the release merge.
    deliberate opinionated choice.
 3. Past git history: never translated (immutable; no rewrite, no force-push).
 
-## Plan (one commit per task) — phase 2
+## Plan (one commit per task) — phase 2 — COMPLETE
 - [x] 0. Phase 1: assessment + IMP-040/041/042 + this note — commit: b292d30
-- [ ] 1. Phase-2 plan block + confirmed decisions in this note — commit: —
-- [ ] 2. Backward-compatible READERS (before any token switch): `/lint-memory`
+- [x] 1. Phase-2 plan block + confirmed decisions in this note — commit: 7ce255a
+- [x] 2. Backward-compatible READERS (before any token switch): `/lint-memory`
        sentinel, `/harvest-framework` grep, `hooks-install.sh` marker +
-       `test-hooks-install.sh` — commit: —
-- [ ] 3. `CLAUDE.md`: translation + new two-axis language rule (IMP-040 applied),
-       "Interaction language" slot replacing "Lingua/e del progetto" — commit: —
-- [ ] 4. `docs/00-overview.md`, `01-task-planning.md`, `02-code-quality.md`,
-       `03-security-gate.md` — commit: —
-- [ ] 5. `docs/04-git-workflow.md`, `05-escalation-protocol.md`,
-       `06-self-improvement.md` — commit: —
-- [ ] 6. `SETUP.md` (replaces the IMP-029 model; brownfield host-language
-       paragraph) — commit: —
-- [ ] 7. `README.md`, `CONTRIBUTING.md`, `SECURITY.md` — commit: —
-- [ ] 8. `.claude/commands/` (8 files) — commit: —
-- [ ] 9. Memory templates: `STATE.md`, `TREE.md`, `INDEX.md` + the READMEs of
-       `sessions/`, `plans/`, `decisions/`, `components/` — commit: —
-- [ ] 10. `LEARNINGS.md`: header + all IMP entries; IMP-040 rewritten as a declared
-       opinionated choice; duplicate `## Applicate` heading fixed — commit: —
-- [ ] 11. `sessions/` (11 notes — declared append-only exception) — commit: —
-- [ ] 12. `scripts/` + `Makefile` + commitlint header + `.gitignore` +
-       `settings.json` banner + `CHANGELOG.md` — commit: —
-- [ ] 13. Final verification: single-form grep for every glossary term, wikilink
+       `test-hooks-install.sh` — commit: 91f0ca7
+- [x] 3. `CLAUDE.md`: translation + new two-axis language rule (IMP-040 applied),
+       "Interaction language" slot replacing "Lingua/e del progetto" — commit: 0d725df
+- [x] 4. `docs/00-overview.md`, `01-task-planning.md`, `02-code-quality.md`,
+       `03-security-gate.md` — commit: ebd6be0
+- [x] 5. `docs/04-git-workflow.md`, `05-escalation-protocol.md`,
+       `06-self-improvement.md` — commit: b978a76
+- [x] 6. `SETUP.md` (replaces the IMP-029 model; brownfield host-language
+       paragraph) — commit: 5a499e6
+- [x] 7. `README.md`, `CONTRIBUTING.md`, `SECURITY.md` — commit: 614a0e5
+- [x] 8. `.claude/commands/` (8 files) — commit: 46f6bb1
+- [x] 9. Memory templates: `STATE.md`, `TREE.md`, `INDEX.md` + the READMEs of
+       `sessions/`, `plans/`, `decisions/`, `components/` — commit: b36a2a9
+- [x] 10. `LEARNINGS.md`: header + all IMP entries; IMP-040 rewritten as a declared
+       opinionated choice; duplicate `## Applicate` heading fixed — commit: 0c50dad
+- [x] 11. `sessions/` (10 historical notes — declared append-only exception) —
+       commit: 3002db2
+- [x] 12. `scripts/` + `Makefile` + commitlint header + `.gitignore` +
+       `settings.json` banner + `CHANGELOG.md` — commits: b401ae6, e00efad
+- [x] 13. Final verification: single-form grep for every glossary term, wikilink
        and cross-reference check, `/lint-memory` (incl. check 11),
-       `make test-scripts` — commit: —
+       `make test-scripts` — commit: (this commit)
+
+> Tasks 7 and 12 landed out of numeric order: the fan-out for the independent
+> file groups (tasks 8/9/11) ran in the background while the delicate single
+> files were translated in the foreground, and each group was committed as soon
+> as it was verified. The plan order is the source of truth, not the git order.
+
+## Final verification (task 13) — outcome
+- **Glossary, single form**: 20 key terms grepped repo-wide; each resolves to one
+  rendering. Two apparent variants inspected and cleared: `retrofit` is the
+  provenance-pin retrofit (it was "retrofit" in the Italian too, not a `graft`
+  variant), and `END OF DELIVERABLE` in caps is the diagram label of docs/00.
+  One real variant found and fixed: `doc debt` → `documentation debt` in INDEX.
+- **Wikilinks**: every target resolves; all session slugs are still Italian, as
+  intended.
+- **Cross-references**: one broken pointer found and fixed — README pointed at
+  *"Evolving the framework"* where the Italian pointed at the upgrade section.
+  This is precisely the risk flagged in the phase-1 analysis.
+- **Markers**: 22 files carry `[TO BE DEFINED AT SETUP]`; the only remaining
+  Italian occurrences are the deliberate dual-form greps and historical quotes
+  inside IMP records and session notes.
+- **`/lint-memory`, including check 11**: GREEN. Check 11 matches in all three
+  directions (8 commands on disk = 8 in "Quick commands" = 8 in the README
+  structure; the three Makefile process targets present, `reset-task` in its
+  equivalent form; 3 scripts = 3 rows in `scripts/README.md`). Check 10's
+  sentinel returns zero hits. Checks 1, 8 and 9 are not applicable in the hybrid
+  regime: `STATE`/`TREE`/`INDEX` are clean templates here.
+  Check 4 found two orphan session notes — **pre-existing**, with zero incoming
+  references already at b292d30, so not caused by this deliverable. Fixed by
+  linking them from this note rather than by editing append-only history.
+- **`make test-scripts`**: green. `settings.json` parses with its permission
+  lists unchanged; `make help` lists the same four targets.
 
 ## Glossary (APPROVED — law for phase 2)
 | Italiano | English (fixed) |
@@ -146,5 +178,13 @@ confirms what is already committed (`[task N/13]` in every message). If the
 working tree is dirty, discard the half-done task with `scripts/reset-task.sh`
 before resuming — never re-run a committed task.
 
-## Collegamenti
+## Links
 [[LEARNINGS]] (IMP-040, IMP-041, IMP-042)
+
+Linked here to give them an incoming reference (lint check 4): they were orphans
+before this deliverable, and in the hybrid regime `INDEX.md` stays a clean
+template, so it cannot index them —
+[[2026-07-11-consolidamento-assessment]] (the framework's first consolidation
+assessment) and [[2026-07-19-promozione-v1.0.0]] (the promotion to the first
+stable release, which set the post-1.0 regime this deliverable's bump is judged
+against).

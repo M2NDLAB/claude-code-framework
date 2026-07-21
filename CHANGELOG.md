@@ -7,6 +7,34 @@ SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+### Added
+- **Language rule with two axes** (IMP-040), as rule 9 of `CLAUDE.md`. ARTIFACTS —
+  everything that lands in the repo, including future commit messages, IMP entries and
+  session notes — are **always English**: a deliberate, declared opinionated choice
+  rather than an implicit leftover, because English artifacts are the universal
+  practice of open source and keep a project portable. INTERACTION — the language the
+  agent speaks with you in session — stays configurable and is the only configurable
+  axis. It REPLACES the IMP-029 model (now marked superseded) instead of coexisting
+  with it: the "Lingua/e del progetto" slot becomes "Interaction language" in the
+  technical rules, in the `SETUP.md` step-2 checklist and in the brownfield section.
+
+### Changed
+- **The whole framework is translated to English** (IMP-041): `CLAUDE.md`, the seven
+  process docs, the eight slash commands, the memory templates and their READMEs, the
+  live memory (`LEARNINGS.md` and the ten historical session notes), `README.md`,
+  `SETUP.md`, `CONTRIBUTING.md`, `SECURITY.md`, this CHANGELOG, and the comments and
+  user-facing messages of the scripts and config. Not translated, by design: past
+  commits (immutable history), file names, wikilink targets and session slugs,
+  identifiers in scripts, and conventional-commit types.
+- **Behavior-bearing strings switched WITH backward compatibility, so this is not a
+  breaking change.** `[DA DEFINIRE AL SETUP]` → `[TO BE DEFINED AT SETUP]`,
+  `Destinazione: framework` → `Destination: framework`, the `hooks-install.sh` marker,
+  the `PRONTO PER INTEGRAZIONE` / `RACCOLTA PER IL FRAMEWORK` blocks and the escalation
+  delimiters. Every READER accepts the legacy Italian form as well — the `/lint-memory`
+  sentinel and setup grep, the `/harvest-framework` grep, and `hooks-install.sh` via a
+  `LEGACY_MARKER` — so a project grafted or upgraded with an earlier release keeps
+  working untouched. Upgrading is optional and needs no migration.
+
 ## [1.0.0] — 2026-07-19
 
 First **stable** release. From this version on the framework promises stability of
