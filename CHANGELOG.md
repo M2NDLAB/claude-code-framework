@@ -7,6 +7,8 @@ SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-07-21
+
 ### Added
 - **Language rule with two axes** (IMP-040), as rule 9 of `CLAUDE.md`. ARTIFACTS —
   everything that lands in the repo, including future commit messages, IMP entries and
