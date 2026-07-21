@@ -27,24 +27,7 @@ tags: [improvement]
 
 ## OPEN proposals (awaiting the user's decision)
 
-### IMP-043 — Pin cross-file section titles in a canonical map before multi-file work
-- Date: 2026-07-21 | Origin: framework translation to English, v1.1.0 (IMP-041 series)
-- Observed problem: in multi-file work that touches cross-references (a translation, a
-  wide refactor), the GLOSSARY covers terms but NOT the section titles that other files
-  cite by name. A title renamed in file A while file B still points at the old wording
-  produces a broken cross-reference that no term-level check catches — exactly the single
-  broken pointer this deliverable produced.
-- Proposal: before starting the work, fix in a canonical MAP the section titles cited
-  across files (target title → files that cite it), and translate/rename them only through
-  that map. Where to put it: `01-task-planning.md` (PHASE 2, as an artifact preceding the
-  tasks in the cross-file case) and/or as an explicit item of the cross-module refactor
-  discipline in the same doc.
-- Expected benefit / risk: benefit — cross-references stay verifiable mechanically instead
-  of by memory, at a one-off cost paid before the first edit. Risk — one more artifact for
-  deliverables that do not need it; it must stay CONDITIONAL on the work touching
-  cross-file citations, not become a standing ritual.
-- Resumption trigger: the next heavy deliverable that rewrites section titles across
-  several files (a translation, a docs restructuring, a wide rename).
+_(none at the moment)_
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
@@ -388,6 +371,29 @@ tags: [improvement]
   remains is a large content change that adds no capability — by itself not even a
   release — plus one genuinely new rule (IMP-040) and one configuration slot renamed. A
   backward-compatible addition of a rule is the MINOR case of `docs/04`.
+
+### IMP-043 — Cross-file section titles in the coherence review → applied on 2026-07-21, commit ff7fbb6
+- Date: 2026-07-21 | Origin: framework translation to English, v1.1.0 (IMP-041 series)
+- Observed problem: in multi-file work the GLOSSARY covers terms but NOT the section
+  titles that other files cite by name. A title renamed in file A while file B still
+  points at the old wording produces a broken cross-reference that no term-level check
+  catches — the single broken pointer of that deliverable (README → *"Evolving the
+  framework"*, fixed in `e00efad`).
+- **Applied in REDUCED form; the version first proposed was discarded.** The original
+  proposal (fix the cited titles in a canonical MAP, as an artifact preceding the tasks
+  in PHASE 2) was rejected on the facts: the map is a `grep` away — maintaining a file to
+  replay a query is ceremony — and no new planning step was warranted. What went in is
+  ~5 lines extending the coherence review that ALREADY existed in `01-task-planning.md`
+  (*"Special case — cross-module refactor"*): section titles cited by name from other
+  files are a shared contract exactly like a shared API, so if the work renames them you
+  grep the old and the new wording before the merge.
+- Why a check and not a warning: phase 1 had ALREADY flagged this exact risk and the
+  defect passed anyway. The gap was never awareness — it was the absence of a mechanical
+  verification. That is the sentence the doc now carries.
+- Frequency and the anti-hype filter: ONE occurrence in 122 commits (the 2026-07-18
+  public-doc alignment, the closest candidate, renamed no titles). Hence the deliberately
+  CONDITIONAL placement — it fires only on work that renames cross-file titles, never as
+  a step of every deliverable.
 
 ## Deferred (not rejected — resumed at the right time)
 
