@@ -80,6 +80,36 @@ tags: [improvement]
   typed `feat(process)` → MINOR) and `feat(memory)` in v0.4.0 (the destination attribute
   of the IMP format).
 
+### IMP-046 — The upgrade procedure contradicts itself on `.claude/memory/`
+- Date: 2026-09-22 | Origin: [[2026-09-23-memory-model-turns]] — side finding of the
+  IMP-044 assessment
+- Observed problem: `SETUP.md` (*Upgrading the framework*) classifies "the guide READMEs
+  inside `.claude/memory/*/`" as METHOD (brought to `vY`) and `LEARNINGS.md` as HYBRID
+  ("at most the header/format is updated"), while Steps 3 and 5 demand an EMPTY
+  `git diff` on `.claude/memory/` ("a non-empty diff = a bug in the upgrade") and edge
+  case 3 calls the pointer repair "the only exception". Step 2's diff also excludes
+  `.claude/memory` on purpose, so a change to a guide README never shows up in the
+  exact-text source of the upgrade. Two rules of the same procedure cannot both hold.
+- Evidence — the two real upgrades of the same client project (2026-07-17,
+  v0.2.0→v0.5.1; 2026-07-19, v0.5.1→v1.0.0): both treated the whole of `.claude/memory/`
+  as project memory — the first with an ad-hoc second exception (the LEARNINGS header),
+  the second with an empty diff. That project's `sessions/README.md` is still
+  byte-identical to v0.2.0 while its provenance pin says 1.0.0: the README changes of
+  v0.5.1 (IMP-034, `da0e158`) never arrived. The contradiction is live since v0.4.0 (the
+  LEARNINGS header, `d2856be`), not an effect of IMP-044.
+- Why it matters now: IMP-044 changes `sessions/README.md`, and an upgraded project will
+  not receive it. The `/checkpoint` clause of IMP-044 carries the minimal format for this
+  very reason — a MITIGATION, not the fix.
+- Proposal: NOT decided here — a contradiction in the method is a BUG, to be resolved at
+  a dedicated retro (user decision 2026-09-23). Direction to evaluate: scope the
+  invariant to the PROJECT-MEMORY files (notes, STATE/TREE/INDEX, the IMP entries),
+  NAMING the guide READMEs and the LEARNINGS header as declared, expected hunks — and
+  bring them into Step 2's diff.
+- Expected benefit / risk: the method's own changes to the memory templates reach
+  upgraded projects, while the invariant keeps catching accidental edits to the real
+  memory. Risk: a looser invariant that lets an accidental edit through — the fix must
+  name the allowed files, never relax to "some diff is fine".
+
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
 - Date: YYYY-MM-DD | Origin: [[<session note>]] — <problem>
