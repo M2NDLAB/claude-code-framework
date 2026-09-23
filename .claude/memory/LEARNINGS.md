@@ -27,62 +27,6 @@ tags: [improvement]
 
 ## OPEN proposals (awaiting the user's decision)
 
-### IMP-044 — `model` and `turns` in the session-note frontmatter → approved on 2026-09-23, being applied
-- Date: 2026-09-22 | Origin: [[2026-09-23-memory-model-turns]] — no record of which
-  model produced a note, and no objective proxy of the friction a task cost
-- Observed problem: a memory note does not say which model produced it, so its
-  reliability cannot be weighed after the fact; and the friction of the recorded work —
-  the raw material of IMPs — is noticed only if someone happens to remember it.
-- Proposal (assessment of 2026-09-22, adversarially verified; user decisions D1-D5 of
-  2026-09-23): two OPTIONAL frontmatter fields, additive and backward compatible.
-  - **Scope: `sessions/` notes only.** STATE/TREE/INDEX and `components/` are rewritten
-    over time (the value would record the last editor and go stale); `decisions/`
-    carry a human decision; `plans/` span many sessions; IMP entries are edited by
-    later sessions, and `turns` means nothing for them.
-  - **`model`**: a free value, never an enum (model names change); the id as the
-    runtime exposes it to the agent, verbatim, ALWAYS single-quoted (verified with a
-    real YAML parser: an unquoted id breaks a flow list or is coerced into a
-    number/date/boolean; double quotes turn `\` into an escape). Several models on one
-    note → one string, distinct ids in order of first use, `, `-separated (Obsidian
-    types a property by name across the vault, so one shape only). Main session only;
-    delegated work is mentioned in the body. Not exposed → omitted, never guessed.
-  - **`turns` per NOTE, not per task (D1)**: the user's messages whose work THIS note
-    records. A note is not a task (one note per session or day in client projects; a
-    resumed deliverable got a new note even here), and a cumulative count across notes
-    risks double counting: the value of a unit of work — a deliverable, grouped by
-    `branch`; not a `docs/01` plan task — is the SUM of its notes, computed at analysis
-    time, never recorded. A bare integer ≥ 1, counted by the agent from its own
-    conversation — NOT from the runtime transcript, whose internal format makes the
-    obvious heuristic wrong (tool results are `type:"user"` entries: dozens of them
-    against a single real prompt in the assessment session). An approximate PROXY,
-    declared in the format and not in the value: a lower bound after a compaction or a
-    resumption, and still written. Rewrites within one session never recount a message
-    (the value before the session's first write + the session's messages); a delegated
-    writer records the main session's values, never its own.
-  - **IMP format (D2)**: the Origin line becomes `Origin: [[<session note>]] — <problem>`
-    — today only 2 of 43 entries cite the note that produced them, so the provenance of
-    an IMP is NOT traceable. One line, real value from now on.
-  - **`/checkpoint` carries the minimal format inline (D3)**: it is the command that
-    WRITES the notes — updating only the template would be a dead improvement — and the
-    only channel through which the two fields reach already-upgraded projects (see
-    IMP-046; the D2 Origin line has no such channel).
-  - **Deliberately NOT recorded** (user decision — so they are not re-proposed):
-    `tokens` — it lives in the runtime's usage report, duplicating it is redundancy;
-    `duration`/wall-clock — infrastructure time, not effort, an illusion of
-    measurement; `files_touched` — git already knows it; `difficulty`/`complexity` —
-    `turns` is already the objective proxy, a subjective field would be the invented
-    version of the same datum.
-- Expected benefit / risk: after-the-fact reliability of the notes, and the data the
-  deferred threshold rule (IMP-045) needs before it can exist. Risk: a proxy read as a
-  measure — declared in the format; no command consumes the fields yet.
-- Versioning (D5): **MINOR → v1.2.0** via `feat(memory)`, on the contract criterion —
-  `docs/04` lists "an optional field" as MINOR, `CONTRIBUTING.md` calls breaking only an
-  INCOMPATIBLE memory format. A DECLARED deviation from two rules read literally:
-  `integrate.md` step 2 (memory/doc-only commits → no tag) and the
-  `chore(claude): apply IMP-nnn` type of `docs/06`. Precedents: v1.1.0 (a process-rule
-  addition, IMP-040, typed `feat(process)` → MINOR) and `feat(memory)` in v0.4.0 (the
-  destination attribute of the IMP format).
-
 ### IMP-046 — The upgrade procedure contradicts itself on `.claude/memory/`
 - Date: 2026-09-22 | Origin: [[2026-09-23-memory-model-turns]] — the upgrade demands an
   empty diff on `.claude/memory/` yet classifies its guide READMEs as METHOD (a side
@@ -117,6 +61,26 @@ tags: [improvement]
   upgraded projects, while the invariant keeps catching accidental edits to the real
   memory. Risk: a looser invariant that lets an accidental edit through — the fix must
   name the allowed files, never relax to "some diff is fine".
+
+### IMP-047 — `/integrate`'s "doc-only → no tag" ignores the method-project contract
+- Date: 2026-09-23 | Origin: [[2026-09-23-memory-model-turns]] — for a method framework
+  the `.md` files ARE the product, yet `/integrate` maps "memory/doc-only commits" to
+  "no tag"
+- Observed problem: `integrate.md` step 2 lists "memory/doc-only commits" next to the
+  no-tag types, while `docs/04` (*Versioning*) defines the contract of a method/tooling
+  project as the method itself and lists "an optional field" as MINOR. For such a project
+  a doc-only change CAN be a contract change, and the two rules then disagree. Recurring:
+  v0.4.0 (all ten changed files `.md`, `feat` commits, released MINOR) and v1.2.0
+  (IMP-044, where the deviation had to be DECLARED as such — D5).
+- Proposal: NOT decided here (end-of-deliverable retro: recorded only). Direction to
+  evaluate: qualify the clause of `integrate.md` — "doc-only" means documentation ABOUT
+  the product, not a change to the product's contract when the product is a method (a
+  pointer to `docs/04`) — so that the type of the commit, not its file extension, drives
+  the bump.
+- Expected benefit / risk: the next contract change of a method project is computed
+  right by `/integrate` instead of relying on a declared deviation. Risk: a `feat` used
+  loosely on real doc-only work would then cut a release — the type discipline of
+  `docs/04` already guards it.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
@@ -484,6 +448,62 @@ tags: [improvement]
   CONDITIONAL placement — it fires only on work that renames cross-file titles, never as
   a step of every deliverable.
 
+### IMP-044 — `model` and `turns` in the session-note frontmatter → applied on 2026-09-23, commit 184529e (+cdf862f)
+- Date: 2026-09-22 | Origin: [[2026-09-23-memory-model-turns]] — no record of which
+  model produced a note, and no objective proxy of the friction a task cost
+- Observed problem: a memory note does not say which model produced it, so its
+  reliability cannot be weighed after the fact; and the friction of the recorded work —
+  the raw material of IMPs — is noticed only if someone happens to remember it.
+- Proposal (assessment of 2026-09-22, adversarially verified; user decisions D1-D5 of
+  2026-09-23): two OPTIONAL frontmatter fields, additive and backward compatible.
+  - **Scope: `sessions/` notes only.** STATE/TREE/INDEX and `components/` are rewritten
+    over time (the value would record the last editor and go stale); `decisions/`
+    carry a human decision; `plans/` span many sessions; IMP entries are edited by
+    later sessions, and `turns` means nothing for them.
+  - **`model`**: a free value, never an enum (model names change); the id as the
+    runtime exposes it to the agent, verbatim, ALWAYS single-quoted (verified with a
+    real YAML parser: an unquoted id breaks a flow list or is coerced into a
+    number/date/boolean; double quotes turn `\` into an escape). Several models on one
+    note → one string, distinct ids in order of first use, `, `-separated (Obsidian
+    types a property by name across the vault, so one shape only). Main session only;
+    delegated work is mentioned in the body. Not exposed → omitted, never guessed.
+  - **`turns` per NOTE, not per task (D1)**: the user's messages whose work THIS note
+    records. A note is not a task (one note per session or day in client projects; a
+    resumed deliverable got a new note even here), and a cumulative count across notes
+    risks double counting: the value of a unit of work — a deliverable, grouped by
+    `branch`; not a `docs/01` plan task — is the SUM of its notes, computed at analysis
+    time, never recorded. A bare integer ≥ 1, counted by the agent from its own
+    conversation — NOT from the runtime transcript, whose internal format makes the
+    obvious heuristic wrong (tool results are `type:"user"` entries: dozens of them
+    against a single real prompt in the assessment session). An approximate PROXY,
+    declared in the format and not in the value: a lower bound after a compaction or a
+    resumption, and still written. Rewrites within one session never recount a message
+    (the value before the session's first write + the session's messages); a delegated
+    writer records the main session's values, never its own.
+  - **IMP format (D2)**: the Origin line becomes `Origin: [[<session note>]] — <problem>`
+    — today only 2 of 43 entries cite the note that produced them, so the provenance of
+    an IMP is NOT traceable. One line, real value from now on.
+  - **`/checkpoint` carries the minimal format inline (D3)**: it is the command that
+    WRITES the notes — updating only the template would be a dead improvement — and the
+    only channel through which the two fields reach already-upgraded projects (see
+    IMP-046; the D2 Origin line has no such channel).
+  - **Deliberately NOT recorded** (user decision — so they are not re-proposed):
+    `tokens` — it lives in the runtime's usage report, duplicating it is redundancy;
+    `duration`/wall-clock — infrastructure time, not effort, an illusion of
+    measurement; `files_touched` — git already knows it; `difficulty`/`complexity` —
+    `turns` is already the objective proxy, a subjective field would be the invented
+    version of the same datum.
+- Expected benefit / risk: after-the-fact reliability of the notes, and the data the
+  deferred threshold rule (IMP-045) needs before it can exist. Risk: a proxy read as a
+  measure — declared in the format; no command consumes the fields yet.
+- Versioning (D5): **MINOR → v1.2.0** via `feat(memory)`, on the contract criterion —
+  `docs/04` lists "an optional field" as MINOR, `CONTRIBUTING.md` calls breaking only an
+  INCOMPATIBLE memory format. A DECLARED deviation from two rules read literally:
+  `integrate.md` step 2 (memory/doc-only commits → no tag) and the
+  `chore(claude): apply IMP-nnn` type of `docs/06`. Precedents: v1.1.0 (a process-rule
+  addition, IMP-040, typed `feat(process)` → MINOR) and `feat(memory)` in v0.4.0 (the
+  destination attribute of the IMP format).
+
 ## Deferred (not rejected — resumed at the right time)
 
 ### IMP-023 — CODE_OF_CONDUCT.md and .github/ templates → deferred on 2026-07-11
@@ -534,6 +554,12 @@ tags: [improvement]
   procedure of `SETUP.md` held up (the memory invariant respected, the functional
   verification of the hooks demonstrated). Counter: **1 of 2-3**, trigger NOT fired.
   User decision: deferral CONFIRMED.
+- **Case #2 happened** (bookkeeping annotation 2026-09-23, found during the IMP-044
+  assessment — see [[2026-09-23-memory-model-turns]]): the same client project performed
+  its second real upgrade on 2026-07-19 (v0.5.1→v1.0.0, crossing the first stable
+  release). Counter: **2 of 2-3** — the trigger is CLOSE, not fired. Bookkeeping only
+  (user decision): the IMP is NOT reopened here; its evaluation belongs to a retro. Note
+  for that retro: both upgrades hit the contradiction recorded in IMP-046.
 
 ### IMP-042 — `/change-language` (an automated translation command) → deferred on 2026-07-20
 - User decision (language deliverable, phase 1): DEFER — the same anti-hype filter as
