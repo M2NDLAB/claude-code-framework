@@ -56,8 +56,8 @@ many exchanges the recorded work took — an objective proxy of its friction.
 
 - **Absent = not recorded.** Notes that predate the fields stay valid; never backfill
   them — the values would be reconstructed, not recorded. The fields are historical
-  attributes of the note: not claims about the current state, and not concepts that
-  call for a page of their own.
+  attributes of the note: for `/lint-memory` they are neither stale claims (check 3)
+  nor concepts that call for a page of their own (check 5).
 - **`model`** — the identifier of the model running the main session, **as the runtime
   exposes it to the agent**, verbatim. A free value, never an enum: model names change.
   ALWAYS in single quotes (a `'` inside the id is doubled): unquoted, an id can break the
@@ -69,26 +69,32 @@ many exchanges the recorded work took — an objective proxy of its friction.
   subagents on a different model, say so in the body. Different strings may denote the
   same model (e.g. a context-window suffix): no normalisation — compare by base id when
   aggregating.
-- **`turns`** — a bare integer ≥ 1: the user's messages whose work THIS note records.
-  Counted: prompts, commands that start work by the agent, answers to the agent's
-  questions, feedback typed when rejecting an action. Not counted: commands handled
-  locally that the agent does not answer (e.g. a model switch, `/clear`), automatic or
-  system messages, approvals given with a click. It is **per note, not per task**: a
-  task recorded in several notes (resumptions, one note per session or day) is the SUM
-  of its notes, computed when the data is analysed (e.g. grouped by `branch`) — never
-  recorded. No quotes, `~`, `+` or leading zero: the approximation is declared here, not
-  in the value.
+- **`turns`** — a bare integer ≥ 1: the user's messages whose work THIS note records,
+  counted from the conversation (not by parsing runtime logs, whose user-type entries
+  may include tool results). Counted: prompts, commands that start work by the agent,
+  answers to the agent's questions, feedback typed when rejecting an action. Not
+  counted: commands handled locally that the agent does not answer (e.g. a model
+  switch, `/clear`), automatic or system messages, approvals given with a click. It is
+  **per note**: a unit of work recorded in several notes (resumptions, one note per
+  session or day) is the SUM of its notes, computed when the data is analysed — e.g.
+  per deliverable, grouped by `branch` — and never recorded. No quotes, `~`, `+` or
+  leading zero: the approximation is declared here, not in the value.
 - **A PROXY, not a measure.** It does not weigh long turns against short ones, and after
   a context compaction or a resumption it is a lower bound — still written: omitting it
   would drop exactly the high-friction cases.
-- **When.** Both fields are refreshed at EVERY write of the note while its work is open:
-  `turns` = the value the note had when this session first wrote it + this session's
-  messages so far (never add the same messages twice). If one session closes several
-  notes, each counts from the first message after the previous note was last written.
-  The fields freeze with the commit of the checkpoint that completes the note: what
-  follows (e.g. the integration) is not counted, and later edits never touch them.
-- **Recorded data only**: no command consumes these fields yet — a threshold rule on
-  `turns` stays deferred until a real distribution exists.
+- **When.** Both fields are refreshed at every write that records work. `turns` = the
+  value the note carried BEFORE this session first wrote to it (0 for a new note) + all
+  of this session's messages so far — so rewriting the note within one session never
+  counts a message twice. If one session closes several notes, each counts from the
+  first message after the previous note was last written. A later session that records
+  NEW work in the same note (today's note written again, an escalation resolved) adds
+  its own messages the same way. Edits that record no new work (a link repair, a
+  translation) never touch the fields, and nothing after the checkpoint that completes
+  the work is counted (e.g. the integration).
+- **Written by the main session.** If a delegated agent writes the note, it records the
+  values the main session passes to it — never its own prompts or its own model.
+- **Recorded data only**: no command consumes these fields; a threshold rule on `turns`
+  is a separate, deferred proposal.
 
 ## Plan block — the framework repo's hybrid regime
 

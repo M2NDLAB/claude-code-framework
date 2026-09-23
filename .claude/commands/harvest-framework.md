@@ -46,13 +46,15 @@ harvested" when it is not.
 A single copyable code block. For each lesson use the format of a framework IMP proposal
 (so it is ready to paste into its `LEARNINGS.md`), BUT with the local references
 ANONYMISED: no name of this project/client/environment, no project-specific
-path, no local SHA (docs/04: the shared history of the framework is
-agnostic). Rephrase "Origin" in generic terms ("emerged while working on a project that
-uses the framework"), never with the identity of the project.
+path, no local SHA, no `[[wikilink]]` to a local session note (docs/04: the shared
+history of the framework is agnostic). Rephrase "Origin" in generic terms ("emerged
+while working on a project that uses the framework"), never with the identity of the
+project.
 
 ```
 ===== FRAMEWORK HARVEST =====
-# Re-propose each entry as an IMP in the framework repo (the number is reassigned there).
+# Re-propose each entry as an IMP in the framework repo (the number and the Origin's
+# [[session note]] are assigned there).
 # BEFORE pasting: check that NO names/paths/SHAs of this project are left.
 
 ### <title of the lesson>              (was IMP-<nnn> in this project)

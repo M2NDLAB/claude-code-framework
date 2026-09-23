@@ -49,20 +49,23 @@ tags: [improvement]
   - **`turns` per NOTE, not per task (D1)**: the user's messages whose work THIS note
     records. A note is not a task (one note per session or day in client projects; a
     resumed deliverable got a new note even here), and a cumulative count across notes
-    risks double counting: the per-task value is the SUM of the task's notes, computed
-    at analysis time (e.g. grouped by `branch`), never recorded. A bare integer ≥ 1,
-    counted by the agent from its own conversation — NOT from the runtime transcript,
-    whose internal format makes the obvious heuristic wrong (tool results are
-    `type:"user"` entries: dozens of them against a single real prompt in the
-    assessment session). An
-    approximate PROXY, declared in the format and not in the value: a lower bound after
-    a compaction or a resumption, and still written.
+    risks double counting: the value of a unit of work — a deliverable, grouped by
+    `branch`; not a `docs/01` plan task — is the SUM of its notes, computed at analysis
+    time, never recorded. A bare integer ≥ 1, counted by the agent from its own
+    conversation — NOT from the runtime transcript, whose internal format makes the
+    obvious heuristic wrong (tool results are `type:"user"` entries: dozens of them
+    against a single real prompt in the assessment session). An approximate PROXY,
+    declared in the format and not in the value: a lower bound after a compaction or a
+    resumption, and still written. Rewrites within one session never recount a message
+    (the value before the session's first write + the session's messages); a delegated
+    writer records the main session's values, never its own.
   - **IMP format (D2)**: the Origin line becomes `Origin: [[<session note>]] — <problem>`
     — today only 2 of 43 entries cite the note that produced them, so the provenance of
     an IMP is NOT traceable. One line, real value from now on.
   - **`/checkpoint` carries the minimal format inline (D3)**: it is the command that
     WRITES the notes — updating only the template would be a dead improvement — and the
-    only channel that reaches already-upgraded projects (see IMP-046).
+    only channel through which the two fields reach already-upgraded projects (see
+    IMP-046; the D2 Origin line has no such channel).
   - **Deliberately NOT recorded** (user decision — so they are not re-proposed):
     `tokens` — it lives in the runtime's usage report, duplicating it is redundancy;
     `duration`/wall-clock — infrastructure time, not effort, an illusion of
@@ -76,13 +79,14 @@ tags: [improvement]
   `docs/04` lists "an optional field" as MINOR, `CONTRIBUTING.md` calls breaking only an
   INCOMPATIBLE memory format. A DECLARED deviation from two rules read literally:
   `integrate.md` step 2 (memory/doc-only commits → no tag) and the
-  `chore(claude): apply IMP-nnn` type of `docs/06`. Precedents: v1.1.0 (doc-only work
-  typed `feat(process)` → MINOR) and `feat(memory)` in v0.4.0 (the destination attribute
-  of the IMP format).
+  `chore(claude): apply IMP-nnn` type of `docs/06`. Precedents: v1.1.0 (a process-rule
+  addition, IMP-040, typed `feat(process)` → MINOR) and `feat(memory)` in v0.4.0 (the
+  destination attribute of the IMP format).
 
 ### IMP-046 — The upgrade procedure contradicts itself on `.claude/memory/`
-- Date: 2026-09-22 | Origin: [[2026-09-23-memory-model-turns]] — side finding of the
-  IMP-044 assessment
+- Date: 2026-09-22 | Origin: [[2026-09-23-memory-model-turns]] — the upgrade demands an
+  empty diff on `.claude/memory/` yet classifies its guide READMEs as METHOD (a side
+  finding of the IMP-044 assessment)
 - Observed problem: `SETUP.md` (*Upgrading the framework*) classifies "the guide READMEs
   inside `.claude/memory/*/`" as METHOD (brought to `vY`) and `LEARNINGS.md` as HYBRID
   ("at most the header/format is updated"), while Steps 3 and 5 demand an EMPTY
@@ -95,16 +99,20 @@ tags: [improvement]
   as project memory — the first with an ad-hoc second exception (the LEARNINGS header),
   the second with an empty diff. That project's `sessions/README.md` is still
   byte-identical to v0.2.0 while its provenance pin says 1.0.0: the README changes of
-  v0.5.1 (IMP-034, `da0e158`) never arrived. The contradiction is live since v0.4.0 (the
-  LEARNINGS header, `d2856be`), not an effect of IMP-044.
-- Why it matters now: IMP-044 changes `sessions/README.md`, and an upgraded project will
-  not receive it. The `/checkpoint` clause of IMP-044 carries the minimal format for this
-  very reason — a MITIGATION, not the fix.
+  v0.5.1 (IMP-034, `da0e158`) never arrived. The contradiction is live since v0.5.0,
+  the release that introduced the procedure and its invariant (`8eb3107`); the first
+  template change it strands is older — the LEARNINGS format of v0.4.0 (`d2856be`). It
+  is not an effect of IMP-044.
+- Why it matters now: IMP-044 changes two templates under `.claude/memory/`, and an
+  upgraded project will receive neither: `sessions/README.md` (the `/checkpoint` clause
+  of IMP-044 carries the minimal format of the two fields for this very reason — a
+  MITIGATION, not the fix) and the Origin line of the LEARNINGS format comment (D2),
+  which has NO mitigation: `/retro` does not carry the IMP format.
 - Proposal: NOT decided here — a contradiction in the method is a BUG, to be resolved at
   a dedicated retro (user decision 2026-09-23). Direction to evaluate: scope the
   invariant to the PROJECT-MEMORY files (notes, STATE/TREE/INDEX, the IMP entries),
-  NAMING the guide READMEs and the LEARNINGS header as declared, expected hunks — and
-  bring them into Step 2's diff.
+  NAMING the guide READMEs and the LEARNINGS header and format comment as declared,
+  expected hunks — and bring them into Step 2's diff.
 - Expected benefit / risk: the method's own changes to the memory templates reach
   upgraded projects, while the invariant keeps catching accidental edits to the real
   memory. Risk: a looser invariant that lets an accidental edit through — the fix must
@@ -538,8 +546,8 @@ tags: [improvement]
   framework's own translation (IMP-041) is case #1, now completed.
 
 ### IMP-045 — A `turns` threshold as a /retro input → deferred on 2026-09-23
-- Date: 2026-09-22 | Origin: [[2026-09-23-memory-model-turns]] — the companion rule of
-  IMP-044, recorded at the same time and NOT applied
+- Date: 2026-09-22 | Origin: [[2026-09-23-memory-model-turns]] — high-friction work is
+  noticed only if someone remembers it (the companion rule of IMP-044, NOT applied)
 - Proposal (NOT an active rule): when `turns` exceeds a threshold N, `/retro` examines
   the task as a candidate for a lesson (high turns = friction, and friction is the raw
   material of IMPs).
@@ -550,12 +558,19 @@ tags: [improvement]
   (`/change-language`): first the cases, then the rule that uses them. No N is chosen
   here.
 - Resumption trigger: after ~20 tasks have recorded `turns`, when the real distribution
-  allows N to be fixed on the data instead of guessed. Helper — it counts NOTES in this
-  repo: `grep -lE '^turns: [1-9][0-9]*[[:space:]]*$' .claude/memory/sessions/20*.md | wc -l`.
-- On resumption: `turns` is per NOTE (IMP-044), so decide whether the rule looks at a
-  single note or at the sum of the notes of the same task (same `branch`/plan); and the
-  framework repo's own notes are process work, so check N against the notes of at least
-  one client project before fixing it.
+  allows N to be fixed on the data instead of guessed. A "task" here is a deliverable —
+  `turns` is per NOTE (IMP-044), and one deliverable's notes share its `branch`. Helper,
+  counting the distinct branches whose notes carry `turns` in this repo:
+  `grep -lE '^turns: [1-9][0-9]*[[:space:]]*$' .claude/memory/sessions/20*.md | xargs grep -h '^branch:' | tr -d '\r' | sort -u | wc -l`
+- On resumption: decide whether the rule looks at a single note or at the sum of the
+  notes of the same deliverable; and the framework repo's own notes are process work, so
+  check N against the notes of at least one client project before fixing it.
 
 ## Rejected (with the reason — so they are not re-proposed)
-_(none yet)_
+
+### Session-note fields `tokens`, `duration`, `files_touched`, `difficulty` → rejected on 2026-09-23
+- User decision within IMP-044 (only `model` and `turns` were added): `tokens` lives in
+  the runtime's usage report — duplicating it is redundancy; `duration`/wall-clock is
+  infrastructure time, not effort — an illusion of measurement; `files_touched` — git
+  already knows it; `difficulty`/`complexity` — `turns` is already the objective proxy,
+  and a subjective field would be the invented version of the same datum.
