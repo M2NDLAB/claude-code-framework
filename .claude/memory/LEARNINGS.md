@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-07-21
+updated: 2026-09-23
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -27,7 +27,58 @@ tags: [improvement]
 
 ## OPEN proposals (awaiting the user's decision)
 
-_(none at the moment)_
+### IMP-044 — `model` and `turns` in the session-note frontmatter → approved on 2026-09-23, being applied
+- Date: 2026-09-22 | Origin: [[2026-09-23-memory-model-turns]] — no record of which
+  model produced a note, and no objective proxy of the friction a task cost
+- Observed problem: a memory note does not say which model produced it, so its
+  reliability cannot be weighed after the fact; and the friction of the recorded work —
+  the raw material of IMPs — is noticed only if someone happens to remember it.
+- Proposal (assessment of 2026-09-22, adversarially verified; user decisions D1-D5 of
+  2026-09-23): two OPTIONAL frontmatter fields, additive and backward compatible.
+  - **Scope: `sessions/` notes only.** STATE/TREE/INDEX and `components/` are rewritten
+    over time (the value would record the last editor and go stale); `decisions/`
+    carry a human decision; `plans/` span many sessions; IMP entries are edited by
+    later sessions, and `turns` means nothing for them.
+  - **`model`**: a free value, never an enum (model names change); the id as the
+    runtime exposes it to the agent, verbatim, ALWAYS single-quoted (verified with a
+    real YAML parser: an unquoted id breaks a flow list or is coerced into a
+    number/date/boolean; double quotes turn `\` into an escape). Several models on one
+    note → one string, distinct ids in order of first use, `, `-separated (Obsidian
+    types a property by name across the vault, so one shape only). Main session only;
+    delegated work is mentioned in the body. Not exposed → omitted, never guessed.
+  - **`turns` per NOTE, not per task (D1)**: the user's messages whose work THIS note
+    records. A note is not a task (one note per session or day in client projects; a
+    resumed deliverable got a new note even here), and a cumulative count across notes
+    risks double counting: the per-task value is the SUM of the task's notes, computed
+    at analysis time (e.g. grouped by `branch`), never recorded. A bare integer ≥ 1,
+    counted by the agent from its own conversation — NOT from the runtime transcript,
+    whose internal format makes the obvious heuristic wrong (tool results are
+    `type:"user"` entries: dozens of them against a single real prompt in the
+    assessment session). An
+    approximate PROXY, declared in the format and not in the value: a lower bound after
+    a compaction or a resumption, and still written.
+  - **IMP format (D2)**: the Origin line becomes `Origin: [[<session note>]] — <problem>`
+    — today only 2 of 43 entries cite the note that produced them, so the provenance of
+    an IMP is NOT traceable. One line, real value from now on.
+  - **`/checkpoint` carries the minimal format inline (D3)**: it is the command that
+    WRITES the notes — updating only the template would be a dead improvement — and the
+    only channel that reaches already-upgraded projects (see IMP-046).
+  - **Deliberately NOT recorded** (user decision — so they are not re-proposed):
+    `tokens` — it lives in the runtime's usage report, duplicating it is redundancy;
+    `duration`/wall-clock — infrastructure time, not effort, an illusion of
+    measurement; `files_touched` — git already knows it; `difficulty`/`complexity` —
+    `turns` is already the objective proxy, a subjective field would be the invented
+    version of the same datum.
+- Expected benefit / risk: after-the-fact reliability of the notes, and the data the
+  deferred threshold rule (IMP-045) needs before it can exist. Risk: a proxy read as a
+  measure — declared in the format; no command consumes the fields yet.
+- Versioning (D5): **MINOR → v1.2.0** via `feat(memory)`, on the contract criterion —
+  `docs/04` lists "an optional field" as MINOR, `CONTRIBUTING.md` calls breaking only an
+  INCOMPATIBLE memory format. A DECLARED deviation from two rules read literally:
+  `integrate.md` step 2 (memory/doc-only commits → no tag) and the
+  `chore(claude): apply IMP-nnn` type of `docs/06`. Precedents: v1.1.0 (doc-only work
+  typed `feat(process)` → MINOR) and `feat(memory)` in v0.4.0 (the destination attribute
+  of the IMP format).
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
@@ -455,6 +506,26 @@ _(none at the moment)_
 - Resumption trigger: after 2-3 real manual uses (full translations or language switches
   performed by hand), when the repeatable steps are distillable from practice. The
   framework's own translation (IMP-041) is case #1, now completed.
+
+### IMP-045 — A `turns` threshold as a /retro input → deferred on 2026-09-23
+- Date: 2026-09-22 | Origin: [[2026-09-23-memory-model-turns]] — the companion rule of
+  IMP-044, recorded at the same time and NOT applied
+- Proposal (NOT an active rule): when `turns` exceeds a threshold N, `/retro` examines
+  the task as a candidate for a lesson (high turns = friction, and friction is the raw
+  material of IMPs).
+- User decision: DEFER. N is NOT determinable now: no note carries `turns` yet, so there
+  is no distribution to set it on. Inventing N would produce a rule that either always
+  fires (noise to be ignored) or never does (dead) — worse than no rule at all. The same
+  anti-hype filter as IMP-027 (`graft.sh`), IMP-037 (`/upgrade-framework`) and IMP-042
+  (`/change-language`): first the cases, then the rule that uses them. No N is chosen
+  here.
+- Resumption trigger: after ~20 tasks have recorded `turns`, when the real distribution
+  allows N to be fixed on the data instead of guessed. Helper — it counts NOTES in this
+  repo: `grep -lE '^turns: [1-9][0-9]*[[:space:]]*$' .claude/memory/sessions/20*.md | wc -l`.
+- On resumption: `turns` is per NOTE (IMP-044), so decide whether the rule looks at a
+  single note or at the sum of the notes of the same task (same `branch`/plan); and the
+  framework repo's own notes are process work, so check N against the notes of at least
+  one client project before fixing it.
 
 ## Rejected (with the reason — so they are not re-proposed)
 _(none yet)_
