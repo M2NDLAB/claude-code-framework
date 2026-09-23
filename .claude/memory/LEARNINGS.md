@@ -82,7 +82,7 @@ tags: [improvement]
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
-- Date: YYYY-MM-DD | Origin: <session/problem that produced it>
+- Date: YYYY-MM-DD | Origin: [[<session note>]] — <problem>
 - Observed problem: <recurring friction, repeated error, gap, ambiguous rule>
 - Proposal: <what to change and where: CLAUDE.md / docs/NN / command / hook / process>
 - Expected benefit / risk:

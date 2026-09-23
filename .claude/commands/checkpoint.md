@@ -7,7 +7,13 @@ Run the checkpoint procedure for the current work: $ARGUMENTS
 2. `git status` and `git diff --stat`: list what has changed and check that there
    are no unexpected or suspicious files (secrets, environment files, build artefacts).
 3. Update the memory (.claude/memory/):
-   - create/update today's session note with what was done and why;
+   - create/update today's session note with what was done and why. Its frontmatter
+     follows `sessions/README.md`, including the two fields
+     `model: '<model id as the runtime exposes it>'` (verbatim, ALWAYS single-quoted;
+     several models → one string, distinct ids `, `-separated; omit only if the
+     runtime does not expose it) and `turns: <n>` (a bare integer: the user's messages
+     whose work THIS note records — per note, an approximate proxy, a lower bound
+     after a compaction or a resumption). Never backfill notes that predate them;
    - update the components/ notes of the components touched;
    - rewrite STATE.md with the current state; AFTER the rewrite check that the
      pre-existing entries of "Caution & open issues" are still present or

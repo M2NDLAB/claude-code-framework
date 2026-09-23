@@ -26,6 +26,8 @@ date: YYYY-MM-DD
 task: <what was being done>
 branch: <git branch>
 status: completed | in-progress | blocked
+model: '<model id as the runtime exposes it>'
+turns: <n>
 tags: [session, <area>]
 ---
 # Session YYYY-MM-DD — <title>
@@ -45,6 +47,48 @@ tags: [session, <area>]
 ## Follow-up
 - <any open threads picked up at a later date>
 ```
+
+## The `model` and `turns` fields
+
+Two OPTIONAL frontmatter fields (IMP-044), written by the agent that writes the note:
+which model produced it — so its reliability can be weighed after the fact — and how
+many exchanges the recorded work took — an objective proxy of its friction.
+
+- **Absent = not recorded.** Notes that predate the fields stay valid; never backfill
+  them — the values would be reconstructed, not recorded. The fields are historical
+  attributes of the note: not claims about the current state, and not concepts that
+  call for a page of their own.
+- **`model`** — the identifier of the model running the main session, **as the runtime
+  exposes it to the agent**, verbatim. A free value, never an enum: model names change.
+  ALWAYS in single quotes (a `'` inside the id is doubled): unquoted, an id can break the
+  YAML (e.g. brackets inside a list) or be coerced into a number, a date or a boolean;
+  double quotes would turn a `\` into an escape. Several models on the same note (a
+  model switch, a resumption on another model): ONE string with the distinct ids in
+  order of first use, separated by `, `. Not exposed by the runtime → omit the field,
+  never guess. Delegated work is not covered: if substantive findings came from
+  subagents on a different model, say so in the body. Different strings may denote the
+  same model (e.g. a context-window suffix): no normalisation — compare by base id when
+  aggregating.
+- **`turns`** — a bare integer ≥ 1: the user's messages whose work THIS note records.
+  Counted: prompts, commands that start work by the agent, answers to the agent's
+  questions, feedback typed when rejecting an action. Not counted: commands handled
+  locally that the agent does not answer (e.g. a model switch, `/clear`), automatic or
+  system messages, approvals given with a click. It is **per note, not per task**: a
+  task recorded in several notes (resumptions, one note per session or day) is the SUM
+  of its notes, computed when the data is analysed (e.g. grouped by `branch`) — never
+  recorded. No quotes, `~`, `+` or leading zero: the approximation is declared here, not
+  in the value.
+- **A PROXY, not a measure.** It does not weigh long turns against short ones, and after
+  a context compaction or a resumption it is a lower bound — still written: omitting it
+  would drop exactly the high-friction cases.
+- **When.** Both fields are refreshed at EVERY write of the note while its work is open:
+  `turns` = the value the note had when this session first wrote it + this session's
+  messages so far (never add the same messages twice). If one session closes several
+  notes, each counts from the first message after the previous note was last written.
+  The fields freeze with the commit of the checkpoint that completes the note: what
+  follows (e.g. the integration) is not counted, and later edits never touch them.
+- **Recorded data only**: no command consumes these fields yet — a threshold rule on
+  `turns` stays deferred until a real distribution exists.
 
 ## Plan block — the framework repo's hybrid regime
 
