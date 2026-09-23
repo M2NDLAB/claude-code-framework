@@ -82,6 +82,55 @@ tags: [improvement]
   loosely on real doc-only work would then cut a release — the type discipline of
   `docs/04` already guards it.
 
+### IMP-048 — Classify file content before rewriting it (prose / values / code-read strings)
+- Date: 2026-09-23 | Origin: no session note in this repo (the trigger, the upgrade of a
+  client project to v1.2.0, is recorded in that project) — the prose / values /
+  code-read strings distinction had to be re-derived a second time
+- Observed problem: when a file is REWRITTEN (a translation, a refactor, a renaming of
+  sections), its content is not all of the same nature, and treating it uniformly breaks
+  things. It happened twice: (1) the full translation of the framework, v1.1.0
+  (IMP-041; [[2026-07-20-language-rule-phase1]], decision 3) — solved ad hoc with the
+  "backward-compatible readers" task for the behavior-bearing strings (`[task 2/13]`,
+  `91f0ca7`), but the distinction was never formalised as a rule; (2) the upgrade of a
+  client project to v1.2.0, where the same distinction was re-derived from scratch.
+  The distinction is not ABSENT from the method: it exists FRAGMENTED in four places,
+  never as one rule — `SETUP.md` Step 3 (re-apply the project's setup answers on the
+  hybrids), `SETUP.md` §2 *Convention (grep visibility)* (a slot on one physical line),
+  Step 4's dual-form marker grep, and the coherence review of `docs/01` (section titles
+  cited by name are a textual shared contract, IMP-043).
+- Nature of the proposal (it changes what the retro decides): UNIFY existing pieces
+  into one discipline — not add a rule from scratch.
+- Proposal: before rewriting a file, classify its content into three levels and treat
+  each one differently:
+  1. PROSE (explanations, comments, rationales) → rewritten/translated freely.
+  2. VALUES (the answers filled into the setup markers, names and identifiers,
+     public-contract entries) → they stay identical; you rewrite the prose AROUND the
+     datum, not the datum.
+  3. STRINGS READ BY CODE (sentinels, markers, grep patterns, keys) → BYTE-IDENTICAL,
+     or you prove on the source that the reader accepts both forms BEFORE changing them.
+- Why level 3 is critical: a modified sentinel breaks the mechanism SILENTLY — no error,
+  no red test, just a function that stops working (e.g. the command that harvests the
+  marked proposals no longer finds them). The same class of silent failure as IMP-020
+  (the decorative hook), IMP-031 (the broken markers) and IMP-036 (the 3-way from the
+  wrong base).
+- Close kin of IMP-043 — to be evaluated at the retro: two faces of the same problem,
+  "when you rewrite, some parts of the text are referenced by something else" — IMP-043
+  by DOCUMENTS (section titles cited by name), IMP-048 by CODE (strings read by a grep).
+  At the retro, EVALUATE WHETHER TO UNIFY them into a single discipline ("before
+  rewriting, map what is referenced — by docs and by code") instead of two separate
+  rules that say similar things. For that evaluation: IMP-043's first version, a
+  MAINTAINED canonical map, was rejected as ceremony ("the map is a grep away"); what
+  was applied is a grep in the coherence review.
+- Likely placement (to be decided at the retro, not now): `docs/01`, in the discipline
+  of the cross-module refactor — where IMP-043 already landed — or the upgrade
+  procedure in `SETUP.md`. Both already host one of the fragments above.
+- Conditional, not a ritual: it must fire only when a piece of work REWRITES files that
+  contain strings read by code, not at every deliverable.
+- Expected benefit / risk: the third occurrence starts from ONE written rule instead of
+  re-deriving it from four fragments, and a code-read string is checked BEFORE it
+  changes instead of breaking the mechanism silently. Risk: a classification step turned
+  into a ritual on every rewrite — the conditional trigger above guards it.
+
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
 - Date: YYYY-MM-DD | Origin: [[<session note>]] — <problem>
