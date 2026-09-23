@@ -7,6 +7,33 @@ SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-09-23
+
+### Added
+- **`model` and `turns` in the session-note frontmatter** (IMP-044): two OPTIONAL
+  fields — which model produced the note (its id as the runtime exposes it, verbatim,
+  always single-quoted) and how many user messages the recorded work took (a bare
+  integer, per note: an approximate proxy of friction, a lower bound after a compaction
+  or a resumption). Defined in `.claude/memory/sessions/README.md`; `/checkpoint`
+  (step 3) carries the minimal format inline, since it is the command that writes the
+  notes. Additive and backward compatible: older notes stay valid and are never
+  backfilled. Deliberately NOT recorded: tokens, duration, files touched, difficulty
+  (reasons in IMP-044). No command consumes the fields yet: a threshold rule on `turns`
+  is deferred until a real distribution exists (IMP-045).
+  **Upgrading from an earlier release:** bring `.claude/memory/sessions/README.md` and
+  the IMP-format comment at the top of `.claude/memory/LEARNINGS.md` over by hand —
+  they are method templates, but the upgrade procedure's Step 2 diff excludes
+  `.claude/memory/` (a known contradiction, IMP-046, open).
+
+### Changed
+- The Origin line of the IMP format points at the session note that produced the
+  proposal: `Origin: [[<session note>]] — <problem>` (IMP-044) — the provenance of an IMP
+  was traceable for only 2 of 43 entries. `/harvest-framework` keeps local session-note
+  wikilinks out of the harvested block.
+- `docs/01-task-planning.md`, the coherence review of a cross-module refactor: section
+  titles cited by name from other files are a shared contract too — when the work
+  renames them, grep the old and the new wording before the merge (IMP-043).
+
 ## [1.1.0] — 2026-07-21
 
 ### Added
