@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-09-23
+updated: 2026-09-24
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -61,6 +61,23 @@ tags: [improvement]
   upgraded projects, while the invariant keeps catching accidental edits to the real
   memory. Risk: a looser invariant that lets an accidental edit through — the fix must
   name the allowed files, never relax to "some diff is fine".
+- **Evidence from the third upgrade** (annotation 2026-09-24,
+  [[2026-09-24-third-upgrade-lessons]]): the format guides live under `memory/` but are
+  not memory. The client's `sessions/README.md` is the template blob of v0.2.0-v0.5.0
+  (after v0.2.0 the file first changed at v0.5.1), so the relayed "stayed at v0.5.0
+  across two upgrades" and "byte-identical to v0.2.0" above are the same fact; no commit
+  on the client's main has touched a guide README since the graft. NEW:
+  `decisions/README.md` carries a setup slot (where
+  formal ADRs live), which the client answered — so that README is a HYBRID, while
+  `SETUP.md` files it at once as METHOD ("the guide READMEs", brought to `vY`) and,
+  through `decisions/`, as PROJECT-MEMORY (untouched). A plain overwrite re-opens the
+  answered slot; the 3-way surfaces exactly that hunk. Consequence for the direction
+  above: the guide READMEs are not ONE class — a "format guides" class overwritten
+  wholesale, or guides moved out of `memory/` (the two options raised), must still
+  3-way `decisions/README.md`. The third upgrade's branch (not yet merged) brings all
+  four guides to v1.2.0 as a declared exception citing this IMP — `sessions/README.md`
+  minus the framework-repo Plan block and IMP number, the ADR answer kept: the third
+  time the contradiction had to be worked around.
 
 ### IMP-047 — `/integrate`'s "doc-only → no tag" ignores the method-project contract
 - Date: 2026-09-23 | Origin: [[2026-09-23-memory-model-turns]] — for a method framework
@@ -130,6 +147,233 @@ tags: [improvement]
   re-deriving it from four fragments, and a code-read string is checked BEFORE it
   changes instead of breaking the mechanism silently. Risk: a classification step turned
   into a ritual on every rewrite — the conditional trigger above guards it.
+
+### IMP-049 — Payload purity: method files that only make sense in the framework repo
+- Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — the third real
+  upgrade of a client project had to prune by hand, once more, text that points at the
+  framework repo
+- Observed problem: the files a client receives (the payload: `.claude/`, `CLAUDE.md`,
+  `Makefile`, `commitlint.config.cjs`, `.gitignore`, `scripts/` — `SETUP.md` step 1)
+  carry three kinds of coupling to the framework repo, and every upgrade that touches
+  those files brings them back where the client had pruned them:
+  1. POINTERS TO FILES OUTSIDE THE PAYLOAD. `CONTRIBUTING.md` is never copied;
+     `SETUP.md` only optionally, "for reference", and Step 2's diff never refreshes it.
+     At v1.2.0: the SessionStart hook message of `settings.json` ("see SETUP.md"),
+     check 10 of `lint-memory.md`, `docs/03`, `docs/06`, the licence example of
+     `CLAUDE.md` — and, beyond the reported list, `docs/01` (the hybrid box),
+     `harvest-framework.md` and the `LEARNINGS.md` header. None is new: they date back
+     to v0.x and come back with every upgrade whose `vY` touches the file (only check
+     10 at the second upgrade, all of them at the third). (Conditional pointers —
+     "where present", "if the project keeps one" — are harmless.)
+  2. FRAMEWORK IMP NUMBERS IN METHOD TEXT. 10 occurrences of 6 numbers in 4 payload
+     files (`harvest-framework.md` IMP-009; `docs/01` IMP-024/034/043;
+     `sessions/README.md` IMP-044/024; `scripts/test-hooks-install.sh` IMP-032). A
+     client restarts its numbering at 001 (`SETUP.md` step 2), so they are orphans or
+     they COLLIDE: v1.2.0 re-proposes the framework's IMP-009 in `/harvest-framework` —
+     pruned by the client at its first upgrade, when it was only an orphan — and it now
+     collides with the client's own IMP-009, an unrelated lesson recorded since. v1.2.0
+     added two more numbers (IMP-043, IMP-044).
+  3. FRAMEWORK-REPO-ONLY BLOCKS. The hybrid-regime box of `docs/01` and its RESUMPTION
+     patch, the "Plan block" section of `sessions/README.md` (IMP-024/034). They declare
+     their own scope, so they are not wrong in a client, but they are dead weight there:
+     the client drops them as framework-repo-specific (a decision taken at its first
+     upgrade), and they also carry the pointers and numbers of points 1-2. They return
+     with upgrades whose `vY` touches those files: the `docs/01` box with the first and
+     the third; the `sessions/README.md` block only with the third, since the earlier
+     upgrades left `memory/` untouched (IMP-046).
+- The cost is recurring: the client keeps a standing decision to prune/rephrase these
+  "file by file" at every upgrade (taken at its first upgrade, re-applied at the second
+  and third). Nothing in the framework catches a new occurrence when it is written.
+- Proposal: NOT decided here (retro). Directions to evaluate: (a) method text cites no
+  framework IMP number (the preferred option of the relayed lesson) — or a namespace
+  such as `fw:IMP-NNN`; (b) pointers outside the payload removed, or made conditional;
+  (c) framework-repo-only text moved out of the payload (`CONTRIBUTING.md` already
+  describes the hybrid regime); (d) an AUTOMATIC check in the framework repo that greps
+  the payload for these patterns — a `make` target or a lint check, NOT "CI": there is
+  none in any tag. Caveat for (d): `Makefile` and `/lint-memory` are themselves
+  payload, so a check hosted there ships to clients and must declare itself moot there
+  — the mirror of `/harvest-framework`, which is moot in the framework repo.
+- Expected benefit / risk: an upgrade stops re-deriving and re-applying the same
+  pruning, and a new dangling pointer is caught when it is written, not at the next
+  client upgrade. Risk: dropping IMP numbers loses traceability inside the framework
+  repo — the pointer can live in the commit message or the CHANGELOG instead.
+
+### IMP-050 — Upgrade procedure hardening: five mechanical traps of `SETUP.md`
+- Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — the read-only
+  assessment of the third real upgrade (v1.0.0 → v1.2.0, across the full translation of
+  v1.1.0) found five traps that *Upgrading the framework* does not guard against
+  (points 4-5 were then avoided rather than hit)
+- Observed problem (each verified on the source; points 1-2 are two halves of one rule):
+  1. READ BY TAG, NEVER FROM THE WORKING TREE. The Precondition asks for "two checkouts
+     (or exports)" of the framework; the CHANGELOG read names no ref; only Step 2's diff
+     and edge cases 1, 2 and 6 compare tag to tag. But the framework's working tree is
+     shared with other sessions. This repo's reflog and the recording session's
+     transcript: the framework was detached at `v1.2.0` to prepare the upgrade
+     (2026-09-23 22:31); from 22:41 another session — the one recording IMP-048 —
+     edited `LEARNINGS.md` in that working tree, and at 22:54, on the user's explicit
+     go-ahead, it switched back to `main` and committed, while the upgrade was reading.
+     Nobody involved knew the tree was in use: nothing marks it. No harm to content
+     this time (the change was in `LEARNINGS.md`'s OPEN section, which no upgrade
+     transfers), but "what is checked out = `vY`" had stopped being true. The second
+     upgrade too left the framework detached at `v1.0.0`. Write-free reads:
+     `git show <tag>:<path>`, `git diff <tagX> <tagY>`, `git archive` — not
+     `git worktree add`, which writes into the framework's `.git`.
+  2. `-C "$FW"` ON EVERY FRAMEWORK-SIDE COMMAND. `SETUP.md` defines no `$FW` and uses no
+     `-C`; the repo is named only in prose, and consecutive steps alternate between the
+     two repos. The client has its own `v1.2.0` (and `v1.3.0`, `v1.4.0`) tags: from its
+     directory a bare `git show v1.2.0:<path>` exits 0 and returns the CLIENT's file —
+     the upgrade demonstrated it on `scripts/hooks-install.sh`, with the two blob ids.
+     This time `git diff v1.0.0 v1.2.0` failed loudly (the client has no `v1.0.0`); if
+     the next `vY` is `v1.3.0` or `v1.4.0` (tags the client already has), even that
+     diff succeeds silently. NOT every command: the project-side ones (branch, restore,
+     `make hooks-install`, the marker grep, the final `git diff --stat`) must stay in
+     the project.
+  3. A STRATEGY PER FILE, DRIVEN BY MEASUREMENT. Step 3 picks the strategy by class,
+     plus a fixed split by file name (additive union for `.gitignore`/`Makefile`,
+     header/format only for `LEARNINGS.md`); every other hybrid goes through the 3-way
+     with base = `vX`, and nothing measures churn. v1.0.0 → v1.2.0 changes 31 payload
+     files (+1801/−1701; 24 of them in Step 2's scope): on the translated hybrids the
+     3-way degenerates into near-whole-file conflicts (`CLAUDE.md`: 161 of 197 output
+     lines inside conflict markers), while where the framework change does not overlap
+     the project's edits it stays surgical (`settings.json`, `reset-task.sh`,
+     `hooks-install.sh` — the last two with 40-50% framework churn too). Churn alone
+     does not predict the conflict mass; its overlap with the project's divergence
+     does — so both are measured. The upgrade worked around it with a per-file churn
+     table, a per-file strategy (3-way vs rebuild from `vY` + re-applied inventory) and
+     an inventory of the project's customisations built by diff against the baseline.
+     What `SETUP.md` has is a proto-inventory by category (the answers to re-apply in
+     Step 3, checked in Step 5): not mechanical, and blind to free-form edits. Not
+     "drop the 3-way": keep it where it stays surgical.
+  4. A CHANGED SLOT WITHOUT ITS OWN MARKER NEVER RE-MATERIALISES. Step 3 promises that a
+     marker added by `vY` re-materialises, and Step 4 greps for it. But the bullets of
+     the example list in `CLAUDE.md`'s technical rules carry no marker — only the section
+     heading does — and Step 3 re-applies the project's whole section. So the one slot
+     that changed between v1.0.0 and v1.2.0 ("Lingua/e del progetto" → "Interaction
+     language", v1.1.0) cannot come back, and in `CLAUDE.md` the grep returns only the
+     two rule-9 prose lines that name the marker — one of which points at the slot, but
+     only as prose. The CHANGELOG names the change (1.1.0) and Step 2 already reads the
+     CHANGELOG as its index: the missing link is from that index (or from the diff of
+     the `SETUP.md` §2 checklist) to Step 4's audit. One instance so far (a re-scoped
+     slot, not a new marker) — the defect is structural.
+  5. THE HOOKS STEP FROM A LINKED WORKTREE, AND THE ROLLBACK. `hooks-install.sh`
+     hard-codes `HOOKS_DIR="${REPO_ROOT}/.git/hooks"`; in a linked worktree `.git` is a
+     file and `make hooks-install` aborts with a raw `mkdir: … Not a directory`. The
+     natural workarounds give a FALSE GREEN: the main worktree's script prints OK but
+     installs the version checked out THERE (the old one), and Step 4's functional proof
+     passes anyway — the executable lines of the generated hooks are identical from
+     v1.0.0 to v1.2.0, so the proof cannot tell old hooks from new. `SETUP.md` never
+     mentions worktrees, while `docs/00` recommends "a separate branch (or worktree)".
+     Rollback: a pre-v1.1.0 script knows only the Italian marker and refuses a hook that
+     carries the English one (the IMP-041 compatibility is one-way); edge case 4 says
+     "re-run `make hooks-install` from `vX`" without saying it fails. Ways out: remove
+     the two hooks by hand (keeps the pre-upgrade `.bak`), or `FORCE_OVERWRITE=1` —
+     which overwrites that `.bak` with the new hook, losing the pre-upgrade backup.
+     Reproduced in a throwaway repo with the real scripts.
+- Proposal: NOT decided here (retro). Directions to evaluate: (1)+(2) one rule — "the
+  framework is read ONLY as immutable objects, from the framework repo": define `FW`
+  once in the Precondition, write every framework-side command as `git -C "$FW" …` on a
+  tag, forbid checkouts and writes in the framework repo; (3) Step 3 opens with a
+  per-file churn measurement (framework side and project side) and picks the strategy
+  per file, the mechanical inventory being the input of a rebuild — its items carry
+  IMP-048's three levels, which the upgrade used as-is; (4) a slot checklist derived
+  from the CHANGELOG / the §2 checklist diff and linked into Step 4, or a marker on each
+  bullet of the technical-rules list; (5) resolve the hooks directory with
+  `git rev-parse --git-path hooks`, state the main-worktree constraint in Steps 1/4, and
+  in edge case 4 the rollback caveat (manual removal preferred to `FORCE_OVERWRITE=1`).
+- Expected benefit / risk: the next upgrade does not rediscover these traps by trial,
+  and point 2 closes a silent wrong-version read that becomes CERTAIN as soon as a
+  client's own tags overlap the framework's — this client's already do. Risk: a longer
+  procedure; the mechanical part is what IMP-037's command would absorb (see its
+  case-#3 annotation).
+
+### IMP-051 — The memory lags one merge: `/checkpoint` runs before the merge
+- Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — a post-merge
+  reconciliation commit keeps reappearing, and each one is one more local commit to push
+- Observed problem: the end-of-deliverable cycle runs `/checkpoint` (step 4) BEFORE
+  `/integrate` (step 5), and the merge happens outside the session. So the memory
+  records the PRE-merge state ("awaiting merge + tag + push"); `/checkpoint` itself says
+  STATE "can be stale" because merges happen outside the session; and the fix is an
+  optional later `/checkpoint` (`integrate.md`) — itself a new local commit, one more
+  push. Recurring:
+  - the client project: 5 reconcile-after-merge commits on its main, and its STATE on
+    main is one merge behind TODAY — each reconcile goes through a branch + merge, which
+    is again unrecorded, so the lag regresses by one step;
+  - this repo (`git log --first-parent main`): four dedicated post-integration
+    checkpoints made directly on `main` — `95e43bd` (v0.6.0), `d8d4036` (v0.6.1),
+    `b576f37` (v0.6.2), `21ab017` (v1.0.0) — each written with main == origin/main, so
+    each left `main` one commit ahead (`d8d4036` records `95e43bd` being pushed with the
+    next deliverable); plus the v0.3.0 trailing note (`eaefae3`, merged by `ec59010`)
+    and the v1.1.0 CHANGELOG promoted after the merge (`48fe236`). Here it is not STATE
+    that lags (a clean template, hybrid regime) but the session notes: their
+    "Follow-up: /integrate" is rewritten after the fact — or never, when the next
+    deliverable's note absorbs the outcome and the pre-merge follow-up stays as written.
+- Already declined once: the v0.3.0 note
+  ([[2026-07-17-audit-preintegrate-closeout-v0.3.0]], "Process note (not an IMP)")
+  called the trailing note "execution discipline, not a doc gap". The new fact is the
+  recurrence — 4 dedicated post-integration checkpoints here since that note (6
+  trailing commits in all), and 5 reconcile commits in the client — which makes it
+  structural rather than a slip.
+- Proposal: NOT decided here (retro). Directions to evaluate: the pre-merge checkpoint
+  records the state as it will be once the user runs the printed block (with what to do
+  if the user deviates); or `/integrate` puts the reconcile commit INSIDE the user's
+  block, so it is pushed with the merge; or the reconcile is declared the FIRST step of
+  the next deliverable — the de-facto practice here — so the lag is explicit and bounded.
+- Expected benefit / risk: no trailing commit to push after every integration, and a
+  memory that is true right after the merge. Risk: recording as done a merge the user has
+  not run yet — the recorded state must say it is conditional on the block.
+
+### IMP-052 — Resumption after an abrupt interruption: verify before continuing
+- Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — resuming after a
+  session limit or a machine sleep, the protocol says WHERE to resume, not WHETHER the
+  resumed state holds
+- Observed problem: `docs/01` puts interruptions explicitly in scope (usage limits,
+  crashes — and rule 7), and its RESUMPTION reads the plan, confirms the committed tasks
+  with `git log` and DISCARDS a dirty tree (`scripts/reset-task.sh`). Missing before
+  continuing: a syntax/build check, a test run of the resumed state, a comparison with
+  the design or the recorded decision. Committed tasks are verified by construction
+  (PHASE 3 verifies before each commit); the unverified window is the uncommitted
+  half-task and the plan tick, which may land "right after" its commit. Two gaps
+  besides: (a) "verify, then continue" implies KEEPING the half-done work, while step 3
+  discards it — the rule has to say when each applies; (b) scope: RESUMPTION runs "at
+  the start of EVERY session" and the Cleanup section "if a session dies"; an
+  interruption INSIDE the same session (a usage-limit reset or a sleep, then the
+  conversation goes on) triggers neither, and for a task without a plan the only rule
+  is Cleanup's discard-everything-uncommitted. Evidence in the client project: a
+  deliverable with no plan was resumed after a usage limit from the dirty working tree,
+  and a wiring gap — all tests green — was "found by comparing the diff with the
+  design, not by a test".
+- Placement: `docs/01` RESUMPTION, not `/sos` — an escalation that ends in STOP and is
+  triggered by being stuck (`docs/05`, *WHEN to produce a report*), not by an
+  interruption. A precedent exists: `docs/03` already asks to check COMPLETENESS
+  "especially after interruptions or resumes" — for reviews only.
+- Proposal: NOT decided here (retro): a short verify-before-continuing step in
+  RESUMPTION — `git status`, the build/syntax check, the tests of the touched area, a
+  reading of the diff against the design — valid with or without a plan, plus the rule
+  for keeping vs discarding the half-done work.
+- Expected benefit / risk: a resumed session does not build on a state nobody checked,
+  and the wiring gaps that green tests miss are looked for at the moment they are most
+  likely. Risk: ceremony on trivial resumptions — scale the check to the size of the
+  uncommitted work (none → nothing to verify).
+
+### IMP-053 — The security-gate verdict is always written, "not applicable" included
+- Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — a skipped gate and a
+  forgotten gate look the same in the memory
+- Observed problem: `docs/00` (end-of-deliverable step 2) says "If it is not sensitive,
+  skip it"; `docs/03` scopes the gate to sensitive components; `/checkpoint`,
+  `/integrate` and the session-note format carry no gate line. The practice is
+  inconsistent: 4 of the 13 session notes of this repo before this one record "Security
+  gate: not sensitive → skipped", the other 9 are silent (the v1.0.0, v1.1.0 and v1.2.0
+  notes included). In the client project one note records a not-applicable verdict —
+  and one deliverable that touched components on its sensitive list has no gate record
+  at all: the memory cannot tell a forgotten review from an inapplicable one, which is
+  the case that matters.
+- Proposal: NOT decided here (retro): the verdict is written every time, one line with
+  the reason — "Security gate: not applicable — <reason>", or the outcome. Natural
+  places: the Format block of `sessions/README.md`, the memory step of `/checkpoint`,
+  and `docs/00` step 2 ("skip it, and write the one-line verdict").
+- Expected benefit / risk: an absent verdict means a forgotten one, by construction, for
+  one line per note. Risk: a boilerplate line written without thinking — the mandatory
+  reason is what keeps it honest.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
@@ -609,6 +853,23 @@ tags: [improvement]
   release). Counter: **2 of 2-3** — the trigger is CLOSE, not fired. Bookkeeping only
   (user decision): the IMP is NOT reopened here; its evaluation belongs to a retro. Note
   for that retro: both upgrades hit the contradiction recorded in IMP-046.
+- **Case #3 happened — TRIGGER FIRED on the count** (annotation 2026-09-24,
+  [[2026-09-24-third-upgrade-lessons]]): the same client project performed its third
+  real upgrade (v1.0.0→v1.2.0, across the full translation of v1.1.0). Counter: **3 of
+  2-3** — the count condition is MET; the second clause ("when the common pattern is
+  distillable from the tested text") is the retro's call, and the input below bears on
+  it. Recording only: the IMP is NOT reopened here; whether to reopen, re-scope or
+  confirm the deferral is decided at a retro. Input for that retro (IMP-050, point 3):
+  the case-#1 friction was "the file-by-file JUDGEMENT, which a read-and-print command
+  does not remove"; case #3 split that judgement — the per-file churn table and the
+  diff-against-baseline inventory are its MECHANICAL, printable inputs (the upgrade
+  produced them with ad-hoc scripts that read the framework by tag), while the per-item
+  decisions stay human. Also for that retro: such a command reads the framework repo —
+  by tag and with `-C` (IMP-050, points 1-2) — while the boundary above says "no
+  cross-repo git" (the execution boundary and the agnosticism inherited from
+  `/harvest-framework`: the project does not know where the framework repo lives).
+  `git -C "$FW"` tag reads cross it: whether reads are allowed is an open question for
+  that retro. All three upgrades hit IMP-046.
 
 ### IMP-042 — `/change-language` (an automated translation command) → deferred on 2026-07-20
 - User decision (language deliverable, phase 1): DEFER — the same anti-hype filter as
