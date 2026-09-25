@@ -7,6 +7,28 @@ SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [1.2.1] — 2026-09-25
+
+### Fixed
+- **The upgrade procedure could read the wrong version of the framework, with no
+  error** (IMP-050, points 1-2). In `SETUP.md`, *Upgrading the framework*, the
+  Precondition asked for "two checkouts (or exports)" and Step 2 read the CHANGELOG
+  with no ref, so the procedure read whatever the framework's SHARED clone had checked
+  out — during a real upgrade, another session switched that clone to `main` while the
+  upgrade was reading it. And no command named the repo: a project that versions itself
+  with `vX.Y.Z` answers a bare `git show vY:<path>` with its OWN file, exit 0 — a
+  silently corrupted 3-way, IMP-036's class. Now the framework is read only as
+  immutable objects, by tag, from the project root: every framework-side command
+  carries `git -C "${FW:?}"` (an unset `FW` would turn `git -C ""` back into the
+  project), the project-side commands stay bare, and a read-only check stops on a wrong
+  working directory, on `FW` pointing at the project (any of its worktrees), a
+  subdirectory or a non-repo, and on a missing `vY`. The 3-way reads its base and theirs
+  by tag into a scratch directory outside both repos — never through `<( … )`, which
+  `git merge-file` can read empty or truncated. Graft step 1 resolves the pin's
+  `commit` the same way. A bare clone is mentioned as an option; `--mirror` is not.
+  **Upgrading:** nothing to migrate in a project. The upgrade now needs a git clone of
+  the framework with its tags: an export (the old "or exports") has no tags to read by.
+
 ## [1.2.0] — 2026-09-23
 
 ### Added
