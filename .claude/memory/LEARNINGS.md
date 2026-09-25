@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-09-24
+updated: 2026-09-25
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -198,36 +198,17 @@ tags: [improvement]
   client upgrade. Risk: dropping IMP numbers loses traceability inside the framework
   repo — the pointer can live in the commit message or the CHANGELOG instead.
 
-### IMP-050 — Upgrade procedure hardening: five mechanical traps of `SETUP.md` → points 1-2 approved on 2026-09-25, being applied
+### IMP-050 (points 3-5) — Upgrade procedure hardening: the remaining mechanical traps of `SETUP.md`
 - Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — the read-only
   assessment of the third real upgrade (v1.0.0 → v1.2.0, across the full translation of
   v1.1.0) found five traps that *Upgrading the framework* does not guard against
   (points 4-5 were then avoided rather than hit)
-- Observed problem (each verified on the source; points 1-2 are two halves of one rule):
-  1. READ BY TAG, NEVER FROM THE WORKING TREE. The Precondition asks for "two checkouts
-     (or exports)" of the framework; the CHANGELOG read names no ref; only Step 2's diff
-     and edge cases 1, 2 and 6 compare tag to tag. But the framework's working tree is
-     shared with other sessions. This repo's reflog and the recording session's
-     transcript: the framework was detached at `v1.2.0` to prepare the upgrade
-     (2026-09-23 22:31); from 22:41 another session — the one recording IMP-048 —
-     edited `LEARNINGS.md` in that working tree, and at 22:54, on the user's explicit
-     go-ahead, it switched back to `main` and committed, while the upgrade was reading.
-     Nobody involved knew the tree was in use: nothing marks it. No harm to content
-     this time (the change was in `LEARNINGS.md`'s OPEN section, which no upgrade
-     transfers), but "what is checked out = `vY`" had stopped being true. The second
-     upgrade too left the framework detached at `v1.0.0`. Write-free reads:
-     `git show <tag>:<path>`, `git diff <tagX> <tagY>`, `git archive` — not
-     `git worktree add`, which writes into the framework's `.git`.
-  2. `-C "$FW"` ON EVERY FRAMEWORK-SIDE COMMAND. `SETUP.md` defines no `$FW` and uses no
-     `-C`; the repo is named only in prose, and consecutive steps alternate between the
-     two repos. The client has its own `v1.2.0` (and `v1.3.0`, `v1.4.0`) tags: from its
-     directory a bare `git show v1.2.0:<path>` exits 0 and returns the CLIENT's file —
-     the upgrade demonstrated it on `scripts/hooks-install.sh`, with the two blob ids.
-     This time `git diff v1.0.0 v1.2.0` failed loudly (the client has no `v1.0.0`); if
-     the next `vY` is `v1.3.0` or `v1.4.0` (tags the client already has), even that
-     diff succeeds silently. NOT every command: the project-side ones (branch, restore,
-     `make hooks-install`, the marker grep, the final `git diff --stat`) must stay in
-     the project.
+- Status: points 1-2 APPLIED on 2026-09-25, commit 190404a — see *Applied*, IMP-050
+  (points 1-2). Points 3-5 below stay OPEN, numbered as before (IMP-037's case-#3
+  annotation cites them by number).
+- Observed problem (each verified on the source):
+  1. → APPLIED (see *Applied*, IMP-050 (points 1-2)).
+  2. → APPLIED (same entry).
   3. A STRATEGY PER FILE, DRIVEN BY MEASUREMENT. Step 3 picks the strategy by class,
      plus a fixed split by file name (additive union for `.gitignore`/`Makefile`,
      header/format only for `LEARNINGS.md`); every other hybrid goes through the 3-way
@@ -269,22 +250,30 @@ tags: [improvement]
      the two hooks by hand (keeps the pre-upgrade `.bak`), or `FORCE_OVERWRITE=1` —
      which overwrites that `.bak` with the new hook, losing the pre-upgrade backup.
      Reproduced in a throwaway repo with the real scripts.
-- Proposal: NOT decided here (retro). Directions to evaluate: (1)+(2) one rule — "the
-  framework is read ONLY as immutable objects, from the framework repo": define `FW`
-  once in the Precondition, write every framework-side command as `git -C "$FW" …` on a
-  tag, forbid checkouts and writes in the framework repo; (3) Step 3 opens with a
-  per-file churn measurement (framework side and project side) and picks the strategy
-  per file, the mechanical inventory being the input of a rebuild — its items carry
-  IMP-048's three levels, which the upgrade used as-is; (4) a slot checklist derived
-  from the CHANGELOG / the §2 checklist diff and linked into Step 4, or a marker on each
-  bullet of the technical-rules list; (5) resolve the hooks directory with
-  `git rev-parse --git-path hooks`, state the main-worktree constraint in Steps 1/4, and
-  in edge case 4 the rollback caveat (manual removal preferred to `FORCE_OVERWRITE=1`).
-- Expected benefit / risk: the next upgrade does not rediscover these traps by trial,
-  and point 2 closes a silent wrong-version read that becomes CERTAIN as soon as a
-  client's own tags overlap the framework's — this client's already do. Risk: a longer
-  procedure; the mechanical part is what IMP-037's command would absorb (see its
-  case-#3 annotation).
+- Proposal: NOT decided here (retro). Directions to evaluate: (1)+(2) applied; (3) Step
+  3 opens with a per-file churn measurement (framework side and project side) and picks
+  the strategy per file, the mechanical inventory being the input of a rebuild — its
+  items carry IMP-048's three levels, which the upgrade used as-is; (4) a slot
+  checklist derived from the CHANGELOG / the §2 checklist diff and linked into Step 4,
+  or a marker on each bullet of the technical-rules list; (5) resolve the hooks
+  directory with `git rev-parse --git-path hooks`, state the main-worktree constraint in
+  Steps 1/4, and in edge case 4 the rollback caveat (manual removal preferred to
+  `FORCE_OVERWRITE=1`).
+- Input for this block from the application of points 1-2
+  ([[2026-09-25-imp-050-read-by-tag]]). Moved here by the user (D1): a mechanised `vX`
+  estimate in Step 0 (blob ids read by tag), a blob-id check in Step 5 that the METHOD
+  files are `vY`'s, an anti-orphan command in edge case 1. Found by the pre-commit
+  review, outside the 1-2 perimeter: graft step 1 still copies the payload from whatever
+  the framework clone has checked out while the pin records a tag — point 1's trap at
+  graft time (`ff7fbb6` put METHOD changes on `main` between v1.1.0 and v1.2.0); a
+  pin-identity check (`FW`'s `vX^{commit}` = the pin's `commit`, which would also catch
+  a moved tag — pins rewritten at Step 6 before v1.2.1, which named no command, may
+  hold the tag object's id); and which copy
+  of `SETUP.md` governs an upgrade (a project's reference copy is `vX`'s, without the
+  newer rules).
+- Expected benefit / risk: the next upgrade does not rediscover these traps by trial.
+  Risk: a longer procedure; the mechanical part is what IMP-037's command would absorb
+  (see its case-#3 annotation).
 
 ### IMP-051 — The memory lags one merge: `/checkpoint` runs before the merge
 - Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — a post-merge
@@ -374,6 +363,48 @@ tags: [improvement]
 - Expected benefit / risk: an absent verdict means a forgotten one, by construction, for
   one line per note. Risk: a boilerplate line written without thinking — the mandatory
   reason is what keeps it honest.
+
+### IMP-054 — The `git push` deny does not catch `git -C <dir> push`: a decorative boundary
+- Date: 2026-09-25 | Origin: [[2026-09-25-imp-050-read-by-tag]] — the deny list matches
+  only the literal `git push …` form, while IMP-050 (points 1-2) makes `git -C "${FW:?}"`
+  the upgrade's idiom (raised by the user)
+- Priority: HIGH (user decision, 2026-09-25): to be verified and decided at the next
+  retro, before anything else relies on the boundary. NOT corrected in the block that
+  raised it (user decision).
+- Observed problem: `.claude/settings.json` denies `Bash(git push:*)` — with
+  `git reset --hard:*`, `git clean:*`, `git branch -D:*`, `rm -rf:*` — as the enforcement
+  of the execution boundary of `docs/04` ("the configuration (`.claude/settings.json`)
+  denies automatic pushes — that is intentional"). Claude Code's own documentation says a Bash rule matches the
+  command text after splitting compound commands and stripping a fixed set of wrappers,
+  and "doesn't match the same program invoked in a different form, so a deny or ask rule
+  covers the invocation Claude usually produces and isn't a security boundary around
+  the program". Its example: `Bash(git push *)` does not stop `git -C . push origin main`,
+  `git -c push.default=current push origin main` or `git 'push' origin main`; the
+  auto-mode page names `git -C <dir> push` explicitly (code.claude.com/docs/en/
+  permissions.md, *What a Bash rule doesn't match*; auto-mode-config.md, *Add a human
+  checkpoint*). The same holds for every deny prefix above (`git -C x reset --hard`,
+  `git -C x clean`, `rm -r -f`, …). Established from the documentation, NOT probed: a
+  probe is an attempted push, and was not run.
+- Why it matters now: IMP-050 (points 1-2) normalises `git -C "${FW:?}"` — the very form
+  that slips past the prefix. And on 2026-09-24 a subagent ran `switch` and `archive -o`
+  on the real repo despite a written read-only constraint
+  ([[2026-09-25-imp-050-read-by-tag]]): what stops an agent is a permission, not a
+  sentence. A deny that holds only for the literal form is IMP-020's class — a safety
+  net that gives a false sense of security.
+- Proposal: NOT decided here (retro). Directions to evaluate: (a) verify on the real
+  matcher against a throwaway local bare remote, run by the human or on explicit
+  authorisation; (b) a `PreToolUse` hook that parses the git subcommand — the documented
+  way to get "a checkpoint that inspects the full command text"; (c) extra deny patterns
+  for the known forms (`git -C * push`, …) — cheap, never complete; (d) `docs/04`
+  (*Permission configuration*) states that the deny list guards the usual form and is
+  not the boundary, (b) being the enforcement. Related, usability side of the same
+  matcher: `git -C "${FW:?}" diff` escapes the `git diff:*` allow prefix, and
+  `show`/`ls-tree`/`rev-parse` are not in the allow list at all; whether Claude Code's
+  built-in read-only git set covers the `-C` forms is not documented — to be observed at
+  the next upgrade, not assumed.
+- Expected benefit / risk: the boundary `docs/04` promises holds for the forms an agent
+  actually writes. Risk: a hook is code to maintain and to prove RED→GREEN, and an
+  over-broad matcher blocks legitimate reads.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
@@ -796,6 +827,55 @@ tags: [improvement]
   `chore(claude): apply IMP-nnn` type of `docs/06`. Precedents: v1.1.0 (a process-rule
   addition, IMP-040, typed `feat(process)` → MINOR) and `feat(memory)` in v0.4.0 (the
   destination attribute of the IMP format).
+
+### IMP-050 (points 1-2) — The framework is read only by tag, via `git -C "${FW:?}"` → applied on 2026-09-25, commit 190404a
+- Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — the upgrade read the
+  framework from its shared working tree and, by bare tag names, from the project's own
+  tags (points 1-2 of IMP-050; points 3-5 stay OPEN, see IMP-050 (points 3-5))
+- Observed problem: (1) the Precondition asked for "two checkouts (or exports)" and the
+  CHANGELOG read named no ref, so the upgrade read whatever the SHARED framework clone
+  had checked out — during a real upgrade, a session working on the framework ran
+  `git switch main` on that clone while the upgrade was reading it; (2) no command named
+  the repo: a project with its own same-named tags answers a bare `git show vX:<path>` or
+  `vY:<path>` with ITS file, exit 0 — a silently corrupted 3-way (base or theirs),
+  IMP-036's class.
+- Further evidence for (1), 2026-09-24: a subagent of the assessment of these very points
+  detached the framework repo at `v1.2.0` and left an archive in its root, despite a
+  written read-only constraint; while detached, the working tree lacked IMP-048..053
+  ([[2026-09-25-imp-050-read-by-tag]]). A second live case of a process moving the HEAD
+  of a shared clone — and a lesson of its own: a prompt constraint is not a boundary, a
+  permission is (IMP-054).
+- User decision (retro block 1, 2026-09-25, [[2026-09-25-imp-050-read-by-tag]]): the core
+  only (D1 — the mechanised extensions go to the point-3 block); D2, the graft-time pin
+  comment too; D3, a one-line optional bare-clone aside, `--mirror` excluded; PATCH
+  v1.2.1 typed `fix(setup)`, the deviation declared in the commit body — from
+  `docs/06`'s `chore(claude)` type and from `integrate.md`'s "doc-only → no tag" (the
+  latter conflict is IMP-047, open).
+- Applied in `SETUP.md`, *Upgrading the framework* (headings and step numbers
+  unchanged): the Precondition rewritten in place — the false premise "the version tags
+  live only in the framework repo" corrected; rule 1, the framework is read ONLY as
+  immutable objects by tag (two refs per diff, no write in the framework, extraction by
+  shell redirection into a scratch directory `T` outside both repos); rule 2,
+  `-C "${FW:?}"` on every framework-side command and only there; `FW`/`T` set once per
+  shell (an agent restates them and the `cd`), `${FW:?}` and `: "${FW:?}" &&` explained;
+  a read-only check that exits 1 on a wrong cwd, on `FW` = the project (any worktree), a
+  subdir or a non-repo, and on a missing `vY`; `fetch --tags` left to the human; the
+  bare-clone aside; the mental model's box on hybrids (the 3-way base read at the tag
+  `vX`). By-tag reads with `-C` in Step 0 (fallbacks 2-3), Step 2, Step 3
+  (METHOD after the edge-7 pre-flight; the chained 3-way, never `<( … )`; the trivial
+  hybrids; the LEARNINGS header), the Execution boundary box, Step 6 (the pin's `commit`
+  with `^{commit}`), edge cases 1, 2, 6, 7 and the Outside-the-payload box. Graft step 1:
+  the pin's `commit` resolved the same way (D2). Untouched on purpose: the Step 2
+  pathspec (IMP-046), Step 4 (point 4), edge case 4 and the hooks (point 5).
+- Verification: RED→GREEN in throwaway clones only — a hostile `FW` (detached at v0.1.0,
+  dirty, a change staged) and a fixture project with its own annotated v1.0.0/v1.2.0;
+  every framework-side command of the new text but the human's `fetch --tags` executed
+  as written, in bash and zsh. Details in the session note.
+- Expected benefit / risk: closes a silent wrong-version read that becomes CERTAIN as
+  soon as a client's own tags overlap the framework's — the upgraded client's already do
+  ([[2026-09-24-third-upgrade-lessons]], B4-B5; the original evidence of points 1-2:
+  `git show 1c39166:.claude/memory/LEARNINGS.md`). Risk: a longer Precondition, and
+  every framework-side read now uses `git -C`, the form IMP-054 is about.
 
 ## Deferred (not rejected — resumed at the right time)
 
