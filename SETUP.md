@@ -37,13 +37,20 @@ future upgrade (see *Upgrading the framework*, Step 0):
 
 ```
 version: vX.Y.Z     # the framework tag you are copying
-commit: <sha>       # git rev-parse <tag>^{commit}, run in the framework repo
+commit: <sha>       # that tag's commit, resolved IN the framework repo (see below)
 grafted: YYYY-MM-DD # today: the date of the graft (it will never change)
 ```
 
 Flat `key: value` lines, no parser: it is read with `cat`/`grep`. If the framework
 reached you as an export without git history, `commit: n/a` — `version` is the field
 that matters. The file is committed (it is not a local artifact).
+
+Resolve `commit` with `git -C "${FW:?}" rev-parse "vX.Y.Z^{commit}"`, where `FW` is the
+absolute path of the framework clone — never from the project's directory: an existing
+project may carry a tag with the same name, and a bare `git rev-parse` there returns
+the PROJECT's commit, silently, into the base of the next upgrade. The `^{commit}`
+matters too: on an annotated tag the bare form returns the tag object's id. (Why
+`${FW:?}` and not `$FW`: see the *Precondition* of *Upgrading the framework*.)
 
 Then: `git init` (if it is not a repo already) and create the integration branch
 (`develop`).
@@ -342,7 +349,7 @@ into one of three classes:
 > string disappears and is replaced by the answer. Once setup is done the file is a
 > blend of framework prose + project answers with no greppable boundary left. The only
 > robust mechanism for reconciling them is the **3-way merge** with the template at the
-> STARTING version (`vX`) as the common base.
+> STARTING version — read at the tag `vX` (see the *Precondition*) — as the common base.
 
 Apart from these stands the **provenance pin** `.claude/framework-version` — the FOURTH
 species, the **graft state**, which falls into none of the three classes: it is not
@@ -355,12 +362,70 @@ upgrade touches it.
 
 ### Precondition: get hold of the framework at `vX` and `vY`
 
-The project COPIED the framework's files, not its git history: the version tags live
-only in the framework repo. "What changed" is therefore derived THERE, not in the
-project (adding the framework as a *remote* of the project is discouraged: it pollutes
-the graph and mixes two version lines). Before starting, get two checkouts (or exports)
-of the framework repo: one at the GRAFTED version (`vX`) and one at the TARGET version
-(`vY`). They are the *base* and the *theirs* of the 3-way merge.
+The project COPIED the framework's files, not its git history: "what changed" is
+derived from the framework repo, not from the project (adding the framework as a
+*remote* of the project is discouraged: it pollutes the graph and mixes two version
+lines). But the tag NAMES are not the framework's alone: the project versions itself
+with `vX.Y.Z` too (`docs/04`, *Versioning*), so it may carry tags with the same names.
+Resolved from the project's directory, `vY` is the PROJECT's tag: a bare
+`git show vY:<path>` exits 0 with the project's file, and a bare `git diff vX vY`
+diffs the project's history. The upgrade runs from the PROJECT root, under two rules
+that hold for every step below:
+
+1. **The framework is read ONLY as immutable objects, by tag** — `git show <tag>:<path>`,
+   `git diff <tagX> <tagY> -- <paths>` (always TWO tags: with one, git compares against
+   the working tree), `git ls-tree <tag>`, `git rev-parse "<tag>^{commit}"`. Never its
+   working tree, never whatever happens to be checked out: the framework's clone may be
+   in use by other sessions — during a real upgrade, a session working on the framework
+   ran `git switch main` on the very clone the upgrade was reading. The upgrade itself
+   performs no checkout, switch, stash, `worktree add` or commit in the framework repo.
+   What it extracts goes, by shell redirection, into a scratch directory `T` outside
+   BOTH repos — never through git's own `-o`/`--output`: under `-C`, a relative path
+   there resolves inside the framework.
+2. **Every FRAMEWORK-side command carries `-C "${FW:?}"` — and only those.** The
+   project-side commands stay bare: the upgrade branch, the restore, `git merge-file`,
+   `make hooks-install`, the marker grep, `git diff --stat`, `git rm`, writing the pin.
+   With `-C` they would act on the framework (`make -C "${FW:?}" hooks-install` installs
+   the hooks into the FRAMEWORK's `.git`).
+
+`FW` must be a git clone with its tags — an export has no tags to read by. Set the two
+paths once, absolute, and check them (read-only, from the project root):
+
+```bash
+FW=/absolute/path/to/the/framework/clone
+T=/absolute/path/to/a/scratch/dir
+mkdir -p "${T:?}"
+: "${FW:?}" && test "$(git rev-parse --show-toplevel)" = "$(pwd -P)" \
+  && test -z "$(git -C "${FW:?}" rev-parse --show-prefix)" \
+  && test "$(git -C "${FW:?}" rev-parse --path-format=absolute --git-common-dir)" \
+       != "$(git rev-parse --path-format=absolute --git-common-dir)" \
+  && git -C "${FW:?}" rev-parse -q --verify "refs/tags/vY^{commit}" >/dev/null \
+  && echo "FW OK" \
+  || { echo "STOP: check the cwd (the project root), FW and vY" >&2; false; }
+```
+
+The check stops when the current directory is not a repository root, when `FW` is not
+a repository root, when `FW` is the project itself (any of its worktrees), and when `vY`
+is missing in `FW`; `--path-format` needs git 2.31 or later. Why `${FW:?}` and never
+`$FW`: `git -C ""` runs in the CURRENT directory — the project — so an unset `FW`
+silently brings the collision back. A shell that does not keep state between commands
+(an agent's tool calls) restates `FW=`, `T=` and the `cd` to the project root in every
+command: `${FW:?}` turns a forgotten restatement into a loud failure, while a bare
+project-side command run from the wrong directory acts on that directory's repository.
+Inside `$( … )`, `<( … )` or a pipe, a failed `${FW:?}` does not stop the outer
+command: start such a line with `: "${FW:?}" &&`. `vX`/`vY` stay placeholders to
+substitute, as everywhere in this guide: a forgotten one fails loudly
+(`invalid object name`), while an empty variable would turn `vY:<path>` into `:<path>` —
+the framework's index.
+
+If the check stops because `vY` is missing, updating the framework clone
+(`git -C "${FW:?}" fetch --tags`) is a preparatory step for the human, outside the
+procedure: the procedure itself never writes there. The tag `vX` is the *base* and
+`vY` the *theirs* of the 3-way merge.
+
+> **Optional: a *bare* clone as `FW`** (`git clone --bare`) — with no working tree, a
+> checkout or a working-tree read fails loudly there. It replaces neither the reads by
+> tag nor `-C "${FW:?}"`; avoid `--mirror`, whose fetch silently follows a re-created tag.
 
 ### Step 0 — Determine the `vX` baseline
 
@@ -373,10 +438,12 @@ Determine `vX` like this, in order of preference:
 1. **Ask** whoever did the graft (they often remember it or wrote it down).
 2. **Estimate it** from the content: pick the framework tag whose copy of the
    METHOD-class files matches the project's current ones best — a comparison on the
-   real content beats the "tag closest to the graft date" heuristic.
+   real content beats the "tag closest to the graft date" heuristic. Each tag's copy is
+   read with `git -C "${FW:?}" show <tag>:<path>`, never by checking the tags out.
 3. **Degrade** honestly: if `vX` stays uncertain, do NOT fake a clean 3-way. Fall back
-   to file-by-file reconciliation guided by the CHANGELOG as an index (which is what
-   CASE A already prescribes), inspecting every doubtful file.
+   to file-by-file reconciliation (which is what CASE A already prescribes) guided by
+   the CHANGELOG as an index — read at the tag `vY`, as in Step 2 — inspecting every
+   doubtful file.
 
 ### Step 1 — Restore point and throwaway branch
 
@@ -389,17 +456,19 @@ in `docs/04`). No extra copy of the memory outside the tree is needed.
 
 ### Step 2 — Derive "what changed" (framework side)
 
-In the framework repo, combine two complementary sources:
+From the project root, reading the framework only by tag (*Precondition*), combine two
+complementary sources:
 
 - **The CHANGELOG as an INDEX** ("which files and why"): the sections between `vX` and
   `vY` — every entry cites the IMP and names the file touched. It is the map of the
-  change. (The CHANGELOG is not copied into the project: it is read in the framework
-  repo.)
+  change. Read it at the tag — `git -C "${FW:?}" show vY:CHANGELOG.md`, the sections
+  above `vX`'s own. (The CHANGELOG is not copied into the project: it is read from the
+  framework repo, never from its working tree.)
 - **`git diff` as the EXACT TEXT**, scoped to the METHOD paths only and EXCLUDING the
   framework's memory:
 
   ```bash
-  git diff vX vY -- .claude/docs .claude/commands .claude/settings.json \
+  git -C "${FW:?}" diff vX vY -- .claude/docs .claude/commands .claude/settings.json \
     CLAUDE.md scripts Makefile commitlint.config.cjs .gitignore
   ```
 
@@ -408,24 +477,50 @@ In the framework repo, combine two complementary sources:
 
 ### Step 3 — Reconcile by class
 
-- **METHOD** → bring the `vY` version over.
+- **METHOD** → after the pre-flight of edge case 7, bring the `vY` version over, read
+  from the tag, never from the framework's working tree:
+
+  ```bash
+  git -C "${FW:?}" show vY:<path> > "${T:?}/theirs" && cp "${T:?}/theirs" <path>
+  ```
+
+  `show` does not carry the file's mode: take it from
+  `git -C "${FW:?}" ls-tree vY -- <path>` (`100755` = executable) and `chmod` a new
+  file, or one whose mode `vY` changed, accordingly.
 - **PROJECT-MEMORY** → do not touch; the `diff` on `.claude/memory/` stays empty.
-- **HYBRIDS** → 3-way merge with `base = template@vX`, `theirs = template@vY`,
-  `mine = the project's file` (`git merge-file`/`diff3`). The 3-way must achieve this: a
-  marker ADDED by `vY` **re-materialises** in the file (a new `[TO BE DEFINED]` to fill
-  in); one that was REMOVED **disappears**; one that was MOVED or co-edited surfaces as
-  a **conflict** to resolve by hand. Always re-apply the project's
+- **HYBRIDS** → 3-way merge with `base` = the template at the tag `vX`, `theirs` = the
+  template at the tag `vY`, `mine` = the project's file (`git merge-file`/`diff3`).
+  Extract base and theirs by tag into `T`, chained, so that a failed read stops the
+  merge instead of feeding it an empty file:
+
+  ```bash
+  git -C "${FW:?}" show vX:<path> > "${T:?}/base" \
+    && git -C "${FW:?}" show vY:<path> > "${T:?}/theirs" \
+    && git merge-file <path> "${T:?}/base" "${T:?}/theirs"
+  ```
+
+  The last command is project-side: `git merge-file` rewrites `<path>` and exits with
+  the number of conflicts. Never hand it a `<( … )`: it sizes its inputs with `stat`,
+  which a pipe does not answer reliably — the input is read EMPTY or TRUNCATED, and the
+  merge comes out wrong with no error of its own. The 3-way must achieve this: a marker
+  ADDED by `vY` **re-materialises** in the file (a new `[TO BE DEFINED]` to fill in);
+  one that was REMOVED **disappears**; one that was MOVED or co-edited surfaces as a
+  **conflict** to resolve by hand. Always re-apply the project's
   `[TO BE DEFINED AT SETUP]` answers (branch names, `tree` patterns, formatter, the
   stack's allow-list, the whole "Technical rules" section of `CLAUDE.md`). Trivial
   hybrids (`.gitignore`, `Makefile`) are INTEGRATED (additive union: make sure the lines
-  of the `vY` base are present without removing the project's); on `LEARNINGS.md` at
-  most the header/format is updated, NEVER the project's IMP entries.
+  of the `vY` base — `git -C "${FW:?}" show vY:<path>` — are present without removing
+  the project's); on `LEARNINGS.md` at most the header/format is updated, read from
+  `git -C "${FW:?}" show vY:.claude/memory/LEARNINGS.md`, NEVER the project's IMP
+  entries.
 
 > **Execution boundary (`docs/04`, section of the same name).** The agent PREPARES and
 > commits LOCALLY on the upgrade branch; it does NOT merge, does NOT push, does NOT tag.
-> Where `vY` changes a RULE (rather than being a factual correction), Level 2 of
-> `docs/06` kicks in: it is PROPOSED, not applied silently — *"Never rewrite your own
-> rules on your own initiative"* (`CLAUDE.md`, rule 6).
+> Nor does it WRITE in the framework repo: no checkout, switch, stash, `worktree add` or
+> commit there — it only reads it by tag (*Precondition*). Where `vY` changes a
+> RULE (rather than being a factual correction), Level 2 of `docs/06` kicks in: it is
+> PROPOSED, not applied silently — *"Never rewrite your own rules on your own
+> initiative"* (`CLAUDE.md`, rule 6).
 
 ### Step 4 — Re-sync the hooks and audit the markers
 
@@ -451,8 +546,11 @@ English marker existed still carries the Italian one.
 ### Step 6 — Closing and hand-off
 
 **Update the provenance pin**: rewrite in `.claude/framework-version` the `version` and
-`commit` fields with the `vY` you have just brought over; `grafted` is not touched (it
-is the date of the original graft). If the project does NOT have the pin (a pre-pin
+`commit` fields with the `vY` you have just brought over — `commit` resolved on the
+framework side, `git -C "${FW:?}" rev-parse "vY^{commit}"` (a bare `rev-parse` in the
+project returns the project's own `vY`, if it has one; on an annotated tag, without
+`^{commit}` it returns the tag object's id); `grafted` is not touched (it is the date
+of the original graft). If the project does NOT have the pin (a pre-pin
 graft), CREATE it now — that is the retrofit: from this upgrade on the baseline is
 certain; unknown `grafted` → `n/a (retrofit YYYY-MM-DD)`. The pin lives outside
 `.claude/memory/`, so the invariant of Step 5 stays intact.
@@ -473,15 +571,16 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
 
 1. **A file DELETED in `vY` (orphan).** If `vY` removes a METHOD file (a merged doc, a
    deprecated command), overwriting does not delete it: it stays orphaned. The
-   `git diff vX vY` shows removals as delete hunks — **apply those too** (`git rm`), and
-   close with an anti-orphan check: the set of the project's METHOD files must match
-   `vY`'s.
+   `git -C "${FW:?}" diff vX vY` shows removals as delete hunks — **apply those too**
+   (`git rm`, project side), and close with an anti-orphan check: the set of the
+   project's METHOD files must match `vY`'s — read at the tag, never from the
+   framework's working tree.
 
 2. **A file RENAMED/RENUMBERED in `vY` (duplicate).** If `vY` renames or renumbers a
    doc/command (e.g. a renumbering of `docs/`), the overwrite creates the new name and
    **leaves the old one** → two files and an ambiguous `CLAUDE.md`/`TREE.md` index. Use
-   `git diff -M` as an index of the renames to apply the move (remove the old one, bring
-   the new one), not a blind add+delete.
+   `git -C "${FW:?}" diff -M vX vY` as an index of the renames to apply the move
+   (remove the old one, bring the new one), not a blind add+delete.
 
 3. **Memory pointers towards renamed docs — the only exception to the invariant.** If
    `vY` renames/renumbers a doc, the `[[wikilink]]`s and the pointers (`docs/04:142`, …)
@@ -516,8 +615,11 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    that cancel out, but it **loses the order of non-commutative migrations** (e.g. a file
    renamed in `vX+1` and then restructured in `vX+2`) and merges multiple fixes to the
    same file into a single hunk. For a jump of several versions, use the **per-version**
-   CHANGELOG as an index of the order and, on the most intricate files (typically
-   `hooks-install.sh`), reconcile **one version at a time** instead of in one go.
+   CHANGELOG (read at the tag `vY`) as an index of the order and, on the most intricate
+   files (typically `hooks-install.sh`), reconcile **one version at a time** instead of
+   in one go — each intermediate step read by its tags
+   (`git -C "${FW:?}" show <tag>:<path>` for its base and its theirs), never a checkout
+   per version.
 
 7. **Pre-flight: has the "pure METHOD" file been customised inline?** The METHOD class
    assumes that `docs/02/03/04` stay templates (their `[TO BE DEFINED]` slots are
@@ -525,11 +627,15 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    in **inline** — or freely edited an otherwise pure file (`commitlint.config.cjs`, a
    doc) — that file is in fact a HYBRID, and the overwrite destroys its customisation
    silently. Before overwriting a METHOD-class file, **inspect** that it really is
-   untouched with respect to `vX`; if it diverges, treat it as a hybrid (3-way).
+   untouched with respect to `vX` — `vX`'s copy read by tag, then compared:
+   `git -C "${FW:?}" show vX:<path> > "${T:?}/base" && diff "${T:?}/base" <path>`. A
+   bare `git diff vX -- <path>` in the project compares against the PROJECT's `vX`, the
+   collision of the *Precondition*. If it diverges, treat it as a hybrid (3-way).
 
 > **Outside the upgrade payload.** `LICENSE`, `CONTRIBUTING.md`, `CHANGELOG.md` are
 > files of the FRAMEWORK REPO (not copied into the project, step 1): do not push them
-> into the project and do not read them from the project. `SECURITY.md`, `README.md` and
-> this `SETUP.md` inside the project are optional/for reference — and be careful **not
-> to overwrite the project's `README.md`** with the framework's. `settings.local.json`
+> into the project and do not read them from the project — the CHANGELOG is read from
+> the framework, by tag (Step 2). `SECURITY.md`, `README.md` and this `SETUP.md` inside
+> the project are optional/for reference — and be careful **not to overwrite the
+> project's `README.md`** with the framework's. `settings.local.json`
 > (unversioned) stays intact by construction.

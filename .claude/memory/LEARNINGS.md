@@ -198,7 +198,7 @@ tags: [improvement]
   client upgrade. Risk: dropping IMP numbers loses traceability inside the framework
   repo — the pointer can live in the commit message or the CHANGELOG instead.
 
-### IMP-050 — Upgrade procedure hardening: five mechanical traps of `SETUP.md`
+### IMP-050 — Upgrade procedure hardening: five mechanical traps of `SETUP.md` → points 1-2 approved on 2026-09-25, being applied
 - Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — the read-only
   assessment of the third real upgrade (v1.0.0 → v1.2.0, across the full translation of
   v1.1.0) found five traps that *Upgrading the framework* does not guard against
