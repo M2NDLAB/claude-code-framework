@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-09-26
+updated: 2026-09-27
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -781,6 +781,37 @@ tags: [improvement]
   *Before acting on the findings*, generalised beyond reviews.
 - Expected benefit / risk: fewer false findings and no silent coverage holes. Risk:
   longer briefs.
+
+### IMP-061 — `/harvest-framework` re-prints entries already carried upstream: double counts at recording time
+- Date: 2026-09-27 | Origin: [[2026-09-26-client-harvest-registration]] — recording a
+  client project's harvest, re-harvested lessons were counted twice until the pre-commit
+  review caught it
+- Observed problem: `/harvest-framework` prints EVERY entry marked
+  `Destination: framework`, in any section (step 2: the default perimeter is the whole
+  backlog), whether or not it was already carried upstream, and by design it marks
+  nothing (step 5): de-duplication is left to human curation (narrow with `$ARGUMENTS`,
+  or annotate by hand). The printed block carries no provenance the framework can match
+  against what it already recorded: the Origin is anonymised to a generic context. In
+  the recording of 2026-09-26, seven of the fifteen harvested entries repeated, in whole
+  or in part, lessons already relayed on 2026-09-24 from the same upgrade session;
+  nothing in the block said so, and the draft counted three of them as "independent" or
+  "second" occurrences — a double count the retro would have inherited — until the
+  review caught it ([[2026-09-26-client-harvest-registration]], *Retro* and *Problems
+  encountered*, 3). That client's backlog already holds more marked entries than the
+  fifteen: a default harvest there re-prints the fifteen with them, unless the human
+  narrows it or has annotated them.
+- Proposal: NOT decided here (retro). Directions raised in the origin note, to evaluate:
+  (a) a "carried upstream" mark on the client's entry (e.g. a line added by the human
+  after the transfer, which the default perimeter then skips — the command itself stays
+  read-only, IMP-033's boundary); (b) a matchable provenance in the printed block (the
+  source session's date, the client's entry number), still anonymous; (c) on the
+  framework side, a "count once" check at recording time against the lessons already
+  recorded — practised by hand on 2026-09-26, written nowhere.
+- Expected benefit / risk: a re-harvested lesson is recognised as such, so the retro
+  weighs each lesson once. Risk: (a) adds a line to the IMP format, a backlog-format
+  change that reaches client projects only through the upgrade — and the format comment
+  of `LEARNINGS.md` sits under IMP-046's contradiction; (b) must stay anonymous
+  (`docs/04`, shared history).
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
