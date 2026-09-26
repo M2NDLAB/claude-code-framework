@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-09-25
+updated: 2026-09-26
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -78,6 +78,29 @@ tags: [improvement]
   four guides to v1.2.0 as a declared exception citing this IMP — `sessions/README.md`
   minus the framework-repo Plan block and IMP number, the ADR answer kept: the third
   time the contradiction had to be worked around.
+- **Evidence from a client harvest — the verification half** (annotation 2026-09-26,
+  [[2026-09-26-client-harvest-registration]]): once the invariant allows named files
+  and parts (the third upgrade's declared exception), a plain `git diff` cannot prove
+  it — a legitimate format update and an edited IMP entry touch the same file list; the
+  invariant has to be CONTENT-based. And content, not the "declared, expected hunks" of
+  the direction above: the framework's `LEARNINGS.md` is live, so its tag diff is
+  mostly its own entries (v1.1.0→v1.2.0: 5 hunks, +169/−4, the format change one of
+  them), and the format comment's position depends on each project's body — the hunks
+  cannot be derived from the framework. The client built the checks as a script:
+  (1) an allowed-path diff; (2) a `LEARNINGS.md` body normaliser (from the first `## `
+  to the end, minus the format comment) — generically it must strip exactly `vX`'s
+  format comment(s), read by tag (two at v1.0.0, one from v1.1.0), and compare the
+  header and format with `vY`'s by content, or an edit inside the format comment
+  passes; (3) the guide READMEs compared with their expected content, not by hunk
+  headers — this overlaps the blob-id check recorded as input of IMP-050 (points 3-5),
+  `decisions/README.md` being the hybrid exception (the third upgrade's annotation above —
+  B7 of [[2026-09-24-third-upgrade-lessons]]); (4) no backfill of the
+  IMP-044 fields (`sessions/README.md`, *Absent = not recorded*); (5) the scope of the
+  checkpoint commits. Run on a clone, one positive and eight negative branches: all
+  caught (client-side, relayed). Relayed proposal: ship them as
+  `scripts/verify-memory-invariant.sh` or a Step 5 recipe, template paths only — to be
+  weighed against `SETUP.md`'s "No automation, for now", IMP-037 (trigger fired on the
+  count) and IMP-049 (d) (a check hosted in the payload ships to clients).
 
 ### IMP-047 — `/integrate`'s "doc-only → no tag" ignores the method-project contract
 - Date: 2026-09-23 | Origin: [[2026-09-23-memory-model-turns]] — for a method framework
@@ -147,6 +170,39 @@ tags: [improvement]
   re-deriving it from four fragments, and a code-read string is checked BEFORE it
   changes instead of breaking the mechanism silently. Risk: a classification step turned
   into a ritual on every rewrite — the conditional trigger above guards it.
+- **Evidence from a client harvest — for the unification question** (annotation
+  2026-09-26, [[2026-09-26-client-harvest-registration]]; the lesson cites IMP-043 and
+  this entry, and IMP-043 is Applied, so it lands here): the translation release broke
+  the section titles cited by name between the method and a memory that keeps its
+  original language. Verified at v1.2.1: 13 citation sites of the `STATE.md` and
+  `LEARNINGS.md` headings in the payload (8 and 5; 19 title mentions), the one with the
+  highest stakes being `/checkpoint`'s critical-debt check ("Caution & open issues");
+  the 1.1.0 CHANGELOG lists no heading among its behaviour-bearing strings (C12 of
+  [[2026-09-24-third-upgrade-lessons]] records that effect). New for the retro:
+  1. The reader is the AGENT: every site is prose, and no code greps a memory heading —
+     IMP-043's class (cited by documents), not level 3 of this entry; the failure is an
+     agent that does not find a heading, not a mechanism that stops silently. The field
+     labels `/harvest-framework` collects by name (Origin, Observed problem, …) are the
+     same class.
+  2. Why IMP-043's check cannot catch it: its old/new grep (`docs/01`, cross-module
+     refactor) runs inside the repo being rewritten — at v1.1.0 it would have been
+     green, and it only entered in v1.2.0. The broken side is the PROJECT-MEMORY of
+     already-grafted projects, across a repository boundary.
+  3. The memory invariant forbids the migration: edge case 3 allows only the repair of
+     pointers after a doc rename, and Step 5 treats any other memory diff as a bug — so
+     a renamed heading cannot be followed inside the memory (a link to IMP-046).
+  4. The reverse direction: the project's memory cites METHOD section titles by name,
+     nearly all renamed at v1.1.0 (`docs/04`'s *Merge* is the exception); edge case 3, Step 5's lint bullet and `/lint-memory` check 7
+     cover renamed files and wikilinks, never titles.
+  5. The client's answer — a title map in the technical rules of `CLAUDE.md` (English
+     cited name → local heading, the headings frozen as identifiers) — is NOT IMP-043's
+     rejected canonical map: "the map is a `grep` away" fails across languages, where
+     the two sides share no string. Offering it as the standard answer depends on B8
+     (same note): rule 9 lists the memory among the artifacts that are always English.
+  Relayed proposal, for the upgrade procedure: (1) the old/new title grep in BOTH
+  directions, the project's memory included — `SETUP.md` is already a candidate home
+  above; (2) the title map when the memory keeps another language; (3) declaring the
+  rebuild — already IMP-050 point 3.
 
 ### IMP-049 — Payload purity: method files that only make sense in the framework repo
 - Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — the third real
@@ -274,6 +330,76 @@ tags: [improvement]
 - Expected benefit / risk: the next upgrade does not rediscover these traps by trial.
   Risk: a longer procedure; the mechanical part is what IMP-037's command would absorb
   (see its case-#3 annotation).
+- **Evidence from a client harvest** (annotation 2026-09-26,
+  [[2026-09-26-client-harvest-registration]]) — four of its lessons land here, verified
+  on v1.2.1 and by experiment in throwaway repositories. They come from the same third
+  upgrade as B9 and B10 of [[2026-09-24-third-upgrade-lessons]]: re-harvested, not new
+  occurrences — what follows is what they ADD.
+  - **Point 4 — the producer side, and the sentinel.** The slot is confirmed (re-scoped
+    at v1.1.0, not added; its marker is lost when Step 3 re-applies the project's whole
+    section). New: every release that adds or changes a slot lists it under a fixed
+    field of its CHANGELOG entry ("New slots to fill on upgrade"), which Step 4 reads
+    for the entries between `vX` and `vY` — the direction above has only the consumer
+    side; releases already cut are not covered. And the check-10 sentinel of
+    `/lint-memory` (`TO BE DEFINED AT$|DA DEFINIRE AL$`, `lint-memory.md`:47, Applied
+    IMP-031) catches only a break right before `SETUP`: against every wrap position it
+    misses the inner breaks (`DEFINED⏎AT`, `BE⏎DEFINED`, `TO⏎BE`, `DEFINIRE⏎AL`,
+    `DA⏎DEFINIRE`) and any break after a trailing blank — 3 of 16 variants caught, 4
+    where the grep matches before a CR. A tested widening (16/16 broken caught, 0/2
+    intact, no hit on the v1.2.1 tree):
+    `\[(TO|TO BE|TO BE DEFINED|TO BE DEFINED AT)[[:space:]]*$|\[(DA|DA DEFINIRE|DA DEFINIRE AL)[[:space:]]*$`
+    — dual form kept (IMP-048, level 3), the false-positive declaration kept (its
+    category, prose that discusses the marker, recurs). Its fix sites lie outside the
+    upgrade: `lint-memory.md` and the §2 Convention box of `SETUP.md`, which promises
+    a sentinel that "flags broken slots".
+  - **Point 5 — the hooks directory: both one-liners are wrong as written.** The
+    direction above (`git rev-parse --git-path hooks`) has no anchor: it resolves the
+    repository of the CALLER's cwd, so `make test-scripts` installs into the calling
+    repository and fails. The client's anchored `git -C "$REPO_ROOT" rev-parse
+    --git-path hooks` returns a RELATIVE `.git/hooks` in a main worktree, and the script
+    never `cd`s: run from a subdirectory, it prints OK and writes a stray
+    `<cwd>/.git/hooks`. What passes the self-test, a linked worktree and a
+    subdirectory:
+    `HOOKS_DIR="$(git -C "${REPO_ROOT}" rev-parse --path-format=absolute --git-common-dir)/hooks"`
+    — `--git-common-dir` rather than `--git-path hooks`, which follows `core.hooksPath`
+    (safe today only because the script's guard runs first); the idiom of `SETUP.md`'s
+    own check; git 2.31 or later. The self-test needs a case run from a cwd other than
+    the repository root. Bonus: outside a repository
+    the v1.2.1 script prints OK and creates a stray `<dir>/.git/hooks` (it never checks
+    it is in one); the `rev-parse` line aborts instead. Span: hard-coded in every tag
+    from v0.1.0 to v1.2.1. Stale since v1.2.1: "`SETUP.md` never mentions worktrees"
+    (three mentions now, all framework-side) — and its Precondition check PASSES from a
+    linked worktree of the project, whose Step 4 then aborts. A git property for edge
+    case 4 (b): the hooks directory is shared by all worktrees, so `vY`'s hooks reach
+    every worktree whichever one runs Step 4.
+  - **Point 5 — the rollback.** A third way out: move the two `.bak` back over the
+    hooks — the pre-upgrade hooks come back byte for byte, with no script run — but
+    ONLY if THIS Step 4 printed the WARNING pair: a `.bak` left by an earlier upgrade
+    survives an upgrade that does not change the hooks, and a blind restore installs
+    hooks older than `vX` (reproduced); the manual removal above is immune. Across the
+    marker switch the `vY` run warns for BOTH hooks even when the project changed
+    nothing, while Step 4 mentions only "a `.bak` of the project's formatting block"
+    (`commit-msg` has none). `FORCE_OVERWRITE=1` is lossless when the customisation
+    lives in the SCRIPT and loses it when it lives in the HOOK, a place the framework
+    also sanctions — so the client's "harmless: the originals are regenerable" holds
+    only for the former. Scope correction to "a pre-v1.1.0 script … refuses": only a
+    `vX` from v0.3.0 to v1.0.0 refuses (rc 1, at the first hook); v0.1.0 and v0.2.0
+    have no guard and overwrite without a `.bak`. Client-side, relayed: its notes of
+    two earlier upgrades prescribe the failing rollback command.
+  - **Input for point 3 — the harvested "read by tag" lesson's sanity check** (the rest
+    of that lesson is covered, see *Applied*, IMP-050 (points 1-2)): `git -C
+    <framework> rev-parse vY:<file>` against a known blob is NOT in v1.2.1. The
+    Precondition check prints "FW OK" for a separate clone of the project or for an
+    unrelated repository with a same-named `vY` (reproduced), and `SETUP.md` does not
+    state that limit — only [[2026-09-25-imp-050-read-by-tag]] does. For the
+    pin-identity input above: one file's blob is a weak key (`CLAUDE.md` has the same
+    blob at v1.2.0 and v1.2.1) — compare a commit or tree id; the method holds no
+    trusted `vY` commit (the pin records `vX`, the tags are unsigned), but the first
+    released heading of `vY:CHANGELOG.md`, which Step 2 already reads, is a free
+    self-consistency anchor — of four checks measured, the only one that catches a `vY`
+    re-created on an earlier commit (it misses a tag moved later and a crafted
+    repository); and pin-identity closes the declared limit only when the pin records
+    the framework's real `vX` commit — never for `commit: n/a` pins or pre-pin grafts.
 
 ### IMP-051 — The memory lags one merge: `/checkpoint` runs before the merge
 - Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — a post-merge
@@ -343,6 +469,15 @@ tags: [improvement]
   and the wiring gaps that green tests miss are looked for at the moment they are most
   likely. Risk: ceremony on trivial resumptions — scale the check to the size of the
   uncommitted work (none → nothing to verify).
+- **Evidence relayed from a client project** (annotation 2026-09-26,
+  [[2026-09-26-client-harvest-registration]]): after a resumption, a branch was created
+  from the wrong base. Relayed by the user together with the harvest; not found in the
+  client's records read for this deliverable (a read-only search of its memory and of
+  its commit subjects), so it is recorded as relayed, with no cause attributed. For the
+  direction above: RESUMPTION confirms the committed tasks with `git log` on the branch,
+  but nothing checks the branch's BASE — a candidate item of the verify-before-
+  continuing step (e.g. the branch's merge-base against the base the plan or the
+  recorded decision expects).
 
 ### IMP-053 — The security-gate verdict is always written, "not applicable" included
 - Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — a skipped gate and a
@@ -363,6 +498,29 @@ tags: [improvement]
 - Expected benefit / risk: an absent verdict means a forgotten one, by construction, for
   one line per note. Risk: a boilerplate line written without thinking — the mandatory
   reason is what keeps it honest.
+- **Evidence from a client harvest — the upgrade** (annotation 2026-09-26,
+  [[2026-09-26-client-harvest-registration]]; recorded here and not as an entry of its
+  own — the reason is in the note): an upgrade rewrites the security BASELINE —
+  `hooks-install.sh` (the gitleaks hook), `settings.json` (the permissions),
+  `reset-task.sh` (a destructive guard) — none of them a sensitive component, and the
+  upgrade section of `SETUP.md` never names `/security-review` or a verdict: Step 6
+  closes with `/checkpoint` and `/integrate` only, skipping steps 2-3 of `docs/00`'s
+  cycle. Client-side, relayed: the notes of its two earlier upgrades carry no gate line
+  — this entry's skipped-or-forgotten ambiguity. New for the direction above: (1) the
+  upgrade (`SETUP.md` Step 5 or 6) as one more place for the one-line verdict; (2) the
+  content of its reason, a diff of the EXECUTABLE lines of the baseline scripts —
+  measured v1.0.0→v1.2.1: the generated hooks' executable lines identical,
+  `hooks-install.sh` changing messages and the hook-ownership test, `reset-task.sh`
+  messages only, the allow/deny lists of `settings.json` unchanged — which must keep
+  the code-read strings that live in COMMENTS: the hooks' ownership marker is a comment,
+  it changed Italian→English, and stripping comments hides exactly the change behind
+  IMP-050 point 5's rollback defect (IMP-048, level 3). As a mechanical check it
+  belongs with IMP-050 (points 3-5)'s Step 5 inputs. (3) Not a gate matter — a factual
+  defect listed in the note for the user's decision: `reset-task.sh` is filed METHOD
+  while it carries a setup slot (the protected branches) whose natural answer is
+  inline, a predictable hybrid like the setup-customised commands. A plain overwrite is
+  not silent (Step 4's marker grep re-surfaces the slot, edge case 7 catches the filled
+  one), but the project must then re-answer a slot the §2 checklist never lists.
 
 ### IMP-054 — The `git push` deny does not catch `git -C <dir> push`: a decorative boundary
 - Date: 2026-09-25 | Origin: [[2026-09-25-imp-050-read-by-tag]] — the deny list matches
@@ -405,6 +563,224 @@ tags: [improvement]
 - Expected benefit / risk: the boundary `docs/04` promises holds for the forms an agent
   actually writes. Risk: a hook is code to maintain and to prove RED→GREEN, and an
   over-broad matcher blocks legitimate reads.
+
+### IMP-055 — Delegated agents that run git in a shared working tree: isolate them, snapshot before and after
+- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
+  a multi-agent security gate over a commit range passed clean, but left the repository
+  on another branch
+- Observed problem (client-side, relayed): the review agents inspected the range with
+  git commands in the SHARED main working directory, not isolated. At least one ran
+  `git checkout` to read files, and the back-and-forth between the integration branch
+  and the range's tip left HEAD on the integration branch at the end of the run: the
+  feature branch was intact (no work lost) but no longer checked out, and the harness
+  reported its files as "modified by user", as if the user had discarded the
+  deliverable. The client's own practice (the diff passed inline, read-only tools only)
+  does not scale to a ~20-file diff, where agents gain from reading whole files — and it
+  was not followed.
+- On the framework's source: no written practice covers how delegated agents inspect a
+  repository — `docs/03` and `security-review.md` say nothing about it, and the
+  Precondition of `SETUP.md` is scoped to the upgrade's reads. The practice the lesson
+  would "extend" is a client-local rule, so here the proposal INTRODUCES one. Scope: any
+  delegated agent that runs commands against a shared working tree, not only review
+  workflows — this repo's own case was an assessment harness.
+- Kin — this repo's own incident (*Applied*, IMP-050 (points 1-2), *Further evidence for
+  (1)*; [[2026-09-25-imp-050-read-by-tag]], item 1): a subagent ran `switch --detach`
+  and `archive -o` on the real framework repo although its prompt forbade checkout and
+  switch. The client's case is a third live one of a process moving the HEAD of a
+  shared tree, with a new symptom: the harness attributes the changes to the user.
+- Proposal (as relayed; NOT decided here — retro), with the verification's corrections:
+  (a) ISOLATION first — relayed as a linked worktree per agent (a harness option); the
+  verification prefers a throwaway clone per agent, the form that held here and the
+  only one compatible with `SETUP.md`'s "no `worktree add` in the framework repo" when
+  the shared repo is the framework; a linked worktree defeats the incident's cwd
+  default, but creating it writes into the shared repo, it shares the refs (a branch
+  made in it shows in the main repo) and it does not stop an explicit
+  `git -C <main> switch`. (b) A prompt ban on HEAD-moving commands is one layer, not an
+  alternative to (a): the incident's prompt carried exactly that ban. And "does not move
+  HEAD" is the wrong criterion: `archive -o` moves no HEAD yet wrote into the repo; the
+  lesson's own allowed commands write too (`git diff --output`, `git show --output`
+  under `-C` land in the repo root), and `diff A B`, `show <commit>` and `log -p` can run
+  a configured textconv. (c) A BEFORE/AFTER snapshot — HEAD, branch, status and
+  untracked files, reflog length, stash, worktrees — as practised in
+  [[2026-09-25-imp-050-read-by-tag]], not an after-only check of HEAD and branch, which
+  misses an untracked archive and a move-and-return (the reflog grows, HEAD does not
+  change). Its status runs as `git --no-optional-locks status` (or
+  `GIT_OPTIONAL_LOCKS=0`): a plain `git status` writes the shared `.git/index`, and its
+  lock can make a concurrent git process fail (git-status(1), *BACKGROUND REFRESH*).
+- The permission side, for IMP-054's retro: the incident's commands (switch, checkout,
+  restore, archive) are in no deny rule in any form, and a project-wide deny would clash
+  with `docs/04`, where the main session creates and switches branches itself. So a
+  delegated agent's boundary is per agent — isolation, or a hook aware of the agent's
+  scope (IMP-054, direction (b)). That prefix rules miss `-C` is already in IMP-054.
+- Expected benefit / risk: delegated work stops leaving the shared repository in an
+  unexpected state, and scales to large diffs without a giant inline. Risk: a clone per
+  agent costs setup time and disk; (c) is free.
+
+### IMP-056 — The security gate checks what the code does, not what the product claims
+- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
+  a presentation-only deliverable, behaviourally clean for both adversarial lenses,
+  still carried four truth defects in what it asserted
+- Observed problem (client-side, relayed): behaviourally the diff really was
+  presentation-only — both review lenses confirmed that consent, the dry-run branches,
+  dispatch and exit codes were intact. Yet it carried four TRUTH defects: an end-of-run
+  summary ATTESTED in the persistent session log that components without a dry-run
+  gate had "previewed, changed nothing" (false for two of them), and a disk line could
+  claim space freed on a cache that had grown. The author's reasoning was "the label
+  follows the contract, the bug is elsewhere (a known debt)" — but reality did not
+  honour the contract, and the user documentation just written turned the label into a
+  promise. (Client-side: the gate passed only after the four were fixed.)
+- On the framework's source: `docs/03` names only defects of ACTION ("a bypassed check,
+  a spoof, an exposed administrative endpoint") and `security-review.md` has no
+  truthfulness check: nothing covers the assertions a product emits.
+- Proposal (as relayed; NOT decided here — retro): an explicit lens in `docs/03`,
+  "claims, not only actions": when a deliverable produces ASSERTIONS about security
+  properties (badges, states, summaries, "nothing was changed" messages) — especially
+  when they end up in a persistent artifact (log, report, export) — each one is
+  verified against the REAL behaviour of the code it describes, not against the
+  contract that code is supposed to honour. Operating criterion: a string that asserts
+  something did NOT happen needs a datum that proves it, kept separate from the
+  classification it would otherwise be inferred from.
+- The mechanism to name: a known, accepted debt (`docs/03`, *After the review*) becomes
+  a written promise to the user through a label or a freshly written user doc.
+- Open for the retro: how the lens's trigger (a deliverable that emits security
+  assertions) meets `docs/03`'s sensitive-only scope (and `docs/00` step 2) — either
+  the lens carries its own trigger, or "sensitive" includes the surfaces that attest
+  security properties. Precedent here: IMP-020, the hook that exited 0 with a
+  misleading warning. Kin: IMP-058 (its perimeter), IMP-057.
+- Expected benefit / risk: a known, accepted debt can no longer become a written
+  promise unnoticed. Risk: none — one more lens, applied only where there are
+  assertions.
+
+### IMP-057 — A test invariant over a known debt: a bidirectional allow-list, not an empty set
+- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
+  a class invariant made the honest declaration the only way to break the build
+- Observed problem (client-side, relayed): after the last two known violations of a
+  capability registry were fixed, an invariant was added that scanned the registry and
+  FAILED whenever an entry was declared as not honouring the capability. It looked like
+  the natural strengthening of "close the class", but it made the honest declaration
+  the only move that breaks the build: for a new unit without the capability, the
+  fastest way to green is not to fix it but to declare it compliant and mention the
+  flag in a comment (the other check was a grep on the file). The test pushed towards
+  the lie exactly where the code needs the truth — a summary attests "nothing changed"
+  on that very data (IMP-056).
+- On the framework's source: `docs/02` (*Tests that demonstrate*) prescribes invariants
+  "re-applied BY CONSTRUCTION" — a property over ALL entities, with an anti-vacuity
+  check — and says nothing about known exceptions. The lesson QUALIFIES that example:
+  when the property is an entity's self-declared flag, introspection over all entities
+  measures the declaration.
+- Proposal (as relayed; NOT decided here — retro): in `docs/02`, an invariant over a
+  set with a KNOWN debt is written as a BIDIRECTIONAL ALLOW-LIST, not as an empty-set
+  assertion: (a) an unlisted member that violates the property fails → the debt cannot
+  grow silently; (b) a listed member that no longer violates it fails → an exemption
+  cannot outlive its fix. General rule: if declaring the truth breaks the build, the
+  test is badly designed — it measures the declaration, not the behaviour.
+- For the retro: to be reconciled with `docs/02`'s "not as assertions about the state
+  known today" — check (b) makes the list a shrink-only register of exemptions, the
+  mirror of the anti-vacuity guard (that one guards the scanned set, (b) the list).
+  Kin: the bidirectional set comparison of IMP-038 (`/lint-memory` check 11); debts
+  kept with their reason (`docs/03`).
+- Expected benefit / risk: removes the incentive to lie in the registries that security
+  assertions rely on. Risk: an allow-list can become a comfortable parking lot —
+  mitigated by check (b) and by a recorded reason for every entry.
+
+### IMP-058 — Widening a claim beyond the diff widens the gate's perimeter
+- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
+  a small fix attested as verified a claim over a whole registry, four entries of which
+  were false
+- Observed problem (client-side, relayed): the task closed two known violations, but to
+  do so it set every entry of an 18-entry registry to "compliant", added a class test
+  and rewrote the user doc from "these units do not honour the flag" to "every unit
+  stops at the preview". The diff touched 2 units; the CLAIM covered 18 — and four of
+  them were false, for defects the branch had not introduced (an implicit self-update of
+  an external tool — IMP-059 —, an ungated deletion, a check that executed untrusted
+  input). The branch broke nothing: it ATTESTED as verified what was only declared. A
+  review limited to the changed files — the normal practice — would never have seen it.
+- On the framework's source: the gate is diff-scoped — `docs/03` runs `/security-review`
+  "on the branch diff", `security-review.md` reviews "the modified files (`git diff`)";
+  the only check beyond the diff, the coherence review of `docs/01`, is scoped to
+  shared-code refactors and renamed titles (IMP-043).
+- Proposal (as relayed; NOT decided here — retro): next to IMP-056's lens, a BREADTH
+  criterion in `docs/03`: when a deliverable generalises a claim (from "these N" to
+  "all"), the perimeter of the gate is the CLAIM's, not the diff's. Triggers: a
+  registry/config value going from exception to uniformity; a test replacing point
+  cases with a loop over the whole set; a doc sentence losing its exceptions (an
+  "except…" that disappears).
+- Close kin of IMP-056 — **evaluate unification at the retro**: IMP-056 is the lens
+  (claims, not only actions), this entry its perimeter (the claim's set, not the diff's).
+- The framework's own occurrence, as a pattern: C11 ([[2026-09-24-third-upgrade-lessons]])
+  — decision 3 of the language deliverable scoped backward compatibility to the three
+  grep-coupled tokens ([[2026-07-20-language-rule-phase1]]), while the 1.1.0 CHANGELOG
+  sentence put five kinds of strings, the escalation delimiters included, under "Every
+  READER accepts the legacy Italian form as well"; `docs/05` never got a dual-form
+  reader. The defect is recorded there; the pattern was not. And `docs/02`'s
+  ALL-entities invariant is itself a widening trigger — with a known debt, its form is
+  IMP-057's.
+- Expected benefit / risk: catches the defect class where the code is correct and the
+  promise is false. Risk: a wider gate — to apply only when the claim really widens.
+
+### IMP-059 — Gating an external tool's invocation is not enough: check what the tool runs by itself
+- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
+  a dry-run gate that looked closed while the gated tool kept updating itself
+- Observed problem (client-side, relayed): putting a package manager's update behind
+  the dry-run gate seemed to close the issue. But the tool runs its own update
+  automatically before several of its subcommands, and not even the tool's own dry-run
+  flag stops it — the decision is taken before the arguments are read. A preview-only
+  session kept rewriting the tool's index through units that "only list" things: the
+  front door closed, the service door open — invisible to any test with a mock, because
+  a mock does not reproduce the real tool's implicit behaviour.
+- On the framework's source: nothing in `docs/02` (I/O, dependencies, *verify against
+  REAL artifacts*) or `docs/03` covers it; it extends the Definition of Done's "not
+  just isolated units with mocks" to the external tools a component drives.
+- Proposal (as relayed; NOT decided here — retro): in `docs/02` (or the technical-rules
+  template), when you gate the invocation of an external tool, check its source/docs
+  for paths where it re-runs the gated action implicitly, and use the official
+  off-switch (typically an environment variable). It applies to any tool with automatic
+  behaviours: package managers, git (hooks, auto-gc), CI runners, formatters with a
+  watch mode.
+- Evidence inside the framework (the verification's, not the lesson's): `git status` —
+  allowed as `Bash(git status)` by `settings.json`, a read-only inspection for
+  `docs/04` (*Permission configuration*) — writes `.git/index` by itself (an
+  optional-lock refresh); git documents the off-switch, `git --no-optional-locks` /
+  `GIT_OPTIONAL_LOCKS=0` (git-status(1)). Config-dependent: `status` runs a configured
+  fsmonitor, and `diff A B`, `show <commit>` and `log -p` run a configured textconv
+  (off-switch `--no-textconv`). Observed, not probed: the generated `commit-msg` hook
+  runs commitlint through `npx --yes` with unpinned packages, and an npm debug log of a
+  commit in a grafted project shows it contacting the package registry — an implicit
+  network step behind the commit gate.
+- Kin: IMP-054 — the same class, a different opener (there the CALLER reaches the
+  program through another syntax; here the TOOL reaches the effect by itself); IMP-020 —
+  a different mechanism with the same outcome, a false sense of security.
+- Expected benefit / risk: avoids gates that look closed and are not. Risk: none — a
+  one-off check per tool, usually a grep in its docs.
+
+### IMP-060 — A delegation brief quotes the user's decisions verbatim; a multi-agent report declares its coverage gaps
+- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
+  agents re-opened an already-decided point as "undecided, blocking" because the brief
+  paraphrased the decisions
+- Observed problem (client-side, relayed): the brief given to the review agents of a
+  multi-agent assessment paraphrased only one of the user's decisions and left out
+  another one already taken. Several agents and verifiers then treated that decided
+  point as "undecided, blocking", and the finding had to be retracted in the report.
+  The same run lost 2 of 27 agents to stalls: declaring the uncovered items explicitly,
+  and re-checking them by hand, kept the report honest.
+- On the framework's source: (a) is absent — `docs/00` (*Scope and session hygiene*)
+  has no delegation bullet (the nearest is the effort one), and `docs/05`'s self-sufficient report is the outward
+  analogue; (b) exists IN PART — `docs/03`, *Before acting on the findings* (Applied
+  IMP-016), is a reader-side completeness check, for reviews only. New: the writer-side
+  declaration of the stalled or skipped agents and of the items they left uncovered,
+  the re-check by hand, and the extension beyond reviews. The framework practised it
+  once without writing it down ([[2026-07-14-registrazione-imp-innesto-brownfield]]).
+  A kin case of its own: a brief that carried a wrong factual premise
+  ([[2026-09-24-third-upgrade-lessons]], *Problems encountered*, 1) — both show that
+  agents take the brief as ground truth.
+- Proposal (as relayed — (b)'s placement corrected by the verification, the client put
+  both halves in `docs/00`; NOT decided here — retro): (a) a brief for delegated agents
+  quotes the user's decisions and constraints VERBATIM, never summarised — a new bullet
+  in `docs/00` (*Scope and session hygiene*), or one delegation paragraph shared with
+  IMP-055; (b) a multi-agent report declares its coverage gaps explicitly — `docs/03`,
+  *Before acting on the findings*, generalised beyond reviews.
+- Expected benefit / risk: fewer false findings and no silent coverage holes. Risk:
+  longer briefs.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
@@ -876,6 +1252,20 @@ tags: [improvement]
   ([[2026-09-24-third-upgrade-lessons]], B4-B5; the original evidence of points 1-2:
   `git show 1c39166:.claude/memory/LEARNINGS.md`). Risk: a longer Precondition, and
   every framework-side read now uses `git -C`, the form IMP-054 is about.
+- **The same two traps, re-harvested by the client** (annotation 2026-09-26,
+  [[2026-09-26-client-harvest-registration]]) — NOT an independent confirmation: the
+  client's lesson comes from the same third upgrade as B4 and B5, this entry's original
+  evidence; count it once. The client, reading the framework only through v1.2.0,
+  proposed exactly these two points: point 1, the framework's HEAD moved during the
+  assessment (= B4, the same incident); point 2, its own same-named tag answers a bare
+  `git show vY:<path>` with ITS file, exit 0 (= B5). Both are covered by v1.2.1
+  (`SETUP.md`, Precondition, rules 1 and 2). Correction to its account of point 1: the
+  switch did not change the checked-out commit (`main` was at `v1.2.0`'s commit then),
+  HEAD moved with the next commit, and the working tree had already diverged through
+  uncommitted edits — the damage in that instance was nil (only `LEARNINGS.md`
+  differed, whose entries an upgrade never carries). Its extra sanity check (a blob
+  compared with `rev-parse`) is not covered: input for IMP-050 (points 3-5). Kin:
+  IMP-055 (delegated agents in a shared working tree).
 
 ## Deferred (not rejected — resumed at the right time)
 
