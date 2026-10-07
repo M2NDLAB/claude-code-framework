@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-09-27
+updated: 2026-10-07
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -812,6 +812,33 @@ tags: [improvement]
   change that reaches client projects only through the upgrade — and the format comment
   of `LEARNINGS.md` sits under IMP-046's contradiction; (b) must stay anonymous
   (`docs/04`, shared history).
+
+### IMP-062 — Cover remote writes through `gh` in the agent boundary
+- Date: 2026-10-07 | Origin: [[2026-09-27-imp-054-055-agent-git-boundary]] — the push
+  boundary of IMP-054 stops every `git push` born from the agent's process, not the remote
+  writes that bypass git
+- Observed problem: `gh` changes shared state without `git push`: `gh api` with a writing
+  method (any `-f`/`-F` field switches it to POST; `-X PUT …/contents/<path>` creates a
+  commit; `PATCH …/git/refs/<ref>` moves a ref, force included), `gh pr merge` (a merge onto
+  the integration branch; `--delete-branch` also deletes the remote branch),
+  `gh release create` (creates the tag when it is missing), `gh repo sync <remote>`. The
+  `pre-push` never sees them — git runs it for `git push` only — and the deny list does not
+  name them. Logged in with the owner's credential (`repo` scope in this repo), an agent
+  using `gh` acts as the owner: the forge cannot tell them apart, and the same credential
+  can remove the rulesets.
+- Why not now (user decision 2026-10-07, D3): this layer's threat model is the agent's
+  ACCIDENTAL errors with ordinary commands, no flow of the framework uses `gh`, and the
+  hook of IMP-054/055 must stay small (delegated agents' read-only git only).
+- Proposal: NOT decided. Direction: the PreToolUse hook refuses, in every session, the
+  writing `gh` forms (`api` with a non-GET method or a body field, `pr merge`,
+  `release create|edit|delete|upload`, `repo sync <remote>`) — sketched in the phase-1
+  prototype, never tested. Alternative: a read-only token for the agent through
+  `GH_TOKEN`, which narrows rather than seals (the stored credential stays reachable).
+- Resumption trigger: the first use of `gh` in the framework's flows (a command, a doc
+  step, an `/integrate` variant), or the first incident of an agent writing to the remote
+  through `gh`.
+- Expected benefit / risk: closes the non-git route to shared history for accidental use.
+  Risk: a larger hook — the size the user chose to avoid now.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>

@@ -29,7 +29,7 @@ tags: [session, imp, retro, security, verification]
   go-ahead. Not counted: `/model`, `/effort`, background notifications.
 
 ## Plan (one commit per task)
-- [ ] 1. This note: phase-1 evidence, the user's decisions, the plan block — commit: —
+- [x] 1. This note: phase-1 evidence, the user's decisions, the plan block — commit: d64a9e1
 - [ ] 2. Record IMP-062 (OPEN): cover remote writes through `gh` — commit: —
 - [ ] 3. `scripts/agent-git-guard.mjs` (delegated agents read-only on git) + its wiring in `settings.json` (PreToolUse, fail-closed; the `AGENT_GIT_BOUNDARY` marker) + `scripts/test-agent-git-guard.sh` + `Makefile` — commit: —
 - [ ] 4. `hooks-install.sh` generates the `pre-push` (the push boundary) + `test-hooks-install.sh` extended — commit: —
