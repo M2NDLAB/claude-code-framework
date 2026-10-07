@@ -2,9 +2,9 @@
 date: 2026-09-27
 task: retro block — IMP-054 + IMP-055, what really enforces a boundary on an agent; phase 1 (verified inventory + proposal, 2026-09-27) and phase 2 (the user's decisions applied, from 2026-10-07); IMP-061 recorded
 branch: feat/agent-git-boundary
-status: in-progress
+status: completed
 model: 'claude-opus-5-5'
-turns: 4
+turns: 5
 tags: [session, imp, retro, security, verification]
 ---
 # Session 2026-09-27 — IMP-054 + IMP-055: real boundaries for an agent
@@ -24,9 +24,13 @@ tags: [session, imp, retro, security, verification]
   sessions ran `claude-haiku-4-5` as a SCRIPTED EXECUTOR only: no verdict relies on its
   reasoning — each comes from the lab remote's refs and from the tool results Claude Code
   returned.
-- `turns: 4` — the phase-1 prompt; the resumption after the machine slept (present the
+- `turns: 5` — the phase-1 prompt; the resumption after the machine slept (present the
   proposal as it stands); the GitHub ruleset to cite; the decisions with the phase-2
-  go-ahead. Not counted: `/model`, `/effort`, background notifications.
+  go-ahead; `/integrate`, typed while tasks 8-11 were still open (run at the end of the
+  deliverable, as the command itself says). Not counted: `/model`, `/effort`, background
+  notifications, the reviewer's hand-back. Delegated in phase 2: one code reviewer
+  (`general-purpose`, the main model) and 12 nested end-to-end sessions
+  (`claude-haiku-4-5`, scripted executor).
 
 ## Plan (one commit per task)
 - [x] 1. This note: phase-1 evidence, the user's decisions, the plan block — commit: d64a9e1
@@ -38,8 +42,8 @@ tags: [session, imp, retro, security, verification]
 - [x] 7. `SETUP.md` (classes, *Hardening*, hooks step, upgrade Step 4), `.gitignore`, `README.md` — commit: adea3fd
 - [x] 8. Code review of the hook and the `pre-push` by ONE reviewer (security-gate lens) + fixes — commit: 256a7ba
 - [x] 9. `ask` rules on edits to `settings.json` and to the hook file (D6) — commit: e692d36
-- [ ] 10. End-to-end verification on the REAL files in a throwaway lab (v1.2.1 RED, the branch GREEN) — commit: —
-- [ ] 11. `/retro` + `/checkpoint` (IMP-054/055 → Applied) — commit: —
+- [x] 10. End-to-end verification on the REAL files in a throwaway lab (v1.2.1 RED, the branch GREEN) — commit: 6f3772b
+- [x] 11. `/retro` + `/checkpoint` (IMP-054/055 → Applied) — commit: the checkpoint commit (its own sha cannot be written in it)
 - [ ] 12. `/integrate`: the CHANGELOG 1.3.0 entry; the merge+tag block printed for the user — commit: —
 
 ## Phase 1 — evidence (2026-09-27)
@@ -217,6 +221,20 @@ push from a shell without the marker (the human's terminal).
 ## Done
 - `86ca886` (phase 1, on `main`, a separate commit as asked) — IMP-061 recorded (OPEN):
   `/harvest-framework` re-prints entries already carried upstream.
+- Phase 2, on `feat/agent-git-boundary` (from `86ca886`, aligned with `origin/main`):
+  `d64a9e1` this note and the plan; `a66eda3` IMP-062; `6a3c691` the guard, its wiring
+  and self-test; `3ec5dc5` the `pre-push`; `b08a128` `repo-snapshot.sh`; `70e8598`
+  `docs/04`, `docs/03`, `scripts/README.md`, `CLAUDE.md`; `adea3fd` `SETUP.md`,
+  `.gitignore`, `README.md`; `256a7ba` the code review applied; `e692d36` the `ask`
+  rules; `6f3772b` the end-to-end verification; then this checkpoint (IMP-054/055 →
+  Applied) and the CHANGELOG 1.3.0 entry.
+- Every RED→GREEN of the self-tests was shown on throwaway copies under `/tmp`: the
+  guard's 10 mutants (4 wiring/behaviour regressions in task 3, 10 in task 8) and 3
+  `pre-push` regressions all fail `make test-scripts`; the snapshot test fails when its
+  untracked section is dropped (its stash section is also visible through `refs/stash`).
+- The real repository: snapshots identical before and after the delegated review;
+  no `make hooks-install` here (the user's choice to make — `.git/hooks` is not on a
+  branch).
 
 ## Code review of the hook and the pre-push (task 8) — the security gate
 ONE independent reviewer (author ≠ judge, as the user asked; `docs/03`: this is the
@@ -271,6 +289,42 @@ Not verified here: the `ask` prompt in an interactive session (in this session t
 main-session edit of the guard's header comment went through the Edit tool; whether a
 prompt was shown is not visible to the agent).
 
+## Problems encountered → cause → solution
+1. The phase-1 pre-note review workflow stalled (agents interrupted and restarted for an
+   hour, 0 results) → long multi-agent runs at a high effort in one workflow → stopped;
+   the gap declared; phase 2 used ONE reviewer, who returned in about 20 minutes.
+2. The first phase-1 probe matrix showed every form denied → in an untrusted workspace
+   Claude Code ignores the project's `allow` → the allow moved to `settings.local.json`.
+3. The guard's first draft had an unreadable `timeout` branch and a reflowed comment →
+   simplified before the first commit.
+4. The first `ask` probe was inconclusive → the Write tool refuses to overwrite a file not
+   read first, before any permission check → re-run with Read + Edit, plus a control
+   without the `ask` rules.
+5. The lab builder committed its payload with the real hooks already installed
+   (commitlint without its config) → hooks installed after the commit.
+6. A mutant that seemed to survive (Monitor) was a precedence slip in the mutation, not in
+   the test → re-run with a correct mutant: killed.
+
+## Retro (end of deliverable)
+Candidate lessons — NOT recorded as IMPs (the user listed what this block records: IMP-062
+only); offered to the user:
+- **Fan-out has a stall cost.** Two multi-agent workflows of this block were the
+  expensive failures (one stalled outright), while one reviewer found a HIGH the
+  prototype phase had missed. A candidate rule for `docs/03`: one independent reviewer
+  first, a fan-out only with an explicit stall budget and its coverage gaps declared
+  (kin of IMP-060 (b)).
+- **Probe in a trusted shape.** A `claude -p` probe in a fresh directory silently drops
+  the project's `allow` rules: any future verification of permissions must put its
+  allow in `settings.local.json` or it measures the wrong thing.
+- **Protected paths and shell edits.** This session edited `.claude/` files both ways:
+  with the file tools (most of phase 2, `settings.json` always) and through Python
+  one-offs (IMP-061 in phase 1; in phase 2 the review's `docs/04` fixes, the LEARNINGS
+  move and parts of this note), which the protected-path check of `.claude/` does not
+  see. A candidate line for `docs/02` or `docs/04`: edit the method's own files with the
+  file tools, so the checkpoints that guard them apply.
+- **Open choice from the review (A5)**: keep the decided `|| exit 2` wiring, or the
+  agent-only fail-closed variant that never blocks the main session.
+
 ## Side findings (not in this block's scope)
 - `scripts/test-hooks-install.sh` belonged to no class in `SETUP.md` (classified by this
   block).
@@ -283,4 +337,11 @@ prompt was shown is not visible to the agent).
 - This repo's personal `settings.local.json` allows `Bash(git *)`, and these sessions run
   in auto mode, whose classifier allows pushes by default: before this block a
   `git -C … push` would have run unprompted here. The file is the user's own; the
-  `pre-push` covers it once installed.
+  `pre-push` covers it once installed (`make hooks-install` has never run in this repo).
+
+## Follow-up
+- Integration: `/integrate` prints the merge + tag block (v1.3.0); merge, tag and push are
+  the user's.
+- The user's choice on the review's A5 variant; the retro candidates above.
+- In this repo: `make hooks-install`, if the user wants the `pre-push` (and gitleaks,
+  commitlint) active here too.
