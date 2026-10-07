@@ -10,7 +10,7 @@ tags: [session, imp, security, verification]
 # Session 2026-10-07 — v1.3.1: the guard fails closed for delegated agents only
 
 > A small deliverable after v1.3.0 ([[2026-09-27-imp-054-055-agent-git-boundary]]), from
-> `main` at `ec0b118`. No plan block: five commits. Probes only in throwaway repositories
+> `main` at `ec0b118`. No plan block: six commits. Probes only in throwaway repositories
 > under `/tmp`, remotes via `file://`; nothing towards GitHub.
 
 ## The fields of this very note

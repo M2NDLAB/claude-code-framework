@@ -7,6 +7,40 @@ SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [1.3.1] — 2026-10-07
+
+### Added
+- IMP-063..066 (open): a fan-out's stall cost; permission probes in an untrusted
+  workspace; editing the method's own files with the file tools; verifying the tag's
+  signature in `/integrate` when signing is configured (low priority).
+
+### Changed
+- `docs/04` (*Enforcement of the execution boundary*), `SETUP.md` (upgrade Step 3) and
+  `scripts/README.md`: the recovery and the upgrade order simplify — there is no longer
+  an order to respect between the guard and `.claude/settings.json`.
+
+### Fixed
+- **A broken agent-git guard no longer blocks the main session** (IMP-055, the code
+  review's A5 variant). In 1.3.0 any failure of `scripts/agent-git-guard.mjs` — a missing
+  file or `node`, a crash — blocked every Bash call, the main session's included, although
+  the guard has no job there (the push boundary is the `pre-push`); a grafted project
+  upgraded with `settings.json` before the guard locked its own session. The wiring in
+  `.claude/settings.json` now lets the guard's verdict stand and turns a failure into a
+  block only when the hook input carries `agent_id`: delegated agents stay fail-closed.
+  An input the wiring cannot read blocks every call; the guard reports an unparseable
+  input as a failure (exit 3).
+- **The self-tests are hermetic against the user's git setup.** With a global
+  `tag.gpgSign`, the snapshot test failed (a plain `git tag` became a signed tag asking
+  for a message); run from a git hook, `GIT_DIR`/`GIT_INDEX_FILE` pointed the throwaway
+  commands at the real repository. The tests that run git now ignore the global and
+  system config and the caller's git environment.
+
+**Upgrading from 1.3.0:** reconcile `.claude/settings.json` (the PreToolUse hook's
+`command`, 3-way) and bring `scripts/agent-git-guard.mjs` and the three
+`scripts/test-*.sh` over, in any order; then `make test-scripts`. Nothing changes for
+delegated agents; the main session no longer loses its Bash tool when the guard cannot
+run.
+
 ## [1.3.0] — 2026-10-07
 
 ### Added
