@@ -1355,6 +1355,11 @@ tags: [improvement]
   fail-closed wiring), recovery and upgrade order documented, the agent-only variant left
   to the user. End to end: every delegated-agent write refused through Bash and Monitor,
   the main session free.
+- **Refined in v1.3.1** (2026-10-07, [[2026-10-07-guard-agent-only-fail-closed]]): the user
+  adopted the review's agent-only variant — a broken guard (crash, missing file or
+  `node`, unparseable input) now blocks delegated agents only, never the main session;
+  the guard's own verdict always stands. The upgrade order between the guard and
+  `settings.json` no longer matters. Commits c65b22a, b8997aa.
 
 ## Deferred (not rejected — resumed at the right time)
 
