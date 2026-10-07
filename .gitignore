@@ -26,6 +26,9 @@ vault-keys.json
 
 # Local Claude Code (personal settings, not shared)
 .claude/settings.local.json
+# Worktrees Claude Code creates for isolated agents (docs/04, "Delegated agents and the
+# shared working tree"): transient, never content of the repository
+.claude/worktrees/
 
 # (Optional) local config of the Obsidian vault, if you open .claude/ in Obsidian
 .obsidian/
