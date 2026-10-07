@@ -191,20 +191,33 @@ for c in 'git switch -c feat/x' 'git commit -m "x"' 'git push origin main'; do
 done
 
 # --- 4. A broken guard: fail-CLOSED for a delegated agent, open for the main session ------
-mkdir -p "${workdir}/empty" "${workdir}/broken/scripts" "${workdir}/no-node"
+mkdir -p "${workdir}/empty" "${workdir}/broken/scripts" "${workdir}/no-node" "${workdir}/no-cat"
 echo 'throw new Error("simulated crash");' > "${workdir}/broken/scripts/agent-git-guard.mjs"
 ln -s "$(command -v cat)" "${workdir}/no-node/cat" # a PATH with the wiring's `cat` and no `node`
+ln -s "${NODE}" "${workdir}/no-cat/node"           # a PATH with `node` and no `cat`
 for who in agent main; do
   if [[ "${who}" == agent ]]; then want=2; mark=agent; else want=0; mark=""; fi
   expect "${want}" "node missing (${who})"       "${REPO_ROOT}"      "$(hook_input 'git log -1' "${mark}")" "${workdir}/no-node"
   expect "${want}" "guard file missing (${who})" "${workdir}/empty"  "$(hook_input 'git log -1' "${mark}")"
   expect "${want}" "guard crash (${who})"        "${workdir}/broken" "$(hook_input 'git log -1' "${mark}")"
 done
-# The agent test is on the hook input's agent_id KEY: a main-session command that merely
-# quotes it arrives JSON-escaped and stays the main session's.
+# When the guard fails, the wiring classifies the call by the text `"agent_id"` in the raw
+# input. A quote INSIDE a value arrives JSON-escaped, so a main-session command quoting the
+# key stays the main session's. (A value that ENDS in `"agent_id` would still match while
+# the guard is broken: a false positive that blocks, i.e. fails safe — accepted.)
 expect 0 "a main-session command quoting \"agent_id\" (broken guard)" "${workdir}/empty" \
   "$(hook_input 'echo "\"agent_id\": x"')"
 expect 2 "unreadable input carrying agent_id must block" "${REPO_ROOT}" '{"agent_id":"a-self-test","tool_name":"Bash", truncated'
 expect 0 "unreadable input without agent_id passes (it cannot be told from the main session)" "${REPO_ROOT}" 'not json'
+# The wiring cannot even read its input (no `cat`): it cannot classify the call, so it blocks.
+expect 2 "an unreadable stdin blocks (agent)" "${REPO_ROOT}" "$(hook_input 'git log -1' agent)" "${workdir}/no-cat"
+expect 2 "an unreadable stdin blocks (main)"  "${REPO_ROOT}" "$(hook_input 'git log -1')"       "${workdir}/no-cat"
+# A HEALTHY guard's verdict stands whatever the spelling of the key: here agent_id is written
+# with a JSON escape, so the raw-text test would miss it — the guard's exit 2 must survive.
+expect 2 "a healthy guard's block stands (escaped agent_id key)" "${REPO_ROOT}" \
+  '{"tool_name":"Bash","tool_input":{"command":"git commit -m x"},"cwd":"/tmp","agent\u005fid":"a1","agent_type":"general-purpose"}'
+# A main session started with --agent carries agent_type but no agent_id: the main session.
+expect 0 "a main session with agent_type only (broken guard)" "${workdir}/empty" \
+  '{"tool_name":"Bash","tool_input":{"command":"git log -1"},"cwd":"/tmp","agent_type":"reviewer"}'
 
 echo "PASS (IMP-055 guard): ${#AGENT_WRITES[@]} agent writes blocked, ${#AGENT_READS[@]} reads allowed, main session free; a broken guard (node missing / file missing / crash / bad input) blocks agents only."

@@ -258,10 +258,12 @@ command does not matter:
   where the markers are set.
 - **Fail-closed for delegated agents, open for the main session.** Claude Code lets a
   PreToolUse hook that exits 1, misses its binary or times out PROCEED, so the wiring
-  decides what a broken guard means: any failure of the guard — a crash, a missing file,
-  a missing `node` — blocks when the hook input carries `agent_id`, and passes otherwise.
+  decides what a broken guard means. The guard's own verdict, pass or block, always
+  stands; any FAILURE of the guard — a crash, a missing file or `node`, an input it cannot
+  parse — blocks when the hook input carries the `agent_id` key, and passes otherwise.
   The guard has no job in the main session (its push boundary is the `pre-push`), so a
-  broken guard never costs the main session its Bash tool. A timeout still proceeds; the
+  broken guard never costs the main session its Bash tool. An input the wiring cannot
+  even read blocks every call: it cannot be classified. A timeout still proceeds; the
   guard runs in milliseconds against a generous limit.
 - **Proven, not assumed.** `make test-scripts` fails if the `pre-push` stops refusing an
   agent-session push (direct, `-C`, `sh -c`, a script) or starts refusing the human's, if

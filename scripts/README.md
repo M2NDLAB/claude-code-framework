@@ -25,5 +25,6 @@ scripts/repo-snapshot.sh | diff "$before" -              # after: any output = s
 
 Prerequisites: `gitleaks` and `npx` (Node.js) for `hooks-install.sh`; `node` 14.13 or
 later for the guard — if `node` is missing or too old to parse it, delegated agents are
-blocked (fail-closed) and the main session is not. A project's own pre-push (e.g. git-lfs's) goes in
-`.git/hooks/pre-push.local`: the generated pre-push runs it after the boundary check.
+blocked (fail-closed) and the main session is not. A project's own pre-push (e.g.
+git-lfs's) goes in `.git/hooks/pre-push.local`: the generated pre-push runs it after the
+boundary check.
