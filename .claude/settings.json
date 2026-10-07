@@ -12,6 +12,10 @@
       "Bash(git commit:*)",
       "Bash(tree:*)"
     ],
+    "ask": [
+      "Edit(/.claude/settings.json)",
+      "Edit(/scripts/agent-git-guard.mjs)"
+    ],
     "deny": [
       "Bash(git push:*)",
       "Bash(git reset --hard:*)",

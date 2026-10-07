@@ -121,7 +121,8 @@ Here is the complete list, grouped by file:
       `deny`: push, `reset --hard`, destructive deletions, reading secrets) — the
       principles are in `04-git-workflow.md` ("Permission configuration"). The `env`
       marker `AGENT_GIT_BOUNDARY` and the PreToolUse hook that runs
-      `scripts/agent-git-guard.mjs` are the method's boundary wiring: leave them in
+      `scripts/agent-git-guard.mjs` are the method's boundary wiring, and the `ask`
+      rules on edits to these two files are its checkpoint: leave them in
       (`04-git-workflow.md`, "Enforcement of the execution boundary").
 - [ ] Leave `settings.local.json` out of version control (it is already in
       `.gitignore`) and start empty: personal permissions are NOT committed, no vague

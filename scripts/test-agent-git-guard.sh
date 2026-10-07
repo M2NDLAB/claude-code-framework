@@ -44,6 +44,12 @@ process.stdout.write(hook.command);
 ' "${REPO_ROOT}/.claude/settings.json")" \
   || fail "no PreToolUse hook on Bash and Monitor runs scripts/agent-git-guard.mjs in .claude/settings.json"
 [[ "${wired}" == *"|| exit 2"* ]] || fail "the wiring is not fail-closed (no '|| exit 2'): ${wired}"
+# The checkpoint on the boundary's own files (an accidental edit would change it at once).
+"${NODE}" -e '
+const ask = require(process.argv[1]).permissions?.ask ?? [];
+const missing = ["Edit(/.claude/settings.json)", "Edit(/scripts/agent-git-guard.mjs)"].filter((r) => !ask.includes(r));
+if (missing.length) { console.error(missing.join(", ")); process.exit(3); }
+' "${REPO_ROOT}/.claude/settings.json" || fail "settings.json lacks the ask rule(s) above on the boundary's own files"
 
 # The hook input for a command; "agent" as the second argument adds agent_id/agent_type;
 # the third names the tool (default Bash).

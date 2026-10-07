@@ -36,7 +36,7 @@ tags: [session, imp, retro, security, verification]
 - [x] 5. `scripts/repo-snapshot.sh` + `scripts/test-repo-snapshot.sh` + `Makefile` — commit: b08a128
 - [x] 6. `docs/04` (threat model, enforcement, delegated agents), a pointer in `docs/03`, `scripts/README.md`, `CLAUDE.md`'s quick-command line — commit: 70e8598
 - [x] 7. `SETUP.md` (classes, *Hardening*, hooks step, upgrade Step 4), `.gitignore`, `README.md` — commit: adea3fd
-- [ ] 8. Code review of the hook and the `pre-push` by ONE reviewer (security-gate lens) + fixes — commit: —
+- [x] 8. Code review of the hook and the `pre-push` by ONE reviewer (security-gate lens) + fixes — commit: 256a7ba
 - [ ] 9. `ask` rules on edits to `settings.json` and to the hook file (D6) — commit: —
 - [ ] 10. End-to-end verification on the REAL files in a throwaway lab (v1.2.1 RED, the branch GREEN) — commit: —
 - [ ] 11. `/retro` + `/checkpoint` (IMP-054/055 → Applied) — commit: —

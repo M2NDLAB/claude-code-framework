@@ -322,6 +322,11 @@ what Claude Code may run without asking. Keep them **clean and specific**:
 - **The boundary's wiring** lives in the same file and is part of the method, not a
   setup choice: the `env` marker `AGENT_GIT_BOUNDARY` read by the `pre-push` hook, and
   the PreToolUse hook that runs `scripts/agent-git-guard.mjs`.
+- **`ask`**: an edit to the boundary's own files — `.claude/settings.json` and
+  `scripts/agent-git-guard.mjs` — always asks the human, auto mode included. Claude Code
+  reloads settings while it runs, so an accidental edit would change the boundary at
+  once. The rule covers the built-in file tools; a write through a shell command is
+  outside it (and outside the threat model).
 - **A local, UNVERSIONED file.** Personal permissions live in `settings.local.json`
   (already in `.gitignore`) and start out **empty**: what is shared and reasoned about
   lives in the versioned file; ad-hoc grants stay local and do not pollute the
