@@ -19,8 +19,10 @@
 // session.
 // CONTRACT. stdin: the hook JSON. Exit 0: no objection (the permission flow goes on).
 // Exit 2: blocked, the reason on stderr (the agent reads it). Unreadable input exits 2.
-// .claude/settings.json wires it as `node ... || exit 2`, so a crash or a missing
-// `node` blocks as well: fail-closed. Self-test: scripts/test-agent-git-guard.sh.
+// .claude/settings.json wires it so that ANY failure — this exit 2, a crash, a missing
+// file, a missing `node` — blocks when the input carries agent_id (fail-closed for
+// delegated agents) and passes otherwise: the guard has no job in the main session.
+// Self-test: scripts/test-agent-git-guard.sh.
 import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
 
@@ -208,7 +210,7 @@ let input;
 try {
   input = JSON.parse(readFileSync(0, 'utf8'));
 } catch {
-  process.stderr.write('agent-git-guard: unreadable hook input — blocking (fail-closed).\n');
+  process.stderr.write('agent-git-guard: unreadable hook input (the wiring blocks it if it came from a delegated agent).\n');
   process.exit(BLOCKED);
 }
 // Bash and Monitor (which runs a shell command in the same environment) are the tools that

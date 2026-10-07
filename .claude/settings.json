@@ -46,7 +46,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/agent-git-guard.mjs\" || exit 2",
+            "command": "input=$(cat); printf '%s' \"$input\" | node \"$CLAUDE_PROJECT_DIR/scripts/agent-git-guard.mjs\" || case \"$input\" in *'\"agent_id\"'*) exit 2;; esac",
             "timeout": 30
           }
         ]

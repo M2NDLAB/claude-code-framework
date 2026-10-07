@@ -3,14 +3,16 @@
 # (IMP-055; docs/04, "Delegated agents and the shared working tree").
 #
 # Contract under test: a delegated agent (hook input carrying agent_id) is read-only on
-# git; the main session is never restricted; the wiring is FAIL-CLOSED — a crash of the
-# guard, a missing guard file, a missing `node` or unreadable input all exit 2 (blocked).
-# Claude Code treats any other non-zero exit of a PreToolUse hook as "proceed": measured
-# on 2.1.283, an exit 1, an exit 127 and a timeout all let the tool call run.
+# git; the main session is never restricted. When the guard itself FAILS — a crash, a
+# missing guard file, a missing `node` — the wiring blocks a delegated agent (exit 2,
+# fail-closed) and lets the main session through (exit 0): the guard has no job in the
+# main session, whose push boundary is the pre-push. Claude Code treats a PreToolUse
+# hook's non-zero exit other than 2 as "proceed" (measured on 2.1.283: exit 1, exit 127,
+# a timeout), so the wiring, not the guard, decides the failure case.
 #
-# It FAILS if the guard stops blocking a write, starts blocking a read or the main
-# session, if the wiring disappears from settings.json, or if `|| exit 2` is dropped (the
-# crash case would then exit 1).
+# It FAILS if the guard stops blocking a write or starts blocking a read or the main
+# session, if the wiring disappears from settings.json, if a broken guard lets an agent
+# through, or if a broken guard blocks the main session.
 #
 # HERMETIC: the wired command is READ from .claude/settings.json (never retyped here) and
 # run by /bin/sh in a clean environment against JSON inputs. No git repository is touched:
@@ -26,7 +28,7 @@ fail() {
 }
 
 NODE="$(command -v node || true)"
-[[ -n "${NODE}" ]] || fail "node not found: the guard needs Node.js (a framework prerequisite); without it every Bash call is blocked"
+[[ -n "${NODE}" ]] || fail "node not found: the guard needs Node.js (a framework prerequisite); without it delegated agents are blocked"
 
 workdir="$(mktemp -d)"
 trap 'rm -rf "${workdir}"' EXIT
@@ -43,7 +45,6 @@ if (!hook) process.exit(3);
 process.stdout.write(hook.command);
 ' "${REPO_ROOT}/.claude/settings.json")" \
   || fail "no PreToolUse hook on Bash and Monitor runs scripts/agent-git-guard.mjs in .claude/settings.json"
-[[ "${wired}" == *"|| exit 2"* ]] || fail "the wiring is not fail-closed (no '|| exit 2'): ${wired}"
 # The checkpoint on the boundary's own files (an accidental edit would change it at once).
 "${NODE}" -e '
 const ask = require(process.argv[1]).permissions?.ask ?? [];
@@ -189,13 +190,21 @@ for c in 'git switch -c feat/x' 'git commit -m "x"' 'git push origin main'; do
   expect 0 "main session blocked: ${c}" "${REPO_ROOT}" "$(hook_input "${c}")"
 done
 
-# --- 4. Fail-closed wiring -------------------------------------------------------------------
-expect 2 "node missing must block" "${REPO_ROOT}" "$(hook_input 'git log -1' agent)" /nonexistent
-mkdir -p "${workdir}/empty"
-expect 2 "guard file missing must block" "${workdir}/empty" "$(hook_input 'git log -1')"
-mkdir -p "${workdir}/broken/scripts"
+# --- 4. A broken guard: fail-CLOSED for a delegated agent, open for the main session ------
+mkdir -p "${workdir}/empty" "${workdir}/broken/scripts" "${workdir}/no-node"
 echo 'throw new Error("simulated crash");' > "${workdir}/broken/scripts/agent-git-guard.mjs"
-expect 2 "guard crash must block" "${workdir}/broken" "$(hook_input 'git log -1')"
-expect 2 "unreadable input must block" "${REPO_ROOT}" 'not json'
+ln -s "$(command -v cat)" "${workdir}/no-node/cat" # a PATH with the wiring's `cat` and no `node`
+for who in agent main; do
+  if [[ "${who}" == agent ]]; then want=2; mark=agent; else want=0; mark=""; fi
+  expect "${want}" "node missing (${who})"       "${REPO_ROOT}"      "$(hook_input 'git log -1' "${mark}")" "${workdir}/no-node"
+  expect "${want}" "guard file missing (${who})" "${workdir}/empty"  "$(hook_input 'git log -1' "${mark}")"
+  expect "${want}" "guard crash (${who})"        "${workdir}/broken" "$(hook_input 'git log -1' "${mark}")"
+done
+# The agent test is on the hook input's agent_id KEY: a main-session command that merely
+# quotes it arrives JSON-escaped and stays the main session's.
+expect 0 "a main-session command quoting \"agent_id\" (broken guard)" "${workdir}/empty" \
+  "$(hook_input 'echo "\"agent_id\": x"')"
+expect 2 "unreadable input carrying agent_id must block" "${REPO_ROOT}" '{"agent_id":"a-self-test","tool_name":"Bash", truncated'
+expect 0 "unreadable input without agent_id passes (it cannot be told from the main session)" "${REPO_ROOT}" 'not json'
 
-echo "PASS (IMP-055 guard): ${#AGENT_WRITES[@]} agent writes blocked, ${#AGENT_READS[@]} reads allowed, main session free, fail-closed on node missing / file missing / crash / bad input."
+echo "PASS (IMP-055 guard): ${#AGENT_WRITES[@]} agent writes blocked, ${#AGENT_READS[@]} reads allowed, main session free; a broken guard (node missing / file missing / crash / bad input) blocks agents only."
