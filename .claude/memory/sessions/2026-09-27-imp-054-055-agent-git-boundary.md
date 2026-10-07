@@ -43,8 +43,8 @@ tags: [session, imp, retro, security, verification]
 - [x] 8. Code review of the hook and the `pre-push` by ONE reviewer (security-gate lens) + fixes — commit: 256a7ba
 - [x] 9. `ask` rules on edits to `settings.json` and to the hook file (D6) — commit: e692d36
 - [x] 10. End-to-end verification on the REAL files in a throwaway lab (v1.2.1 RED, the branch GREEN) — commit: 6f3772b
-- [x] 11. `/retro` + `/checkpoint` (IMP-054/055 → Applied) — commit: the checkpoint commit (its own sha cannot be written in it)
-- [ ] 12. `/integrate`: the CHANGELOG 1.3.0 entry; the merge+tag block printed for the user — commit: —
+- [x] 11. `/retro` + `/checkpoint` (IMP-054/055 → Applied) — commit: 56c1386
+- [x] 12. `/integrate`: the CHANGELOG 1.3.0 entry; the merge+tag block printed for the user — commit: the CHANGELOG commit (its own sha cannot be written in it)
 
 ## Phase 1 — evidence (2026-09-27)
 

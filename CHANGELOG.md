@@ -7,6 +7,61 @@ SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [1.3.0] — 2026-10-07
+
+### Added
+- **The push boundary: a `pre-push` hook** (IMP-054). `scripts/hooks-install.sh` now also
+  installs a `pre-push` that refuses a push launched from a Claude Code session. It reads
+  the session markers that every process the agent starts inherits: `AGENT_GIT_BOUNDARY`,
+  set by the new `env` key of `.claude/settings.json`, and `CLAUDECODE` as the fallback.
+  The `Bash(git push:*)` deny matches command text only: probed on Claude Code's real
+  matcher, 20 of 30 push forms (`git -C <dir> push`, `git 'push'`, an alias, `sh -c`, a
+  script, `make`, …) reached a local test remote past it; with the `pre-push`, only two
+  forms of deliberate evasion did (`git send-pack`, `--no-verify` with hooks disabled). A
+  project's own pre-push (git-lfs's, for one) goes in `.git/hooks/pre-push.local`, which
+  the generated hook runs after the check.
+- **Delegated agents are read-only on git** (IMP-055). A PreToolUse hook on the Bash and
+  Monitor tools, `scripts/agent-git-guard.mjs`, refuses every git write by a subagent or a
+  workflow agent (the hook input carries `agent_id`), recognising the subcommand after
+  git's global options; the main session is never restricted. It is wired
+  `node … || exit 2`, because Claude Code lets a hook that exits 1, misses its binary or
+  times out proceed: a crash or a missing `node` blocks. A linked worktree is no exception
+  — it shares refs, config and stash with the repository.
+- `scripts/repo-snapshot.sh`: a read-only fingerprint (HEAD, branch, refs, stash,
+  worktrees, untracked files) that the main session diffs before and after delegating
+  work; any difference means stop and report.
+- `ask` rules on edits to `.claude/settings.json` and to the guard: settings reload while
+  Claude Code runs, so an accidental edit would change the boundary at once.
+- Self-tests in `make test-scripts` that fail when the `pre-push` or the guard stop
+  blocking, the crash and missing-binary cases included: `test-agent-git-guard.sh`,
+  `test-repo-snapshot.sh`, and a second case in `test-hooks-install.sh`.
+- `SETUP.md`, *Hardening*: the threat model, the forge's rules as the server-side layer
+  (the framework repo's own rulesets as the example) and the Claude Code sandbox as a
+  documented option with its cost.
+- IMP-062 (open): covering remote writes through `gh`.
+
+### Changed
+- `docs/04`: new sections *Enforcement of the execution boundary* — the threat model is an
+  agent's ACCIDENTAL errors with ordinary commands; deliberate evasion is for the
+  operating system or the forge — and *Delegated agents and the shared working tree*.
+  Claude Code never pushes; the deny list is a convenience, no longer presented as the
+  boundary. `docs/03` points review agents to the delegated-agent rules.
+- `SETUP.md`: the guard, the snapshot and the self-tests are filed as METHOD
+  (`test-hooks-install.sh` was in no class); setup step 3 and upgrade Steps 3-4 name the
+  `pre-push`, the guard and their order. `.gitignore` excludes `.claude/worktrees/`.
+
+**Upgrading from 1.2.x — a declared change of behaviour for agents:**
+- delegated agents (subagents, workflow agents) can no longer write git state —
+  commits, branches, checkouts, stashes, tags — anywhere, their own worktree included: a
+  project whose delegated agents write git must move those writes to the main session;
+- no push from inside a Claude Code session: the human pushes from their own terminal;
+- bring `scripts/agent-git-guard.mjs` and the other new scripts over BEFORE merging
+  `.claude/settings.json`: the merged settings wire the guard at once, and a missing guard
+  file blocks every Bash call (the file tools still work to repair it). Then
+  `make hooks-install` — a project with its own `pre-push` renames it to
+  `.git/hooks/pre-push.local` first — and `make test-scripts`. The guard needs Node.js
+  14.13 or later.
+
 ## [1.2.1] — 2026-09-25
 
 ### Fixed
