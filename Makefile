@@ -14,8 +14,9 @@ hooks-install: ## Install the git hooks (gitleaks + commitlint; formatting to be
 reset-task: ## Discard the interrupted half-done task, preserving branch and commits (task planning)
 	bash scripts/reset-task.sh
 
-test-scripts: ## Self-test of the framework scripts (hooks-install, ...)
+test-scripts: ## Self-test of the framework scripts (hooks-install, the agent git guard, ...)
 	bash scripts/test-hooks-install.sh
+	bash scripts/test-agent-git-guard.sh
 
 # ============================================================================
 # [TO BE DEFINED AT SETUP] — the project's build/test/run targets.
