@@ -20,6 +20,11 @@
 # test) and a throwaway git repo. It runs the REAL script end-to-end (smoke, not just the isolated unit).
 set -euo pipefail
 
+# Hermetic against the user's own git configuration: a global tag.gpgSign or
+# commit.gpgSign, for one, would make the throwaway repository's tags and commits ask for
+# a signature (git 2.32+ reads GIT_CONFIG_GLOBAL; older ones ignore it).
+export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOOKS_INSTALL="${SCRIPT_DIR}/hooks-install.sh"
 
