@@ -8,7 +8,7 @@
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
 
-hooks-install: ## Install the git hooks (gitleaks + commitlint; formatting to be enabled)
+hooks-install: ## Install the git hooks (gitleaks + commitlint + pre-push push boundary; formatting to be enabled)
 	bash scripts/hooks-install.sh
 
 reset-task: ## Discard the interrupted half-done task, preserving branch and commits (task planning)

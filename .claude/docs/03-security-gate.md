@@ -57,6 +57,11 @@ authoritative source is the review's SYNTHESIS, not the raw counts of an executi
 journal (which retries can inflate). First reconcile the count, then act on the
 findings.
 
+**Review agents read, they never write.** The agents of a review are delegated agents:
+read-only on git, reading the range with `git show`/`git diff` rather than checking it
+out, with the shared repository's snapshot compared before and after the run —
+`docs/04`, *Delegated agents and the shared working tree*.
+
 ## Prevention *by convention*
 
 The gate finds defects; conventions prevent them. Where a whole class of errors can
