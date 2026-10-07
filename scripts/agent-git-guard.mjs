@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// agent-git-guard — PreToolUse hook for the Bash tool: delegated agents are read-only
-// on git (docs/04, "Delegated agents and the shared working tree").
+// agent-git-guard — PreToolUse hook for the Bash and Monitor tools: delegated agents
+// are read-only on git (docs/04, "Delegated agents and the shared working tree").
 //
 // WHAT. When the hook input carries `agent_id` — the call comes from a delegated agent:
 // a subagent or a workflow agent — every git command in it must be a read. The main

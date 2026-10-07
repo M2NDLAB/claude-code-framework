@@ -37,7 +37,7 @@ tags: [session, imp, retro, security, verification]
 - [x] 6. `docs/04` (threat model, enforcement, delegated agents), a pointer in `docs/03`, `scripts/README.md`, `CLAUDE.md`'s quick-command line — commit: 70e8598
 - [x] 7. `SETUP.md` (classes, *Hardening*, hooks step, upgrade Step 4), `.gitignore`, `README.md` — commit: adea3fd
 - [x] 8. Code review of the hook and the `pre-push` by ONE reviewer (security-gate lens) + fixes — commit: 256a7ba
-- [ ] 9. `ask` rules on edits to `settings.json` and to the hook file (D6) — commit: —
+- [x] 9. `ask` rules on edits to `settings.json` and to the hook file (D6) — commit: e692d36
 - [ ] 10. End-to-end verification on the REAL files in a throwaway lab (v1.2.1 RED, the branch GREEN) — commit: —
 - [ ] 11. `/retro` + `/checkpoint` (IMP-054/055 → Applied) — commit: —
 - [ ] 12. `/integrate`: the CHANGELOG 1.3.0 entry; the merge+tag block printed for the user — commit: —
@@ -249,6 +249,27 @@ snapshot script beyond its own test.
 (the decided fail-closed wiring), with the reason above, the recovery documented, and the
 alternative offered to the user. (In the framework repo `STATE.md` is a clean template —
 hybrid regime — so the accepted item lives here.) LOW and INFO recorded above.
+
+## End-to-end verification on the real payload (task 10, 2026-10-07)
+Nested `claude -p` sessions (2.1.283, `claude-haiku-4-5` as the scripted executor) in
+throwaway labs under `/tmp/ccf-abfe7789/e2e/`: a bare remote reachable only via
+`file://`, and the framework's payload read BY REF — `.claude/settings.json` and
+`scripts/` at `v1.2.1` (RED) or at this branch (GREEN), the hooks installed by the lab's
+own `hooks-install.sh`. A broad local allow (`Bash`, `Agent`, `Task`, …) in
+`settings.local.json`; the markers removed from the inherited environment, so GREEN's
+come from the lab's own settings. Ground truth: the remote's refs and the lab's state.
+
+| Probe | v1.2.1 (RED) | this branch (GREEN) |
+| --- | --- | --- |
+| 30 push forms, main session | 20 landed | 2 landed: `git send-pack` and `-c core.hooksPath=/dev/null … --no-verify` — deliberate evasion, outside the threat model; the deny refused 10, the `pre-push` 18 (`make`, `sh -c`, `python3`, `eval` and a script included) |
+| Subagent: `switch -c`, `-C checkout`, `archive -o`, `-C push`, plain `status`; then reads | all ran: branch `sub-x` created, `out.tar` written, a push landed | every write refused by the guard; the reads ran; no branch, no `out.tar`, nothing landed |
+| Main session afterwards: `switch -c main-x`, then `git -C . push` | both ran, the push landed | the switch ran (the main session is free); the push refused by the `pre-push` |
+| Subagent through the Monitor tool: `git switch -c mon-x` | ran: the SHARED tree ended on `mon-x` | refused by the guard (Monitor's payload carries `tool_input.command`, verified live); the tree stayed on `main` |
+| Main session edits the guard with the Edit tool (after a Read) | — | denied by the `ask` rule (dontAsk mode turns it into a refusal); CONTROL, the same lab without the `ask` rules: the edit went through |
+
+Not verified here: the `ask` prompt in an interactive session (in this session the
+main-session edit of the guard's header comment went through the Edit tool; whether a
+prompt was shown is not visible to the agent).
 
 ## Side findings (not in this block's scope)
 - `scripts/test-hooks-install.sh` belonged to no class in `SETUP.md` (classified by this
