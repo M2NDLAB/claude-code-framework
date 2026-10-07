@@ -146,7 +146,8 @@ It installs three hooks: gitleaks (pre-commit), commitlint (commit-msg) and the 
 boundary (pre-push: a push launched from a Claude Code session is refused — the human
 pushes from their own terminal). Check: a commit with a non-conventional message must be
 rejected; a file with a fake secret must be blocked by gitleaks; `make test-scripts` must
-pass — it proves the pre-push and the delegated agents' guard on throwaway repositories.
+pass — it proves the pre-push on a throwaway repository and the delegated agents' guard on
+the command forms. A pre-push of your own (git-lfs's, for one): see Step 4 of the upgrade.
 
 > **Does the repo already have a history?** (a graft onto an existing project) The hook
 > only protects commits from now on: complete the baseline with a one-off scan of the
@@ -552,6 +553,10 @@ complementary sources:
   the project's); on `LEARNINGS.md` at most the header/format is updated, read from
   `git -C "${FW:?}" show vY:.claude/memory/LEARNINGS.md`, NEVER the project's IMP
   entries.
+- **Order** (from v1.3.0): bring `scripts/agent-git-guard.mjs` over BEFORE merging
+  `.claude/settings.json`. The merged settings wire the guard and Claude Code reloads them
+  at once; with the guard file still missing, every Bash call of the session is blocked
+  (fail-closed) — the file tools still work to repair it.
 
 > **Execution boundary (`docs/04`, section of the same name).** The agent PREPARES and
 > commits LOCALLY on the upgrade branch; it does NOT merge, does NOT push, does NOT tag.
@@ -565,8 +570,9 @@ complementary sources:
 
 `make hooks-install` (idempotent; it saves a `.bak` of the project's formatting block).
 From v1.3.0 it also installs the `pre-push` push boundary: if the project already has a
-`pre-push` of its own, the script stops — merge the boundary check into it by hand, or
-re-run with `FORCE_OVERWRITE=1` (a `.bak` is kept). Real verification: a fake secret
+`pre-push` of its own (git-lfs's, for one), the script stops — rename it to
+`.git/hooks/pre-push.local` and re-run: the generated pre-push runs it after the
+boundary check, and a re-run leaves it alone. Real verification: a fake secret
 blocked by gitleaks, a non-conventional message rejected by commitlint,
 `make test-scripts` green. Then
 `grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" .` to catch the NEW markers

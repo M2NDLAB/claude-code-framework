@@ -75,8 +75,15 @@ for hook in pre-commit commit-msg pre-push; do
       rm -f "${target}"
     else
       echo "ERROR: a hook '${hook}' not installed by this script already exists." >&2
-      echo "  Merge its commands with the framework's by hand, or re-run with" >&2
-      echo "  FORCE_OVERWRITE=1 to overwrite it (it is saved to ${hook}.bak first)." >&2
+      if [[ "${hook}" == "pre-push" ]]; then
+        # A merged-by-hand pre-push would be stopped or overwritten by the next run:
+        # the generated one runs pre-push.local instead (e.g. git-lfs's), after its check.
+        echo "  Rename it to .git/hooks/pre-push.local and re-run: the generated pre-push" >&2
+        echo "  runs pre-push.local after the push-boundary check." >&2
+      else
+        echo "  Merge its commands with the framework's by hand, or re-run with" >&2
+        echo "  FORCE_OVERWRITE=1 to overwrite it (it is saved to ${hook}.bak first)." >&2
+      fi
       exit 1
     fi
   fi
@@ -164,13 +171,19 @@ cat > "${HOOKS_DIR}/pre-push.new" <<'HOOK'
 # inherited by every process the agent starts. AGENT_GIT_BOUNDARY is set by the `env`
 # key of .claude/settings.json; CLAUDECODE, set by Claude Code itself but undocumented,
 # is the fallback. Deliberate evasion (--no-verify, hooks disabled, plumbing) is outside
-# this layer's threat model.
+# this layer's threat model. A project's own pre-push (e.g. git-lfs's) lives in
+# pre-push.local, next to this file: it runs after the check, with the same arguments
+# and stdin.
 set -euo pipefail
 if [[ -n "${AGENT_GIT_BOUNDARY:-}" || -n "${CLAUDECODE:-}" ]]; then
   echo "pre-push: REFUSED — this push was launched from a Claude Code session" >&2
   echo "  (AGENT_GIT_BOUNDARY or CLAUDECODE is set). Shared history is the human's:" >&2
   echo "  run the push from your own terminal (docs/04, Execution boundary)." >&2
   exit 1
+fi
+local_hook="$(dirname "$0")/pre-push.local"
+if [[ -x "${local_hook}" ]]; then
+  exec "${local_hook}" "$@"
 fi
 exit 0
 HOOK

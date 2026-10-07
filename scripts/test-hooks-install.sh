@@ -122,7 +122,22 @@ for form in direct dash-C sh-c script; do
 done
 try_push claudecode-direct CLAUDECODE=1 direct
 ! landed claudecode-direct || fail2 "a push with only CLAUDECODE=1 (the fallback marker) reached the remote"
+grep -q "pre-push: REFUSED" "${workdir}/push.log" || fail2 "the CLAUDECODE push was not refused BY THE pre-push hook"
 try_push human-direct "" direct
 landed human-direct || fail2 "a push WITHOUT markers (the human's terminal) was refused: the boundary blocks the human too"
 
-echo "PASS (IMP-054): pre-push refuses agent-session pushes (direct, -C, sh -c, script; CLAUDECODE fallback) and lets the human's push through."
+# A project's own pre-push (e.g. git-lfs's) lives in pre-push.local: it runs, with git's
+# stdin, after the check — for the human's push only. It records what it received.
+cat > "${repo}/.git/hooks/pre-push.local" <<HOOK
+#!/usr/bin/env bash
+cat > "${workdir}/local-hook.ran"
+HOOK
+chmod +x "${repo}/.git/hooks/pre-push.local"
+try_push agent-with-local AGENT_GIT_BOUNDARY=1 direct
+[[ ! -e "${workdir}/local-hook.ran" ]] || fail2 "pre-push.local ran for an agent-session push (it must come AFTER the refusal)"
+try_push human-with-local "" direct
+landed human-with-local || fail2 "the human's push did not land with a pre-push.local present"
+grep -q "refs/heads/human-with-local" "${workdir}/local-hook.ran" 2>/dev/null \
+  || fail2 "pre-push.local did not run, or did not receive git's ref list on stdin"
+
+echo "PASS (IMP-054): pre-push refuses agent-session pushes (direct, -C, sh -c, script; CLAUDECODE fallback), lets the human's push through, and chains pre-push.local after the check."

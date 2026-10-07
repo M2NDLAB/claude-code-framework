@@ -35,7 +35,7 @@ tags: [session, imp, retro, security, verification]
 - [x] 4. `hooks-install.sh` generates the `pre-push` (the push boundary) + `test-hooks-install.sh` extended — commit: 3ec5dc5
 - [x] 5. `scripts/repo-snapshot.sh` + `scripts/test-repo-snapshot.sh` + `Makefile` — commit: b08a128
 - [x] 6. `docs/04` (threat model, enforcement, delegated agents), a pointer in `docs/03`, `scripts/README.md`, `CLAUDE.md`'s quick-command line — commit: 70e8598
-- [ ] 7. `SETUP.md` (classes, *Hardening*, hooks step, upgrade Step 4), `.gitignore`, `README.md` — commit: —
+- [x] 7. `SETUP.md` (classes, *Hardening*, hooks step, upgrade Step 4), `.gitignore`, `README.md` — commit: adea3fd
 - [ ] 8. Code review of the hook and the `pre-push` by ONE reviewer (security-gate lens) + fixes — commit: —
 - [ ] 9. `ask` rules on edits to `settings.json` and to the hook file (D6) — commit: —
 - [ ] 10. End-to-end verification on the REAL files in a throwaway lab (v1.2.1 RED, the branch GREEN) — commit: —
@@ -217,6 +217,38 @@ push from a shell without the marker (the human's terminal).
 ## Done
 - `86ca886` (phase 1, on `main`, a separate commit as asked) — IMP-061 recorded (OPEN):
   `/harvest-framework` re-prints entries already carried upstream.
+
+## Code review of the hook and the pre-push (task 8) — the security gate
+ONE independent reviewer (author ≠ judge, as the user asked; `docs/03`: this is the
+enforcement edge, shipped to every client). It worked read-only on the framework repo —
+the snapshot before and after was identical — with experiments in `/tmp/ccf-review/` and
+local `file://` remotes only. Live side effect worth recording: the guard refused the
+reviewer's own `git init` in `/tmp`, so it ran its throwaway-repo experiments from script
+files — exactly the documented limit of the guard. Verdict: not fit to merge as it was;
+fit after the HIGH fix and the MEDIUM items fixed or accepted. Every finding below was
+reproduced by the main session before acting.
+
+| Finding | Severity | Disposition |
+| --- | --- | --- |
+| A1 — a `\` line continuation hid the next git command (`cd x && \⏎ git checkout y`) | HIGH | FIXED (one line); tested |
+| A2 — the Monitor tool runs shell commands and was not matched | MEDIUM | FIXED: matcher `Bash\|Monitor`, the guard reads Monitor's `command` (a WebSocket monitor has none: allowed); tested offline; Monitor's live payload checked in task 10 |
+| A3 — `"$(git switch x)"` inside double quotes was not scanned | MEDIUM | FIXED; tested |
+| A4 — `git branch -v <name>`, `--sort`/`--format` with a name, and `git tag --sort <name>` create refs; `git archive -oout.tar` | MEDIUM | FIXED: only true list-mode flags count; stuck `-o`; tested (real git confirmed by the reviewer) |
+| A5 — a missing guard file blocks the MAIN session's Bash too | MEDIUM | NOT CHANGED: the wiring stays `\|\| exit 2` as decided (D1). Documented: the recovery (`docs/04`) and the upgrade order (`SETUP.md` Step 3: the guard before `settings.json`). The reviewer's variant — fail-closed for agents only, `input=$(cat); … \|\| case "$input" in *'"agent_id"'*) exit 2;; esac` — is left to the user |
+| A6 — a project's own pre-push (git-lfs) stopped `hooks-install`; FORCE dropped it; "merge by hand" was unstable | MEDIUM | FIXED: the generated pre-push runs `.git/hooks/pre-push.local` after the check (same args and stdin); the error message and `SETUP.md` say so; tested (not run for an agent push; run for the human's, with git's ref list) |
+| A7 — `git remote -v add`; leading redirections (`2>/dev/null git branch x`); the status comment; "every git command" / "every push" wording; test gaps (4 surviving mutants; the CLAUDECODE case not checking the refusal message); `SETUP.md` "throwaway repositories" for the guard | LOW | FIXED, docs reworded ("ordinary forms", "in each repository where `make hooks-install` ran"); 10 of 10 mutants now killed |
+| A7 — `sudo git`, `find -exec git rm`, `exec -a`, `xargs --max-args` | LOW | ACCEPTED as limits, named in `docs/04` |
+| A8 — redundant `$(` case; Node minimum not documented; false positives (`git tag -n5 'v*'` fixed; `ls-remote`, `remote show`, `notes`, `submodule`, `bisect log`, `fsck`, plain `status` by design: accepted) | INFO | Redundant case removed; Node 14.13+ documented |
+| (B) outside the threat model: `--no-verify`, `GIT branch` on a case-insensitive FS, `$'git'`, `$GIT`, `sh -c`/`eval`/scripts, `env -S`, config-run programs, `gh`, a hook timeout | — | Recorded only (`gh` = IMP-062) |
+
+Not checked by the reviewer: Claude Code's hook snapshot after a checkout, Monitor's live
+payload, `CLAUDE_PROJECT_DIR` for worktree-isolated agents, Windows and dash; the
+snapshot script beyond its own test.
+
+**Gate verdict**: HIGH 1 → resolved. MEDIUM 5 → 4 resolved; A5 accepted as designed
+(the decided fail-closed wiring), with the reason above, the recovery documented, and the
+alternative offered to the user. (In the framework repo `STATE.md` is a clean template —
+hybrid regime — so the accepted item lives here.) LOW and INFO recorded above.
 
 ## Side findings (not in this block's scope)
 - `scripts/test-hooks-install.sh` belonged to no class in `SETUP.md` (classified by this

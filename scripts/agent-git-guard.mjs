@@ -40,28 +40,30 @@ const READ_ONLY = new Set([
 // Subcommands that read in some forms and write in others. `a` = the arguments after
 // the subcommand; each predicate is true for the READ forms only.
 const nonFlags = (a) => a.filter((x) => !x.startsWith('-'));
-const flagNames = (a) => a.filter((x) => x.startsWith('-')).map((x) => x.split('=')[0]);
+const flagNames = (a) => a.filter((x) => x.startsWith('-')).map((x) => x.split('=')[0].replace(/^-n\d+$/, '-n'));
 const listing = (a, listFlags, writeFlags) => {
   const flags = flagNames(a);
   if (flags.some((f) => writeFlags.includes(f))) return false;
   return nonFlags(a).length === 0 || flags.some((f) => listFlags.includes(f));
 };
 const READ_FORMS = {
-  // `git branch` / `git tag` with no name, or with a listing flag; `git branch x` creates.
+  // `git branch` / `git tag` with no name, or with a flag that switches to LIST mode;
+  // `git branch x` creates — and so does `git branch -v x`: -v, --sort, --format only
+  // shape a listing, they do not request one.
   branch: (a) => listing(a,
-    ['-a', '--all', '-r', '--remotes', '-l', '--list', '-v', '-vv', '--verbose', '--show-current',
-      '--contains', '--no-contains', '--merged', '--no-merged', '--points-at', '--format', '--sort'],
+    ['-a', '--all', '-r', '--remotes', '-l', '--list', '--contains', '--no-contains', '--merged',
+      '--no-merged', '--points-at'],
     ['-d', '-D', '--delete', '-m', '-M', '--move', '-c', '-C', '--copy', '-f', '--force', '-u',
       '--set-upstream-to', '--unset-upstream', '--edit-description', '-t', '--track', '--create-reflog']),
   tag: (a) => listing(a,
     ['-l', '--list', '-n', '--contains', '--no-contains', '--merged', '--no-merged', '--points-at',
-      '--sort', '--format', '-v', '--verify'],
+      '-v', '--verify'],
     ['-a', '--annotate', '-s', '--sign', '-u', '--local-user', '-f', '--force', '-d', '--delete',
       '-m', '--message', '-F', '--file', '-e', '--edit', '--create-reflog']),
   stash: (a) => a[0] === 'list' || a[0] === 'show',
   worktree: (a) => a[0] === 'list',
   notes: (a) => a[0] === 'list' || a[0] === 'show',
-  remote: (a) => a.length === 0 || ['-v', '--verbose', 'get-url'].includes(a[0]),
+  remote: (a) => nonFlags(a).length === 0 || nonFlags(a)[0] === 'get-url',
   reflog: (a) => !['expire', 'delete', 'drop', 'write'].includes(a[0]),
   'symbolic-ref': (a) => nonFlags(a).length <= 1 && !flagNames(a).some((f) => ['-d', '--delete'].includes(f)),
   // `git config <name>` reads, `git config <name> <value>` writes.
@@ -75,7 +77,7 @@ const READ_FORMS = {
   },
   // To stdout only: `-o`/`--output` would write a file (2026-09-24: an archive left in
   // the repo root).
-  archive: (a) => !flagNames(a).some((f) => f === '-o' || f === '--output'),
+  archive: (a) => !flagNames(a).some((f) => f.startsWith('-o') || f === '--output'),
 };
 
 // git's global options that take their value as the NEXT word (git(1), OPTIONS).
@@ -93,12 +95,14 @@ const WRAPPERS = {
   xargs: ['-I', '-L', '-n', '-P', '-s', '-d', '-E', '-a', '-J', '-R', '-S'],
 };
 const ASSIGNMENT = /^[A-Za-z_][A-Za-z0-9_]*=/;
+const REDIRECTION = /^[0-9&]*[<>]/; // `2>/dev/null`, `>out`, `2>&1`; a bare `>` takes the next word
 
 // Splits a command line into simple commands (arrays of words), the way a shell sees
-// them: quotes and backslashes are honoured; ; & | ( ) ` newlines and `$(` separate
-// commands, so `cd x && git switch y` and `v=$(git switch y)` both surface
-// `git switch y`; heredoc bodies are skipped (they are data). Deliberately small: no
-// expansion, and no look inside quoted strings handed to another shell.
+// them: quotes, backslashes and line continuations are honoured; ; & | ( ) ` and
+// newlines separate commands, so `cd x && git switch y` and `v=$(git switch y)` both
+// surface `git switch y`, as does a `$(...)` inside double quotes; heredoc bodies are
+// skipped (they are data). Deliberately small: no expansion, and no look inside a string
+// handed to another shell (`sh -c`, `eval`).
 function splitCommands(text) {
   const commands = [];
   const heredocs = [];
@@ -109,6 +113,7 @@ function splitCommands(text) {
   let i = 0;
   while (i < text.length) {
     const c = text[i];
+    if (c === '\\' && text[i + 1] === '\n') { i += 2; continue; } // a line continuation
     if (c === '\\') { word = (word ?? '') + (text[i + 1] ?? ''); i += 2; continue; }
     if (c === "'") {
       const end = text.indexOf("'", i + 1);
@@ -118,6 +123,12 @@ function splitCommands(text) {
     if (c === '"') {
       let j = i + 1; let s = '';
       while (j < text.length && text[j] !== '"') {
+        if (text.startsWith('$(', j) || text[j] === '`') { // "$(git x)" still runs git x
+          const open = text[j] === '`' ? 1 : 2;
+          const end = text.indexOf(open === 1 ? '`' : ')', j + open);
+          const stop = end < 0 ? text.length : end;
+          commands.push(...splitCommands(text.slice(j + open, stop))); j = stop + 1; continue;
+        }
         if (text[j] === '\\' && j + 1 < text.length) { s += text[j + 1]; j += 2; } else { s += text[j]; j += 1; }
       }
       word = (word ?? '') + s; i = j + 1; continue;
@@ -140,7 +151,6 @@ function splitCommands(text) {
       continue;
     }
     if (c === ' ' || c === '\t') { endWord(); i += 1; continue; }
-    if (c === '$' && text[i + 1] === '(') { endCommand(); i += 2; continue; }
     if (';&|()`'.includes(c)) { endCommand(); i += 1; continue; }
     word = (word ?? '') + c; i += 1;
   }
@@ -155,9 +165,9 @@ function findGit(words) {
   const assignments = {};
   let i = 0;
   for (;;) {
-    while (i < words.length && (ASSIGNMENT.test(words[i]) || SHELL_KEYWORDS.has(words[i]))) {
+    while (i < words.length && (ASSIGNMENT.test(words[i]) || SHELL_KEYWORDS.has(words[i]) || REDIRECTION.test(words[i]))) {
       if (ASSIGNMENT.test(words[i])) { const [k, ...v] = words[i].split('='); assignments[k] = v.join('='); }
-      i += 1;
+      i += /^[0-9&]*[<>]+&?$/.test(words[i]) ? 2 : 1;
     }
     const name = basename(words[i] ?? '');
     const valued = WRAPPERS[name];
@@ -184,6 +194,9 @@ function writeReason({ args, assignments }) {
   if (flagNames(rest).includes('--output')) return `\`git ${sub} --output\` writes a file`;
   if (sub === 'status') {
     const quiet = globals.includes('--no-optional-locks') || assignments.GIT_OPTIONAL_LOCKS === '0';
+    // A plain status refreshes and rewrites .git/index, and its lock can make a concurrent git
+    // command fail. Other reads can refresh the index too (`git diff` on a stale stat cache):
+    // only status, the common case, is singled out.
     return quiet ? null : 'a plain `git status` rewrites .git/index: use `git --no-optional-locks status`';
   }
   if (READ_ONLY.has(sub)) return null;
@@ -198,8 +211,11 @@ try {
   process.stderr.write('agent-git-guard: unreadable hook input — blocking (fail-closed).\n');
   process.exit(BLOCKED);
 }
-if (input.tool_name !== 'Bash' || !input.agent_id) process.exit(0);
+// Bash and Monitor (which runs a shell command in the same environment) are the tools that
+// execute git; settings.json matches both.
+if (!['Bash', 'Monitor'].includes(input.tool_name) || !input.agent_id) process.exit(0);
 const command = input.tool_input?.command;
+if (input.tool_name === 'Monitor' && command === undefined) process.exit(0); // a WebSocket monitor runs no command
 if (typeof command !== 'string') {
   process.stderr.write('agent-git-guard: no command in the hook input — blocking (fail-closed).\n');
   process.exit(BLOCKED);

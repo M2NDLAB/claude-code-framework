@@ -23,5 +23,7 @@ scripts/repo-snapshot.sh | diff "$before" -              # after: any output = s
 ./scripts/reset-task.sh # after an interruption, before resuming a plan
 ```
 
-Prerequisites: `gitleaks` and `npx` (Node.js) for `hooks-install.sh`; `node` for the
-guard, which blocks every Bash call of the session if `node` is missing (fail-closed).
+Prerequisites: `gitleaks` and `npx` (Node.js) for `hooks-install.sh`; `node` 14.13 or
+later for the guard, which blocks every Bash call of the session if `node` is missing or
+too old to parse it (fail-closed). A project's own pre-push (e.g. git-lfs's) goes in
+`.git/hooks/pre-push.local`: the generated pre-push runs it after the boundary check.
