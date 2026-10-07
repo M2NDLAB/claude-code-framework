@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-09-27
+updated: 2026-10-07
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -522,100 +522,6 @@ tags: [improvement]
   not silent (Step 4's marker grep re-surfaces the slot, edge case 7 catches the filled
   one), but the project must then re-answer a slot the §2 checklist never lists.
 
-### IMP-054 — The `git push` deny does not catch `git -C <dir> push`: a decorative boundary
-- Date: 2026-09-25 | Origin: [[2026-09-25-imp-050-read-by-tag]] — the deny list matches
-  only the literal `git push …` form, while IMP-050 (points 1-2) makes `git -C "${FW:?}"`
-  the upgrade's idiom (raised by the user)
-- Priority: HIGH (user decision, 2026-09-25): to be verified and decided at the next
-  retro, before anything else relies on the boundary. NOT corrected in the block that
-  raised it (user decision).
-- Observed problem: `.claude/settings.json` denies `Bash(git push:*)` — with
-  `git reset --hard:*`, `git clean:*`, `git branch -D:*`, `rm -rf:*` — as the enforcement
-  of the execution boundary of `docs/04` ("the configuration (`.claude/settings.json`)
-  denies automatic pushes — that is intentional"). Claude Code's own documentation says a Bash rule matches the
-  command text after splitting compound commands and stripping a fixed set of wrappers,
-  and "doesn't match the same program invoked in a different form, so a deny or ask rule
-  covers the invocation Claude usually produces and isn't a security boundary around
-  the program". Its example: `Bash(git push *)` does not stop `git -C . push origin main`,
-  `git -c push.default=current push origin main` or `git 'push' origin main`; the
-  auto-mode page names `git -C <dir> push` explicitly (code.claude.com/docs/en/
-  permissions.md, *What a Bash rule doesn't match*; auto-mode-config.md, *Add a human
-  checkpoint*). The same holds for every deny prefix above (`git -C x reset --hard`,
-  `git -C x clean`, `rm -r -f`, …). Established from the documentation, NOT probed: a
-  probe is an attempted push, and was not run.
-- Why it matters now: IMP-050 (points 1-2) normalises `git -C "${FW:?}"` — the very form
-  that slips past the prefix. And on 2026-09-24 a subagent ran `switch` and `archive -o`
-  on the real repo despite a written read-only constraint
-  ([[2026-09-25-imp-050-read-by-tag]]): what stops an agent is a permission, not a
-  sentence. A deny that holds only for the literal form is IMP-020's class — a safety
-  net that gives a false sense of security.
-- Proposal: NOT decided here (retro). Directions to evaluate: (a) verify on the real
-  matcher against a throwaway local bare remote, run by the human or on explicit
-  authorisation; (b) a `PreToolUse` hook that parses the git subcommand — the documented
-  way to get "a checkpoint that inspects the full command text"; (c) extra deny patterns
-  for the known forms (`git -C * push`, …) — cheap, never complete; (d) `docs/04`
-  (*Permission configuration*) states that the deny list guards the usual form and is
-  not the boundary, (b) being the enforcement. Related, usability side of the same
-  matcher: `git -C "${FW:?}" diff` escapes the `git diff:*` allow prefix, and
-  `show`/`ls-tree`/`rev-parse` are not in the allow list at all; whether Claude Code's
-  built-in read-only git set covers the `-C` forms is not documented — to be observed at
-  the next upgrade, not assumed.
-- Expected benefit / risk: the boundary `docs/04` promises holds for the forms an agent
-  actually writes. Risk: a hook is code to maintain and to prove RED→GREEN, and an
-  over-broad matcher blocks legitimate reads.
-
-### IMP-055 — Delegated agents that run git in a shared working tree: isolate them, snapshot before and after
-- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
-  a multi-agent security gate over a commit range passed clean, but left the repository
-  on another branch
-- Observed problem (client-side, relayed): the review agents inspected the range with
-  git commands in the SHARED main working directory, not isolated. At least one ran
-  `git checkout` to read files, and the back-and-forth between the integration branch
-  and the range's tip left HEAD on the integration branch at the end of the run: the
-  feature branch was intact (no work lost) but no longer checked out, and the harness
-  reported its files as "modified by user", as if the user had discarded the
-  deliverable. The client's own practice (the diff passed inline, read-only tools only)
-  does not scale to a ~20-file diff, where agents gain from reading whole files — and it
-  was not followed.
-- On the framework's source: no written practice covers how delegated agents inspect a
-  repository — `docs/03` and `security-review.md` say nothing about it, and the
-  Precondition of `SETUP.md` is scoped to the upgrade's reads. The practice the lesson
-  would "extend" is a client-local rule, so here the proposal INTRODUCES one. Scope: any
-  delegated agent that runs commands against a shared working tree, not only review
-  workflows — this repo's own case was an assessment harness.
-- Kin — this repo's own incident (*Applied*, IMP-050 (points 1-2), *Further evidence for
-  (1)*; [[2026-09-25-imp-050-read-by-tag]], item 1): a subagent ran `switch --detach`
-  and `archive -o` on the real framework repo although its prompt forbade checkout and
-  switch. The client's case is a third live one of a process moving the HEAD of a
-  shared tree, with a new symptom: the harness attributes the changes to the user.
-- Proposal (as relayed; NOT decided here — retro), with the verification's corrections:
-  (a) ISOLATION first — relayed as a linked worktree per agent (a harness option); the
-  verification prefers a throwaway clone per agent, the form that held here and the
-  only one compatible with `SETUP.md`'s "no `worktree add` in the framework repo" when
-  the shared repo is the framework; a linked worktree defeats the incident's cwd
-  default, but creating it writes into the shared repo, it shares the refs (a branch
-  made in it shows in the main repo) and it does not stop an explicit
-  `git -C <main> switch`. (b) A prompt ban on HEAD-moving commands is one layer, not an
-  alternative to (a): the incident's prompt carried exactly that ban. And "does not move
-  HEAD" is the wrong criterion: `archive -o` moves no HEAD yet wrote into the repo; the
-  lesson's own allowed commands write too (`git diff --output`, `git show --output`
-  under `-C` land in the repo root), and `diff A B`, `show <commit>` and `log -p` can run
-  a configured textconv. (c) A BEFORE/AFTER snapshot — HEAD, branch, status and
-  untracked files, reflog length, stash, worktrees — as practised in
-  [[2026-09-25-imp-050-read-by-tag]], not an after-only check of HEAD and branch, which
-  misses an untracked archive and a move-and-return (the reflog grows, HEAD does not
-  change). Its status runs as `git --no-optional-locks status` (or
-  `GIT_OPTIONAL_LOCKS=0`): a plain `git status` writes the shared `.git/index`, and its
-  lock can make a concurrent git process fail (git-status(1), *BACKGROUND REFRESH*).
-- The permission side, for IMP-054's retro: the incident's commands (switch, checkout,
-  restore, archive) are in no deny rule in any form, and a project-wide deny would clash
-  with `docs/04`, where the main session creates and switches branches itself. So a
-  delegated agent's boundary is per agent — isolation, or a hook aware of the agent's
-  scope (IMP-054, direction (b)). That prefix rules miss `-C` is already in IMP-054.
-- Expected benefit / risk: delegated work stops leaving the shared repository in an
-  unexpected state, and scales to large diffs without a giant inline. Risk: a clone per
-  agent costs setup time and disk; (c) is free.
-
 ### IMP-056 — The security gate checks what the code does, not what the product claims
 - Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
   a presentation-only deliverable, behaviourally clean for both adversarial lenses,
@@ -812,6 +718,33 @@ tags: [improvement]
   change that reaches client projects only through the upgrade — and the format comment
   of `LEARNINGS.md` sits under IMP-046's contradiction; (b) must stay anonymous
   (`docs/04`, shared history).
+
+### IMP-062 — Cover remote writes through `gh` in the agent boundary
+- Date: 2026-10-07 | Origin: [[2026-09-27-imp-054-055-agent-git-boundary]] — the push
+  boundary of IMP-054 stops every `git push` born from the agent's process, not the remote
+  writes that bypass git
+- Observed problem: `gh` changes shared state without `git push`: `gh api` with a writing
+  method (any `-f`/`-F` field switches it to POST; `-X PUT …/contents/<path>` creates a
+  commit; `PATCH …/git/refs/<ref>` moves a ref, force included), `gh pr merge` (a merge onto
+  the integration branch; `--delete-branch` also deletes the remote branch),
+  `gh release create` (creates the tag when it is missing), `gh repo sync <remote>`. The
+  `pre-push` never sees them — git runs it for `git push` only — and the deny list does not
+  name them. Logged in with the owner's credential (`repo` scope in this repo), an agent
+  using `gh` acts as the owner: the forge cannot tell them apart, and the same credential
+  can remove the rulesets.
+- Why not now (user decision 2026-10-07, D3): this layer's threat model is the agent's
+  ACCIDENTAL errors with ordinary commands, no flow of the framework uses `gh`, and the
+  hook of IMP-054/055 must stay small (delegated agents' read-only git only).
+- Proposal: NOT decided. Direction: the PreToolUse hook refuses, in every session, the
+  writing `gh` forms (`api` with a non-GET method or a body field, `pr merge`,
+  `release create|edit|delete|upload`, `repo sync <remote>`) — sketched in the phase-1
+  prototype, never tested. Alternative: a read-only token for the agent through
+  `GH_TOKEN`, which narrows rather than seals (the stored credential stays reachable).
+- Resumption trigger: the first use of `gh` in the framework's flows (a command, a doc
+  step, an `/integrate` variant), or the first incident of an agent writing to the remote
+  through `gh`.
+- Expected benefit / risk: closes the non-git route to shared history for accidental use.
+  Risk: a larger hook — the size the user chose to avoid now.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
@@ -1297,6 +1230,59 @@ tags: [improvement]
   differed, whose entries an upgrade never carries). Its extra sanity check (a blob
   compared with `rev-parse`) is not covered: input for IMP-050 (points 3-5). Kin:
   IMP-055 (delegated agents in a shared working tree).
+
+### IMP-054 — The `git push` deny does not catch `git -C <dir> push`: a decorative boundary → applied on 2026-10-07, commits 3ec5dc5, 70e8598, adea3fd, 256a7ba, e692d36
+- Date: 2026-09-25 | Origin: [[2026-09-25-imp-050-read-by-tag]] — the deny list matched
+  only the literal `git push …`, while v1.2.1 normalised `git -C "${FW:?}"`
+- Verified ([[2026-09-27-imp-054-055-agent-git-boundary]], phase 1): on the real matcher
+  (Claude Code 2.1.283, nested sessions, a local `file://` remote) `Bash(git push:*)`
+  let 20 of 30 push forms through under a broad allow, 9 in this repo's own configuration
+  (its personal `settings.local.json` allows `Bash(git *)`; auto mode allows pushes by
+  default); wildcard denies still leaked 12 and denied `git stash push`. Claude Code's
+  docs: a Bash rule "isn't a security boundary around the program".
+- User decisions (2026-10-07): the THREAT MODEL — an agent's accidental errors with
+  ordinary commands; deliberate evasion is for the OS or the forge's rules — written in
+  `docs/04` and `SETUP.md`; D1 the `pre-push` IS the push boundary (the PreToolUse hook is
+  reduced to IMP-055's job); D2 the deny unchanged, no wildcards, no longer presented as
+  the boundary; D3 `gh` not covered (IMP-062, open); D6 `ask` on edits to the boundary's
+  files; D7 the forge's rulesets (set by the user on 2026-10-07) as the server-side layer,
+  the sandbox only as a documented option; D8 MINOR v1.3.0; D9 `AGENT_GIT_BOUNDARY=1`.
+- Applied: `hooks-install.sh` generates a `pre-push` that refuses when `AGENT_GIT_BOUNDARY`
+  (the new `env` key of `settings.json`) or `CLAUDECODE` is set, and runs a project's own
+  `pre-push.local` after the check; `docs/04`, *Enforcement of the execution boundary*;
+  `SETUP.md`, *Hardening*, setup step 3 and upgrade Steps 3-4; the `ask` rules;
+  `test-hooks-install.sh` case 2.
+- Verification: the self-tests fail on each of three `pre-push` regressions; end to end on
+  the real payload, 30 push forms: v1.2.1 20 landed, this release 2 (`git send-pack`,
+  `--no-verify` with hooks disabled — deliberate evasion, declared).
+- Residual (declared in `docs/04`): deliberate evasion; a repository where
+  `make hooks-install` never ran; remote writes without git (IMP-062).
+
+### IMP-055 — Delegated agents that run git in a shared working tree: isolate them, snapshot before and after → applied on 2026-10-07, commits 6a3c691, b08a128, 70e8598, 256a7ba
+- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — a multi-agent
+  security gate over a commit range left the repository on another branch
+- Verified ([[2026-09-27-imp-054-055-agent-git-boundary]], phase 1): a subagent without a
+  guard switched the shared tree's branch and pushed with `-C` (reproduced); the hook
+  input carries `agent_id`/`agent_type` for subagents and workflow agents, not for the
+  main session; a linked worktree shares refs, config and stash (from inside one an agent
+  moved another branch, rewrote the shared config, stashed); the harness's isolated
+  worktrees start from `origin/<default>`.
+- User decisions (2026-10-07): D4 delegated agents read-only on git EVERYWHERE, their own
+  worktree included; D1 the hook does that one job, recognising the subcommand after
+  git's global options, fail-closed through `|| exit 2`, with NO analysis of `sh -c`,
+  `eval`, scripts or interpreter code; D5 an essential snapshot (HEAD, branch, refs,
+  stash, worktrees, untracked files). Deviation from the relayed proposal, as decided: no
+  project-wide deny on checkout/switch/restore/archive (it would block the main session,
+  and Claude Code has no per-agent Bash rule) — the per-agent hook instead.
+- Applied: `scripts/agent-git-guard.mjs` (PreToolUse on Bash and Monitor),
+  `scripts/repo-snapshot.sh`, `docs/04`, *Delegated agents and the shared working tree*,
+  a pointer in `docs/03`, `.claude/worktrees/` in `.gitignore`; self-tests
+  `test-agent-git-guard.sh` and `test-repo-snapshot.sh`.
+- Code review (one reviewer, the security gate): 1 HIGH and 4 MEDIUM fixed; 1 MEDIUM
+  accepted as designed — a missing guard file blocks the main session too (the decided
+  fail-closed wiring), recovery and upgrade order documented, the agent-only variant left
+  to the user. End to end: every delegated-agent write refused through Bash and Monitor,
+  the main session free.
 
 ## Deferred (not rejected — resumed at the right time)
 

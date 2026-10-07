@@ -8,14 +8,16 @@
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
 
-hooks-install: ## Install the git hooks (gitleaks + commitlint; formatting to be enabled)
+hooks-install: ## Install the git hooks (gitleaks + commitlint + pre-push push boundary; formatting to be enabled)
 	bash scripts/hooks-install.sh
 
 reset-task: ## Discard the interrupted half-done task, preserving branch and commits (task planning)
 	bash scripts/reset-task.sh
 
-test-scripts: ## Self-test of the framework scripts (hooks-install, ...)
+test-scripts: ## Self-test of the framework scripts (hooks-install, the agent git guard, repo-snapshot)
 	bash scripts/test-hooks-install.sh
+	bash scripts/test-agent-git-guard.sh
+	bash scripts/test-repo-snapshot.sh
 
 # ============================================================================
 # [TO BE DEFINED AT SETUP] — the project's build/test/run targets.

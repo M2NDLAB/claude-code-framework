@@ -119,7 +119,11 @@ Here is the complete list, grouped by file:
       package manager, container CLI) to reduce prompts — e.g. the build/test command.
       The baseline is already set (`allow`: git inspection + safe `add`/`commit`;
       `deny`: push, `reset --hard`, destructive deletions, reading secrets) — the
-      principles are in `04-git-workflow.md` ("Permission configuration").
+      principles are in `04-git-workflow.md` ("Permission configuration"). The `env`
+      marker `AGENT_GIT_BOUNDARY` and the PreToolUse hook that runs
+      `scripts/agent-git-guard.mjs` are the method's boundary wiring, and the `ask`
+      rules on edits to these two files are its checkpoint: leave them in
+      (`04-git-workflow.md`, "Enforcement of the execution boundary").
 - [ ] Leave `settings.local.json` out of version control (it is already in
       `.gitignore`) and start empty: personal permissions are NOT committed, no vague
       grants of the "stop asking for similar commands" kind.
@@ -139,8 +143,12 @@ Here is the complete list, grouped by file:
 make hooks-install
 ```
 
-Check: a commit with a non-conventional message must be rejected; a file with a fake
-secret must be blocked by gitleaks.
+It installs three hooks: gitleaks (pre-commit), commitlint (commit-msg) and the push
+boundary (pre-push: a push launched from a Claude Code session is refused — the human
+pushes from their own terminal). Check: a commit with a non-conventional message must be
+rejected; a file with a fake secret must be blocked by gitleaks; `make test-scripts` must
+pass — it proves the pre-push on a throwaway repository and the delegated agents' guard on
+the command forms. A pre-push of your own (git-lfs's, for one): see Step 4 of the upgrade.
 
 > **Does the repo already have a history?** (a graft onto an existing project) The hook
 > only protects commits from now on: complete the baseline with a one-off scan of the
@@ -187,6 +195,38 @@ entries and prints a copyable block for them, ready to be anonymised and re-prop
 as an IMP in the framework repo (`CONTRIBUTING.md`). The command only reads and
 prints: the transfer stays your explicit gesture. Details in
 `.claude/docs/06-self-improvement.md`, *"The bridge to the framework"*.
+
+## Hardening
+
+The method's own layer (`.claude/docs/04-git-workflow.md`, *Enforcement of the execution
+boundary*) has a declared threat model: an agent's ACCIDENTAL errors with ordinary
+commands — the kind every real incident was. Deliberate evasion (disabling a hook,
+unsetting the session marker, writing to the forge with the owner's credential) is
+outside it: only the forge's rules or the operating system stop it. Two layers beyond the
+method, neither switched on by the template:
+
+- **Server-side layer — the forge's rules.** They hold for every client and every route
+  (git, the forge's CLI, its API), the owner included when no bypass is granted. The
+  framework's own repository runs two GitHub rulesets with NO bypass actor: on the
+  default branch, *Block force pushes* and *Restrict deletions*; on `refs/tags/v*`,
+  *Restrict updates* and *Restrict deletions* (force pushes blocked too). They stop the
+  IRREVERSIBLE operations — rewriting or deleting the main line, moving or deleting a
+  release tag — for the human and the agent alike, and leave the `/integrate` flow alone:
+  a normal push and a NEW tag go through. They are not the push boundary (the `pre-push`
+  is). Do not add *Require a pull request* to a single-developer `/integrate` flow: it
+  rejects the direct push of the local `--no-ff` merge, and an owner's bypass is also the
+  bypass of an agent holding the owner's credential. Residual, outside the threat model:
+  removing the ruleset, or writing to the remote with an owner credential (`gh`, `curl`).
+  On GitHub, rulesets are free on public repositories only; GitLab and Bitbucket have
+  protected branches.
+- **OS layer — the Claude Code sandbox** (`sandbox.enabled` in `.claude/settings.json`):
+  an OPTION, not a recommendation. It enforces network and filesystem limits through the
+  operating system, whatever the command's spelling. Its cost: the network allowlist is
+  per DOMAIN, so allowing the forge for fetch allows push too; each project curates its
+  own allowlists (registries, the forge) or fetch and installs fail; only Bash is
+  sandboxed, not the file tools or MCP servers; Linux and WSL2 need bubblewrap and socat,
+  native Windows is unsupported; and the unsandboxed retry must be switched off
+  (`allowUnsandboxedCommands: false`), or a failing command can be retried outside it.
 
 ---
 
@@ -333,7 +373,8 @@ into one of three classes:
 
 - **METHOD** (pure framework, brought to `vY`): `.claude/docs/00-06`, the
   non-customised commands in `.claude/commands/`, the guide READMEs inside
-  `.claude/memory/*/`, `scripts/reset-task.sh`, `scripts/README.md`,
+  `.claude/memory/*/`, `scripts/reset-task.sh`, `scripts/agent-git-guard.mjs`,
+  `scripts/repo-snapshot.sh`, the self-tests `scripts/test-*.sh`, `scripts/README.md`,
   `commitlint.config.cjs`.
 - **PROJECT-MEMORY** (stays UNTOUCHED): `.claude/memory/STATE.md`, `TREE.md`,
   `INDEX.md`, `sessions/`, `components/`, `decisions/`, `plans/`. **Verification
@@ -513,6 +554,10 @@ complementary sources:
   the project's); on `LEARNINGS.md` at most the header/format is updated, read from
   `git -C "${FW:?}" show vY:.claude/memory/LEARNINGS.md`, NEVER the project's IMP
   entries.
+- **Order** (from v1.3.0): bring `scripts/agent-git-guard.mjs` over BEFORE merging
+  `.claude/settings.json`. The merged settings wire the guard and Claude Code reloads them
+  at once; with the guard file still missing, every Bash call of the session is blocked
+  (fail-closed) — the file tools still work to repair it.
 
 > **Execution boundary (`docs/04`, section of the same name).** The agent PREPARES and
 > commits LOCALLY on the upgrade branch; it does NOT merge, does NOT push, does NOT tag.
@@ -525,8 +570,12 @@ complementary sources:
 ### Step 4 — Re-sync the hooks and audit the markers
 
 `make hooks-install` (idempotent; it saves a `.bak` of the project's formatting block).
-Real verification: a fake secret blocked by gitleaks, a non-conventional message
-rejected by commitlint. Then
+From v1.3.0 it also installs the `pre-push` push boundary: if the project already has a
+`pre-push` of its own (git-lfs's, for one), the script stops — rename it to
+`.git/hooks/pre-push.local` and re-run: the generated pre-push runs it after the
+boundary check, and a re-run leaves it alone. Real verification: a fake secret
+blocked by gitleaks, a non-conventional message rejected by commitlint,
+`make test-scripts` green. Then
 `grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" .` to catch the NEW markers
 introduced by `vY`, to be filled in with the project's answers (reuse the dialogue of
 step 2 of this guide). The dual-form grep matters here: a project grafted before the

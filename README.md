@@ -26,7 +26,8 @@ approved by the human, never self-applied; the ones useful to any project travel
 back up to the template through the project→framework bridge (`/harvest-framework`).
 - **Security gate & git workflow** — mandatory review on sensitive components,
 conventional commits, SemVer versioning on annotated tags, a paste-ready "ready for
-integration" block, pre-commit hooks (secret scan + formatting).
+integration" block, git hooks (secret scan, formatting, and a pre-push that leaves
+every push to the human), delegated agents kept read-only on git.
 - **Grafting and upgrading** — it starts from scratch (greenfield), grafts onto an
 existing project (brownfield) and upgrades in place (`vX → vY`) preserving the
 memory accumulated so far, with the `.claude/framework-version` provenance pin as a
@@ -85,12 +86,14 @@ plan → execute task by task → [if sensitive] `/security-review` → `/retro`
 ├── commitlint.config.cjs      Conventional Commits types
 ├── .gitignore                 baseline (secrets + IDE/OS) + [TO BE DEFINED] section
 ├── scripts/
-│   ├── hooks-install.sh       gitleaks + commitlint (always) + formatting (example)
+│   ├── hooks-install.sh       gitleaks + commitlint + pre-push push boundary (always) + formatting (example)
+│   ├── agent-git-guard.mjs    PreToolUse guard: delegated agents read-only on git
+│   ├── repo-snapshot.sh       before/after fingerprint around delegated agents
 │   ├── reset-task.sh          surgical cleanup of the interrupted task
-│   ├── test-hooks-install.sh  self-test of hooks-install (make test-scripts)
+│   ├── test-*.sh              hermetic self-tests (make test-scripts)
 │   └── README.md
 └── .claude/
-    ├── settings.json          SessionStart hook (injects STATE.md) + permissions (secret scan: pre-commit hook)
+    ├── settings.json          SessionStart hook (injects STATE.md) + PreToolUse guard + session marker + permissions
     ├── docs/                  00-overview, 01-task-planning ... 06-self-improvement
     ├── commands/              /checkpoint /integrate /sos /retro /security-review /new-component /lint-memory /harvest-framework
     └── memory/                STATE, TREE, INDEX, LEARNINGS (template) + 4 subfolders

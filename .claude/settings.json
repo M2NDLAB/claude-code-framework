@@ -1,4 +1,7 @@
 {
+  "env": {
+    "AGENT_GIT_BOUNDARY": "1"
+  },
   "permissions": {
     "allow": [
       "Bash(git status)",
@@ -8,6 +11,10 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(tree:*)"
+    ],
+    "ask": [
+      "Edit(/.claude/settings.json)",
+      "Edit(/scripts/agent-git-guard.mjs)"
     ],
     "deny": [
       "Bash(git push:*)",
@@ -29,6 +36,18 @@
           {
             "type": "command",
             "command": "echo '=== PROJECT MEMORY (STATE.md) ===' && cat .claude/memory/STATE.md 2>/dev/null || echo 'Memory not initialised: see SETUP.md'"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Monitor",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/agent-git-guard.mjs\" || exit 2",
+            "timeout": 30
           }
         ]
       }
