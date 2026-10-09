@@ -387,7 +387,8 @@ into one of three classes:
 - **PROJECT-MEMORY** (stays UNTOUCHED): `.claude/memory/STATE.md`, `TREE.md`,
   `INDEX.md`, `sessions/`, `components/`, `decisions/`, `plans/`. **Verification
   invariant: after the upgrade the `git diff` on `.claude/memory/` must be EMPTY** (the
-  only exception: pointers broken by a doc rename — see *Edge cases*).
+  only exceptions: the memory lines the method reads by name — pointers to renamed docs,
+  section titles — see *Edge cases*, 3).
 - **HYBRID** (a framework part that evolves + a project part to preserve, reconciled):
   `CLAUDE.md`, `.claude/settings.json`, `scripts/hooks-install.sh`, `.gitignore`,
   `Makefile`, `LEARNINGS.md`, and the commands customised at setup (`checkpoint.md`,
@@ -593,7 +594,7 @@ English marker existed still carries the Italian one.
 
 - `git diff --stat` and a per-file diff; **confirm the EMPTY `diff` on
   `.claude/memory/`** (a strong invariant: a non-empty diff = a bug in the upgrade,
-  stop and investigate).
+  stop and investigate) — outside the separate, declared commits of edge case 3.
 - The project's `[TO BE DEFINED]` customisations survived in the reconciled files.
 - `/lint-memory` on the preserved memory against the new docs (pointers to
   renamed/moved docs, STATE vs git, `LEARNINGS`↔`STATE` coherence, orphan pages).
@@ -639,16 +640,27 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    `git -C "${FW:?}" diff -M vX vY` as an index of the renames to apply the move
    (remove the old one, bring the new one), not a blind add+delete.
 
-3. **Memory pointers towards renamed docs — the only exception to the invariant.** If
-   `vY` renames/renumbers a doc, the `[[wikilink]]`s and the pointers (`docs/04:142`, …)
-   in `STATE.md` and in the sessions **dangle**, and `/lint-memory` will flag them as
-   broken. Here the "empty diff on `memory/`" invariant and the repair conflict: the way
-   out is to treat the repair of the pointers as an **EXPLICIT and DECLARED exception**,
-   in a **separate commit** (`docs(memory): update the pointers to the docs renamed by
-   vY`), distinct from the upgrade's commits. That way the invariant stays useful (it
-   catches ACCIDENTAL edits to the memory) and the necessary repair does not slip
-   through unnoticed. It is the only legitimate touch to the memory during an upgrade,
-   and only if a rename forces it.
+3. **Memory lines the method reads by name — the only exceptions to the invariant.**
+   Two kinds of line in the project's memory are read by the method itself, and a `vY`
+   that changes them leaves them stale:
+   - **(a) Pointers towards renamed docs.** If `vY` renames/renumbers a doc, the
+     `[[wikilink]]`s and the pointers (`docs/04:142`, …) in `STATE.md` and in the
+     sessions **dangle**, and `/lint-memory` will flag them as broken.
+   - **(b) Section titles looked up by name.** The `## ` titles of `STATE.md` and
+     `LEARNINGS.md` are format lines that the method cites by name (`/checkpoint`,
+     `/lint-memory`, `/retro`, `docs/03`, `docs/06`). If `vY` renames them — as v1.1.0
+     did when it translated them — rename them in the project to `vY`'s form. ONLY the
+     title lines: the content of the sections is never touched and keeps its language
+     (rule 9 is prospective).
+   Here the "empty diff on `memory/`" invariant and the repair conflict: the way out is
+   to treat the repair as an **EXPLICIT and DECLARED exception**, in a **separate
+   commit** per kind (`docs(memory): update the pointers to the docs renamed by vY`;
+   `docs(memory): rename the memory's section titles to vY's form`), distinct from the
+   upgrade's commits. That way the invariant stays useful (it catches ACCIDENTAL edits to
+   the memory) and the necessary repair does not slip through unnoticed. These are the
+   only legitimate touches to the memory during an upgrade, and only if `vY` forces them.
+   (Kind (b) was added in v1.3.2: until then the exception named the pointers alone, and
+   the titles translated by v1.1.0 had no declared way in.)
 
 4. **Installed hooks (`.git/hooks/*`) live outside the git graph.** The
    `make hooks-install` of Step 4 materialises the hooks in `.git/hooks/`, which is

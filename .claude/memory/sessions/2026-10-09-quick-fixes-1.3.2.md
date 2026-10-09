@@ -23,7 +23,7 @@ tags: [session, imp, fixes, upgrade]
 - [x] 3. F4: the guard's wiring prints its own first line and exits 1 in the main session; self-test; `docs/04` — commit: 1177abd
 - [x] 4. C13 (`chore: wip …`), the `SETUP.md`:353 backtick, the §2 checklist (decisions README, `docs/04` merge form and public contract) — commit: 3de2cab
 - [x] 5. `reset-task.sh` stays METHOD: its answer moves to the `Makefile` target; the script, `CLAUDE.md`'s quick command, `scripts/README.md`, the §2 entry — commit: 507217d
-- [ ] 6. B8: the prospective sentence in rule 9 of `CLAUDE.md` — commit: —
+- [x] 6. B8: the prospective sentence in rule 9 of `CLAUDE.md` — commit: e1c0039
 - [ ] 7. C12: `SETUP.md` edge case 3 extended to the memory's format lines read by name (the section titles of STATE and LEARNINGS) — commit: —
 - [ ] 8. The client project's name anonymised in `LEARNINGS.md` and five session notes — commit: —
 - [ ] 9. ONE reviewer + fixes — commit: —
