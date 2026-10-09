@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-10-07
+updated: 2026-10-09
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -817,6 +817,31 @@ tags: [improvement]
   (a new slot carries IMP-050 point 4's upgrade cost).
 - Expected benefit / risk: verifiable releases where a project wants them. Risk: a check
   that fails on machines without the signing key — it must run on the releasing machine.
+
+### IMP-067 — The framework in headless mode (`claude -p`, CI) and via the Claude Agent SDK
+- Date: 2026-10-09 | Origin: [[2026-10-09-quick-fixes-1.3.2]] — user request; evidence
+  from phase 1 of [[2026-09-27-imp-054-055-agent-git-boundary]]
+- Priority: MEDIUM (user decision, 2026-10-09) — the retro's process block.
+- Observed problem: the framework presupposes interactive Claude Code — `CLAUDE.md`, the
+  slash commands, `.claude/settings.json` (permissions, `env`, hooks), the hook input's
+  `agent_id`. Which of these load in headless mode and in the Agent SDK is not verified,
+  nor which boundaries of `docs/04` fall there. What is known: with `--bare`, Claude Code
+  loads no hooks (CLI help and docs, checked by the adversarial documentation pass of that
+  phase — documented, NOT measured by a probe), so the delegated-agent boundary does not
+  exist there; plain `claude -p` DID load the PreToolUse hook and carried `agent_id` to
+  subagents and workflow agents (measured, 2.1.283); in a workspace never trusted
+  interactively, `claude -p` ignored the project's `permissions.allow` while deny rules
+  and hooks applied (measured — IMP-064).
+- Proposal: NOT decided. First step: an investigation with real probes, as for IMP-054,
+  in throwaway repositories, measuring for each mode (`claude -p`, `--bare`, `--safe-mode`,
+  CI without a TTY, the Agent SDK) what loads and what does not: `CLAUDE.md`, the
+  commands, settings and their `env`, the hooks (SessionStart, PreToolUse), the `pre-push`
+  markers. The results go into `docs/04` and `SETUP.md` as "what holds in headless"; no new
+  mechanism before the measurement.
+- Out of scope: projects that USE the Messages API as a component (that is the project's
+  stack; the framework stays agnostic), and harnesses other than Claude Code.
+- Expected benefit / risk: the boundaries are known where they hold and where they do not.
+  Risk: none for the investigation itself.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>

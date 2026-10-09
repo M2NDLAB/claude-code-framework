@@ -18,7 +18,7 @@ tags: [session, imp, fixes, upgrade]
 - `turns: 2` — the phase-1 verification request; the decisions with the phase-2 go-ahead.
 
 ## Plan (one commit per task)
-- [ ] 1. This note: phase-1 findings, the user's decisions, the plan block — commit: —
+- [x] 1. This note: phase-1 findings, the user's decisions, the plan block — commit: 29df076
 - [ ] 2. Record IMP-067 (OPEN, MEDIUM): the framework in headless mode and via the Agent SDK — commit: —
 - [ ] 3. F4: the guard's wiring prints its own first line and exits 1 in the main session; self-test; `docs/04` — commit: —
 - [ ] 4. C13 (`chore: wip …`), the `SETUP.md`:353 backtick, the §2 checklist (decisions README, `docs/04` merge form and public contract) — commit: —
