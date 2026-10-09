@@ -24,7 +24,7 @@ tags: [session, imp, fixes, upgrade]
 - [x] 4. C13 (`chore: wip …`), the `SETUP.md`:353 backtick, the §2 checklist (decisions README, `docs/04` merge form and public contract) — commit: 3de2cab
 - [x] 5. `reset-task.sh` stays METHOD: its answer moves to the `Makefile` target; the script, `CLAUDE.md`'s quick command, `scripts/README.md`, the §2 entry — commit: 507217d
 - [x] 6. B8: the prospective sentence in rule 9 of `CLAUDE.md` — commit: e1c0039
-- [ ] 7. C12: `SETUP.md` edge case 3 extended to the memory's format lines read by name (the section titles of STATE and LEARNINGS) — commit: —
+- [x] 7. C12: `SETUP.md` edge case 3 extended to the memory's format lines read by name (the section titles of STATE and LEARNINGS) — commit: 1f1bc9f
 - [ ] 8. The client project's name anonymised in `LEARNINGS.md` and five session notes — commit: —
 - [ ] 9. ONE reviewer + fixes — commit: —
 - [ ] 10. `/checkpoint` — commit: —
@@ -84,6 +84,18 @@ Every item still existed; lines moved since the lessons of 2026-09-24/26:
   (`claude -p`, CI) and via the Claude Agent SDK.
 - Phase 2: this branch; probes only in `/tmp`; `make test-scripts` green; ONE reviewer;
   `/checkpoint` and the printed `/integrate` block; merge, tag and push are the user's.
+
+## The anonymisation (task 8) — what it does and does not do
+- Nine occurrences replaced by one neutral reference, "the client project" (or "the
+  client's" for a possessive): `LEARNINGS.md` IMP-036 (Applied) and IMP-037 (Deferred),
+  and five session notes of July 2026 (one heading included — cited nowhere by name). A
+  confidentiality correction, not a rewrite of what the notes record; the append-only
+  notes are touched for this reason only.
+- **The published history keeps the name.** Every release tag from v0.3.0 to v1.3.1
+  still carries it in `.claude/memory/` (checked with `git grep` per tag), and the
+  repository is public: the anonymisation holds from v1.3.2 on only. Removing it from the
+  history would mean rewriting published history — not done, and not proposed here. No
+  commit message ever carried the name.
 
 ## Notes taken while planning
 - `SETUP.md` has no exception called "A": the only exception to the empty-diff invariant

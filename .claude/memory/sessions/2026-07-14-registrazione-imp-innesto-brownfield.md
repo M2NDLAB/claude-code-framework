@@ -8,7 +8,7 @@ tags: [session, improvement, brownfield]
 # Session 2026-07-14 — Registration of IMPs from the first brownfield graft
 
 ## Context
-First real graft of the framework onto an existing project (brew-manager, a
+First real graft of the framework onto an existing project (the client project, a
 shell/zsh tool, brownfield): the friction was documented live in the graft note
 of the host project. This session REGISTERS the lessons as IMPs (rule 6 of
 CLAUDE.md: changes to rules/docs are proposed, and applied only after approval).

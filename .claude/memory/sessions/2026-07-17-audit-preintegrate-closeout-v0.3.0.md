@@ -37,7 +37,7 @@ first brownfield graft) were already applied and checkpointed; only the
   branch `chore/imp-innesto-brownfield` deleted.
 
 ## INFO findings not acted on immediately (recorded, not lost)
-- **brew-manager** (agnosticity): the host project's name appears ONLY in
+- **The client project's name** (agnosticity): the host project's name appears ONLY in
   [[2026-07-14-registrazione-imp-innesto-brownfield]], never in the template's files nor
   in the commit/merge/tag messages. It does not violate agnosticity (IMP-025 constrains
   the *messages* of the shared history) and `sessions/` is emptied when copied onto a

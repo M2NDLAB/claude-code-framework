@@ -1083,7 +1083,7 @@ tags: [improvement]
   distinction is already load-bearing (IMP-037 cites it).
 
 ### IMP-036 — Provenance pin: record the framework's `vX` at graft time → applied on 2026-07-18, commit 6de868f
-- Approved in the targeted retro after the first real upgrade (brew v0.2.0→v0.5.1,
+- Approved in the targeted retro after the first real upgrade (the client project, v0.2.0→v0.5.1,
   2026-07-17): the baseline had been established BY HAND from the content, and the
   3-way of `hooks-install.sh` required the per-version base — with the wrong `vX` the
   merge comes out corrupted SILENTLY. Design D1-D6 approved as a block:
@@ -1429,7 +1429,7 @@ tags: [improvement]
   from the tested text (D3 is case #1 of the 2-3 needed; on its own it does NOT fire the
   trigger).
 - **Case #1 happened** (targeted-retro annotation 2026-07-18): the first real upgrade was
-  performed on 2026-07-17 (brew, v0.2.0→v0.5.1) — see
+  performed on 2026-07-17 (the client project, v0.2.0→v0.5.1) — see
   [[2026-07-18-retro-mirata-imp-036-037]]. Friction observed: the cost was in the
   file-by-file JUDGEMENT (decisions R1/R3/R4/R5 + the per-version 3-way of
   `hooks-install.sh`), which a read-and-print command does not remove; the manual
