@@ -11,8 +11,13 @@ help: ## Show this help
 hooks-install: ## Install the git hooks (gitleaks + commitlint + pre-push push boundary; formatting to be enabled)
 	bash scripts/hooks-install.sh
 
+# [TO BE DEFINED AT SETUP] the branches reset-task must never touch: your integration and
+# stable branches (docs/04). Example defaults below; one run can override them with
+#   make reset-task PROTECTED_BRANCHES="main trunk"
+PROTECTED_BRANCHES ?= main develop
+
 reset-task: ## Discard the interrupted half-done task, preserving branch and commits (task planning)
-	bash scripts/reset-task.sh
+	PROTECTED_BRANCHES="$(PROTECTED_BRANCHES)" bash scripts/reset-task.sh
 
 test-scripts: ## Self-test of the framework scripts (hooks-install, the agent git guard, repo-snapshot)
 	bash scripts/test-hooks-install.sh

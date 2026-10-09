@@ -7,8 +7,10 @@
 # PRESERVES every commit of the previous tasks and the branch. It is the correct
 # cleanup for the task planning protocol (.claude/docs/01-task-planning.md).
 #
-# Usage:  ./scripts/reset-task.sh          # show what it would discard and ask
-#         ./scripts/reset-task.sh --yes    # discard without asking (automation)
+# Usage:  make reset-task                   # the project's protected branches (Makefile)
+#         ./scripts/reset-task.sh [--yes]   # direct: PROTECTED_BRANCHES from the
+#                                           # environment, else main + develop (warned)
+#         --yes discards without asking (automation)
 # ============================================================================
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)" || exit 1
@@ -17,10 +19,14 @@ AUTO="${1:-}"
 BRANCH=$(git branch --show-current)
 
 # Guard 1: never operate on shared/protected branches.
-# [TO BE DEFINED AT SETUP] adapt the list to your model (integration branch +
-# stable branch). Example defaults: main + develop. Override via env, e.g.
-#   PROTECTED_BRANCHES="main trunk" ./scripts/reset-task.sh
-PROTECTED_BRANCHES="${PROTECTED_BRANCHES:-main develop}"
+# The list is the PROJECT's answer and lives in the Makefile (PROTECTED_BRANCHES, the
+# setup slot of the reset-task target), so this script stays method — identical in every
+# project. Run directly without it, the script falls back to the example defaults and
+# says so.
+if [ -z "${PROTECTED_BRANCHES:-}" ]; then
+  PROTECTED_BRANCHES="main develop"
+  echo "⚠ PROTECTED_BRANCHES is not set: using the defaults 'main develop'. The project's list is in the Makefile: run 'make reset-task'."
+fi
 for b in $PROTECTED_BRANCHES; do
   if [ "$BRANCH" = "$b" ]; then
     echo "❌ You are on '$BRANCH' (protected branch). reset-task only operates on feature branches."

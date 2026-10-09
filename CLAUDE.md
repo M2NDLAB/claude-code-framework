@@ -79,7 +79,8 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
   `/new-component`, `/lint-memory`, `/harvest-framework`
 - `make hooks-install` — install the git hooks (gitleaks + commitlint + the pre-push push boundary)
 - `make test-scripts` — self-test of the framework scripts (hooks-install, the agent git guard, repo-snapshot)
-- `./scripts/reset-task.sh` — discard the interrupted half-done task (keeps commits)
+- `make reset-task` — discard the interrupted half-done task (keeps commits; the
+  protected branches are the Makefile's `PROTECTED_BRANCHES`)
 
 ---
 
