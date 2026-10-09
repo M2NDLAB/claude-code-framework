@@ -336,7 +336,8 @@ recorded during the graft are worked off as tasks decided by the user.
 ### Language of the host project
 
 Rule 9 of `CLAUDE.md` — artifacts always English — applies to the artifacts of the
-METHOD and to the NEW artifacts the project produces from the graft onwards. It is
+METHOD and to the NEW artifacts the project produces from the graft onwards (for a
+project grafted earlier: from the upgrade that brought the rule, v1.1.0). It is
 **not** a mandate to bulk-translate what is already there: the host's pre-existing
 documentation, written in another language, is left as it is, exactly like past
 commits. Translating it is a task like any other, decided by the user, and it follows

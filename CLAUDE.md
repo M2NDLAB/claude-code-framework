@@ -72,6 +72,9 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
    - **INTERACTION: yours.** The language the agent speaks with you in session is a
      [TO BE DEFINED AT SETUP] slot in the technical rules below. Talking to you in
      your own language costs the repo nothing, so nothing is imposed.
+   The rule applies from the graft, or from the upgrade that brought it, onwards: to
+   the method's artifacts and to the new ones the project produces; what already
+   exists is never bulk-translated (translating it is a task the user decides).
    Past git history is never translated: it is immutable (see 04-git-workflow.md).
 
 ## Quick commands
