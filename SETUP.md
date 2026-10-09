@@ -96,7 +96,10 @@ Here is the complete list, grouped by file:
       (It is often enough to define them in CLAUDE.md and leave a pointer here.)
 - [ ] `03-security-gate.md`: explicit list of the sensitive components (aligned with
       CLAUDE.md rule 8).
-- [ ] `04-git-workflow.md`: branching model, **if** different from main/develop/feat.
+- [ ] `04-git-workflow.md`: branching model, **if** different from main/develop/feat;
+      the merge form the project adopts — Pull Request or the `/integrate` block
+      (*Merge*); what the project's public contract is, the criterion of a MAJOR
+      (*Versioning*).
 
 ### `.claude/commands/`
 - [ ] `checkpoint.md`: patterns to ignore for `tree`, name of the integration branch.
@@ -107,6 +110,8 @@ Here is the complete list, grouped by file:
 
 ### `.claude/memory/`
 - [ ] `TREE.md`: the `-I '...'` pattern for `tree` suited to your stack.
+- [ ] `decisions/README.md`: where formal ADRs live, if the project keeps any (an
+      `adr/` folder, a wiki, a docs site).
 - [ ] **EMPTY OUT the framework's LIVE memory**: `LEARNINGS.md` arrives with the IMPs
       of the framework itself (hybrid regime, see its `CONTRIBUTING.md`) — bring the
       sections back to empty: the IMPs of YOUR project restart from 001. Delete the
@@ -350,7 +355,7 @@ is exactly the condition of **CASE A** above — and it must be brought to a mor
 version **while preserving the accumulated project memory** (STATE, sessions,
 decisions, components, the IMP backlog).
 
-It is the DESCENDING direction of the bridge described in `docs/06* (*"The bridge to
+It is the DESCENDING direction of the bridge described in `docs/06` (*"The bridge to
 the framework"*): while `/harvest-framework` sends lessons UP from the project to the
 framework, the upgrade sends a new version of the framework DOWN into the project. It
 is also the vehicle by which the framework's fixes (e.g. to `hooks-install.sh`) and a

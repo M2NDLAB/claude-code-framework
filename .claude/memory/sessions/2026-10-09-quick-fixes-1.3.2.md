@@ -20,7 +20,7 @@ tags: [session, imp, fixes, upgrade]
 ## Plan (one commit per task)
 - [x] 1. This note: phase-1 findings, the user's decisions, the plan block — commit: 29df076
 - [x] 2. Record IMP-067 (OPEN, MEDIUM): the framework in headless mode and via the Agent SDK — commit: 5c0426d
-- [ ] 3. F4: the guard's wiring prints its own first line and exits 1 in the main session; self-test; `docs/04` — commit: —
+- [x] 3. F4: the guard's wiring prints its own first line and exits 1 in the main session; self-test; `docs/04` — commit: 1177abd
 - [ ] 4. C13 (`chore: wip …`), the `SETUP.md`:353 backtick, the §2 checklist (decisions README, `docs/04` merge form and public contract) — commit: —
 - [ ] 5. `reset-task.sh` stays METHOD: its answer moves to the `Makefile` target; the script, `CLAUDE.md`'s quick command, `scripts/README.md`, the §2 entry — commit: —
 - [ ] 6. B8: the prospective sentence in rule 9 of `CLAUDE.md` — commit: —

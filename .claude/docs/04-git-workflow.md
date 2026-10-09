@@ -32,8 +32,9 @@ commit:
 2. When a working unit is complete (a migration + its model, an endpoint with its
    tests, a working UI component).
 3. At the end of every task of a plan (see `01-task-planning.md`).
-4. ALWAYS before closing a session, even if the work is partial (a commit prefixed
-   `wip:` ONLY on a feature branch — never `wip` on `develop`).
+4. ALWAYS before closing a session, even if the work is partial (a commit
+   `chore: wip …` ONLY on a feature branch — never a wip commit on `develop`; `wip` is
+   not one of the types below, and the commit-msg hook rejects a `wip:` prefix).
 
 NEVER commit: code that does not build on `develop`/`main`; environment or secret
 files (gitleaks blocks them, but do not rely on it as the only defence); build
