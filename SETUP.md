@@ -554,10 +554,10 @@ complementary sources:
   the project's); on `LEARNINGS.md` at most the header/format is updated, read from
   `git -C "${FW:?}" show vY:.claude/memory/LEARNINGS.md`, NEVER the project's IMP
   entries.
-- **Order** (from v1.3.0): bring `scripts/agent-git-guard.mjs` over BEFORE merging
-  `.claude/settings.json`. The merged settings wire the guard and Claude Code reloads them
-  at once; with the guard file still missing, every Bash call of the session is blocked
-  (fail-closed) — the file tools still work to repair it.
+- **The guard and `settings.json`: no order to respect** (from v1.3.1; v1.3.0 required
+  the guard first). The merged settings wire the guard and Claude Code reloads them at
+  once; until `scripts/agent-git-guard.mjs` is in place, only DELEGATED agents are blocked
+  (fail-closed) — the session running the upgrade keeps its Bash tool.
 
 > **Execution boundary (`docs/04`, section of the same name).** The agent PREPARES and
 > commits LOCALLY on the upgrade branch; it does NOT merge, does NOT push, does NOT tag.

@@ -12,6 +12,14 @@
 # HERMETIC: a throwaway repository under mktemp; nothing outside it is touched.
 set -euo pipefail
 
+# Hermetic against the user's own git configuration: a global tag.gpgSign or
+# commit.gpgSign, for one, would make the throwaway repository's tags and commits ask for
+# a signature (git 2.32+ reads GIT_CONFIG_GLOBAL; older ones ignore it). And against the
+# caller's git environment: run from a git hook, GIT_DIR or GIT_INDEX_FILE would point the
+# throwaway commands at the REAL repository.
+export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
+unset $(git rev-parse --local-env-vars) GIT_TEMPLATE_DIR
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SNAPSHOT="${SCRIPT_DIR}/repo-snapshot.sh"
 

@@ -746,6 +746,78 @@ tags: [improvement]
 - Expected benefit / risk: closes the non-git route to shared history for accidental use.
   Risk: a larger hook — the size the user chose to avoid now.
 
+### IMP-063 — A fan-out has a stall cost: one independent reviewer first
+- Date: 2026-10-07 | Origin: [[2026-09-27-imp-054-055-agent-git-boundary]] — the
+  multi-agent review runs were the block's costliest failures, while one reviewer found a
+  HIGH the prototype phase had missed
+- Observed problem: in phase 1 the pre-note review workflow (3 reviewers, then 3
+  skeptics) stalled: its agents were interrupted and restarted repeatedly, and after about
+  an hour 0 of 3 reviewers had returned; it was stopped and the proposal reached the user
+  with that coverage gap declared. The user then capped the block: one reviewer, "non un
+  workflow grande: due workflow in questo blocco si sono già bloccati" (the note records
+  one outright stall; the user's count is two). In phase 2 ONE reviewer returned in about
+  20 minutes with 1 HIGH and 5 MEDIUM, all reproduced. `docs/03` says WHEN the verifier
+  must not be the author and how to reconcile a multi-agent review's counts; nothing says
+  how many agents, nor what to do when they stall.
+- Proposal: NOT decided here (retro). Direction: `docs/03` (or the delegation bullet of
+  IMP-060 (a)) — one independent reviewer first; a fan-out only where the blast radius
+  warrants it, with an explicit stall budget (a time after which the run is stopped and
+  its gap declared — IMP-060 (b)).
+- Expected benefit / risk: fewer hours lost to stalled runs. Risk: one reviewer brings one
+  lens — the fan-out stays available, budgeted.
+
+### IMP-064 — Probing Claude Code's permissions in an untrusted workspace measures the wrong thing
+- Date: 2026-10-07 | Origin: [[2026-09-27-imp-054-055-agent-git-boundary]] — the first
+  phase-1 probe matrix would have "proved" a deny rule effective
+- Observed problem: a `claude -p` session started in a directory never trusted
+  interactively IGNORES the project's `permissions.allow` (stderr: "Ignoring N
+  permissions.allow entries from .claude/settings.json: this workspace has not been
+  trusted"), while deny rules and hooks stay active. The first matrix showed every push
+  form denied — as NOT ALLOWED, not by the deny rule — and only the denial messages and
+  stderr told the two apart. Fixed by putting the allow in `settings.local.json`, which is
+  honoured.
+- Proposal: NOT decided here (retro). Direction: wherever the method verifies permissions
+  or hooks with nested sessions (a boundary's end-to-end check, an upgrade's), the probe
+  declares its trust shape — the allow in `settings.local.json` — classifies each denial
+  (rule match, not allowed, hook) and reads stderr. Home: `docs/02` (*Tests that
+  demonstrate*) or `docs/03`.
+- Expected benefit / risk: a permission probe cannot pass for the wrong reason. Risk: none.
+
+### IMP-065 — Edit the method's own files with the file tools, so the checkpoints that guard them apply
+- Date: 2026-10-07 | Origin: [[2026-09-27-imp-054-055-agent-git-boundary]] — the session
+  edited `.claude/` both with the file tools and through Python one-offs
+- Observed problem: `.claude/` is a protected path for Claude Code's file tools (writes are
+  never auto-approved: prompted, or routed to the classifier in auto mode), and since
+  v1.3.0 `ask` rules guard `settings.json` and `scripts/agent-git-guard.mjs` — both apply
+  to the built-in file tools only. In the IMP-054/055 block some `.claude/` edits went
+  through Python one-offs (IMP-061; the review's `docs/04` fixes; the LEARNINGS move; parts
+  of the session note), which no checkpoint sees. Nothing went wrong — the writes were the
+  requested work — but the same habit on `settings.json` or on the guard would skip the
+  very checkpoint D6 added. Contributing factor: the auto-mode instruction to prefer the
+  shell for file changes.
+- Proposal: NOT decided here (retro). Direction: one line in `docs/04` (*Permission
+  configuration*, next to the `ask` bullet) or `docs/02`: the method's own files are edited
+  with the file tools; a shell write to them is a slip to report.
+- Expected benefit / risk: the checkpoints guard what they claim to. Risk: more prompts in
+  auto mode.
+
+### IMP-066 — `/integrate` verifies the tag's signature only when signing is configured
+- Date: 2026-10-07 | Origin: [[2026-10-07-guard-agent-only-fail-closed]] — the framework's
+  release tags are annotated but not signed, and GitHub shows them as Unverified (user
+  observation)
+- Priority: LOW (user decision, 2026-10-07).
+- Observed problem: step 4 of `/integrate` checks that the tag exists and is sound
+  (`git rev-parse`), never its signature; `docs/04` requires annotated tags and says
+  nothing about signing, so a project that signs its releases gets no check, and one that
+  does not cannot tell "unsigned" from "badly signed".
+- Proposal: NOT decided here (retro). Direction: in `/integrate`, step 3 creates the tag
+  with `-s` and step 4 adds `git tag -v <tag>` ONLY when the setup configured signing;
+  signing stays optional (agnosticism). How the setup declares it — a
+  `[TO BE DEFINED AT SETUP]` slot, or git's own `tag.gpgSign` — is part of the decision
+  (a new slot carries IMP-050 point 4's upgrade cost).
+- Expected benefit / risk: verifiable releases where a project wants them. Risk: a check
+  that fails on machines without the signing key — it must run on the releasing machine.
+
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
 - Date: YYYY-MM-DD | Origin: [[<session note>]] — <problem>
@@ -1283,6 +1355,11 @@ tags: [improvement]
   fail-closed wiring), recovery and upgrade order documented, the agent-only variant left
   to the user. End to end: every delegated-agent write refused through Bash and Monitor,
   the main session free.
+- **Refined in v1.3.1** (2026-10-07, [[2026-10-07-guard-agent-only-fail-closed]]): the user
+  adopted the review's agent-only variant — a broken guard (crash, missing file or
+  `node`, unparseable input) now blocks delegated agents only, never the main session;
+  the guard's own verdict always stands. The upgrade order between the guard and
+  `settings.json` no longer matters. Commits c65b22a, b8997aa.
 
 ## Deferred (not rejected — resumed at the right time)
 
