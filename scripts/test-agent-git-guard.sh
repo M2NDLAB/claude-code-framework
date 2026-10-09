@@ -5,14 +5,17 @@
 # Contract under test: a delegated agent (hook input carrying agent_id) is read-only on
 # git; the main session is never restricted. When the guard itself FAILS — a crash, a
 # missing guard file, a missing `node` — the wiring blocks a delegated agent (exit 2,
-# fail-closed) and lets the main session through (exit 0): the guard has no job in the
-# main session, whose push boundary is the pre-push. Claude Code treats a PreToolUse
-# hook's non-zero exit other than 2 as "proceed" (measured on 2.1.283: exit 1, exit 127,
-# a timeout), so the wiring, not the guard, decides the failure case.
+# fail-closed) and, in the main session, exits 1: a non-blocking error that Claude Code
+# shows in the transcript with the FIRST line of stderr, which the wiring makes its own
+# clear message. The guard has no job in the main session (its push boundary is the
+# pre-push). Claude Code treats a PreToolUse hook's non-zero exit other than 2 as
+# "proceed" (measured on 2.1.283: exit 1, exit 127, a timeout), so the wiring, not the
+# guard, decides the failure case.
 #
 # It FAILS if the guard stops blocking a write or starts blocking a read or the main
 # session, if the wiring disappears from settings.json, if a broken guard lets an agent
-# through, or if a broken guard blocks the main session.
+# through, blocks the main session or stays silent there, or if the first line of a
+# failure is not the wiring's own message.
 #
 # HERMETIC: the wired command is READ from .claude/settings.json (never retyped here) and
 # run by /bin/sh in a clean environment against JSON inputs. No git repository is touched:
@@ -80,6 +83,10 @@ expect() { # expect <code> <label> <project dir> <hook input> [PATH]
   local rc
   rc="$(run_wired "$3" "$4" "${5:-}")"
   [[ "${rc}" == "$1" ]] || fail "$2 — expected exit $1, got ${rc}: $(head -c 300 "${workdir}/stderr")"
+}
+first_line() { # first_line <prefix> <label>: the transcript shows only stderr's first line
+  [[ "$(head -n 1 "${workdir}/stderr")" == "$1"* ]] \
+    || fail "$2 — stderr's first line is not '$1…': $(head -n 1 "${workdir}/stderr")"
 }
 
 # --- 1. Delegated agent: every write is refused (exit 2) -------------------------------------
@@ -196,19 +203,25 @@ echo 'throw new Error("simulated crash");' > "${workdir}/broken/scripts/agent-gi
 ln -s "$(command -v cat)" "${workdir}/no-node/cat" # a PATH with the wiring's `cat` and no `node`
 ln -s "${NODE}" "${workdir}/no-cat/node"           # a PATH with `node` and no `cat`
 for who in agent main; do
-  if [[ "${who}" == agent ]]; then want=2; mark=agent; else want=0; mark=""; fi
+  if [[ "${who}" == agent ]]; then want=2; mark=agent; else want=1; mark=""; fi
   expect "${want}" "node missing (${who})"       "${REPO_ROOT}"      "$(hook_input 'git log -1' "${mark}")" "${workdir}/no-node"
+  first_line "agent-git-guard: cannot run" "node missing (${who})"
   expect "${want}" "guard file missing (${who})" "${workdir}/empty"  "$(hook_input 'git log -1' "${mark}")"
+  first_line "agent-git-guard: cannot run" "guard file missing (${who})"
   expect "${want}" "guard crash (${who})"        "${workdir}/broken" "$(hook_input 'git log -1' "${mark}")"
+  first_line "agent-git-guard: cannot run" "guard crash (${who})"
 done
+# A healthy block keeps the guard's own message first.
+expect 2 "agent write, healthy guard" "${REPO_ROOT}" "$(hook_input 'git switch main' agent)"
+first_line "agent-git-guard: BLOCKED" "agent write, healthy guard"
 # When the guard fails, the wiring classifies the call by the text `"agent_id"` in the raw
 # input. A quote INSIDE a value arrives JSON-escaped, so a main-session command quoting the
 # key stays the main session's. (A value that ENDS in `"agent_id` would still match while
 # the guard is broken: a false positive that blocks, i.e. fails safe — accepted.)
-expect 0 "a main-session command quoting \"agent_id\" (broken guard)" "${workdir}/empty" \
+expect 1 "a main-session command quoting \"agent_id\" (broken guard)" "${workdir}/empty" \
   "$(hook_input 'echo "\"agent_id\": x"')"
 expect 2 "unreadable input carrying agent_id must block" "${REPO_ROOT}" '{"agent_id":"a-self-test","tool_name":"Bash", truncated'
-expect 0 "unreadable input without agent_id passes (it cannot be told from the main session)" "${REPO_ROOT}" 'not json'
+expect 1 "unreadable input without agent_id: not blocked, but shown (it cannot be told from the main session)" "${REPO_ROOT}" 'not json'
 # The wiring cannot even read its input (no `cat`): it cannot classify the call, so it blocks.
 expect 2 "an unreadable stdin blocks (agent)" "${REPO_ROOT}" "$(hook_input 'git log -1' agent)" "${workdir}/no-cat"
 expect 2 "an unreadable stdin blocks (main)"  "${REPO_ROOT}" "$(hook_input 'git log -1')"       "${workdir}/no-cat"
@@ -217,7 +230,7 @@ expect 2 "an unreadable stdin blocks (main)"  "${REPO_ROOT}" "$(hook_input 'git 
 expect 2 "a healthy guard's block stands (escaped agent_id key)" "${REPO_ROOT}" \
   '{"tool_name":"Bash","tool_input":{"command":"git commit -m x"},"cwd":"/tmp","agent\u005fid":"a1","agent_type":"general-purpose"}'
 # A main session started with --agent carries agent_type but no agent_id: the main session.
-expect 0 "a main session with agent_type only (broken guard)" "${workdir}/empty" \
+expect 1 "a main session with agent_type only (broken guard)" "${workdir}/empty" \
   '{"tool_name":"Bash","tool_input":{"command":"git log -1"},"cwd":"/tmp","agent_type":"reviewer"}'
 
-echo "PASS (IMP-055 guard): ${#AGENT_WRITES[@]} agent writes blocked, ${#AGENT_READS[@]} reads allowed, main session free; a broken guard (node missing / file missing / crash / bad input) blocks agents only."
+echo "PASS (IMP-055 guard): ${#AGENT_WRITES[@]} agent writes blocked, ${#AGENT_READS[@]} reads allowed, main session free; a broken guard (node missing / file missing / crash / bad input) blocks agents and shows a non-blocking error to the main session."
