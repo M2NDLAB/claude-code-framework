@@ -97,8 +97,8 @@ documentation → the client project's upgrade, as the acceptance test → the n
 
 ## Plan (one commit per task)
 - [x] 1. The reconciliation after v1.3.3, the user's decisions, the cycle's plan, this plan — commit: c0b131a
-- [x] 2. Record IMP-069 (approved, applied in this release): the `/integrate` block is copied whole, so the pause before the push does not happen — commit: (this one)
-- [ ] 3. `/integrate` prints two blocks — local work ending with the checks, then the publication — with `git tag -v` only when tags are signed (IMP-066); `docs/04` and `docs/00` aligned — commit: —
+- [x] 2. Record IMP-069 (approved, applied in this release): the `/integrate` block is copied whole, so the pause before the push does not happen — commit: a4ca575
+- [x] 3. `/integrate` prints two blocks — local work ending with the checks, then the publication — with `git tag -v` only when tags are signed (IMP-066); `docs/04` and `docs/00` aligned — commit: (this one)
 - [ ] 4. ONE reviewer + fixes — commit: —
 - [ ] 5. `/checkpoint` — commit: —
 - [ ] 6. `/integrate`: the CHANGELOG 1.3.4 entry; the block printed in the new format — commit: —

@@ -179,9 +179,13 @@ on WHICH BRANCH the tag lives:
 - Before pushing a tag: ALWAYS verify it with `git rev-parse <tag>`. `git tag -d` is
   used ONLY if that verification fails — never on a healthy tag, and never inline
   with the constructive commands (see "Execution boundary").
+- Where the repository signs its tags (`tag.gpgSign` true, in its config or the global
+  one), verify the signature too, `git tag -v <tag>`, and never publish a tag whose
+  signature does not verify. Signing stays optional: a project that does not sign has no
+  such check. (An SSH signature verifies only with `gpg.ssh.allowedSignersFile` set.)
 - Before every push to a shared branch: `git log origin/<branch>..<branch>` to see
-  EXACTLY what you are about to make public — a push drags ALL local commits along,
-  not only the last one.
+  EXACTLY what you are about to make public, and its count against the expected one —
+  a push drags ALL local commits along, not only the last one.
 
 ## Rollback — choosing the right tool
 
@@ -208,10 +212,11 @@ on WHICH BRANCH the tag lives:
 - Tags and releases: only the user decides when; Claude Code prepares (changelog from
   the conventional commits, version bump per *Versioning*, the annotated tag already
   written) and asks for confirmation.
-- Integration block: at the end of a deliverable, `/integrate` produces the sequence
-  of merge + tag commands ready to paste (the next version computed from
-  `git describe` and the bump of *Versioning*). Claude Code PRINTS it, it does not
-  run it: push, merge and tag remain human actions.
+- Integration blocks: at the end of a deliverable, `/integrate` produces the merge +
+  tag commands ready to paste, in two blocks — the local merge, the tag and the checks,
+  then the publication (the next version computed from `git describe` and the bump of
+  *Versioning*). Claude Code PRINTS them, it does not run them: push, merge and tag
+  remain human actions.
 
 ## Execution boundary and blocks for the user
 
@@ -240,6 +245,14 @@ Rules for every command block meant for manual execution by the user:
    commands. They go in a SEPARATE block, preceded by the EXACT condition that
    justifies them ("only if `<command>` fails") — never executable out of inertia
    while scrolling through the sequence.
+4. **Publishing goes in a block of its own.** A sequence that ends by publishing is
+   printed as TWO blocks: the first does everything local and ends with the checks;
+   the second only publishes (the push, then the cleanup), introduced by one line
+   OUTSIDE the blocks that says what the checks must have shown — the expected count,
+   a valid signature where tags are signed. A pause written as a comment inside a
+   copyable block is not a pause: pasted whole, the push runs before anyone reads the
+   checks. A failure inside the first block leaves only local state to repair, and
+   its checks show it before anything leaves the machine.
 
 ## Enforcement of the execution boundary
 

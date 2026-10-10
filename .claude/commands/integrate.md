@@ -1,12 +1,12 @@
 ---
-description: Generates the "READY FOR INTEGRATION" block — paste-ready commands for merge + tag, without running them
+description: Generates the "READY FOR INTEGRATION" blocks — paste-ready commands, merge + tag + checks then the push, without running them
 ---
-At the end of a deliverable, prepare the READY FOR INTEGRATION block for: $ARGUMENTS
+At the end of a deliverable, prepare the READY FOR INTEGRATION blocks for: $ARGUMENTS
 (if empty: for the current branch).
 
 Claude Code **does not push and does not merge** — that is a human action (see
 @.claude/docs/04-git-workflow.md). Here it COLLECTS the state with read-only commands
-and PRODUCES a block of exact commands, ready to paste. Run ONLY the read commands of
+and PRODUCES two blocks of exact commands, ready to paste. Run ONLY the read commands of
 steps 1-2 and the CHANGELOG update of step 3 (local commit); everything else must be
 PRINTED, not executed.
 
@@ -48,12 +48,27 @@ If a `CHANGELOG.md` exists at the root (Keep a Changelog format):
 - otherwise: move the content of `## [Unreleased]` under a new entry
   `## [X.Y.Z] — YYYY-MM-DD` (version computed at step 2, today's date),
   integrating it with what emerges from the branch commits, and COMMIT on the feature
-  branch BEFORE printing the block: this way the changelog goes into the merge.
+  branch BEFORE printing the blocks: this way the changelog goes into the merge.
 
-## 4. Print the READY FOR INTEGRATION block
-A single copyable code block, with the placeholders already replaced by the real
-computed values. Do NOT run it:
+## 4. Print the READY FOR INTEGRATION blocks — two, never one
+Two copyable code blocks, with the placeholders replaced by the real computed values,
+and between them ONE line of plain text. Do NOT run them. They are two because a pause
+written as a comment inside a copyable block is not a pause: pasted whole, the push runs
+before anyone has read the checks. Block 1 touches only LOCAL history and ends with the
+checks; block 2 publishes (docs/04, "Execution boundary and blocks for the user").
+
+First compute, read-only:
+- `N` = `git rev-list --count origin/<integration>..HEAD` + 1: the branch's commits
+  plus the merge commit — what `origin/<integration>..<integration>` holds after the
+  merge;
+- SIGNED = `git config --type=bool --get tag.gpgSign` prints `true` (the repository's
+  config or the global one). Then `git tag -a` signs the tag by itself, and block 1
+  verifies it. Otherwise leave out every signature line: signing stays optional, and a
+  project that does not sign sees no check.
+
+Block 1 — local only:
 ```
+# BLOCK 1 — local only: nothing leaves this machine
 # 1. rebase the feature onto the updated integration branch (conflicts are resolved HERE)
 git checkout <feature>
 git fetch origin
@@ -68,26 +83,43 @@ git merge --no-ff <feature> -m "<type>(<scope>): merge <feature> into <integrati
 #    type the -m by hand, short and pure ASCII (no pasted em-dashes/accents)
 git tag -a v<X.Y.Z> -m "v<X.Y.Z> - <deliverable summary>"
 
-# 4. verify BEFORE the push: the tag exists and is sound, and you publish only the expected commits
+# 4. the checks: read their output before block 2
 git rev-parse v<X.Y.Z>
+git tag -v v<X.Y.Z> && echo "signature: OK"     # ONLY if SIGNED
 git log --oneline origin/<integration>..<integration>
+git rev-list --count origin/<integration>..<integration>     # expected: <N>
+```
 
-# 5. explicit push of branch and tag (YOU run it: it is the human action)
+Then the line, as plain text OUTSIDE any code block, with the real values:
+
+> Copy block 2 only after checking block 1's output: `git rev-parse` printed a sha, the
+> count is **<N>**, and `signature: OK` appeared (only if SIGNED). Anything else: stop,
+> and do not publish.
+
+Block 2 — publication:
+```
+# BLOCK 2 — publish: YOU run it, it is the human action
 git push origin <integration>
 git push origin v<X.Y.Z>
 
-# 6. delete the now-merged feature branch (safe: -d, never -D)
+# delete the now-merged feature branch (safe: -d, never -D)
 git branch -d <feature>
 ```
 
+`"signature: OK"` is printed only when `git tag -v` exits 0, whatever language gpg
+answers in. With "no tag": block 1 without step 3 and the tag's checks, block 2 without
+the tag's push, and the line names the count alone.
+
 If (and ONLY if) `git rev-parse v<X.Y.Z>` fails — corrupted tag, typically from a
-copy-paste — ALSO print this recovery block, SEPARATE from the one above
+copy-paste — ALSO print this recovery block, SEPARATE from the ones above
 (docs/04, "Execution boundary and blocks for the user"): never `tag -d` on a sound tag.
 ```
-# ONLY if 'git rev-parse v<X.Y.Z>' failed at step 4:
+# ONLY if 'git rev-parse v<X.Y.Z>' failed in block 1:
 git tag -d v<X.Y.Z>
-# then recreate the tag by typing it by hand (step 3) and re-verify (step 4)
+# then recreate the tag by typing it by hand (step 3) and re-run the checks (step 4)
 ```
+If `signature: OK` does not appear, the tag is not published: find out why first — an
+SSH signature, for one, verifies only with `gpg.ssh.allowedSignersFile` configured.
 
 ## 5. Final verification (print it as a checklist)
 - the merge commit header is within the commit-linter limit: **100 characters**
@@ -97,8 +129,12 @@ git tag -d v<X.Y.Z>
 - the git arguments use **normal spaces** and ASCII hyphens: no non-breaking/unicode
   spaces nor "long" dashes copied from an editor — a `--no-ff` with a wrong character
   fails obscurely;
-- the block contains the two PRE-push checks: `git rev-parse` of the tag and
-  `git log origin/<integration>..<integration>` (what becomes public);
+- block 1 is local only and ends with the checks: `git rev-parse` of the tag,
+  `git tag -v` only when SIGNED, the log of `origin/<integration>..<integration>` (what
+  becomes public) and its count with the expected `N`;
+- block 2 holds only the pushes and the branch deletion, and the line before it,
+  outside the blocks, states what block 1 must have shown: the count `N` and, when
+  SIGNED, `signature: OK`;
 - every destructive command (e.g. `tag -d`) is in a SEPARATE block with its
   condition, never inline (docs/04, "Execution boundary and blocks for the user").
 
@@ -107,5 +143,5 @@ For the `<integration>`→`<stable>` promotion the sequence is the same but on t
 stable branch, and the tag (`v1.0.0` or the MAJOR/MINOR/PATCH bump) goes on
 `<stable>` after the release merge — see *Versioning* in docs/04.
 
-Do NOT run push/merge/tag: the block is for the user. Once integration has happened,
+Do NOT run push/merge/tag: the blocks are for the user. Once integration has happened,
 the user can run `/checkpoint` to reconcile `STATE.md` and the active branches.

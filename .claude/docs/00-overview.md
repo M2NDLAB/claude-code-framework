@@ -41,7 +41,7 @@ components the task touches.
         │     1. /security-review — only if sensitive (gate)
         │     2. /retro           — reflect, record IMPs
         │     3. /checkpoint      — align memory/docs with reality
-        │     4. /integrate       — merge+tag block, push = human
+        │     4. /integrate       — merge+tag, then push: 2 blocks, human
         │
         └─ stuck? (2 attempts / a fork) ─▶ ESCALATION REPORT, then stop
 ```
@@ -88,10 +88,11 @@ Definition of Done and the commit are enough.
 4. **`/checkpoint` — align memory and docs with the real state (FIXED).** Session
    note, `STATE.md`, `TREE.md`, `INDEX.md`, branch/merge reconciliation, commit
    (`04-git-workflow.md`). It does NOT push.
-5. **`/integrate` — merge + tag block, ready to paste (FIXED).** It computes the bump
-   and the next version (`04-git-workflow.md`, *Versioning*) and emits the commands.
-   Push, merge and tag are performed by the HUMAN: it is the only step that leaves
-   the agent's control.
+5. **`/integrate` — merge + tag blocks, ready to paste (FIXED).** It computes the bump
+   and the next version (`04-git-workflow.md`, *Versioning*) and emits the commands in
+   two blocks: the local merge, the tag and the checks first, the push only after
+   their output has been read. Push, merge and tag are performed by the HUMAN: it is
+   the only step that leaves the agent's control.
 
 > In short: FIXED steps 1·3·4·5; CONDITIONAL step 2 (`/security-review`, only if
 > sensitive). The order is not arbitrary — `/retro` before `/checkpoint` so that the
