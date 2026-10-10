@@ -540,6 +540,18 @@ complementary sources:
   Excluding `.claude/memory/` is deliberate: the framework's memory is ITS own, it must
   NEVER overwrite the project's.
 
+**The *Upgrading* notes are a CHECKLIST, not an index.** From the same CHANGELOG, collect
+the *Upgrading* note of EVERY entry between `vX` (excluded) and `vY`, oldest first, and
+work through them in Steps 3-5: they carry the migrations the diff cannot show — an answer
+that moves to another file, a title to rename, a recipe to replace rather than merge.
+Notes on DIFFERENT topics ADD UP: each migration applies even when no later note mentions
+it again (1.3.2's rename of the memory's section titles applies to an upgrade to any later
+version). Only notes on the SAME topic supersede each other, and then the most recent one
+wins: 1.3.0 wanted the guard in place before `settings.json`, 1.3.1 allows any order —
+1.3.1 holds. A note scoped to its own starting point does not override an earlier one for
+a jump that starts before it: 1.3.2's "no `make hooks-install` needed from 1.3.1" says
+nothing to an upgrade from 1.2.0, whose hooks did change in 1.3.0.
+
 ### Step 3 — Reconcile by class
 
 - **METHOD** → after the pre-flight of edge case 7, bring the `vY` version over, read

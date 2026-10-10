@@ -24,8 +24,8 @@ tags: [session, upgrade, imp, plan]
 - [x] 1. Record IMP-068 (OPEN, a list that declares itself complete), the moved-answer note in IMP-048, the phase-1 decisions (this note, a dated line in each IMP they decide) — commit: 90aa776
 - [x] 2. `hooks-install.sh` resolves the hooks directory with `--git-common-dir` (a linked worktree, a subdirectory, outside a repository); self-test case 3, RED then GREEN — commit: 9cf7cb3
 - [x] 3. Upgrade Step 4: check that every generated hook is installed; the hooks directory is shared by the worktrees — commit: 331f390
-- [x] 4. Upgrade Step 1 photographs the hooks; edge case 4 restores the photograph (the destructive lines in their own block) — commit: (this one)
-- [ ] 5. Upgrade Step 2: the *Upgrading* notes between `vX` and `vY` become a checklist (different topics add up; on the same topic the latest wins) — commit: —
+- [x] 4. Upgrade Step 1 photographs the hooks; edge case 4 restores the photograph (the destructive lines in their own block) — commit: a3a9836
+- [x] 5. Upgrade Step 2: the *Upgrading* notes between `vX` and `vY` become a checklist (different topics add up; on the same topic the latest wins) — commit: (this one)
 - [ ] 6. Upgrade Step 3: the `Makefile` through the 3-way, only `.gitignore` additive; edge case 8, a slot that moves to another file — commit: —
 - [ ] 7. Section titles: rule 9 separates the memory's format from its content; edge case 3 (b) by set comparison, the rename mandatory, the project's tests in the same commit, the table with the short forms — commit: —
 - [ ] 8. Prerequisites (git 2.31, Node.js 14.13); the upgrade's execution boundary (delegated agents read-only on git); Step 4, `settings.json` and the guard's self-test check each other — commit: —
