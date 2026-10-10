@@ -95,7 +95,8 @@ Here is the complete list, grouped by file:
       formatter/linter, where the documentation lives, production artifact format.
       (It is often enough to define them in CLAUDE.md and leave a pointer here.)
 - [ ] `03-security-gate.md`: explicit list of the sensitive components (aligned with
-      CLAUDE.md rule 8).
+      CLAUDE.md rule 8) — the same list `00-overview.md` points to in step 2 of the
+      end-of-deliverable cycle.
 - [ ] `04-git-workflow.md`: branching model, **if** different from main/develop/feat;
       the merge form the project adopts — Pull Request or the `/integrate` block
       (*Merge*); what the project's public contract is, the criterion of a MAJOR
@@ -143,6 +144,8 @@ Here is the complete list, grouped by file:
 - [ ] **Project licence**: choose the licence of YOUR project and create its `LICENSE`
       (your holder and year). The framework's is not inherited; record the choice in
       `CLAUDE.md` too (technical rules).
+- [ ] `SECURITY.md`, if you copied the scaffold (step 1): its slots — how to report a
+      vulnerability, response times, supported versions.
 
 ## 3. Install the git hooks
 
@@ -337,7 +340,7 @@ recorded during the graft are worked off as tasks decided by the user.
 
 Rule 9 of `CLAUDE.md` — artifacts always English — applies to the artifacts of the
 METHOD and to the NEW artifacts the project produces from the graft onwards (for a
-project grafted earlier: from the upgrade that brought the rule, v1.1.0). It is
+project grafted earlier: from the upgrade that crossed v1.1.0, which brought the rule). It is
 **not** a mandate to bulk-translate what is already there: the host's pre-existing
 documentation, written in another language, is left as it is, exactly like past
 commits. Translating it is a task like any other, decided by the user, and it follows
@@ -537,7 +540,8 @@ complementary sources:
   `show` does not carry the file's mode: take it from
   `git -C "${FW:?}" ls-tree vY -- <path>` (`100755` = executable) and `chmod` a new
   file, or one whose mode `vY` changed, accordingly.
-- **PROJECT-MEMORY** → do not touch; the `diff` on `.claude/memory/` stays empty.
+- **PROJECT-MEMORY** → do not touch; the `diff` on `.claude/memory/` stays empty —
+  outside the separate, declared commits of edge case 3.
 - **HYBRIDS** → 3-way merge with `base` = the template at the tag `vX`, `theirs` = the
   template at the tag `vY`, `mine` = the project's file (`git merge-file`/`diff3`).
   Extract base and theirs by tag into `T`, chained, so that a failed read stops the
@@ -562,11 +566,13 @@ complementary sources:
   of the `vY` base — `git -C "${FW:?}" show vY:<path>` — are present without removing
   the project's); on `LEARNINGS.md` at most the header/format is updated, read from
   `git -C "${FW:?}" show vY:.claude/memory/LEARNINGS.md`, NEVER the project's IMP
-  entries.
+  entries (its `## ` section titles go through edge case 3 (b), with `STATE.md`'s).
 - **The guard and `settings.json`: no order to respect** (from v1.3.1; v1.3.0 required
   the guard first). The merged settings wire the guard and Claude Code reloads them at
   once; until `scripts/agent-git-guard.mjs` is in place, only DELEGATED agents are blocked
-  (fail-closed) — the session running the upgrade keeps its Bash tool.
+  (fail-closed) — the session running the upgrade keeps its Bash tool, and every call of
+  its own shows an `agent-git-guard: cannot run` notice meanwhile: expected, it stops
+  once the guard is in place.
 
 > **Execution boundary (`docs/04`, section of the same name).** The agent PREPARES and
 > commits LOCALLY on the upgrade branch; it does NOT merge, does NOT push, does NOT tag.
@@ -640,7 +646,7 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    `git -C "${FW:?}" diff -M vX vY` as an index of the renames to apply the move
    (remove the old one, bring the new one), not a blind add+delete.
 
-3. **Memory lines the method reads by name — the only exceptions to the invariant.**
+3. **Memory lines the method reads by name — the declared exceptions to the invariant.**
    Two kinds of line in the project's memory are read by the method itself, and a `vY`
    that changes them leaves them stale:
    - **(a) Pointers towards renamed docs.** If `vY` renames/renumbers a doc, the
@@ -657,10 +663,13 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    commit** per kind (`docs(memory): update the pointers to the docs renamed by vY`;
    `docs(memory): rename the memory's section titles to vY's form`), distinct from the
    upgrade's commits. That way the invariant stays useful (it catches ACCIDENTAL edits to
-   the memory) and the necessary repair does not slip through unnoticed. These are the
-   only legitimate touches to the memory during an upgrade, and only if `vY` forces them.
-   (Kind (b) was added in v1.3.2: until then the exception named the pointers alone, and
-   the titles translated by v1.1.0 had no declared way in.)
+   the memory) and the necessary repair does not slip through unnoticed. For the
+   project's memory these are the only legitimate touches during an upgrade, and only if
+   `vY` forces them. (The method's own files under `memory/` — the guide READMEs, the
+   header and format of `LEARNINGS.md` — follow Step 3 instead; that the invariant and
+   Step 3 disagree on them is IMP-046, open.) (Kind (b) was added in v1.3.2: until then
+   the exception named the pointers alone, and the titles translated by v1.1.0 had no
+   declared way in.)
 
 4. **Installed hooks (`.git/hooks/*`) live outside the git graph.** The
    `make hooks-install` of Step 4 materialises the hooks in `.git/hooks/`, which is

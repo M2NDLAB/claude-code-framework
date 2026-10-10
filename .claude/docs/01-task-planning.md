@@ -161,7 +161,7 @@ The `SessionStart` hook injects `STATE.md`. In addition, at startup:
    which tasks are already committed, and RESUME from the first unticked task. Do NOT
    restart tasks already done. Do NOT recreate the branch.
 3. Before resuming the interrupted task: if the working tree is dirty (code of the
-   half-done task), discard it with the `reset-task` script or manually
+   half-done task), discard it with `make reset-task` (`YES=1` without asking) or manually
    (`git restore . && git clean -fd`) — restart from the clean task, not from rubble.
 4. A well-formed resumption prompt gives the TASK directly ("resume from the first
    unticked task of plan X") and POINTS at the plan and the session notes for
@@ -174,6 +174,7 @@ If a session dies halfway through a task:
 - ONLY the UNCOMMITTED work (the half-done task) is discarded: `git restore .`,
   `git restore --staged .`, `git clean -fd`.
 - The branch is NOT deleted. The commits of previous tasks are NOT touched.
-- The `scripts/reset-task.sh` script does exactly this, with a safety guard (it
-  refuses to operate on shared branches).
+- `make reset-task` (the `scripts/reset-task.sh` script, with the project's protected
+  branches from the `Makefile`) does exactly this, with a safety guard (it refuses to
+  operate on shared branches).
 - Then the prompt is relaunched: the resumption protocol restarts from the right task.

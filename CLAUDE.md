@@ -54,7 +54,7 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
    .claude/memory/plans/, commit it, then run ONE COMMIT PER TASK (`[task N/T]` in
    the message) ticking the plan as you go. If a session is interrupted: do NOT
    start over and do NOT delete the branch — discard only the uncommitted half-done
-   task (scripts/reset-task.sh) and resume from the first unticked task. The commits
+   task (`make reset-task`) and resume from the first unticked task. The commits
    of completed tasks are never touched.
 8. **Security gate** per 03-security-gate.md: on sensitive components
    ([TO BE DEFINED AT SETUP]) run /security-review BEFORE the PR; HIGH/CRITICAL
@@ -83,7 +83,7 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
 - `make hooks-install` — install the git hooks (gitleaks + commitlint + the pre-push push boundary)
 - `make test-scripts` — self-test of the framework scripts (hooks-install, the agent git guard, repo-snapshot)
 - `make reset-task` — discard the interrupted half-done task (keeps commits; the
-  protected branches are the Makefile's `PROTECTED_BRANCHES`)
+  protected branches are the Makefile's `PROTECTED_BRANCHES`; `YES=1` without asking)
 
 ---
 

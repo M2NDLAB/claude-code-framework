@@ -7,10 +7,10 @@
 # PRESERVES every commit of the previous tasks and the branch. It is the correct
 # cleanup for the task planning protocol (.claude/docs/01-task-planning.md).
 #
-# Usage:  make reset-task                   # the project's protected branches (Makefile)
-#         ./scripts/reset-task.sh [--yes]   # direct: PROTECTED_BRANCHES from the
-#                                           # environment, else main + develop (warned)
-#         --yes discards without asking (automation)
+# Usage:  make reset-task          # the project's protected branches (Makefile); asks
+#         make reset-task YES=1    # same, without asking (an agent has no terminal)
+#         ./scripts/reset-task.sh  # direct: PROTECTED_BRANCHES from the environment,
+#                                  # else main + develop, with a warning; asks
 # ============================================================================
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)" || exit 1
@@ -23,7 +23,13 @@ BRANCH=$(git branch --show-current)
 # setup slot of the reset-task target), so this script stays method — identical in every
 # project. Run directly without it, the script falls back to the example defaults and
 # says so.
+# Unattended (--yes), nobody would read that warning: refuse instead of guessing.
 if [ -z "${PROTECTED_BRANCHES:-}" ]; then
+  if [ "$AUTO" = "--yes" ]; then
+    echo "❌ PROTECTED_BRANCHES is not set: refusing --yes with default protected branches."
+    echo "   The project's list is in the Makefile: run 'make reset-task YES=1'."
+    exit 1
+  fi
   PROTECTED_BRANCHES="main develop"
   echo "⚠ PROTECTED_BRANCHES is not set: using the defaults 'main develop'. The project's list is in the Makefile: run 'make reset-task'."
 fi

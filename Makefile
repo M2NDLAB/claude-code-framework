@@ -12,12 +12,14 @@ hooks-install: ## Install the git hooks (gitleaks + commitlint + pre-push push b
 	bash scripts/hooks-install.sh
 
 # [TO BE DEFINED AT SETUP] the branches reset-task must never touch: your integration and
-# stable branches (docs/04). Example defaults below; one run can override them with
-#   make reset-task PROTECTED_BRANCHES="main trunk"
-PROTECTED_BRANCHES ?= main develop
+# stable branches (docs/04). Example defaults below. A plain `=`, not `?=`: an exported
+# environment variable must not silently replace the project's list; one run can still
+# override it on the command line: make reset-task PROTECTED_BRANCHES="main trunk".
+# YES=1 discards without asking — the form an agent uses (it has no terminal to answer).
+PROTECTED_BRANCHES = main develop
 
-reset-task: ## Discard the interrupted half-done task, preserving branch and commits (task planning)
-	PROTECTED_BRANCHES="$(PROTECTED_BRANCHES)" bash scripts/reset-task.sh
+reset-task: ## Discard the interrupted half-done task, preserving branch and commits (YES=1: no prompt)
+	PROTECTED_BRANCHES="$(PROTECTED_BRANCHES)" bash scripts/reset-task.sh $(if $(YES),--yes)
 
 test-scripts: ## Self-test of the framework scripts (hooks-install, the agent git guard, repo-snapshot)
 	bash scripts/test-hooks-install.sh

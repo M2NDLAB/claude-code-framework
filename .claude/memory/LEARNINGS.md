@@ -78,6 +78,13 @@ tags: [improvement]
   four guides to v1.2.0 as a declared exception citing this IMP — `sessions/README.md`
   minus the framework-repo Plan block and IMP number, the ADR answer kept: the third
   time the contradiction had to be worked around.
+- **Annotation 2026-10-10** ([[2026-10-09-quick-fixes-1.3.2]]): edge case 3 of `SETUP.md`
+  is no longer "the only exception" but two DECLARED exceptions for the project's memory
+  lines — (a) the pointers to renamed docs, (b) the `## ` section titles of `STATE.md`
+  and `LEARNINGS.md` that the method reads by name (v1.3.2, for the titles v1.1.0
+  translated) — and it now points here for the method's own files under `memory/`. The
+  contradiction this entry records is unchanged; (b) follows its direction of named,
+  declared exceptions.
 - **Evidence from a client harvest — the verification half** (annotation 2026-09-26,
   [[2026-09-26-client-harvest-registration]]): once the invariant allows named files
   and parts (the third upgrade's declared exception), a plain `git diff` cannot prove

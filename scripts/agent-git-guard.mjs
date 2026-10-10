@@ -21,8 +21,9 @@
 // Exit 2: blocked, the reason on stderr (the agent reads it). Exit 3: unreadable input — a
 // FAILURE, not a verdict. .claude/settings.json lets a verdict (0 or 2) stand and turns
 // any failure — exit 3, a crash, a missing file, a missing `node` — into a block when the
-// input carries the agent_id key (fail-closed for delegated agents) and into a pass
-// otherwise: the guard has no job in the main session.
+// input carries the agent_id key (fail-closed for delegated agents) and, otherwise, into
+// a non-blocking error (exit 1) that the transcript shows: the guard has no job in the
+// main session, but its failure must not go unnoticed.
 // Self-test: scripts/test-agent-git-guard.sh.
 import { readFileSync } from 'node:fs';
 import { basename } from 'node:path';
