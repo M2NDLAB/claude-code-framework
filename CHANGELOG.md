@@ -7,6 +7,82 @@ SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [1.4.0] — 2026-10-10
+
+### Added
+- **`tools/upgrade-check.sh`, the read-only checks of an upgrade** (IMP-037, option (b)).
+  It lives in the framework repository, outside the payload, and an upgrade runs it at
+  the tag it upgrades to, from the project's root (`SETUP.md`, *Precondition*):
+  - `preflight` — the Precondition and the provenance pin;
+  - `inventory` — every payload file's class, what the framework did between the tags,
+    where the project stands and the measured conflicts of its 3-way; the edge-case
+    flags; the slots added, removed or moved; the §2 checklist's changes; the titles and
+    field labels to rename; the *Upgrading* notes in release order;
+  - `invariant` — the closed list of touches on `.claude/memory/`, by content;
+  - `post` — the reconciled project against `vY`: METHOD files and modes, orphans,
+    markers, hooks, titles and labels.
+  `classes <tag>` prints the class table, the authority file by file. The script decides
+  nothing and writes nothing in either repository — only under an absolute `T` outside
+  both — and it runs only as `vY`'s copy: a copy from the framework's working tree is a
+  `FAIL`. Each finding is `OK`, `FAIL` or `CHECK`, under any git configuration of the
+  user's. Its self-test, `bash tools/test-upgrade-check.sh`, fails when a payload file has
+  no class. Tried read-only on a client project's three real upgrades,
+  it reproduced what had been measured by hand — 161 of 197 lines in conflict in
+  `CLAUDE.md` on the translation release, the two per-version bases of
+  `hooks-install.sh` on the first upgrade.
+- **A class of memory templates** (IMP-046): the four guide READMEs and the header of
+  `LEARNINGS.md`, reconciled 3-way like the hybrids, so a project's customisation (an
+  answered ADR slot, a pruned block, a header paragraph of its own, a reworded format
+  comment) survives an upgrade; `SETUP.md` gives the recipes for the header and the
+  format comment.
+- IMP-070 (open, high): multi-platform support — macOS, Linux, Windows — for v1.5.0.
+
+### Changed
+- **The upgrade's memory invariant is a closed list, checked by content** (IMP-046),
+  instead of an empty diff that the procedure's own classes contradicted: the memory
+  templates, the format lines of edge case 3, the upgrade's own note, plan and decision
+  records, and `STATE.md`, `TREE.md`, `INDEX.md` at the checkpoint. It runs at Step 5,
+  before the checkpoint.
+- **Step 3 picks its strategy per file from the measure** (IMP-050, point 3): a surgical
+  3-way where the conflicts are few, a rebuild from `vY` with the project's
+  customisations re-applied where most of the file conflicts. **The slots that changed or
+  moved are derived from the tags** (IMP-050, point 4): the markers and the §2 checklist
+  compared between `vX` and `vY`, no hand-written list.
+- **The provenance pin is checked**: `version: vX.Y.Z` with its `v`, `commit` the tag's
+  commit. A malformed pin is an error that names its correction, never normalised; a tag
+  on the pinned commit is only suggested.
+- **The IMP field labels are format, like the section titles** (`CLAUDE.md`, rule 9;
+  `SETUP.md`, edge case 3 (b), with their table): renamed at every upgrade whose `vY` has
+  the new ones.
+- **`STATE.md`, `TREE.md` and `INDEX.md` are compiled memory** in a project: never
+  reconciled 3-way; a change to their format arrives only as a declared migration.
+- The *"No automation, for now"* box becomes *"Mechanical checks, not an orchestrating
+  command"*: only a command that would orchestrate the steps stays deferred, until the
+  first upgrade of a second project.
+
+**Upgrading from 1.3.4** (from an earlier release, also follow the entries in between —
+Step 2 of the upgrade says how they combine):
+- This upgrade is the first to run with the script: follow `SETUP.md` and run
+  `tools/upgrade-check.sh` as they stand at v1.4.0.
+- `CLAUDE.md` (HYBRID): in rule 9, the four lines from the one that begins "protects the
+  memory's CONTENT" to "which every command would have to consult." become exactly:
+
+  ```
+     protects the memory's CONTENT. Its FORMAT is method: the section titles and the
+     field labels the commands look up by name take the method's form, and every upgrade
+     brings the project's to it, leaving the content under them as it is — never a map
+     from old to new, which every command would have to consult.
+  ```
+
+- **The field labels of `LEARNINGS.md`**: a project whose entries still carry the labels
+  of 1.0.0 or earlier renames them now, with the table of edge case 3 (b), in the same
+  declared commit as the titles. This applies whether or not the project followed the
+  title rename of 1.3.2.
+- **The pin**: a `version:` without its `v` is corrected by hand before the upgrade;
+  `preflight` names the line.
+- No script of the payload, hook or settings change: `make hooks-install` is not needed
+  from 1.3.4; `make test-scripts` as usual.
+
 ## [1.3.4] — 2026-10-10
 
 ### Fixed

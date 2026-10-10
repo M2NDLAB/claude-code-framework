@@ -83,6 +83,7 @@ plan → execute task by task → [if sensitive] `/security-review` → `/retro`
 ├── SECURITY.md                security policy (real for the repo + scaffold [TO BE DEFINED])
 ├── CHANGELOG.md               Keep a Changelog, wired to the versioning of docs/04
 ├── Makefile                   process targets only (hooks-install, reset-task, test-scripts)
+├── tools/                     the upgrade's read-only checks — NOT copied into projects
 ├── commitlint.config.cjs      Conventional Commits types
 ├── .gitignore                 baseline (secrets + IDE/OS) + [TO BE DEFINED] section
 ├── scripts/

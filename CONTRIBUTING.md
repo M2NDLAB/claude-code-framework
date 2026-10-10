@@ -26,6 +26,10 @@ This repo applies to itself the method it describes (`.claude/docs/`):
 - **Non-negotiable agnosticism**: the template contains no project-specific
   instances (stack, names, concrete values); where concreteness is needed, use
   `[TO BE DEFINED AT SETUP]`.
+- **`tools/` holds this repository's own tools**, outside the payload: the upgrade's
+  verification script and its self-test (`tools/README.md`). Run
+  `bash tools/test-upgrade-check.sh` before every release, next to `make test-scripts`:
+  it fails when a payload file has no class.
 
 ## This repo's git model (a declared exception)
 
@@ -60,8 +64,8 @@ what projects receive:
   entries and session notes —, `CLAUDE.md`, `Makefile`, `commitlint.config.cjs`,
   `.gitignore`, `scripts/`; and the `SECURITY.md` scaffold setup offers;
 - what a project's setup and upgrade take from this repo at a tag without copying it:
-  `SETUP.md`'s procedures and, once it exists, the upgrade's verification script, which
-  runs in its version at the tag `vY` (IMP-037). An upgrade targets a tag: a change to
+  `SETUP.md`'s procedures and the upgrade's verification script, `tools/upgrade-check.sh`,
+  which runs in its version at the tag `vY` (IMP-037). An upgrade targets a tag: a change to
   them that cut no tag would reach no project.
 
 The bump is at least a PATCH; a MINOR or a MAJOR by the criteria of `docs/04`,
