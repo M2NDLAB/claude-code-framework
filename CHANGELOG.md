@@ -7,6 +7,118 @@ SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [1.3.2] — 2026-10-10
+
+### Fixed
+- **A broken guard is no longer silent in the main session.** When
+  `scripts/agent-git-guard.mjs` cannot run, the wiring in `.claude/settings.json` still
+  blocks delegated agents and, in the main session, now exits 1 — a non-blocking error
+  that the transcript shows with the wiring's own first line:
+  `agent-git-guard: cannot run (exit N): delegated agents are blocked until it is
+  repaired; this session is not`. In 1.3.1 the main session's calls passed silently, and
+  nobody learned that delegated agents had lost their Bash tool.
+- **`wip` commits** (C13): `docs/04` and `/checkpoint` prescribed a `wip:` prefix that the
+  commit-msg hook rejects — `wip` is not in commitlint's `type-enum`. They now prescribe
+  `chore: wip …`; commitlint is unchanged.
+- **`scripts/reset-task.sh` carried a setup slot while filed METHOD**, so an upgrade
+  overwrote a project's list of protected branches. The list now lives in the `Makefile`
+  (`PROTECTED_BRANCHES`, a `[TO BE DEFINED AT SETUP]` slot of the `reset-task` target);
+  `make reset-task` is the entry point and `make reset-task YES=1` the unattended one (an
+  agent has no terminal to answer the prompt). Run directly without the list, the script
+  falls back to `main develop` with a warning, and refuses `--yes`.
+- **The upgrade had no declared way to rename the memory's section titles** (C12, see the
+  Errata). `SETUP.md`, edge case 3, now names two declared exceptions to the empty-diff
+  invariant on `.claude/memory/`: the pointers to renamed docs, and the section titles the
+  method looks up by name — renamed to `vY`'s form in a separate commit, their content
+  never touched.
+- `SETUP.md`: the §2 checklist, which calls itself the complete list, now names the setup
+  slots it missed — where formal ADRs live; the merge form and the public contract of
+  `docs/04`; `PROTECTED_BRANCHES`; `SECURITY.md`'s; the sensitive list `docs/00` points
+  to — and an unclosed backtick around `docs/06` is closed.
+
+### Changed
+- **Rule 9 states its own scope** (B8): in `CLAUDE.md` it applies from the graft, or from
+  the upgrade that brought it, onwards, and what already exists is never bulk-translated.
+  Until now this lived only in `SETUP.md`, which never reaches a grafted project.
+- Rule 7 and `docs/01` point to `make reset-task`.
+- The live memory no longer names a client project (two IMP entries, five session notes).
+  The release tags already published keep the earlier text.
+
+### Added
+- IMP-067 (open, medium): the framework in headless mode and via the Claude Agent SDK.
+
+### Errata — corrections to entries already published
+- **[1.1.0], the escalation delimiters** (C11). That entry says that "every READER
+  accepts the legacy Italian form", the escalation delimiters included. The legacy forms
+  ARE accepted by the setup grep and the `/lint-memory` sentinel (the marker), by
+  `/harvest-framework` (`Destinazione: framework`) and by `hooks-install.sh` (the hook
+  marker). Of the two delimiters 1.1.0 renamed — the closers `FINE REPORT` and
+  `FINE RESPONSE` — the method reads only one: the closer of the Architect's answer,
+  checked by `docs/05` (*HOW to handle the answer*, rule 1) in its English form,
+  `===== END OF RESPONSE =====`; an answer closed by 1.0.0's `===== FINE RESPONSE =====`
+  can get a request to paste it again. The report's closer is read by the Architect, not
+  by the method, and the printed `PRONTO PER INTEGRAZIONE` / `RACCOLTA PER IL FRAMEWORK`
+  blocks have no reader at all.
+- **[1.1.0], "Upgrading is optional and needs no migration" was wrong** (C12). 1.1.0
+  declared that the memory templates were translated, not what that broke: the format
+  comment of the Applied section of `LEARNINGS.md` was dropped; the `/checkpoint`
+  placeholder `<branch-integrazione>` became `<integration>`; and the section titles of
+  `STATE.md` and `LEARNINGS.md` were translated, while `/checkpoint`, `/lint-memory`,
+  `/retro`, `docs/03` and `docs/06` look them up BY NAME — so a project that crossed 1.1.0
+  with Italian titles is not read correctly. The migration step is in *Upgrading* below;
+  no command reads the old titles (no legacy reader, as for C11).
+
+**Upgrading from 1.3.1** (from an earlier release, also follow the entries in between):
+- METHOD files — bring them over from the tag, after the pre-flight of edge case 7
+  (`docs/04` carries setup slots): `.claude/docs/01-task-planning.md`,
+  `.claude/docs/04-git-workflow.md`, `scripts/reset-task.sh`, `scripts/agent-git-guard.mjs`,
+  `scripts/test-agent-git-guard.sh`, `scripts/README.md`. The guard's self-test must come
+  together with `settings.json`: each checks the other's version.
+- `.claude/settings.json` (HYBRID, 3-way): the guard's `command` changes.
+- `.claude/commands/checkpoint.md` (HYBRID, customised at setup, 3-way): the `wip` line
+  becomes `chore: wip …`.
+- `Makefile` (HYBRID) — not additive this time: add the variable with your integration and
+  stable branches, `PROTECTED_BRANCHES = main develop`, and REPLACE the `reset-task`
+  recipe line with
+  `PROTECTED_BRANCHES="$(PROTECTED_BRANCHES)" bash scripts/reset-task.sh $(if $(YES),--yes)`
+  (an additive union would keep both lines and run the script twice). If you had edited
+  the list inside `scripts/reset-task.sh`, move it to `PROTECTED_BRANCHES` BEFORE taking
+  1.3.2's script, which is METHOD and comes over as is.
+- `CLAUDE.md` (HYBRID): in rule 7, `(scripts/reset-task.sh)` becomes `` (`make reset-task`) ``;
+  in rule 9, right before "Past git history is never translated", add exactly:
+
+  ```
+     The rule applies from the graft, or from the upgrade that brought it, onwards: to
+     the method's artifacts and to the new ones the project produces; what already
+     exists is never bulk-translated (translating it is a task the user decides).
+  ```
+
+  and in *Quick commands* the `./scripts/reset-task.sh` line becomes:
+
+  ```
+  - `make reset-task` — discard the interrupted half-done task (keeps commits; the
+    protected branches are the Makefile's `PROTECTED_BRANCHES`; `YES=1` without asking)
+  ```
+- **The memory's section titles — for a project that crossed 1.1.0 with Italian titles.**
+  In a separate commit (`docs(memory): rename the memory's section titles to vY's form`,
+  edge case 3 (b) of the upgrade), rename ONLY the title lines; the content of the
+  sections stays as it is, in its language (rule 9 is prospective):
+
+  | File | Title until 1.0.0 | Title since 1.1.0 |
+  | --- | --- | --- |
+  | `STATE.md` | `## Stato avanzamento` | `## Progress` |
+  | `STATE.md` | `## Cosa esiste adesso` | `## What exists now` |
+  | `STATE.md` | `## Decisioni prese (non ovvie dal codice)` | `## Decisions made (not obvious from the code)` |
+  | `STATE.md` | `## Debito documentazione` | `## Documentation debt` |
+  | `STATE.md` | `## Attenzione / problemi aperti` | `## Caution & open issues` |
+  | `STATE.md` | `## Branch attivi` | `## Active branches` |
+  | `LEARNINGS.md` | `## Proposte APERTE (in attesa di decisione utente)` | `## OPEN proposals (awaiting the user's decision)` |
+  | `LEARNINGS.md` | `## Applicate` | `## Applied` |
+  | `LEARNINGS.md` | `## Rimandate (non respinte — si riprendono al momento giusto)` | `## Deferred (not rejected — resumed at the right time)` |
+  | `LEARNINGS.md` | `## Rifiutate (con motivo — per non riproporle)` | `## Rejected (with the reason — so they are not re-proposed)` |
+- No hook changed since 1.3.1, so `make hooks-install` is not needed from there; run
+  `make test-scripts`.
+
 ## [1.3.1] — 2026-10-07
 
 ### Added
@@ -174,6 +286,8 @@ run.
   sentinel and setup grep, the `/harvest-framework` grep, and `hooks-install.sh` via a
   `LEGACY_MARKER` — so a project grafted or upgraded with an earlier release keeps
   working untouched. Upgrading is optional and needs no migration.
+
+*Corrected in 1.3.2, Errata.*
 
 ## [1.0.0] — 2026-07-19
 

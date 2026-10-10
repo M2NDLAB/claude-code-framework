@@ -27,8 +27,8 @@ tags: [session, imp, fixes, upgrade]
 - [x] 7. C12: `SETUP.md` edge case 3 extended to the memory's format lines read by name (the section titles of STATE and LEARNINGS) — commit: 1f1bc9f
 - [x] 8. The client project's name anonymised in `LEARNINGS.md` and five session notes — commit: ebe5122
 - [x] 9. ONE reviewer + fixes — commit: 5afe3fe
-- [x] 10. `/checkpoint` — commit: the checkpoint commit (its own sha cannot be written in it)
-- [ ] 11. `/integrate`: the CHANGELOG 1.3.2 entry (Errata, Upgrading with the migration table) and one additive line under 1.1.0 — commit: —
+- [x] 10. `/checkpoint` — commit: 121d347
+- [x] 11. `/integrate`: the CHANGELOG 1.3.2 entry (Errata, Upgrading with the migration table) and one additive line under 1.1.0 — commit: the CHANGELOG commit (its own sha cannot be written in it)
 
 ## Phase 1 — verification on `main` (`c230a12`), read-only
 Every item still existed; lines moved since the lessons of 2026-09-24/26:
