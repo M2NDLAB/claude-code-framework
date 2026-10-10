@@ -917,6 +917,42 @@ tags: [improvement]
   project's upgrade months later. Risk: one check per list to maintain — only the lists
   that CLAIM completeness are in scope.
 
+### IMP-070 — Multi-platform support: macOS, Linux, Windows
+- Date: 2026-10-10 | Origin: the user's requirement of 2026-10-10, recorded in
+  [[2026-10-10-integrate-two-blocks-1.3.4]] and here in [[2026-10-10-upgrade-verification-1.4.0]] — the
+  framework is tested on macOS only
+- Priority: HIGH (user decision) — a dedicated MINOR release, v1.5.0, after v1.4.1.
+- Observed problem: every script and self-test has run on macOS only, and the
+  prerequisites prescribe `brew install gitleaks`, a package manager of one platform (an
+  agnosticism leak). From Claude Code's documentation: on native Windows, with Git for
+  Windows the Bash tool uses Git Bash; without it, commands go through the PowerShell
+  tool, which the delegated-agent guard does not intercept — the read-only boundary of
+  `docs/04` falls there (the `pre-push` holds: it is a git hook).
+- Direction decided by the user: (a) a POSIX environment on Windows too, through Git for
+  Windows (needed for git anyway). NO twin bash/PowerShell scripts; a rewrite in Node only
+  as plan B, if the tests on Windows show excessive costs.
+- To do:
+  1. GitHub Actions CI on macOS, Ubuntu and Windows running `make test-scripts`, in the
+     framework repository and OUTSIDE the payload, with minimal permissions;
+  2. fix what fails;
+  3. `make` on Windows: a declared prerequisite, or targets runnable as scripts;
+  4. the PowerShell tool: check the current documentation for whether a PreToolUse hook
+     can intercept it; if yes, extend the guard; if not, the framework requires the Bash
+     tool and says so in `SETUP.md`, *Hardening*;
+  5. a platform matrix in the README and `SETUP.md`, only with what the CI verifies;
+  6. the prerequisites name the tools, not the package managers;
+  7. a prerequisite check: a script runnable WITHOUT make (`bash scripts/…`) that checks
+     git, bash, Node.js (minimum version), gitleaks, make and whatever else is needed;
+     when something is missing it prints the install command for the detected platform
+     and exits with an error. It installs NOTHING: installing system software stays a
+     human action. Called from `SETUP.md` (graft and upgrade) and from `hooks-install`;
+  8. measure what the `Makefile` is for today: if it only gives short names to scripts,
+     weigh dropping make from the prerequisites.
+- Resumption: v1.5.0 starts with a read-only phase 1, like the other blocks.
+- Expected benefit / risk: the method holds where its users work, and its boundaries are
+  stated where they do not. Risk: a matrix promising more than the CI proves — point 5
+  guards it.
+
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
 - Date: YYYY-MM-DD | Origin: [[<session note>]] — <problem>
