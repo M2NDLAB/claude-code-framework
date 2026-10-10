@@ -23,8 +23,8 @@ tags: [session, upgrade, tools, imp, plan]
 
 ## Plan (one commit per task)
 - [x] 1. Record IMP-070 (OPEN, HIGH): multi-platform support; this note and its plan — commit: 21617c5
-- [x] 2. Assessment, read-only: the field-label lines of the client project, the label table, the payload's layout across the tags, the script's design — commit: (this one)
-- [ ] 3. `tools/`: the script's skeleton (arguments, `FW`/`T`, the class table) and the self-test that fails when a payload file has no class; `tools/README.md`, `CONTRIBUTING.md` — commit: —
+- [x] 2. Assessment, read-only: the field-label lines of the client project, the label table, the payload's layout across the tags, the script's design — commit: c5a1873
+- [x] 3. `tools/`: the script's skeleton (arguments, `FW`/`T`, the class table) and the self-test that fails when a payload file has no class; `tools/README.md`, `CONTRIBUTING.md` — commit: (this one)
 - [ ] 4. `preflight`: the Precondition's checks, the pin (an explicit error, a tag on the same commit only suggested) — commit: —
 - [ ] 5. `inventory`: the per-file triage and measurement, the edge-case flags, the marker delta and the §2 checklist diff, the *Upgrading* notes in order — commit: —
 - [ ] 6. `invariant`: the closed list of allowed touches on `.claude/memory/`, the LEARNINGS body normalised (titles, labels, format comments) — commit: —
