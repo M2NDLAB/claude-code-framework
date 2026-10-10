@@ -5,9 +5,13 @@ Code". Estimated time: 15-30 minutes, most of it spent filling in the technical 
 
 ## 0. Prerequisites
 
-- **git** (the framework is git-centric: branches, per-task commits, hooks).
+- **git 2.31 or later** (the framework is git-centric: branches, per-task commits,
+  hooks; `make hooks-install` and the upgrade's checks use `rev-parse --path-format`).
 - **gitleaks** — secret scanning in the hooks. macOS: `brew install gitleaks`.
-- **Node.js / npx** — used by commitlint (Conventional Commits).
+- **Node.js 14.13 or later, with npx** — used by commitlint (Conventional Commits) and by
+  the agent git guard, `scripts/agent-git-guard.mjs`: without a working `node`, delegated
+  agents lose their Bash tool (fail-closed, `docs/04`) and the main session sees a notice
+  on every call.
 - *(optional)* **tree** — to regenerate `TREE.md`. Fallback: `git ls-files`.
 - *(optional)* **Obsidian** — the `.claude/` directory opens as a vault; the `[[...]]`
   wikilinks become a navigable graph. It is not required: the links work as pointers
@@ -606,7 +610,14 @@ nothing to an upgrade from 1.2.0, whose hooks did change in 1.3.0.
 > **Execution boundary (`docs/04`, section of the same name).** The agent PREPARES and
 > commits LOCALLY on the upgrade branch; it does NOT merge, does NOT push, does NOT tag.
 > Nor does it WRITE in the framework repo: no checkout, switch, stash, `worktree add` or
-> commit there — it only reads it by tag (*Precondition*). Where `vY` changes a
+> commit there — it only reads it by tag (*Precondition*). Only the MAIN session
+> writes: delegated agents — subagents, workflow agents — are read-only on git, which the
+> guard enforces from v1.3.0 (`docs/04`, *Delegated agents and the shared working
+> tree*). The READING can be spread across them (inventories, diffs by tag, a review);
+> the branch, `git merge-file`, the commits and any throwaway clone for a dry run stay
+> with the main session. An edit to `.claude/settings.json` or
+> `scripts/agent-git-guard.mjs` through the file tools asks the human (the `ask` rules),
+> auto mode included; the shell commands of Step 3 do not. Where `vY` changes a
 > RULE (rather than being a factual correction), Level 2 of `docs/06` kicks in: it is
 > PROPOSED, not applied silently — *"Never rewrite your own rules on your own
 > initiative"* (`CLAUDE.md`, rule 6).
@@ -639,7 +650,11 @@ verification:
   reaches the `pre-push` — whose behaviour `make test-scripts` proves in a throwaway
   repository (a push from the session is refused by design: never attempt one).
 - A fake secret blocked by gitleaks, a non-conventional message rejected by commitlint.
-- `make test-scripts` green.
+- `make test-scripts` green. It also checks `.claude/settings.json` against the guard:
+  the wiring of `scripts/agent-git-guard.mjs` and the two `ask` rules on the boundary's
+  own files. A failure there means the merged settings lost them — repair the settings,
+  never the test: the self-test (METHOD) and `settings.json` (HYBRID) arrive in the same
+  upgrade and check each other.
 
 Then
 `grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" .` to catch the NEW markers
