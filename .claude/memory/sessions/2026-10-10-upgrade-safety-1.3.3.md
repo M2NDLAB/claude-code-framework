@@ -28,8 +28,8 @@ tags: [session, upgrade, imp, plan]
 - [x] 5. Upgrade Step 2: the *Upgrading* notes between `vX` and `vY` become a checklist (different topics add up; on the same topic the latest wins) — commit: 3ef8915
 - [x] 6. Upgrade Step 3: the `Makefile` through the 3-way, only `.gitignore` additive; edge case 8, a slot that moves to another file — commit: 2c6dd7f
 - [x] 7. Section titles: rule 9 separates the memory's format from its content; edge case 3 (b) by set comparison, the rename mandatory, the project's tests in the same commit, the table with the short forms — commit: 77dc84e
-- [x] 8. Prerequisites (git 2.31, Node.js 14.13); the upgrade's execution boundary (delegated agents read-only on git); Step 4, `settings.json` and the guard's self-test check each other — commit: (this one)
-- [ ] 9. IMP-047: a tag when a change reaches what projects receive; `integrate.md` and `docs/04` aligned; `CONTRIBUTING.md` names the framework's shipped files — commit: —
+- [x] 8. Prerequisites (git 2.31, Node.js 14.13); the upgrade's execution boundary (delegated agents read-only on git); Step 4, `settings.json` and the guard's self-test check each other — commit: b511da2
+- [x] 9. IMP-047: a tag when a change reaches what projects receive; `integrate.md` and `docs/04` aligned; `CONTRIBUTING.md` names the framework's shipped files — commit: (this one)
 - [ ] 10. ONE reviewer + fixes — commit: —
 - [ ] 11. `/checkpoint` — commit: —
 - [ ] 12. `/integrate`: the CHANGELOG 1.3.3 entry — commit: —
@@ -151,4 +151,9 @@ tags: [session, upgrade, imp, plan]
   Observed problem, Proposal, Benefit/risk). By decision 2's principle they are format;
   v1.3.3 applies the decision as given, to the section titles. The client's entries use
   Italian labels. To settle before v1.4.0, whose script could flag them.
-- **What "the payload" means for decision 7** — see task 9 when it lands.
+- **What "the payload" means for decision 7 — an interpretation, to confirm.** Read
+  literally, "files outside the payload → no tag" leaves `SETUP.md` and v1.4.0's
+  verification script untagged: neither is copied into a project. But the upgrade reads
+  both AT the tag `vY`, so a change that cut no tag would never reach an upgrade, and
+  v1.4.0 — decided as a MINOR — could not be released. Task 9 counts them as shipped
+  (`CONTRIBUTING.md`, *What this framework ships*).

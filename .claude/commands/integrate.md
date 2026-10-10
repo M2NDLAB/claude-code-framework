@@ -31,7 +31,11 @@ Apply the *Versioning* rules of docs/04 to the branch's set of commits:
   breaking (`type!`/`BREAKING CHANGE:`)→MAJOR;
 - if there are only `refactor`/`perf`/`test`/`docs`/`build`/`ci`/`chore` or
   memory/doc-only commits → **no tag** (it is internal work, not a release: state it
-  explicitly in the block and omit the tag commands);
+  explicitly in the block and omit the tag commands) — EXCEPT in a project whose
+  documentation is the product (docs/04, *Versioning*, "When the documentation IS the
+  product"): there a change to the files it ships is a release, at least a PATCH,
+  whatever the commit types, and only a change confined to its own memory or to files
+  it does not ship is no tag;
 - respect the regime: **pre-1.0** (`0.y.z`) tags on the integration branch
   (`<integration>`); **post-1.0** the feature→`<integration>` merge is NOT tagged — the
   tag comes at the `<integration>`→`<stable>` release (see the note at the bottom).
