@@ -3,7 +3,7 @@
 The relevant changes to this repo, in the
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format; versions follow the
 SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
-(*Versioning*). It is updated inside `/integrate`, before the merge+tag block.
+(*Versioning*). It is updated inside `/integrate`, before the merge+tag blocks.
 
 ## [Unreleased]
 

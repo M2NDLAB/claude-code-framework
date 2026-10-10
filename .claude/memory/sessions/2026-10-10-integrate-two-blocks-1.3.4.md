@@ -98,7 +98,38 @@ documentation → the client project's upgrade, as the acceptance test → the n
 ## Plan (one commit per task)
 - [x] 1. The reconciliation after v1.3.3, the user's decisions, the cycle's plan, this plan — commit: c0b131a
 - [x] 2. Record IMP-069 (approved, applied in this release): the `/integrate` block is copied whole, so the pause before the push does not happen — commit: a4ca575
-- [x] 3. `/integrate` prints two blocks — local work ending with the checks, then the publication — with `git tag -v` only when tags are signed (IMP-066); `docs/04` and `docs/00` aligned — commit: (this one)
-- [ ] 4. ONE reviewer + fixes — commit: —
+- [x] 3. `/integrate` prints two blocks — local work ending with the checks, then the publication — with `git tag -v` only when tags are signed (IMP-066); `docs/04` and `docs/00` aligned — commit: ca47c4d
+- [x] 4. ONE reviewer + fixes — commit: (this one)
 - [ ] 5. `/checkpoint` — commit: —
 - [ ] 6. `/integrate`: the CHANGELOG 1.3.4 entry; the block printed in the new format — commit: —
+
+## Rehearsals (task 3) — throwaway repositories under `/tmp`, no push
+- Block 1 as printed, on a bare `file://` remote seeded by a bare clone (no push at all):
+  `N` = the branch's commits + 1 matched the count after the merge (4 for 3 commits).
+- `git config --type=bool --get tag.gpgSign` prints `true` for `yes`, nothing when unset.
+- Signatures, with a throwaway SSH key only (never the user's): a good signature exits 0;
+  an unsigned annotated tag gives `error: no signature found`, exit 1; an SSH signature
+  without `gpg.ssh.allowedSignersFile` exits 1. On the user's machine gpg answers in
+  Italian ("Firma valida"): hence a marker echoed on the exit code, not a text to read.
+- A first rehearsal command was refused by the session's permissions: it seeded the
+  remote with a `git push` to the local bare repository. Redone without any push.
+
+## Review (task 4) — one reviewer, dispositions
+One independent reviewer over `4fbd063..ca47c4d` and the CHANGELOG draft, about eleven
+minutes; both repositories identical before and after. Verdict: not ready — one HIGH,
+two MEDIUM, in step 4 of `/integrate`. Its scratch directory under `/tmp` could not be
+removed by it (its `rm` was refused); it is left for the user.
+
+| Finding | Severity | Disposition |
+| --- | --- | --- |
+| F1 — block 1 pasted whole runs `git tag -a` after a failed rebase, checkout or merge: the tag lands on the wrong commit, and a later re-paste passes every check named while block 2 publishes the stale tag | HIGH | REPRODUCED in `/tmp` (after a rebase conflict the loose lines tagged the upstream commit; the chain created no tag). FIXED: the constructive lines are one `&&` chain ending with a marker; the tag check is the tag ON the integration tip; the recovery block covers a tag left by a failed paste; `/integrate` checks the tag is free and recognises its own tag from an earlier paste |
+| F2 — block 2 not gated: a refused branch push still pushed the tag | MEDIUM | FIXED: `git push --atomic origin <integration> <tag> && git branch -d <feature>` (from git's documentation; not rehearsed: no push in this session) |
+| F3 — a `#` in zsh with default options is not a comment: a trailing `# expected: N` broke the count | MEDIUM | CONFIRMED, and wider: the user's own zsh has `interactivecomments` off, so every comment line of the earlier blocks printed `command not found: #`. FIXED: no comment line inside the blocks, explanations around them; each check prints a fixed line; rehearsed in `zsh -f -i` |
+| F4 — IMP-066 and IMP-069 still OPEN; IMP-066's slot-or-config choice unrecorded | LOW | In the checkpoint (task 5), as planned |
+| F5, F6, F7 — the header's "only steps 1-2"; `N` from `HEAD`, no fallback without a remote; the release variant undefined (its block 2 would delete the integration branch) | LOW | FIXED |
+| F8 — "the block" where it became wrong (`integrate.md` step 2, `docs/04` on `git describe`) | LOW | FIXED; the mentions that name the mechanism stay |
+| F9 — a legitimate count mismatch had no next step | LOW | FIXED: the line says to repair and run `/integrate` again |
+| F10 — "the tag is TYPED by hand" against a block pasted whole | LOW | FIXED in `docs/04`: pure ASCII, printed so by the agent |
+| F11 — `git log` may open a pager mid-paste | INFO | FIXED: `git --no-pager log` |
+| F12, F13, F14 — the CHANGELOG draft (the signature under Fixed, the upgrade note, the preamble); the note's sha and rehearsals; the checklist's wording | INFO | FIXED |
+
