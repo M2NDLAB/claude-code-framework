@@ -296,8 +296,10 @@ blob_at() { awk -F'\t' -v p="$2" '$2 == p { split($1, a, " "); print a[3]; exit 
 mode_at() { awk -F'\t' -v p="$2" '$2 == p { split($1, a, " "); print a[1]; exit }' "$(tree_of "$1")"; }
 # The releases after vX up to vY, oldest first.
 releases_between() { fw tag --list 'v*' --sort=v:refname --merged "$2" --no-merged "$1"; }
-# header_region <file>: the lines before the first "## " heading (LEARNINGS.md's template part).
-header_region() { awk '/^## /{exit} {print}' "$1"; }
+# header_region <file>: the lines before the first "## " heading (LEARNINGS.md's template
+# part). Its frontmatter's `updated:` is the project's own date, a value and not the
+# template: it is blanked, so that a date never reads as a change of the template.
+header_region() { awk '/^## /{exit} /^updated: /{print "updated: <date>"; next} {print}' "$1"; }
 # conflict_lines <file>: the lines inside the conflict markers of a merge's output.
 conflict_lines() { awk '/^<<<<<<< /{f=1} f{c++} /^>>>>>>> /{f=0} END{print c+0}' "$1"; }
 # marker_count <tag> <path>: the slot markers of a framework file at a tag — for

@@ -29,8 +29,8 @@ tags: [session, upgrade, tools, imp, plan]
 - [x] 5. `inventory`: the per-file triage and measurement, the edge-case flags, the marker delta and the §2 checklist diff, the *Upgrading* notes in order — commit: 75e7fb4
 - [x] 6. `invariant`: the closed list of allowed touches on `.claude/memory/`, the LEARNINGS body normalised (titles, labels, format comments) — commit: d32ef1a
 - [x] 7. `post`: METHOD files and modes at `vY`, orphans, markers, hooks; the read-only proof — commit: b057262
-- [x] 8. The trial, read-only, on the client project's three real upgrades; what it finds is fixed — commit: (this one)
-- [ ] 9. `SETUP.md` (the box, the classes, the Precondition, Steps 0-6, edge case 3) and rule 9 (titles AND field labels) — commit: —
+- [x] 8. The trial, read-only, on the client project's three real upgrades; what it finds is fixed — commit: 350f6eb
+- [x] 9. `SETUP.md` (the box, the classes, the Precondition, Steps 0-6, edge case 3) and rule 9 (titles AND field labels) — commit: (this one)
 - [ ] 10. ONE reviewer + fixes — commit: —
 - [ ] 11. `/checkpoint` — commit: —
 - [ ] 12. `/integrate`: the CHANGELOG 1.4.0 entry; the two blocks — commit: —
@@ -131,4 +131,11 @@ What the trial changed in the script (task 8's commit):
 During the trial the client project's repository moved, by an integration outside this
 session: one of its feature branches was merged into `main` and pushed. This session
 only read it (`git -C`) and wrote the bundle into `/tmp`, removed afterwards.
+
+## Writing the procedure (task 9) — one more finding
+Rehearsing the header recipe of `LEARNINGS.md` on a copy of the client's file showed that
+the header region includes the frontmatter, whose `updated:` is the project's own date —
+a VALUE, not the template. The script blanks that line in its header comparisons (it
+would otherwise report a template difference at every upgrade), and the procedure says
+the date stays the project's.
 

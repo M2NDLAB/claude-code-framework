@@ -372,35 +372,53 @@ framework, the upgrade sends a new version of the framework DOWN into the projec
 is also the vehicle by which the framework's fixes (e.g. to `hooks-install.sh`) and a
 version's new `[TO BE DEFINED AT SETUP]` slots reach already-started projects.
 
-> **No automation, for now — a choice, not an omission.** With few real upgrades behind
-> us this is a guided MANUAL procedure that orchestrates primitives that already exist
-> (throwaway branch, `reset-task.sh`, `/checkpoint`, `/integrate`,
-> `make hooks-install`, `/lint-memory`). A command/script automating it stays deferred
-> until more real upgrades justify it: the same anti-hype filter with which the
-> framework defers the automated graft. Document first, try it in the field, automate
-> afterwards. (The *provenance pin* `.claude/framework-version`, itself born deferred,
-> was promoted after the first real upgrade: the baseline established by hand proved
-> to be the most fragile point of the procedure.)
+> **Mechanical checks, not an orchestrating command — a choice, not an omission.** The
+> procedure stays a guided MANUAL one, built on primitives that already exist (throwaway
+> branch, `make reset-task`, `/checkpoint`, `/integrate`, `make hooks-install`,
+> `/lint-memory`): what it asks of a human — how to resolve a conflict, which
+> customisation to keep, how to answer a slot — differed at every real upgrade. Its
+> MECHANICS did not: which files changed and how much they collide with the project's,
+> which slots moved, whether the memory was touched only where allowed. They live in a
+> read-only script, `tools/upgrade-check.sh`, which this procedure calls at fixed points
+> (*Precondition*); it decides nothing and writes nothing in either repository. A command
+> that would orchestrate the steps stays deferred until the first upgrade of a SECOND
+> project: the three real upgrades behind this procedure were all one project's — the
+> same anti-hype filter with which the framework defers the automated graft. (The
+> *provenance pin* `.claude/framework-version`, born deferred too, was promoted after the
+> first real upgrade: the baseline established by hand proved to be the most fragile
+> point of the procedure.)
 
-### The mental model: three classes of file, plus the graft state
+### The mental model: the classes of file, and the graft state
 
 An upgrade touches ONLY the PROCESS layer, NEVER the project memory. Every file falls
-into one of three classes:
+into one of these classes — file by file, the authority is the class table of
+`tools/upgrade-check.sh` (`classes <tag>` prints it), and a payload file without a class
+makes the framework's own self-test fail:
 
 - **METHOD** (pure framework, brought to `vY`): `.claude/docs/00-06`, the
-  non-customised commands in `.claude/commands/`, the guide READMEs inside
-  `.claude/memory/*/`, `scripts/reset-task.sh`, `scripts/agent-git-guard.mjs`,
-  `scripts/repo-snapshot.sh`, the self-tests `scripts/test-*.sh`, `scripts/README.md`,
-  `commitlint.config.cjs`.
-- **PROJECT-MEMORY** (stays UNTOUCHED): `.claude/memory/STATE.md`, `TREE.md`,
-  `INDEX.md`, `sessions/`, `components/`, `decisions/`, `plans/`. **Verification
-  invariant: after the upgrade the `git diff` on `.claude/memory/` must be EMPTY** (the
-  only exceptions: the memory lines the method reads by name — pointers to renamed docs,
-  section titles — see *Edge cases*, 3).
+  non-customised commands in `.claude/commands/`, `scripts/reset-task.sh`,
+  `scripts/agent-git-guard.mjs`, `scripts/repo-snapshot.sh`, the self-tests
+  `scripts/test-*.sh`, `scripts/README.md`, `commitlint.config.cjs`.
 - **HYBRID** (a framework part that evolves + a project part to preserve, reconciled):
   `CLAUDE.md`, `.claude/settings.json`, `scripts/hooks-install.sh`, `.gitignore`,
-  `Makefile`, `LEARNINGS.md`, and the commands customised at setup (`checkpoint.md`,
-  `integrate.md`, `new-component.md`).
+  `Makefile`, and the commands customised at setup (`checkpoint.md`, `integrate.md`,
+  `new-component.md`).
+- **MEMORY TEMPLATES** (the method's own files inside `.claude/memory/`, reconciled 3-way
+  like the hybrids): the four guide READMEs — the `README.md` of `components/`,
+  `decisions/`, `plans/` and `sessions/` — and the HEADER of `LEARNINGS.md`, its lines
+  before the first `## `, with its format comment. A project may have customised them
+  (the slot of `decisions/README.md` answered, a block pruned, a paragraph of its own in
+  the header): the 3-way keeps that, an overwrite would not.
+- **PROJECT-MEMORY** (stays UNTOUCHED): `.claude/memory/STATE.md`, `TREE.md`,
+  `INDEX.md`, the notes of `sessions/`, `components/`, `decisions/` and `plans/` (their
+  READMEs aside), and the IMP entries of `LEARNINGS.md`. Never reconciled 3-way —
+  `STATE.md`, `TREE.md` and `INDEX.md` included: in a project they are compiled memory,
+  not templates, and a change to their format reaches a project only as a declared
+  migration (the titles of edge case 3 (b)). **Verification invariant: during the
+  upgrade, `.claude/memory/` is touched only by a CLOSED list** — the memory templates;
+  the format lines of edge case 3 (pointers, titles, field labels); the upgrade's own
+  session note, plan and decision records; `STATE.md`, `TREE.md` and `INDEX.md` at the
+  checkpoint. `upgrade-check.sh invariant` checks it by content (Step 5).
 
 > **Why hybrids cannot be split "by section".** Filling in the
 > `[TO BE DEFINED AT SETUP]` slots is DESTRUCTIVE: when the project fills a marker, the
@@ -410,13 +428,12 @@ into one of three classes:
 > STARTING version — read at the tag `vX` (see the *Precondition*) — as the common base.
 
 Apart from these stands the **provenance pin** `.claude/framework-version` — the FOURTH
-species, the **graft state**, which falls into none of the three classes: it is not
+species, the **graft state**, which falls into none of these classes: it is not
 METHOD (it does not exist in the framework repo: it is created at every graft, step 1),
 it is not PROJECT-MEMORY (the procedure writes it, not the project), and it is not
 reconciled 3-way — it is REWRITTEN. Setup creates it, Step 0 reads it as the baseline,
 the close of the upgrade updates it (Step 6). It lives outside `.claude/memory/` on
-purpose: that way the "empty diff on `memory/`" invariant stays intact even when the
-upgrade touches it.
+purpose: the closed list of Step 5 needs no entry for it.
 
 ### Precondition: get hold of the framework at `vX` and `vY`
 
@@ -485,14 +502,37 @@ procedure: the procedure itself never writes there. The tag `vX` is the *base* a
 > checkout or a working-tree read fails loudly there. It replaces neither the reads by
 > tag nor `-C "${FW:?}"`; avoid `--mirror`, whose fetch silently follows a re-created tag.
 
+**The verification script.** From `vY` = v1.4.0 on, the framework carries
+`tools/upgrade-check.sh`, the read-only checks of this procedure. Extract `vY`'s copy into
+`T` once, and run it from the project root at the points the steps name:
+
+```bash
+git -C "${FW:?}" show vY:tools/upgrade-check.sh > "${T:?}/upgrade-check.sh" \
+  && FW="$FW" T="$T" bash "${T:?}/upgrade-check.sh" preflight vX vY
+```
+
+Always `vY`'s copy — never one kept from an earlier upgrade, never the framework's
+working tree: the checks belong to the release you upgrade to, and `preflight` says so
+when they do not. It reads the framework only by tag and the project read-only, and
+writes only under `"$T/upgrade-check/"`. Each of its lines reads `OK`, `FAIL` (a rule of
+this procedure is broken; the exit code is then 1) or `CHECK` (a human looks); it decides
+nothing. Its subcommands: `preflight` (this Precondition and the pin of Step 0),
+`inventory` (Step 2), `invariant` and `post` (Step 5). `tools/` is not copied into the
+project (step 1). For a `vY` before v1.4.0 there is no script: the steps are done by
+hand.
+
 ### Step 0 — Determine the `vX` baseline
 
 Determine `vX` like this, in order of preference:
 
 0. **Read the provenance pin** `.claude/framework-version` (it is in every project
    grafted — or already upgraded once — since the pin exists): the `version` field IS
-   the baseline, end of step. The fallbacks below are for pre-pin grafts, and they are
-   needed ONCE only: Step 6 writes the pin at the close (retrofit).
+   the baseline, end of step. `preflight` checks the pin: `version: vX.Y.Z` with its
+   `v`, and a `commit` that is that tag's commit, never the tag object. A malformed pin
+   is an ERROR that names its correction, never normalised: correct the line by hand
+   before going on; when a tag sits on the pinned commit, the script SUGGESTS it and
+   applies nothing. The fallbacks below are for pre-pin grafts, and they are needed ONCE
+   only: Step 6 writes the pin at the close (retrofit).
 1. **Ask** whoever did the graft (they often remember it or wrote it down).
 2. **Estimate it** from the content: pick the framework tag whose copy of the
    METHOD-class files matches the project's current ones best — a comparison on the
@@ -549,11 +589,14 @@ complementary sources:
 
   ```bash
   git -C "${FW:?}" diff vX vY -- .claude/docs .claude/commands .claude/settings.json \
-    CLAUDE.md scripts Makefile commitlint.config.cjs .gitignore
+    CLAUDE.md scripts Makefile commitlint.config.cjs .gitignore \
+    .claude/memory/components/README.md .claude/memory/decisions/README.md \
+    .claude/memory/plans/README.md .claude/memory/sessions/README.md
   ```
 
-  Excluding `.claude/memory/` is deliberate: the framework's memory is ITS own, it must
-  NEVER overwrite the project's.
+  The rest of `.claude/memory/` stays out on purpose: the framework's memory is ITS own,
+  it must NEVER overwrite the project's. Only the memory templates are named — and the
+  header of `LEARNINGS.md`, which this diff cannot isolate: `inventory` compares it.
 
 **The *Upgrading* notes are a CHECKLIST, not an index.** From the same CHANGELOG, collect
 the *Upgrading* note of EVERY entry between `vX` (excluded) and `vY`, oldest first, and
@@ -567,8 +610,27 @@ wins: 1.3.0 wanted the guard in place before `settings.json`, 1.3.1 allows any o
 a jump that starts before it: 1.3.2's "no `make hooks-install` needed from 1.3.1" says
 nothing to an upgrade from 1.2.0, whose hooks did change in 1.3.0.
 
+**The inventory.** `FW="$FW" T="$T" bash "${T:?}/upgrade-check.sh" inventory vX vY`
+prints, in one pass, what the two sources above leave to assemble by hand: every payload
+file with its class, what the framework did between the tags (`=`, `M`, `A`, `D`), where
+the project stands against them (`=vX`, `=vY`, `diverged`, `absent`) and, for a file
+both sides changed, the measure of its 3-way (conflicts, and lines in conflict out of
+the total); the flags of the edge cases (a customised METHOD file, a file deleted or
+renamed, one changed in several releases, a mode); the slots added, removed or moved
+between the tags, and the changes of the §2 checklist — derived from the tags, never
+from a hand-written list; the memory's titles and field labels to rename; and the
+*Upgrading* notes of the releases in between, oldest first. It is the input of Step 3.
+
 ### Step 3 — Reconcile by class
 
+- **The strategy, file by file, from the measure** (`inventory`, Step 2). Where a file's
+  3-way leaves few lines in conflict, it stays surgical: take it. Where most of a file is
+  in conflict — a translation release, a wide rewrite — rebuild it from `vY` and
+  re-apply the project's customisations, listed from the diff against `vX`'s copy and
+  sorted by what they are: prose is rewritten freely, VALUES (slot answers, names,
+  identifiers) stay identical, strings a program reads stay byte for byte. Where the line
+  falls is a human call, informed by the table: the measure, not the file's name,
+  decides.
 - **METHOD** → after the pre-flight of edge case 7 — and edge case 8, if `vY` moved a
   slot out of the file — bring the `vY` version over, read from the tag, never from the
   framework's working tree:
@@ -580,8 +642,9 @@ nothing to an upgrade from 1.2.0, whose hooks did change in 1.3.0.
   `show` does not carry the file's mode: take it from
   `git -C "${FW:?}" ls-tree vY -- <path>` (`100755` = executable) and `chmod` a new
   file, or one whose mode `vY` changed, accordingly.
-- **PROJECT-MEMORY** → do not touch; the `diff` on `.claude/memory/` stays empty —
-  outside the separate, declared commits of edge case 3.
+- **PROJECT-MEMORY** → do not touch: only the declared commits of edge case 3 enter the
+  closed list of Step 5, and `STATE.md`, `TREE.md` and `INDEX.md` never go through a
+  3-way.
 - **HYBRIDS** → 3-way merge with `base` = the template at the tag `vX`, `theirs` = the
   template at the tag `vY`, `mine` = the project's file (`git merge-file`/`diff3`).
   Extract base and theirs by tag into `T`, chained, so that a failed read stops the
@@ -607,10 +670,36 @@ nothing to an upgrade from 1.2.0, whose hooks did change in 1.3.0.
   `git -C "${FW:?}" show vY:<path>` — are present without removing the project's). The
   `Makefile` is NOT: it goes through the 3-way like the other hybrids. A union keeps the
   old and the new recipe of the same target, and `make` then runs both, or warns
-  "overriding commands" and runs only the last — measured on v1.3.2's `reset-task`. On
-  `LEARNINGS.md` at most the header/format is updated, read from
-  `git -C "${FW:?}" show vY:.claude/memory/LEARNINGS.md`, NEVER the project's IMP
-  entries (its `## ` section titles go through edge case 3 (b), with `STATE.md`'s).
+  "overriding commands" and runs only the last — measured on v1.3.2's `reset-task`.
+  `LEARNINGS.md` is not a hybrid: its header is a memory template (below), its IMP
+  entries are the project's memory, and its `## ` titles and field labels go through
+  edge case 3 (b), with `STATE.md`'s titles.
+- **MEMORY TEMPLATES** → the 3-way of the hybrids, with base `vX`: an uncustomised README
+  comes out as `vY`'s, a customised one keeps the project's text and surfaces only the
+  hunk that conflicts. For `LEARNINGS.md`, its HEADER only — never a whole-file merge: the
+  framework's file is live, and its own entries would come in. Merge the region before
+  the first `## `:
+
+  ```bash
+  git -C "${FW:?}" show vX:.claude/memory/LEARNINGS.md > "${T:?}/lrn.vx" \
+    && git -C "${FW:?}" show vY:.claude/memory/LEARNINGS.md > "${T:?}/lrn.vy" \
+    && awk '/^## /{exit} {print}' "${T:?}/lrn.vx" > "${T:?}/lrn.base" \
+    && awk '/^## /{exit} {print}' "${T:?}/lrn.vy" > "${T:?}/lrn.theirs" \
+    && awk '/^## /{exit} {print}' .claude/memory/LEARNINGS.md > "${T:?}/lrn.mine" \
+    && git merge-file "${T:?}/lrn.mine" "${T:?}/lrn.base" "${T:?}/lrn.theirs"
+  ```
+
+  Resolve its conflicts in `"$T/lrn.mine"` — the frontmatter's `updated:` stays the
+  project's own date — then put it back in front of the project's entries:
+
+  ```bash
+  { cat "${T:?}/lrn.mine"; awk '/^## /{b=1} b' .claude/memory/LEARNINGS.md; } > "${T:?}/lrn.new" \
+    && cp "${T:?}/lrn.new" .claude/memory/LEARNINGS.md
+  ```
+
+  Its format comment, inside the body, takes `vY`'s text by hand: `invariant` compares it
+  with `vY`'s. Commit the templates apart, declared:
+  `docs(memory): bring the memory templates to vY`.
 - **The guard and `settings.json`: no order to respect** (from v1.3.1; v1.3.0 required
   the guard first). The merged settings wire the guard and Claude Code reloads them at
   once; until `scripts/agent-git-guard.mjs` is in place, only DELEGATED agents are blocked
@@ -671,17 +760,28 @@ check, and a re-run leaves it alone. Real verification:
   never the test: the self-test (METHOD) and `settings.json` (HYBRID) arrive in the same
   upgrade and check each other.
 
-Then
-`grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" .` to catch the NEW markers
-introduced by `vY`, to be filled in with the project's answers (reuse the dialogue of
-step 2 of this guide). The dual-form grep matters here: a project grafted before the
+The slots `vY` added, removed or MOVED are in `inventory`'s *Markers* section, and a new
+or re-worded item of the §2 checklist in the next one: both derived from the tags. Then
+`grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" .` lists every marker still in
+the project, to be filled in with the project's answers (reuse the dialogue of step 2
+of this guide); a slot that moved to another file is edge case 8. The dual-form grep matters here: a project grafted before the
 English marker existed still carries the Italian one.
 
 ### Step 5 — Verify before finalising
 
-- `git diff --stat` and a per-file diff; **confirm the EMPTY `diff` on
-  `.claude/memory/`** (a strong invariant: a non-empty diff = a bug in the upgrade,
-  stop and investigate) — outside the separate, declared commits of edge case 3.
+- **The memory's closed list — here, before the checkpoint.**
+  `FW="$FW" T="$T" bash "${T:?}/upgrade-check.sh" invariant vX vY <restore point>` (the
+  pre-upgrade commit of Step 1). Run it before Step 6: the checkpoint's retro may add IMP
+  entries. It fails on any touch outside the list — an edited or hidden IMP entry, a note
+  changed beyond its pointers, a file added outside the upgrade's own note, plan and
+  decision records, a slot the project had answered opened again, a title or label left
+  in the old form — and shows for a human a template that differs from `vY`'s. A FAIL is
+  a bug in the upgrade: stop and investigate.
+- `FW="$FW" T="$T" bash "${T:?}/upgrade-check.sh" post vX vY`: the METHOD files and their
+  modes at `vY`, every file present, no orphan, no marker broken by a wrap, each slot
+  `vY` added shown with the value under it, every hook installed, titles and labels in
+  `vY`'s form.
+- `git diff --stat` and a per-file diff.
 - The project's `[TO BE DEFINED]` customisations survived in the reconciled files.
 - `/lint-memory` on the preserved memory against the new docs (pointers to
   renamed/moved docs, STATE vs git, `LEARNINGS`↔`STATE` coherence, orphan pages).
@@ -691,14 +791,15 @@ English marker existed still carries the Italian one.
 ### Step 6 — Closing and hand-off
 
 **Update the provenance pin**: rewrite in `.claude/framework-version` the `version` and
-`commit` fields with the `vY` you have just brought over — `commit` resolved on the
+`commit` fields with the `vY` you have just brought over — `version: vY` with its `v`,
+`commit` resolved on the
 framework side, `git -C "${FW:?}" rev-parse "vY^{commit}"` (a bare `rev-parse` in the
 project returns the project's own `vY`, if it has one; on an annotated tag, without
 `^{commit}` it returns the tag object's id); `grafted` is not touched (it is the date
 of the original graft). If the project does NOT have the pin (a pre-pin
 graft), CREATE it now — that is the retrofit: from this upgrade on the baseline is
 certain; unknown `grafted` → `n/a (retrofit YYYY-MM-DD)`. The pin lives outside
-`.claude/memory/`, so the invariant of Step 5 stays intact.
+`.claude/memory/`: the closed list of Step 5 needs no entry for it.
 
 `/checkpoint` (the upgrade's session note — `vX→vY`, what was reconciled, what the user
 decided; `STATE.md` with the updated framework version; `TREE.md` if the structure
@@ -727,20 +828,22 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    `git -C "${FW:?}" diff -M vX vY` as an index of the renames to apply the move
    (remove the old one, bring the new one), not a blind add+delete.
 
-3. **Memory lines the method reads by name — the declared exceptions to the invariant.**
+3. **Memory lines the method reads by name — the declared touches of the closed list.**
    Two kinds of line in the project's memory are read by the method itself, and a `vY`
    that changes them leaves them stale:
    - **(a) Pointers towards renamed docs.** If `vY` renames/renumbers a doc, the
      `[[wikilink]]`s and the pointers (`docs/04:142`, …) in `STATE.md` and in the
      sessions **dangle**, and `/lint-memory` will flag them as broken.
-   - **(b) Section titles looked up by name.** The `## ` titles of `STATE.md` and
-     `LEARNINGS.md` are FORMAT lines that the method cites by name (`/checkpoint`,
-     `/lint-memory`, `/retro`, `docs/03`, `docs/06`). Format is method (`CLAUDE.md`,
-     rule 9): the project's titles take `vY`'s form — the rename is mandatory, and a map
-     from old titles to new is not an alternative. Do not wait for a `vY` that renames
-     them: COMPARE the two sets at every upgrade, since a project can carry the titles of
-     any earlier release (v1.1.0 translated them, and a project that kept the old ones
-     has been read wrongly since). From the project root:
+   - **(b) Section titles and field labels looked up by name.** The `## ` titles of
+     `STATE.md` and `LEARNINGS.md`, and the field labels of the IMP entries
+     (`- Origin:`, `- Observed problem:`, …), are FORMAT lines that the method reads by
+     name (`/checkpoint`, `/lint-memory`, `/retro`, `/harvest-framework`, `docs/03`,
+     `docs/06`). Format is method (`CLAUDE.md`, rule 9): the project's titles and labels
+     take `vY`'s form — the rename is mandatory, and a map from old to new is not an
+     alternative. Do not wait for a `vY` that renames them: COMPARE at every upgrade,
+     since a project can carry the format of any earlier release (v1.1.0 translated it,
+     and a project that kept the old one has been read wrongly since). `inventory` does
+     it; by hand, from the project root:
 
      ```bash
      : "${FW:?}" && for f in STATE LEARNINGS; do
@@ -752,9 +855,12 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
 
      Each printed line is a `vY` title the project lacks: find its old form — the table
      below, or a project's own shortened form — and rename that line. Nothing printed =
-     nothing to rename. ONLY the title lines: the content under them is never touched and
-     keeps its language. If the project's own code or tests cite the old titles (grep
-     for them), update them in the same commit as the rename — the declared
+     nothing to rename. For the labels, when `vY`'s format comment uses the new ones,
+     `grep -nE '^- (Data|Origine|Problema osservato|Proposta|Beneficio atteso / rischio|Trigger di ripresa|Destinazione):' .claude/memory/LEARNINGS.md`
+     lists the lines still in the old form (outside the format comment): rename the label,
+     never the text after it. ONLY the title and label lines: the content is never
+     touched and keeps its language. If the project's own code or tests cite the old
+     titles (grep for them), update them in the same commit as the rename — the declared
      `docs(memory)` commit below — so that no commit leaves the project's tests red: that
      side of the migration is the project's.
 
@@ -771,20 +877,27 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
      | `LEARNINGS.md` | `## Rimandate (non respinte — si riprendono al momento giusto)`, or `## Rimandate` | `## Deferred (not rejected — resumed at the right time)` |
      | `LEARNINGS.md` | `## Rifiutate (con motivo — per non riproporle)`, or `## Rifiutate` | `## Rejected (with the reason — so they are not re-proposed)` |
 
-   Here the "empty diff on `memory/`" invariant and the repair conflict: the way out is
-   to treat the repair as an **EXPLICIT and DECLARED exception**, in a **separate
+     | Field label until 1.0.0 | Since 1.1.0 |
+     | --- | --- |
+     | `- Data: … \| Origine: …` | `- Date: … \| Origin: …` |
+     | `- Origine:` (alone) | `- Origin:` |
+     | `- Problema osservato:` | `- Observed problem:` |
+     | `- Proposta:` | `- Proposal:` |
+     | `- Beneficio atteso / rischio:` | `- Expected benefit / risk:` |
+     | `- Trigger di ripresa:` | `- Resumption trigger:` |
+     | `- Destinazione:` | `- Destination:` |
+
+   These repairs are EXPLICIT and DECLARED touches of the closed list, in a **separate
    commit** per kind (`docs(memory): update the pointers to the docs renamed by vY`;
-   `docs(memory): rename the memory's section titles to vY's form`), distinct from the
-   upgrade's commits. That way the invariant stays useful (it catches ACCIDENTAL edits to
-   the memory) and the necessary repair does not slip through unnoticed. For the
-   project's memory these are the only legitimate touches during an upgrade, and only
-   where they are needed: a doc `vY` renamed, a title the comparison of (b) prints. (The
-   method's own files under `memory/` — the guide READMEs, the
-   header and format of `LEARNINGS.md` — follow Step 3 instead; that the invariant and
-   Step 3 disagree on them is IMP-046, open.) (Kind (b) was added in v1.3.2: until then
-   the exception named the pointers alone, and the titles translated by v1.1.0 had no
-   declared way in. From v1.3.3 it starts from the comparison of the two sets, not from a
-   rename in `vY`.)
+   `docs(memory): rename the memory's titles and field labels to vY's form`), distinct
+   from the upgrade's other commits. That way the invariant stays useful — it catches
+   ACCIDENTAL edits to the memory — and the necessary repair does not slip through
+   unnoticed. For the project's own memory they are the only touches during an upgrade,
+   and only where they are needed: a doc `vY` renamed, a title or a label the comparison
+   of (b) finds. (The method's own files under `memory/` — the guide READMEs, the header
+   of `LEARNINGS.md` — are the memory templates of Step 3.) (Kind (b) was added in
+   v1.3.2, for the titles alone; from v1.3.3 it starts from the comparison of the two
+   sets, not from a rename in `vY`; from v1.4.0 it covers the field labels too.)
 
 4. **Installed hooks (`.git/hooks/*`) live outside the git graph.** The
    `make hooks-install` of Step 4 materialises the hooks in the repository's common git
@@ -865,7 +978,8 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
 > **Outside the upgrade payload.** `LICENSE`, `CONTRIBUTING.md`, `CHANGELOG.md` are
 > files of the FRAMEWORK REPO (not copied into the project, step 1): do not push them
 > into the project and do not read them from the project — the CHANGELOG is read from
-> the framework, by tag (Step 2). `SECURITY.md`, `README.md` and this `SETUP.md` inside
+> the framework, by tag (Step 2). So is `tools/`: the upgrade runs its script from the
+> framework, at `vY` (*Precondition*). `SECURITY.md`, `README.md` and this `SETUP.md` inside
 > the project are optional/for reference — and be careful **not to overwrite the
 > project's `README.md`** with the framework's. `settings.local.json`
 > (unversioned) stays intact by construction.
