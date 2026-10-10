@@ -32,8 +32,9 @@ commit:
 2. When a working unit is complete (a migration + its model, an endpoint with its
    tests, a working UI component).
 3. At the end of every task of a plan (see `01-task-planning.md`).
-4. ALWAYS before closing a session, even if the work is partial (a commit prefixed
-   `wip:` ONLY on a feature branch — never `wip` on `develop`).
+4. ALWAYS before closing a session, even if the work is partial (a commit
+   `chore: wip …` ONLY on a feature branch — never a wip commit on `develop`; `wip` is
+   not one of the types below, and the commit-msg hook rejects a `wip:` prefix).
 
 NEVER commit: code that does not build on `develop`/`main`; environment or secret
 files (gitleaks blocks them, but do not rely on it as the only defence); build
@@ -260,11 +261,13 @@ command does not matter:
   PreToolUse hook that exits 1, misses its binary or times out PROCEED, so the wiring
   decides what a broken guard means. The guard's own verdict, pass or block, always
   stands; any FAILURE of the guard — a crash, a missing file or `node`, an input it cannot
-  parse — blocks when the hook input carries the `agent_id` key, and passes otherwise.
-  The guard has no job in the main session (its push boundary is the `pre-push`), so a
-  broken guard never costs the main session its Bash tool. An input the wiring cannot
-  even read blocks every call: it cannot be classified. A timeout still proceeds; the
-  guard runs in milliseconds against a generous limit.
+  parse — blocks when the hook input carries the `agent_id` key. Otherwise it exits 1: a
+  non-blocking error, which the transcript shows with the wiring's own first line,
+  `agent-git-guard: cannot run …`. The guard has no job in the main session (its push
+  boundary is the `pre-push`), so a broken guard never costs the main session its Bash
+  tool — but it does not go unnoticed. An input the wiring cannot even read blocks every
+  call: it cannot be classified. A timeout still proceeds; the guard runs in milliseconds
+  against a generous limit.
 - **Proven, not assumed.** `make test-scripts` fails if the `pre-push` stops refusing an
   agent-session push (direct, `-C`, `sh -c`, a script) or starts refusing the human's, if
   the guard stops blocking a delegated agent's write or starts blocking a read or the main
@@ -275,8 +278,8 @@ command does not matter:
   `.git/hooks/pre-push.local`: the generated hook runs it after the check. The guard needs
   Node.js, already a prerequisite of the hooks.
 - **If the guard cannot run** — its file or `node` missing, a crash — delegated agents
-  lose the Bash and Monitor tools until it is repaired; the main session keeps them and
-  repairs it.
+  lose the Bash and Monitor tools until it is repaired; the main session keeps them, sees
+  an `agent-git-guard: cannot run` notice on each call, and repairs it.
 
 ## Delegated agents and the shared working tree
 

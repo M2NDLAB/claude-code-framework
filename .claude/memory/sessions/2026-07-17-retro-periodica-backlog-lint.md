@@ -11,7 +11,7 @@ tags: [session, improvement, retro, lint]
 Deliverable unrelated to the previous ones (repo at `v0.5.0`, clean working tree). NOT the light
 end-of-deliverable `/retro`: **periodic retrospective** on the whole backlog (6 open IMPs:
 031, 032, 034, 035, 036, 037), together with `/lint-memory` (health-check after 5 deliverables
-and 5 merges). Reason for the order: the retro comes before D3 (upgrade of brew-manager `v0.2→v0.4`,
+and 5 merges). Reason for the order: the retro comes before D3 (upgrade of the client project `v0.2→v0.4`,
 another repo) because ≥4 of the 6 IMPs touch D3 — enter the trial run with a clean backlog.
 
 This note is the **plan-pointer** (interim resolution of **IMP-034**, which this very

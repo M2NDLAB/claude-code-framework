@@ -12,7 +12,7 @@ New deliverable unconnected to the previous ones (repo at `v0.4.0`). Real proble
 `SETUP.md` guides greenfield and brownfield (graft onto a project WITHOUT the framework, IMP-027), but
 the **third case** is missing: a project that has ALREADY got a version of the framework grafted and must be
 upgraded to a new one, PRESERVING the accumulated project memory (expected case:
-brew-manager `v0.2.0` → `v0.4.0`, which is D3, another repo, later — NOT here).
+the client project `v0.2.0` → `v0.4.0`, which is D3, another repo, later — NOT here).
 
 Deliverable with STRUCTURAL CHOICES → docs/01 PHASE 2 pattern: read-only assessment → proposal
 with alternatives → **user decision** → execution. This note is the **plan pointer**

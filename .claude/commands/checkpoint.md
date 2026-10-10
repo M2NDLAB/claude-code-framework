@@ -42,5 +42,6 @@ Run the checkpoint procedure for the current work: $ARGUMENTS
 7. Show the commit created. Do NOT push: the push is the user's decision. At the end
    of a deliverable, for the merge + tag commands ready to paste use `/integrate`.
 
-If the code does not compile or the tests fail: commit with the `wip:` prefix ONLY if
-we are on a feature branch, otherwise STOP and report.
+If the code does not compile or the tests fail: commit as `chore: wip …` ONLY if we are
+on a feature branch (`wip` is not a commit type: the commit-msg hook rejects a `wip:`
+prefix), otherwise STOP and report.

@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-10-07
+updated: 2026-10-09
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -78,6 +78,13 @@ tags: [improvement]
   four guides to v1.2.0 as a declared exception citing this IMP — `sessions/README.md`
   minus the framework-repo Plan block and IMP number, the ADR answer kept: the third
   time the contradiction had to be worked around.
+- **Annotation 2026-10-10** ([[2026-10-09-quick-fixes-1.3.2]]): edge case 3 of `SETUP.md`
+  is no longer "the only exception" but two DECLARED exceptions for the project's memory
+  lines — (a) the pointers to renamed docs, (b) the `## ` section titles of `STATE.md`
+  and `LEARNINGS.md` that the method reads by name (v1.3.2, for the titles v1.1.0
+  translated) — and it now points here for the method's own files under `memory/`. The
+  contradiction this entry records is unchanged; (b) follows its direction of named,
+  declared exceptions.
 - **Evidence from a client harvest — the verification half** (annotation 2026-09-26,
   [[2026-09-26-client-harvest-registration]]): once the invariant allows named files
   and parts (the third upgrade's declared exception), a plain `git diff` cannot prove
@@ -818,6 +825,31 @@ tags: [improvement]
 - Expected benefit / risk: verifiable releases where a project wants them. Risk: a check
   that fails on machines without the signing key — it must run on the releasing machine.
 
+### IMP-067 — The framework in headless mode (`claude -p`, CI) and via the Claude Agent SDK
+- Date: 2026-10-09 | Origin: [[2026-10-09-quick-fixes-1.3.2]] — user request; evidence
+  from phase 1 of [[2026-09-27-imp-054-055-agent-git-boundary]]
+- Priority: MEDIUM (user decision, 2026-10-09) — the retro's process block.
+- Observed problem: the framework presupposes interactive Claude Code — `CLAUDE.md`, the
+  slash commands, `.claude/settings.json` (permissions, `env`, hooks), the hook input's
+  `agent_id`. Which of these load in headless mode and in the Agent SDK is not verified,
+  nor which boundaries of `docs/04` fall there. What is known: with `--bare`, Claude Code
+  loads no hooks (CLI help and docs, checked by the adversarial documentation pass of that
+  phase — documented, NOT measured by a probe), so the delegated-agent boundary does not
+  exist there; plain `claude -p` DID load the PreToolUse hook and carried `agent_id` to
+  subagents and workflow agents (measured, 2.1.283); in a workspace never trusted
+  interactively, `claude -p` ignored the project's `permissions.allow` while deny rules
+  and hooks applied (measured — IMP-064).
+- Proposal: NOT decided. First step: an investigation with real probes, as for IMP-054,
+  in throwaway repositories, measuring for each mode (`claude -p`, `--bare`, `--safe-mode`,
+  CI without a TTY, the Agent SDK) what loads and what does not: `CLAUDE.md`, the
+  commands, settings and their `env`, the hooks (SessionStart, PreToolUse), the `pre-push`
+  markers. The results go into `docs/04` and `SETUP.md` as "what holds in headless"; no new
+  mechanism before the measurement.
+- Out of scope: projects that USE the Messages API as a component (that is the project's
+  stack; the framework stays agnostic), and harnesses other than Claude Code.
+- Expected benefit / risk: the boundaries are known where they hold and where they do not.
+  Risk: none for the investigation itself.
+
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
 - Date: YYYY-MM-DD | Origin: [[<session note>]] — <problem>
@@ -1058,7 +1090,7 @@ tags: [improvement]
   distinction is already load-bearing (IMP-037 cites it).
 
 ### IMP-036 — Provenance pin: record the framework's `vX` at graft time → applied on 2026-07-18, commit 6de868f
-- Approved in the targeted retro after the first real upgrade (brew v0.2.0→v0.5.1,
+- Approved in the targeted retro after the first real upgrade (the client project, v0.2.0→v0.5.1,
   2026-07-17): the baseline had been established BY HAND from the content, and the
   3-way of `hooks-install.sh` required the per-version base — with the wrong `vX` the
   merge comes out corrupted SILENTLY. Design D1-D6 approved as a block:
@@ -1404,7 +1436,7 @@ tags: [improvement]
   from the tested text (D3 is case #1 of the 2-3 needed; on its own it does NOT fire the
   trigger).
 - **Case #1 happened** (targeted-retro annotation 2026-07-18): the first real upgrade was
-  performed on 2026-07-17 (brew, v0.2.0→v0.5.1) — see
+  performed on 2026-07-17 (the client project, v0.2.0→v0.5.1) — see
   [[2026-07-18-retro-mirata-imp-036-037]]. Friction observed: the cost was in the
   file-by-file JUDGEMENT (decisions R1/R3/R4/R5 + the per-version 3-way of
   `hooks-install.sh`), which a read-and-print command does not remove; the manual
