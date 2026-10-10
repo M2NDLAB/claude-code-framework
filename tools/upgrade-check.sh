@@ -160,12 +160,133 @@ cmd_classes() {
   finish "classes ($n files, $none without a class)"
 }
 
+# pin_field <name>: the value of the pin's `name: value` line, without a trailing comment
+# or blanks (the example of SETUP.md carries `# …` comments); empty when the line is
+# missing. The pin is .claude/framework-version, read from the project's root.
+pin_field() {
+  awk -v k="$1" 'index($0, k ":") == 1 {
+      v = substr($0, length(k) + 2); sub(/#.*/, "", v); gsub(/^[ \t]+|[ \t]+$/, "", v)
+      print v; exit
+    }' .claude/framework-version
+}
+
+# tags_on <object>: the framework's v* tags on the commit an object names, space-separated.
+tags_on() {
+  local commit
+  commit="$(fw rev-parse -q --verify "$1^{commit}" 2>/dev/null)" || return 0
+  fw tag --points-at "${commit}" --list 'v*' | tr '\n' ' ' | sed 's/ $//'
+}
+
+# The copy that runs must be vY's, extracted from the tag — not the framework's working
+# tree, not a copy kept from an earlier upgrade.
+check_own_copy() {
+  local vy="$1" self top
+  self="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/$(basename "${BASH_SOURCE[0]}")"
+  top="$(fw rev-parse --show-toplevel)"
+  case "${self}" in
+    "${top}"/*) check "this copy runs from the framework's working tree (${self}): run the one extracted at ${vy} (SETUP.md, Precondition)" ;;
+  esac
+  if fw cat-file -e "${vy}:tools/upgrade-check.sh" 2>/dev/null; then
+    if fw show "${vy}:tools/upgrade-check.sh" | cmp -s - "${self}"; then
+      ok "this copy of upgrade-check.sh is ${vy}'s"
+    else
+      check "this copy of upgrade-check.sh differs from ${vy}'s: extract it again with git -C \"\$FW\" show ${vy}:tools/upgrade-check.sh"
+    fi
+  else
+    info "${vy} carries no tools/upgrade-check.sh: this copy is newer than the release it checks"
+  fi
+}
+
+cmd_preflight() {
+  [ $# -eq 2 ] || die "usage: preflight vX vY"
+  local vx="$1" vy="$2"
+  require_fw
+  require_project_root
+  require_tag "${vx}"
+  require_tag "${vy}"
+
+  section "The framework, the project, this script"
+  ok "FW is a repository root; the project's root is $(pwd -P); git 2.31 or later"
+  check_own_copy "${vy}"
+  if fw merge-base --is-ancestor "${vx}" "${vy}"; then
+    ok "${vx} is an ancestor of ${vy}"
+  else
+    fail "${vx} is not an ancestor of ${vy}: an upgrade goes forward, from the pinned release"
+  fi
+  local releases
+  releases="$(fw tag --list 'v*' --sort=v:refname --merged "${vy}" --no-merged "${vx}" | tr '\n' ' ' | sed 's/ $//')"
+  info "releases from ${vx} to ${vy}: ${releases:-none}"
+
+  section "The provenance pin (.claude/framework-version)"
+  if [ ! -f .claude/framework-version ]; then
+    check "no pin: a graft from before the pin existed — vX comes from Step 0's fallbacks, and Step 6 creates the pin"
+  else
+    local version commit grafted suggestion object type expected
+    version="$(pin_field version)"
+    commit="$(pin_field commit)"
+    grafted="$(pin_field grafted)"
+    suggestion=""
+    case "${commit}" in
+      "" | n/a* | n/d*) ;;
+      *) suggestion="$(tags_on "${commit}")" ;;
+    esac
+    if [[ ! "${version}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+      fail "the pin reads 'version: ${version}': it must read 'version: vX.Y.Z', a framework tag with its v — correct the line by hand, nothing normalises it"
+      [ -z "${suggestion}" ] || info "SUGGESTION, not applied: the tag on the pinned commit is ${suggestion}"
+    elif [ "${version}" != "${vx}" ]; then
+      fail "the pin reads ${version} but the upgrade starts from ${vx}: the baseline is the pin's (Step 0)"
+    else
+      ok "version: ${version}, the upgrade's vX"
+    fi
+    case "${commit}" in
+      "")
+        fail "the pin has no 'commit:' line: write 'commit: $(fw rev-parse --short "${vx}^{commit}")', the commit of ${vx}" ;;
+      n/d*)
+        check "the commit is not recorded ('${commit}'), so the pin's identity cannot be checked; 'n/d' is the placeholder of the Italian releases — write 'n/a' at Step 6" ;;
+      n/a*)
+        check "the commit is not recorded ('${commit}'), so the pin's identity cannot be checked" ;;
+      *)
+        object="$(fw rev-parse -q --verify "${commit}" 2>/dev/null)"
+        expected="$(fw rev-parse "${vx}^{commit}")"
+        if [ -z "${object}" ]; then
+          fail "the pinned commit ${commit} does not exist in FW: a pin written from another clone, or a typo"
+        else
+          type="$(fw cat-file -t "${object}")"
+          if [ "${type}" = tag ]; then
+            fail "the pinned commit ${commit} is a TAG OBJECT, not a commit: write 'commit: $(fw rev-parse --short "${expected}")' (git -C \"\$FW\" rev-parse ${vx}^{commit})"
+          elif [ "${object}" = "${expected}" ]; then
+            ok "commit: ${commit}, the commit of ${vx}"
+          else
+            fail "the pinned commit ${commit} is not the commit of ${vx} ($(fw rev-parse --short "${expected}")): a moved tag, or a pin of another release"
+            [ -z "${suggestion}" ] || info "SUGGESTION, not applied: the pinned commit carries ${suggestion}"
+          fi
+        fi ;;
+    esac
+    case "${grafted}" in
+      "") check "the pin has no 'grafted:' line (the date of the original graft): add it at Step 6" ;;
+      n/d*) check "grafted reads '${grafted}': 'n/d' is the placeholder of the Italian releases — write 'n/a' at Step 6" ;;
+      *) ok "grafted: ${grafted}" ;;
+    esac
+  fi
+
+  section "The project's working tree"
+  local dirty
+  dirty="$(git --no-optional-locks status --porcelain | wc -l | tr -d ' ')"
+  if [ "${dirty}" -eq 0 ]; then
+    ok "clean: the restore point of Step 1 is the current commit"
+  else
+    check "${dirty} uncommitted changes: Step 1 starts from a clean working tree"
+  fi
+  finish "preflight ${vx} -> ${vy}"
+}
+
 main() {
   [ $# -ge 1 ] || die "usage: upgrade-check.sh classes|preflight|inventory|invariant|post ..."
   local sub="$1"
   shift
   case "${sub}" in
     classes) cmd_classes "$@" ;;
+    preflight) cmd_preflight "$@" ;;
     *) die "unknown subcommand: ${sub}" ;;
   esac
 }
