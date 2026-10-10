@@ -118,6 +118,14 @@ For a deliverable that gathers several commits, the bump is the **highest** amon
 those of the included commits (a single `feat` among many `chore`s → MINOR; no
 `feat`/`fix` → no tag, it is internal work, not a release).
 
+**When the documentation IS the product** — a method/tooling project, whose consumers
+receive its docs and commands as the thing itself — the last row does not apply as
+written: the file type does not decide, what reaches the consumers does. A change to the
+files the project SHIPS is a release, tagged even when every commit is `docs` — at least
+a PATCH, a MINOR or a MAJOR by the criteria of this section. A change that stays inside
+the project — its own memory, files it does not ship — is no tag, whatever its type.
+Which files are shipped is part of the public contract below.
+
 **What a «breaking change» is — the MAJOR criterion.** SemVer is about the
 compatibility of the project's *public contract*: any change that forces a consumer
 to adapt in order to adopt the new version is breaking. WHAT that contract is depends

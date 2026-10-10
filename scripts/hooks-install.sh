@@ -16,7 +16,35 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-HOOKS_DIR="${REPO_ROOT}/.git/hooks"
+
+# The hooks live in the repository's COMMON git directory, shared by all its worktrees:
+# in a linked worktree `.git` is a file, so "${REPO_ROOT}/.git/hooks" cannot exist there.
+# `--path-format=absolute` (git 2.31+) keeps the path independent of the caller's working
+# directory; `--git-common-dir` rather than `--git-path hooks`, which would follow
+# core.hooksPath (refused below in any case). The script never creates a .git of its own:
+# outside a repository, or with an older git (which echoes the unknown option back instead
+# of a path), it stops. It also stops when its copy is not at the top level of the
+# repository it sits in — a copy inside someone else's working tree would otherwise install
+# the hooks into THAT repository.
+if ! command -v git >/dev/null 2>&1; then
+  echo "ERROR: git not installed." >&2
+  exit 1
+fi
+git_common_dir="$(git -C "${REPO_ROOT}" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)"
+if [[ "${git_common_dir}" != /* || ! -d "${git_common_dir}" ]]; then
+  echo "ERROR: ${REPO_ROOT} is not inside a git repository, or git is older than 2.31." >&2
+  echo "  The hooks are installed into the repository that contains this script: run it" >&2
+  echo "  from the project's copy (make hooks-install), with git 2.31 or later." >&2
+  exit 1
+fi
+top_level="$(git -C "${REPO_ROOT}" rev-parse --show-toplevel)"
+if [[ "${top_level}" != "$(cd "${REPO_ROOT}" && pwd -P)" ]]; then
+  echo "ERROR: ${REPO_ROOT} is not the top level of its git repository (${top_level})." >&2
+  echo "  The framework's scripts/ belongs at the repository's root: the hooks would be" >&2
+  echo "  installed into ${top_level}, for every project in it." >&2
+  exit 1
+fi
+HOOKS_DIR="${git_common_dir}/hooks"
 
 # --- Prerequisites ----------------------------------------------------------
 if ! command -v gitleaks >/dev/null 2>&1; then
@@ -78,8 +106,8 @@ for hook in pre-commit commit-msg pre-push; do
       if [[ "${hook}" == "pre-push" ]]; then
         # A merged-by-hand pre-push would be stopped or overwritten by the next run:
         # the generated one runs pre-push.local instead (e.g. git-lfs's), after its check.
-        echo "  Rename it to .git/hooks/pre-push.local and re-run: the generated pre-push" >&2
-        echo "  runs pre-push.local after the push-boundary check." >&2
+        echo "  Rename it to ${HOOKS_DIR}/pre-push.local and re-run: the generated" >&2
+        echo "  pre-push runs pre-push.local after the push-boundary check." >&2
       else
         echo "  Merge its commands with the framework's by hand, or re-run with" >&2
         echo "  FORCE_OVERWRITE=1 to overwrite it (it is saved to ${hook}.bak first)." >&2
@@ -189,5 +217,6 @@ exit 0
 HOOK
 install_generated "${HOOKS_DIR}/pre-push"
 
-echo "OK: pre-commit (gitleaks), commit-msg (commitlint) and pre-push (push boundary) hooks installed."
+echo "OK: pre-commit (gitleaks), commit-msg (commitlint) and pre-push (push boundary) hooks installed"
+echo "    in ${HOOKS_DIR}."
 echo "    Remember to enable automatic formatting in the pre-commit hook (see comments)."

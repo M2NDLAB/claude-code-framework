@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-10-09
+updated: 2026-10-10
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -26,6 +26,24 @@ tags: [improvement]
 > used on the entries.
 
 ## OPEN proposals (awaiting the user's decision)
+
+### IMP-037 (option b) — A read-only upgrade verification script (approved; applied in v1.4.0)
+- Date: 2026-10-10 | Origin: [[2026-10-10-upgrade-safety-1.3.3]] — the decision on IMP-037 after its
+  count trigger fired (three real upgrades); the history is under *Deferred*, IMP-037
+  (option a)
+- Status: **APPROVED on 2026-10-10**, applied in v1.4.0: a READ-ONLY upgrade verification
+  script; `SETUP.md` stays the procedure and calls it. It reads the framework by tag with
+  `git -C "${FW:?}"` — the "no cross-repo git" boundary of option (a) was about writes and
+  `FW`'s working tree, not about reads by tag (the v1.2.1 rule, IMP-050 points 1-2). It
+  lives OUTSIDE the payload, is never copied into a project, and runs in its version AT
+  the tag `vY`, never from the framework's working tree. The "No automation, for now" box
+  of `SETUP.md` is updated with it (Level 2, approved).
+- Why (b) and not (a): across the three upgrades the judgement differed every time and
+  the mechanics did not; a command would shadow a procedure that changed in 7 of 11
+  releases, and could not be tested. The script holds the mechanics: preflight (the pin —
+  an explicit error, never a silent normalisation, IMP-050), the per-file inventory and
+  measurement, the marker and §2-checklist delta between the tags, the memory invariant
+  (IMP-046), the post-checks.
 
 ### IMP-046 — The upgrade procedure contradicts itself on `.claude/memory/`
 - Date: 2026-09-22 | Origin: [[2026-09-23-memory-model-turns]] — the upgrade demands an
@@ -99,7 +117,7 @@ tags: [improvement]
   format comment(s), read by tag (two at v1.0.0, one from v1.1.0), and compare the
   header and format with `vY`'s by content, or an edit inside the format comment
   passes; (3) the guide READMEs compared with their expected content, not by hunk
-  headers — this overlaps the blob-id check recorded as input of IMP-050 (points 3-5),
+  headers — this overlaps the blob-id check recorded as input of IMP-050 (points 3-4),
   `decisions/README.md` being the hybrid exception (the third upgrade's annotation above —
   B7 of [[2026-09-24-third-upgrade-lessons]]); (4) no backfill of the
   IMP-044 fields (`sessions/README.md`, *Absent = not recorded*); (5) the scope of the
@@ -108,26 +126,21 @@ tags: [improvement]
   `scripts/verify-memory-invariant.sh` or a Step 5 recipe, template paths only — to be
   weighed against `SETUP.md`'s "No automation, for now", IMP-037 (trigger fired on the
   count) and IMP-049 (d) (a check hosted in the payload ships to clients).
-
-### IMP-047 — `/integrate`'s "doc-only → no tag" ignores the method-project contract
-- Date: 2026-09-23 | Origin: [[2026-09-23-memory-model-turns]] — for a method framework
-  the `.md` files ARE the product, yet `/integrate` maps "memory/doc-only commits" to
-  "no tag"
-- Observed problem: `integrate.md` step 2 lists "memory/doc-only commits" next to the
-  no-tag types, while `docs/04` (*Versioning*) defines the contract of a method/tooling
-  project as the method itself and lists "an optional field" as MINOR. For such a project
-  a doc-only change CAN be a contract change, and the two rules then disagree. Recurring:
-  v0.4.0 (all ten changed files `.md`, `feat` commits, released MINOR) and v1.2.0
-  (IMP-044, where the deviation had to be DECLARED as such — D5).
-- Proposal: NOT decided here (end-of-deliverable retro: recorded only). Direction to
-  evaluate: qualify the clause of `integrate.md` — "doc-only" means documentation ABOUT
-  the product, not a change to the product's contract when the product is a method (a
-  pointer to `docs/04`) — so that the type of the commit, not its file extension, drives
-  the bump.
-- Expected benefit / risk: the next contract change of a method project is computed
-  right by `/integrate` instead of relying on a declared deviation. Risk: a `feat` used
-  loosely on real doc-only work would then cut a release — the type discipline of
-  `docs/04` already guards it.
+- **Decision 2026-10-10** ([[2026-10-10-upgrade-safety-1.3.3]]): in v1.4.0, the direction proposed in
+  phase 1, accepted with the release split. A named set of MEMORY TEMPLATES — the guide
+  READMEs of `components/`, `plans/`, `sessions/` and `decisions/`, the `LEARNINGS.md`
+  lines before the first `## ` and its format comment — reconciled 3-way with base `vX`;
+  PROJECT-MEMORY becomes `decisions/*.md` except the README; the invariant becomes a
+  CLOSED list of allowed touches (the templates, edge case 3's lines, the upgrade's own
+  plan file; the session note, `STATE.md` and `TREE.md` only in the checkpoint commit),
+  checked by content. `STATE.md`, `TREE.md` and `INDEX.md` are NOT memory templates (user
+  decision 4): in a project they are compiled memory, never reconciled 3-way, and a change
+  to their format arrives only as a declared migration. Measured in phase 1 with a real
+  `git merge-file`: the client's `decisions/README.md` gives 1 conflict when `vY` edits
+  the slot line and none for an edit elsewhere; `sessions/README.md` pruned by `vY` as the
+  client pruned it merges clean. The client's invariant script was never committed: the
+  checks are rebuilt from their description, with the number of format comments read from
+  `vY` (an entry hidden inside an injected format comment passes otherwise).
 
 ### IMP-048 — Classify file content before rewriting it (prose / values / code-read strings)
 - Date: 2026-09-23 | Origin: no session note in this repo (the trigger, the upgrade of a
@@ -210,6 +223,22 @@ tags: [improvement]
   directions, the project's memory included — `SETUP.md` is already a candidate home
   above; (2) the title map when the memory keeps another language; (3) declaring the
   rebuild — already IMP-050 point 3.
+- **Note — moving an answer means checking every entry point** (a lesson of
+  [[2026-10-09-quick-fixes-1.3.2]], recorded here at the user's request on 2026-10-10,
+  [[2026-10-10-upgrade-safety-1.3.3]]): when a setup answer moves — v1.3.2 moved `reset-task.sh`'s
+  protected branches into the `Makefile` — every way of reaching it needs its own check:
+  the script run directly, the `make` target, the unattended form an agent uses
+  (`YES=1`), the docs that name the command. The reviewer found the third. It is this
+  entry's discipline seen from the readers' side: before moving a VALUE (level 2), list
+  who reads it. Its upgrade side lands in v1.3.3: a slot that moves to another file
+  becomes an edge case of the upgrade.
+- **Decision 2026-10-10 on the relayed title map above** ([[2026-10-10-upgrade-safety-1.3.3]], user
+  decision 2): NO map. A map is a configurable legacy reader that every present and future
+  command would have to consult — permanent complexity against a one-off cost. The section
+  titles the commands look up are FORMAT, and format is method: the rename is mandatory at
+  the upgrade (edge case 3 (b)), and rule 9 says so from v1.3.3. A project's own tests
+  that cite the titles are updated in the same commit, by the project. Relayed proposal
+  (1), the title grep in both directions, goes to v1.4.0's verification script (IMP-037).
 
 ### IMP-049 — Payload purity: method files that only make sense in the framework repo
 - Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — the third real
@@ -260,15 +289,28 @@ tags: [improvement]
   pruning, and a new dangling pointer is caught when it is written, not at the next
   client upgrade. Risk: dropping IMP numbers loses traceability inside the framework
   repo — the pointer can live in the commit message or the CHANGELOG instead.
+- **Decision 2026-10-10** ([[2026-10-10-upgrade-safety-1.3.3]]): all four directions, in v1.4.1 (a
+  PATCH by IMP-047's criterion). (a) IMP numbers out of ALL the payload's text, the
+  scripts' header comments included: the why in prose, the provenance in the CHANGELOG,
+  this file and the commits (user decision 5). (b) The pointers that assume a local file
+  rephrased, the cross-repo ones labelled as such. (c) The framework-repo-only blocks
+  moved to `CONTRIBUTING.md`, one conditional line left in `docs/01`; `docs/04`'s "as this
+  framework is" generalised, or moved there if only the framework needs it. (d) The
+  purity check, outside the payload, with a bidirectional allow-list (IMP-057), in the
+  end-of-cycle mechanical documentation check that also hosts IMP-068. Ordering: IMP-046's
+  fix ships first (v1.4.0), or the pruning of `sessions/README.md` never reaches a
+  project. Measured at v1.3.2 against v1.2.0: pointer lines 13 → 14 (9 → 10 files), IMP
+  numbers 10 → 23 occurrences (4 → 9 files), all thirteen new ones from v1.3.0.
 
-### IMP-050 (points 3-5) — Upgrade procedure hardening: the remaining mechanical traps of `SETUP.md`
+### IMP-050 (points 3-4) — Upgrade procedure hardening: the remaining mechanical traps of `SETUP.md`
 - Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — the read-only
   assessment of the third real upgrade (v1.0.0 → v1.2.0, across the full translation of
   v1.1.0) found five traps that *Upgrading the framework* does not guard against
   (points 4-5 were then avoided rather than hit)
 - Status: points 1-2 APPLIED on 2026-09-25, commit 190404a — see *Applied*, IMP-050
-  (points 1-2). Points 3-5 below stay OPEN, numbered as before (IMP-037's case-#3
-  annotation cites them by number).
+  (points 1-2). Point 5 APPLIED on 2026-10-10 in v1.3.3 — see *Applied*, IMP-050
+  (point 5). Points 3-4 below stay OPEN, for v1.4.0, numbered as before (IMP-037's
+  case-#3 annotation cites them by number); the heading said "points 3-5" until then.
 - Observed problem (each verified on the source):
   1. → APPLIED (see *Applied*, IMP-050 (points 1-2)).
   2. → APPLIED (same entry).
@@ -407,6 +449,19 @@ tags: [improvement]
     re-created on an earlier commit (it misses a tag moved later and a crafted
     repository); and pin-identity closes the declared limit only when the pin records
     the framework's real `vX` commit — never for `commit: n/a` pins or pre-pin grafts.
+- **Decision 2026-10-10** ([[2026-10-10-upgrade-safety-1.3.3]]): point 5 in v1.3.3 —
+  `--path-format=absolute --git-common-dir`, with a self-test from a linked worktree, a
+  subdirectory and outside a repository; Step 4 checks that every generated hook is
+  installed; Step 1 photographs the hooks and edge case 4 restores the photograph. Points
+  3-4 in v1.4.0, through IMP-037's script: the per-file triage and measurement, the marker
+  delta and the §2 checklist diff between the tags. NO hand-written "Slots changed" field
+  in the CHANGELOG (user decision 3): it can diverge from the text, the class of C11/C12;
+  the script flags a slot that changes file, and moving its answer is a migration for the
+  *Upgrading* note. Also in v1.3.3, because a project's next hop would hit it: the
+  `Makefile` goes through the 3-way (an additive union runs `reset-task` twice), and a new
+  edge case covers a slot that moves. The pin (input above): an explicit error with the
+  correcting instruction, no silent normalisation; a tag on the pinned commit may be
+  SUGGESTED, never applied (user decision 6).
 
 ### IMP-051 — The memory lags one merge: `/checkpoint` runs before the merge
 - Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — a post-merge
@@ -522,7 +577,7 @@ tags: [improvement]
   the code-read strings that live in COMMENTS: the hooks' ownership marker is a comment,
   it changed Italian→English, and stripping comments hides exactly the change behind
   IMP-050 point 5's rollback defect (IMP-048, level 3). As a mechanical check it
-  belongs with IMP-050 (points 3-5)'s Step 5 inputs. (3) Not a gate matter — a factual
+  belongs with IMP-050 (points 3-4)'s Step 5 inputs. (3) Not a gate matter — a factual
   defect listed in the note for the user's decision: `reset-task.sh` is filed METHOD
   while it carries a setup slot (the protected branches) whose natural answer is
   inline, a predictable hybrid like the setup-customised commands. A plain overwrite is
@@ -849,6 +904,29 @@ tags: [improvement]
   stack; the framework stays agnostic), and harnesses other than Claude Code.
 - Expected benefit / risk: the boundaries are known where they hold and where they do not.
   Risk: none for the investigation itself.
+
+### IMP-068 — A list that declares itself complete deserves a mechanical check
+- Date: 2026-10-10 | Origin: [[2026-10-09-quick-fixes-1.3.2]] (its retro) — recorded at
+  the user's request in [[2026-10-10-upgrade-safety-1.3.3]], linked to the mechanical documentation
+  check planned at the end of the cycle
+- Observed problem: `SETUP.md` §2 calls its checklist "the complete list" of the setup
+  slots, and until v1.3.2 it missed four of them (`decisions/README.md`'s; the merge form
+  and the public contract of `docs/04`; the protected branches of `reset-task.sh`) and
+  then two more (`SECURITY.md`'s; the sensitive list `docs/00` points to) — found by
+  reading, twice, never by a check. A list that claims completeness is believed, so its
+  gap is silent. The same shape recurs wherever a text enumerates a set that lives
+  elsewhere: the upgrade's class lists against the payload (`scripts/test-hooks-install.sh`
+  sat in no class from v0.5.1 to v1.2.1), the hooks a check names against the script's
+  own loop, a count written in prose ("these seven cases").
+- Proposal: NOT decided here (retro). Direction: every list that declares itself complete
+  gets a mechanical check against its source of truth — the §2 checklist against the
+  payload's markers, the classes against the payload's files — in the end-of-cycle
+  mechanical documentation check that hosts IMP-049 (d), outside the payload, with a
+  bidirectional allow-list (IMP-057) for the legitimate differences. Or the list stops
+  claiming completeness.
+- Expected benefit / risk: a gap breaks a check in the release that opens it, not a
+  project's upgrade months later. Risk: one check per list to maintain — only the lists
+  that CLAIM completeness are in scope.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
@@ -1272,10 +1350,43 @@ tags: [improvement]
   addition, IMP-040, typed `feat(process)` → MINOR) and `feat(memory)` in v0.4.0 (the
   destination attribute of the IMP format).
 
+### IMP-047 — `/integrate`'s "doc-only → no tag" ignores the method-project contract → applied on 2026-10-10, commits cd6e820, 2c6700e
+- Date: 2026-09-23 | Origin: [[2026-09-23-memory-model-turns]] — for a method framework
+  the `.md` files ARE the product, yet `/integrate` maps "memory/doc-only commits" to
+  "no tag"
+- Observed problem: `integrate.md` step 2 lists "memory/doc-only commits" next to the
+  no-tag types, while `docs/04` (*Versioning*) defines the contract of a method/tooling
+  project as the method itself and lists "an optional field" as MINOR. For such a project
+  a doc-only change CAN be a contract change, and the two rules then disagree. Recurring:
+  v0.4.0 (all ten changed files `.md`, `feat` commits, released MINOR) and v1.2.0
+  (IMP-044, where the deviation had to be DECLARED as such — D5).
+- Proposal: NOT decided here (end-of-deliverable retro: recorded only). Direction to
+  evaluate: qualify the clause of `integrate.md` — "doc-only" means documentation ABOUT
+  the product, not a change to the product's contract when the product is a method (a
+  pointer to `docs/04`) — so that the type of the commit, not its file extension, drives
+  the bump.
+- Expected benefit / risk: the next contract change of a method project is computed
+  right by `/integrate` instead of relying on a declared deviation. Risk: a `feat` used
+  loosely on real doc-only work would then cut a release — the type discipline of
+  `docs/04` already guards it.
+- **Decision 2026-10-10** ([[2026-10-10-upgrade-safety-1.3.3]], user decision 7): the criterion is
+  "does it change the payload?". Yes: a release with a tag — in a method framework the
+  documentation is the product. Only the framework's memory, or files outside the
+  payload: no tag. So v1.4.1, the payload pruning, is a PATCH. Applied in v1.3.3 (task 9),
+  which closes the contradiction between `integrate.md` and `docs/04`.
+- Applied in v1.3.3 ([[2026-10-10-upgrade-safety-1.3.3]], task 9): `docs/04` (*Versioning*) adds
+  "When the documentation IS the product" — a change to the shipped files is a release,
+  at least a PATCH; a change confined to the project's own memory or to unshipped files is
+  no tag; `integrate.md` step 2 points to it; `CONTRIBUTING.md` names what this framework
+  ships. **Awaiting the user's confirmation** (review M6): the shipped set includes
+  `SETUP.md`'s procedures and v1.4.0's verification script, which setup does not copy —
+  read literally, "files outside the payload: no tag" would leave them untagged, while an
+  upgrade targets a tag and v1.4.0 was decided as a MINOR.
+
 ### IMP-050 (points 1-2) — The framework is read only by tag, via `git -C "${FW:?}"` → applied on 2026-09-25, commit 190404a
 - Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — the upgrade read the
   framework from its shared working tree and, by bare tag names, from the project's own
-  tags (points 1-2 of IMP-050; points 3-5 stay OPEN, see IMP-050 (points 3-5))
+  tags (points 1-2 of IMP-050; points 3-4 stay OPEN, see IMP-050 (points 3-4); point 5 is applied, see IMP-050 (point 5))
 - Observed problem: (1) the Precondition asked for "two checkouts (or exports)" and the
   CHANGELOG read named no ref, so the upgrade read whatever the SHARED framework clone
   had checked out — during a real upgrade, a session working on the framework ran
@@ -1332,8 +1443,29 @@ tags: [improvement]
   HEAD moved with the next commit, and the working tree had already diverged through
   uncommitted edits — the damage in that instance was nil (only `LEARNINGS.md`
   differed, whose entries an upgrade never carries). Its extra sanity check (a blob
-  compared with `rev-parse`) is not covered: input for IMP-050 (points 3-5). Kin:
+  compared with `rev-parse`) is not covered: input for IMP-050 (points 3-4). Kin:
   IMP-055 (delegated agents in a shared working tree).
+
+### IMP-050 (point 5) — The hooks step from a linked worktree, and the rollback; with the v1.3.x migrations bound into the procedure → applied on 2026-10-10, commits 9cf7cb3, 331f390, a3a9836, 3ef8915, 2c6dd7f, 77dc84e, b511da2, 2c6700e
+- Origin: IMP-050 (points 3-4), point 5; the phase-1 analysis of [[2026-10-10-upgrade-safety-1.3.3]] (the
+  v1.3.x migrations lived in the CHANGELOG, not in the procedure). User decisions of
+  2026-10-10.
+- Applied (v1.3.3): `scripts/hooks-install.sh` resolves the hooks directory with
+  `git rev-parse --path-format=absolute --git-common-dir` and stops outside a repository,
+  below its top level, or without git — self-test case 3, RED then GREEN. Upgrade Step 4
+  checks that every hook of the script's loop is installed with the generator's marker;
+  Step 1 photographs the hooks and edge case 4 restores the photograph (the re-run of
+  `vX`'s script, measured, does not). Beyond point 5, the migrations: Step 2 works
+  through the *Upgrading* notes as a checklist (different topics add up, on the same
+  topic the latest wins); the `Makefile` goes through the 3-way (the name-based half of
+  point 3); edge case 8, a slot that moves to another file (point 4's new variant, by hand
+  until v1.4.0's script detects it); edge case 3 (b) compares the title sets at every
+  upgrade, the rename mandatory, and rule 9 separates the memory's content from its
+  format (IMP-048's decision); the prerequisites (git 2.31; Node.js, two floors), the
+  upgrade's write boundary, the coupling of `settings.json` and the guard's self-test.
+- Verified: `make test-scripts` green after every task; each `SETUP.md` snippet extracted
+  and run as written in throwaway repositories under `/tmp`; ONE reviewer, six MEDIUM
+  fixed (task 10).
 
 ### IMP-054 — The `git push` deny does not catch `git -C <dir> push`: a decorative boundary → applied on 2026-10-07, commits 3ec5dc5, 70e8598, adea3fd, 256a7ba, e692d36
 - Date: 2026-09-25 | Origin: [[2026-09-25-imp-050-read-by-tag]] — the deny list matched
@@ -1425,7 +1557,12 @@ tags: [improvement]
 - Resumption trigger: after 2-3 real brownfield grafts, when the common pattern is
   distillable from the tested text.
 
-### IMP-037 — The `/upgrade-framework` read-and-print command (the inverse twin of `/harvest-framework`) → deferred on 2026-07-17
+### IMP-037 (option a) — The `/upgrade-framework` read-and-print command (the inverse twin of `/harvest-framework`) → deferred on 2026-07-17, again on 2026-10-10
+- **Re-deferred on 2026-10-10** ([[2026-10-10-upgrade-safety-1.3.3]]): the count trigger below fired;
+  the user split the entry. Option (b), a read-only verification script, is approved —
+  see IMP-037 (option b) in the OPEN proposals. This option, the full command, stays
+  deferred. New resumption trigger: the first upgrade of a SECOND project (the three
+  cases below are all one project's).
 - User decision (periodic retro): DEFER (confirmed). A command that ONLY READS AND PRINTS
   (the boundary of `/harvest-framework`/IMP-009) the `vX→vY` upgrade plan — the delta
   from the CHANGELOG, the taxonomy by class, the block of reconciliations — with no

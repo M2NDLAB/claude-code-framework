@@ -74,7 +74,11 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
      your own language costs the repo nothing, so nothing is imposed.
    The rule applies from the graft, or from the upgrade that brought it, onwards: to
    the method's artifacts and to the new ones the project produces; what already
-   exists is never bulk-translated (translating it is a task the user decides).
+   exists is never bulk-translated (translating it is a task the user decides). That
+   protects the memory's CONTENT. Its FORMAT is method: the section titles the
+   commands look up by name take the method's form, and every upgrade brings the
+   project's titles to it, leaving the content under them as it is — never a map
+   from old titles to new, which every command would have to consult.
    Past git history is never translated: it is immutable (see 04-git-workflow.md).
 
 ## Quick commands

@@ -51,6 +51,24 @@ breaks grafts or upgrades already under way on a project. It is an API's promise
 of stability, applied to a method — the general, agnostic criterion is in
 `.claude/docs/04-git-workflow.md`, *Versioning*.
 
+**What this framework ships — the test of a release** (IMP-047, decided on 2026-10-10;
+the general rule is `.claude/docs/04-git-workflow.md`, *Versioning*, "When the
+documentation IS the product"). A deliverable is a release, with a tag, when it changes
+what projects receive:
+- the PAYLOAD that setup copies (`SETUP.md`, step 1): `.claude/` as setup copies it —
+  commands, docs, settings and the memory's starting files, not the framework's own IMP
+  entries and session notes —, `CLAUDE.md`, `Makefile`, `commitlint.config.cjs`,
+  `.gitignore`, `scripts/`; and the `SECURITY.md` scaffold setup offers;
+- what a project's setup and upgrade take from this repo at a tag without copying it:
+  `SETUP.md`'s procedures and, once it exists, the upgrade's verification script, which
+  runs in its version at the tag `vY` (IMP-037). An upgrade targets a tag: a change to
+  them that cut no tag would reach no project.
+
+The bump is at least a PATCH; a MINOR or a MAJOR by the criteria of `docs/04`,
+*Versioning*. A change confined to the framework's own memory (`LEARNINGS.md`'s entries,
+`sessions/`) or to files that serve this repo only (`README.md`, this file, `LICENSE`,
+the checks that run only here) is no tag.
+
 ## This repo's memory: the "declared hybrid" regime
 
 The repo uses on itself only PART of its own memory system:

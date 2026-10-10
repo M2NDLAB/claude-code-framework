@@ -5,9 +5,14 @@ Code". Estimated time: 15-30 minutes, most of it spent filling in the technical 
 
 ## 0. Prerequisites
 
-- **git** (the framework is git-centric: branches, per-task commits, hooks).
+- **git 2.31 or later** (the framework is git-centric: branches, per-task commits,
+  hooks; `make hooks-install` and the upgrade's checks use `rev-parse --path-format`).
 - **gitleaks** — secret scanning in the hooks. macOS: `brew install gitleaks`.
-- **Node.js / npx** — used by commitlint (Conventional Commits).
+- **Node.js, with npx** — for two users with different floors. commitlint (Conventional
+  Commits) runs through npx at its latest release, which declares its own minimum (Node.js
+  22.12 for the 21.x line). The agent git guard, `scripts/agent-git-guard.mjs`, needs
+  14.13.1 or later: without a working `node`, delegated agents lose their Bash tool
+  (fail-closed, `docs/04`) and the main session sees a notice on every call.
 - *(optional)* **tree** — to regenerate `TREE.md`. Fallback: `git ls-files`.
 - *(optional)* **Obsidian** — the `.claude/` directory opens as a vault; the `[[...]]`
   wikilinks become a navigable graph. It is not required: the links work as pointers
@@ -507,6 +512,28 @@ point: **the memory lives in git, so the safety commit IS already the backup**
 upgrade is a throwaway unit — if it goes wrong, the branch is deleted (see *Rollback*
 in `docs/04`). No extra copy of the memory outside the tree is needed.
 
+One thing the restore point does not hold: the installed hooks, which live outside git
+(edge case 4). Photograph them into `T` before anything else, from the project root:
+
+```bash
+H="$(git rev-parse --path-format=absolute --git-common-dir)/hooks"
+test -d "$H" && test ! -e "${T:?}/hooks-before" \
+  && mkdir "${T:?}/hooks-before.partial" \
+  && cp -pPR "$H/." "${T:?}/hooks-before.partial/" \
+  && mv "${T:?}/hooks-before.partial" "${T:?}/hooks-before" \
+  && echo "hooks photographed"
+```
+
+No "hooks photographed" line = no photograph: find out why before going on. The chain
+refuses to overwrite an existing photograph — taken again after Step 4 it would hold
+`vY`'s hooks — and a copy that fails halfway never takes the photograph's name (a
+leftover `hooks-before.partial` is a failed attempt: look at it, remove it, retry). A
+repository with no hooks directory has nothing to photograph: say so in the session note;
+the rollback then removes what Step 4 created. The photograph is the only way back for
+the hooks: keep `T` until the upgrade branch is merged or thrown away — outside `/tmp`,
+which the system may clean — and write its path in the upgrade's session note: an upgrade
+resumed or abandoned in a later session needs it.
+
 ### Step 2 — Derive "what changed" (framework side)
 
 From the project root, reading the framework only by tag (*Precondition*), combine two
@@ -528,10 +555,23 @@ complementary sources:
   Excluding `.claude/memory/` is deliberate: the framework's memory is ITS own, it must
   NEVER overwrite the project's.
 
+**The *Upgrading* notes are a CHECKLIST, not an index.** From the same CHANGELOG, collect
+the *Upgrading* note of EVERY entry between `vX` (excluded) and `vY`, oldest first, and
+work through them in Steps 3-5: they carry the migrations the diff cannot show — an answer
+that moves to another file, a title to rename, a recipe to replace rather than merge.
+Notes on DIFFERENT topics ADD UP: each migration applies even when no later note mentions
+it again (1.3.2's rename of the memory's section titles applies to an upgrade to any later
+version). Only notes on the SAME topic supersede each other, and then the most recent one
+wins: 1.3.0 wanted the guard in place before `settings.json`, 1.3.1 allows any order —
+1.3.1 holds. A note scoped to its own starting point does not override an earlier one for
+a jump that starts before it: 1.3.2's "no `make hooks-install` needed from 1.3.1" says
+nothing to an upgrade from 1.2.0, whose hooks did change in 1.3.0.
+
 ### Step 3 — Reconcile by class
 
-- **METHOD** → after the pre-flight of edge case 7, bring the `vY` version over, read
-  from the tag, never from the framework's working tree:
+- **METHOD** → after the pre-flight of edge case 7 — and edge case 8, if `vY` moved a
+  slot out of the file — bring the `vY` version over, read from the tag, never from the
+  framework's working tree:
 
   ```bash
   git -C "${FW:?}" show vY:<path> > "${T:?}/theirs" && cp "${T:?}/theirs" <path>
@@ -561,10 +601,14 @@ complementary sources:
   one that was REMOVED **disappears**; one that was MOVED or co-edited surfaces as a
   **conflict** to resolve by hand. Always re-apply the project's
   `[TO BE DEFINED AT SETUP]` answers (branch names, `tree` patterns, formatter, the
-  stack's allow-list, the whole "Technical rules" section of `CLAUDE.md`). Trivial
-  hybrids (`.gitignore`, `Makefile`) are INTEGRATED (additive union: make sure the lines
-  of the `vY` base — `git -C "${FW:?}" show vY:<path>` — are present without removing
-  the project's); on `LEARNINGS.md` at most the header/format is updated, read from
+  stack's allow-list, the whole "Technical rules" section of `CLAUDE.md`) — and if `vY`
+  MOVED a slot to another file, see edge case 8 before merging either file. `.gitignore`
+  is INTEGRATED (additive union: make sure the lines of the `vY` base —
+  `git -C "${FW:?}" show vY:<path>` — are present without removing the project's). The
+  `Makefile` is NOT: it goes through the 3-way like the other hybrids. A union keeps the
+  old and the new recipe of the same target, and `make` then runs both, or warns
+  "overriding commands" and runs only the last — measured on v1.3.2's `reset-task`. On
+  `LEARNINGS.md` at most the header/format is updated, read from
   `git -C "${FW:?}" show vY:.claude/memory/LEARNINGS.md`, NEVER the project's IMP
   entries (its `## ` section titles go through edge case 3 (b), with `STATE.md`'s).
 - **The guard and `settings.json`: no order to respect** (from v1.3.1; v1.3.0 required
@@ -577,7 +621,14 @@ complementary sources:
 > **Execution boundary (`docs/04`, section of the same name).** The agent PREPARES and
 > commits LOCALLY on the upgrade branch; it does NOT merge, does NOT push, does NOT tag.
 > Nor does it WRITE in the framework repo: no checkout, switch, stash, `worktree add` or
-> commit there — it only reads it by tag (*Precondition*). Where `vY` changes a
+> commit there — it only reads it by tag (*Precondition*). Only the MAIN session
+> writes: delegated agents — subagents, workflow agents — are read-only on git, which the
+> guard enforces from v1.3.0 (`docs/04`, *Delegated agents and the shared working
+> tree*). The READING can be spread across them (inventories, diffs by tag, a review);
+> the branch, `git merge-file`, the commits and any throwaway clone for a dry run stay
+> with the main session. An edit to `.claude/settings.json` or
+> `scripts/agent-git-guard.mjs` through the file tools asks the human (the `ask` rules),
+> auto mode included; the shell commands of Step 3 do not. Where `vY` changes a
 > RULE (rather than being a factual correction), Level 2 of `docs/06` kicks in: it is
 > PROPOSED, not applied silently — *"Never rewrite your own rules on your own
 > initiative"* (`CLAUDE.md`, rule 6).
@@ -585,12 +636,42 @@ complementary sources:
 ### Step 4 — Re-sync the hooks and audit the markers
 
 `make hooks-install` (idempotent; it saves a `.bak` of the project's formatting block).
-From v1.3.0 it also installs the `pre-push` push boundary: if the project already has a
-`pre-push` of its own (git-lfs's, for one), the script stops — rename it to
-`.git/hooks/pre-push.local` and re-run: the generated pre-push runs it after the
-boundary check, and a re-run leaves it alone. Real verification: a fake secret
-blocked by gitleaks, a non-conventional message rejected by commitlint,
-`make test-scripts` green. Then
+It installs into the repository's COMMON git directory, which all its worktrees share:
+run from the upgrade's own worktree, `vY`'s hooks reach the main worktree too, still on
+`vX` until the merge — expected. (Until v1.3.2 the script aborted from a linked worktree
+with `mkdir: … Not a directory`.) From v1.3.0 it also installs the `pre-push` push
+boundary: if the project already has a `pre-push` of its own (git-lfs's, for one), the
+script stops — rename it to `pre-push.local` in the same hooks directory (the path the
+script prints; `$H` below) and re-run: the generated pre-push runs it after the boundary
+check, and a re-run leaves it alone. Real verification:
+
+- **Every hook the script generates is installed and carries the generator's marker.**
+  The list is read from the script's own loop, so a hook added to it is checked too:
+
+  ```bash
+  H="$(git rev-parse --path-format=absolute --git-common-dir)/hooks"
+  n=0; for h in $(sed -n 's/^for hook in \(.*\); do$/\1/p' scripts/hooks-install.sh); do
+    n=$((n + 1))
+    grep -qF 'Hook generated by scripts/hooks-install.sh' "$H/$h" 2>/dev/null \
+      || echo "MISSING or foreign: $h"
+  done; test "$n" -gt 0 || echo "STOP: no hook list found in scripts/hooks-install.sh"
+  ```
+
+  Nothing printed = all in place. It catches a hook that is MISSING or FOREIGN — the
+  `pre-push` a `vX` before 1.3.0 never had, a hook still carrying the Italian marker of a
+  `vX` before 1.1.0 — not one left over from an earlier run with the same marker: the
+  re-run is what makes the hooks current. The proofs below exercise behaviour, not
+  version: they pass with an older `pre-commit` and `commit-msg` still installed, and
+  none of them reaches the `pre-push` — whose behaviour `make test-scripts` proves in a
+  throwaway repository (a push from the session is refused by design: never attempt one).
+- A fake secret blocked by gitleaks, a non-conventional message rejected by commitlint.
+- `make test-scripts` green. It also checks `.claude/settings.json` against the guard:
+  the wiring of `scripts/agent-git-guard.mjs` and the two `ask` rules on the boundary's
+  own files. A failure there means the merged settings lost them — repair the settings,
+  never the test: the self-test (METHOD) and `settings.json` (HYBRID) arrive in the same
+  upgrade and check each other.
+
+Then
 `grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" .` to catch the NEW markers
 introduced by `vY`, to be filled in with the project's answers (reuse the dialogue of
 step 2 of this guide). The dual-form grep matters here: a project grafted before the
@@ -630,7 +711,7 @@ memory is safe in the pre-upgrade commit.
 ### Edge cases (to be handled explicitly)
 
 The "bring the `vY` version over" reconciliation of Step 3 is an OVERWRITE, not a
-`sync`, and the 3-way covers co-edits but not everything. These seven cases must be
+`sync`, and the 3-way covers co-edits but not everything. These eight cases must be
 handled on purpose, or the upgrade leaves the project in an incoherent state:
 
 1. **A file DELETED in `vY` (orphan).** If `vY` removes a METHOD file (a merged doc, a
@@ -653,33 +734,91 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
      `[[wikilink]]`s and the pointers (`docs/04:142`, …) in `STATE.md` and in the
      sessions **dangle**, and `/lint-memory` will flag them as broken.
    - **(b) Section titles looked up by name.** The `## ` titles of `STATE.md` and
-     `LEARNINGS.md` are format lines that the method cites by name (`/checkpoint`,
-     `/lint-memory`, `/retro`, `docs/03`, `docs/06`). If `vY` renames them — as v1.1.0
-     did when it translated them — rename them in the project to `vY`'s form. ONLY the
-     title lines: the content of the sections is never touched and keeps its language
-     (rule 9 is prospective).
+     `LEARNINGS.md` are FORMAT lines that the method cites by name (`/checkpoint`,
+     `/lint-memory`, `/retro`, `docs/03`, `docs/06`). Format is method (`CLAUDE.md`,
+     rule 9): the project's titles take `vY`'s form — the rename is mandatory, and a map
+     from old titles to new is not an alternative. Do not wait for a `vY` that renames
+     them: COMPARE the two sets at every upgrade, since a project can carry the titles of
+     any earlier release (v1.1.0 translated them, and a project that kept the old ones
+     has been read wrongly since). From the project root:
+
+     ```bash
+     : "${FW:?}" && for f in STATE LEARNINGS; do
+       git -C "${FW:?}" show "vY:.claude/memory/$f.md" | grep '^## ' \
+         | grep -vxF -f <(grep '^## ' ".claude/memory/$f.md") \
+         | sed "s|^|$f.md lacks: |"
+     done
+     ```
+
+     Each printed line is a `vY` title the project lacks: find its old form — the table
+     below, or a project's own shortened form — and rename that line. Nothing printed =
+     nothing to rename. ONLY the title lines: the content under them is never touched and
+     keeps its language. If the project's own code or tests cite the old titles (grep
+     for them), update them in the same commit as the rename — the declared
+     `docs(memory)` commit below — so that no commit leaves the project's tests red: that
+     side of the migration is the project's.
+
+     | File | Title until 1.0.0 (and short forms seen) | Title since 1.1.0 |
+     | --- | --- | --- |
+     | `STATE.md` | `## Stato avanzamento` | `## Progress` |
+     | `STATE.md` | `## Cosa esiste adesso` | `## What exists now` |
+     | `STATE.md` | `## Decisioni prese (non ovvie dal codice)` | `## Decisions made (not obvious from the code)` |
+     | `STATE.md` | `## Debito documentazione` | `## Documentation debt` |
+     | `STATE.md` | `## Attenzione / problemi aperti` | `## Caution & open issues` |
+     | `STATE.md` | `## Branch attivi` | `## Active branches` |
+     | `LEARNINGS.md` | `## Proposte APERTE (in attesa di decisione utente)` | `## OPEN proposals (awaiting the user's decision)` |
+     | `LEARNINGS.md` | `## Applicate` | `## Applied` |
+     | `LEARNINGS.md` | `## Rimandate (non respinte — si riprendono al momento giusto)`, or `## Rimandate` | `## Deferred (not rejected — resumed at the right time)` |
+     | `LEARNINGS.md` | `## Rifiutate (con motivo — per non riproporle)`, or `## Rifiutate` | `## Rejected (with the reason — so they are not re-proposed)` |
+
    Here the "empty diff on `memory/`" invariant and the repair conflict: the way out is
    to treat the repair as an **EXPLICIT and DECLARED exception**, in a **separate
    commit** per kind (`docs(memory): update the pointers to the docs renamed by vY`;
    `docs(memory): rename the memory's section titles to vY's form`), distinct from the
    upgrade's commits. That way the invariant stays useful (it catches ACCIDENTAL edits to
    the memory) and the necessary repair does not slip through unnoticed. For the
-   project's memory these are the only legitimate touches during an upgrade, and only if
-   `vY` forces them. (The method's own files under `memory/` — the guide READMEs, the
+   project's memory these are the only legitimate touches during an upgrade, and only
+   where they are needed: a doc `vY` renamed, a title the comparison of (b) prints. (The
+   method's own files under `memory/` — the guide READMEs, the
    header and format of `LEARNINGS.md` — follow Step 3 instead; that the invariant and
    Step 3 disagree on them is IMP-046, open.) (Kind (b) was added in v1.3.2: until then
    the exception named the pointers alone, and the titles translated by v1.1.0 had no
-   declared way in.)
+   declared way in. From v1.3.3 it starts from the comparison of the two sets, not from a
+   rename in `vY`.)
 
 4. **Installed hooks (`.git/hooks/*`) live outside the git graph.** The
-   `make hooks-install` of Step 4 materialises the hooks in `.git/hooks/`, which is
-   neither tracked nor on the branch. Two consequences: (a) if you forget the re-run,
-   the installed hooks stay old while `hooks-install.sh` is updated — a silent
-   incoherence; (b) **throwing away the branch does NOT uninstall** the new hooks
-   already materialised, and the safety commit never captured them. Therefore: the
-   re-run is MANDATORY, not optional; and if you abort the upgrade after Step 4, re-run
-   `make hooks-install` from version `vX` to bring the hooks back in line with the
-   restored code.
+   `make hooks-install` of Step 4 materialises the hooks in the repository's common git
+   directory — `.git/hooks/`, shared by every worktree — which is neither tracked nor on
+   the branch. Two consequences: (a) if you forget the re-run, the installed hooks stay
+   old while `hooks-install.sh` is updated — a silent incoherence: the re-run is
+   MANDATORY (Step 4's check catches a hook that is missing or foreign, not a stale one);
+   (b) **throwing away the branch does
+   NOT uninstall** the hooks already materialised, and the safety commit never captured
+   them. Re-running `vX`'s script does not bring them back either: it leaves in place a
+   `pre-push` that a `vX` before v1.3.0 never had; a `vX` from v0.3.0 to v1.0.0 refuses
+   the hooks that carry the English marker; `FORCE_OVERWRITE=1` replaces the pre-upgrade
+   `.bak` with the new hook; and a `pre-push` renamed to `pre-push.local` at Step 4 stays
+   renamed. The way back is Step 1's photograph. If you abort the upgrade after Step 4,
+   run this — in a block of its own, as `docs/04` wants for destructive lines:
+
+   ```bash
+   # ONLY if the upgrade is aborted after Step 4: put back the hooks photographed at Step 1.
+   H="$(git rev-parse --path-format=absolute --git-common-dir)/hooks"
+   test -d "${T:?}/hooks-before" && test ! -e "${T:?}/hooks-aborted" \
+     && mv "$H" "${T:?}/hooks-aborted" \
+     && cp -pPR "${T:?}/hooks-before" "$H" \
+     && diff -r --no-dereference "${T:?}/hooks-before" "$H" && echo "hooks restored"
+   ```
+
+   It moves the installed hooks aside into `T` (`hooks-aborted`, kept for inspection) and
+   copies the photograph back byte for byte — subdirectories, symlinks and a renamed
+   `pre-push` included: `diff` prints nothing and the last line says "hooks restored".
+   Without a photograph, work hook by hook: where Step 4 printed a WARNING for a hook,
+   move that hook's `.bak` back over it; a hook that did not exist before Step 4 — the
+   `pre-push` of a `vX` before 1.3.0 — is removed, and a `pre-push.local` renamed at
+   Step 4 goes back to `pre-push`; every other hook stays, since Step 4 rewrote it with
+   identical content. Never a `.bak` that THIS Step 4 did not announce: an older one
+   would install hooks older than `vX`.
 
 5. **Crossing `1.0.0` (`0.x → 1.0`) changes LIVE rules.** Updating `docs/04` across the
    first stable release is not just text: it changes the versioning regime (in `0.x` the
@@ -709,6 +848,19 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    `git -C "${FW:?}" show vX:<path> > "${T:?}/base" && diff "${T:?}/base" <path>`. A
    bare `git diff vX -- <path>` in the project compares against the PROJECT's `vX`, the
    collision of the *Precondition*. If it diverges, treat it as a hybrid (3-way).
+
+8. **A slot that MOVES to another file.** A `vY` can move a `[TO BE DEFINED AT SETUP]`
+   slot from one file to another — v1.3.2 moved `reset-task.sh`'s protected branches
+   into the `Makefile`. The 3-way cannot follow it: the new home merges CLEANLY with the
+   framework's DEFAULT in the slot — Step 4's marker grep shows the marker, next to a
+   value that looks answered — while the project's answer stays behind in the old file,
+   as a conflict there, or lost if that file comes over as METHOD. Edge case 7 would
+   keep the answer where it was: the opposite of the migration. So: (1) carry the
+   project's answer to its new home FIRST, by hand; (2) only then bring the old file over
+   as its class says; (3) check EVERY way of reaching the answer — the `make` target, its
+   unattended form (`YES=1`), the script run directly, the docs that name the command —
+   not only the one you edited. The *Upgrading* note of the release that moved the slot
+   names both places (Step 2).
 
 > **Outside the upgrade payload.** `LICENSE`, `CONTRIBUTING.md`, `CHANGELOG.md` are
 > files of the FRAMEWORK REPO (not copied into the project, step 1): do not push them
