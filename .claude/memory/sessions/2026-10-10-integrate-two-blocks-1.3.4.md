@@ -2,7 +2,7 @@
 date: 2026-10-10
 task: v1.3.4 — the /integrate block in two parts, the push after the checks (IMP-069), and the tag's signature verified when tags are signed (IMP-066); the reconciliation after v1.3.3 and the cycle's plan
 branch: fix/integrate-two-blocks-1.3.4
-status: in-progress
+status: completed
 model: 'claude-opus-5-5'
 turns: 1
 tags: [session, integrate, git, imp, plan]
@@ -99,9 +99,9 @@ documentation → the client project's upgrade, as the acceptance test → the n
 - [x] 1. The reconciliation after v1.3.3, the user's decisions, the cycle's plan, this plan — commit: c0b131a
 - [x] 2. Record IMP-069 (approved, applied in this release): the `/integrate` block is copied whole, so the pause before the push does not happen — commit: a4ca575
 - [x] 3. `/integrate` prints two blocks — local work ending with the checks, then the publication — with `git tag -v` only when tags are signed (IMP-066); `docs/04` and `docs/00` aligned — commit: ca47c4d
-- [x] 4. ONE reviewer + fixes — commit: (this one)
-- [ ] 5. `/checkpoint` — commit: —
-- [ ] 6. `/integrate`: the CHANGELOG 1.3.4 entry; the block printed in the new format — commit: —
+- [x] 4. ONE reviewer + fixes — commit: 8adb1a9
+- [x] 5. `/checkpoint` — commit: (this one)
+- [x] 6. `/integrate`: the CHANGELOG 1.3.4 entry; the blocks printed in the new format — commit: the CHANGELOG commit (its own sha cannot be written in it)
 
 ## Rehearsals (task 3) — throwaway repositories under `/tmp`, no push
 - Block 1 as printed, on a bare `file://` remote seeded by a bare clone (no push at all):
@@ -132,4 +132,31 @@ removed by it (its `rm` was refused); it is left for the user.
 | F10 — "the tag is TYPED by hand" against a block pasted whole | LOW | FIXED in `docs/04`: pure ASCII, printed so by the agent |
 | F11 — `git log` may open a pager mid-paste | INFO | FIXED: `git --no-pager log` |
 | F12, F13, F14 — the CHANGELOG draft (the signature under Fixed, the upgrade note, the preamble); the note's sha and rehearsals; the checklist's wording | INFO | FIXED |
+
+## Done
+- `c0b131a` the reconciliation after v1.3.3, the decisions, the cycle's plan, the briefs
+  for v1.4.0 and v1.5.0; `a4ca575` IMP-069 recorded; `ca47c4d` `/integrate` in two
+  blocks with the signature check, `docs/04` and `docs/00`; `8adb1a9` the review
+  applied; this checkpoint (IMP-066 and IMP-069 Applied); the CHANGELOG 1.3.4 entry at
+  `/integrate`, whose blocks are printed in the new format.
+- No script, hook or settings change: `make test-scripts` green, five of five.
+- Edits to `.claude/` went through shell one-offs (Python), as in v1.3.3.
+
+## Retro
+Candidate lessons — offered, not recorded (the user listed this block's IMPs):
+- **The failure paths of a user-facing sequence went untested twice in a row.** v1.3.3's
+  hooks restore (a subdirectory, a failed copy) and v1.3.4's block 1 (a rebase conflict
+  before the tag) passed their happy-path rehearsal and failed on the first failure the
+  reviewer tried. A rehearsal of a block meant to be pasted whole includes at least one
+  failing step, in the user's shell with its default options.
+- **A copyable block is rehearsed in the shell that will receive it.** For months every
+  comment line of the printed blocks raised `command not found: #` in the user's zsh;
+  nothing in the method rehearses a block in `zsh -f -i`.
+
+## Follow-up
+- `/integrate`: v1.3.4, a PATCH as the user decided; merge, tag and push are the user's.
+- Left for the user: the reviewer's scratch directory under `/tmp` (its own `rm` was
+  refused; not removed on its behalf); the merged local branch `feat/english-translation`.
+- Next: v1.4.0, per the brief recorded above; its first commit records the multi-platform
+  IMP.
 

@@ -869,23 +869,6 @@ tags: [improvement]
 - Expected benefit / risk: the checkpoints guard what they claim to. Risk: more prompts in
   auto mode.
 
-### IMP-066 — `/integrate` verifies the tag's signature only when signing is configured
-- Date: 2026-10-07 | Origin: [[2026-10-07-guard-agent-only-fail-closed]] — the framework's
-  release tags are annotated but not signed, and GitHub shows them as Unverified (user
-  observation)
-- Priority: LOW (user decision, 2026-10-07).
-- Observed problem: step 4 of `/integrate` checks that the tag exists and is sound
-  (`git rev-parse`), never its signature; `docs/04` requires annotated tags and says
-  nothing about signing, so a project that signs its releases gets no check, and one that
-  does not cannot tell "unsigned" from "badly signed".
-- Proposal: NOT decided here (retro). Direction: in `/integrate`, step 3 creates the tag
-  with `-s` and step 4 adds `git tag -v <tag>` ONLY when the setup configured signing;
-  signing stays optional (agnosticism). How the setup declares it — a
-  `[TO BE DEFINED AT SETUP]` slot, or git's own `tag.gpgSign` — is part of the decision
-  (a new slot carries IMP-050 point 4's upgrade cost).
-- Expected benefit / risk: verifiable releases where a project wants them. Risk: a check
-  that fails on machines without the signing key — it must run on the releasing machine.
-
 ### IMP-067 — The framework in headless mode (`claude -p`, CI) and via the Claude Agent SDK
 - Date: 2026-10-09 | Origin: [[2026-10-09-quick-fixes-1.3.2]] — user request; evidence
   from phase 1 of [[2026-09-27-imp-054-055-agent-git-boundary]]
@@ -933,26 +916,6 @@ tags: [improvement]
 - Expected benefit / risk: a gap breaks a check in the release that opens it, not a
   project's upgrade months later. Risk: one check per list to maintain — only the lists
   that CLAIM completeness are in scope.
-
-### IMP-069 — The `/integrate` block is copied whole: the pause before the push does not happen
-- Date: 2026-10-10 | Origin: [[2026-10-10-integrate-two-blocks-1.3.4]] — the user's report on the integration
-  of v1.3.2 and v1.3.3
-- Status: APPROVED on 2026-10-10 (the user's proposal, below), applied in v1.3.4 together
-  with IMP-066.
-- Observed problem: in v1.3.2 and in v1.3.3 the user pasted steps 1-5 of the block in one
-  go: the checks of step 4 were printed AFTER the push had already started, and
-  `git tag -v` was not run at all. The block asked to "verify BEFORE the push" in a
-  comment. A pause written as a comment inside a copyable block is not a pause.
-- Proposal: `/integrate` prints TWO separate blocks. Block 1: rebase, merge, tag, and the
-  checks — `git rev-parse` of the tag, `git log origin/<integration>..<integration>` with
-  the expected number of lines and, ONLY when tag signing is configured in the repository
-  or in the global config (`git config --get tag.gpgSign`), `git tag -v <tag>`. Block 2:
-  the push and the branch deletion, preceded by one line OUTSIDE the blocks — "copy only
-  after checking block 1's output: N lines expected, a valid signature". The procedure of
-  `docs/04` is aligned.
-- Expected benefit / risk: nothing is published before its checks have been read; a
-  signed tag is verified where tags are signed, and a project that does not sign sees no
-  check. Risk: one paste more.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
@@ -1553,6 +1516,60 @@ tags: [improvement]
   `node`, unparseable input) now blocks delegated agents only, never the main session;
   the guard's own verdict always stands. The upgrade order between the guard and
   `settings.json` no longer matters. Commits c65b22a, b8997aa.
+
+### IMP-066 — `/integrate` verifies the tag's signature only when signing is configured → applied on 2026-10-10, commits ca47c4d, 8adb1a9
+- Date: 2026-10-07 | Origin: [[2026-10-07-guard-agent-only-fail-closed]] — the framework's
+  release tags are annotated but not signed, and GitHub shows them as Unverified (user
+  observation)
+- Priority: LOW (user decision, 2026-10-07).
+- Observed problem: step 4 of `/integrate` checks that the tag exists and is sound
+  (`git rev-parse`), never its signature; `docs/04` requires annotated tags and says
+  nothing about signing, so a project that signs its releases gets no check, and one that
+  does not cannot tell "unsigned" from "badly signed".
+- Proposal: NOT decided here (retro). Direction: in `/integrate`, step 3 creates the tag
+  with `-s` and step 4 adds `git tag -v <tag>` ONLY when the setup configured signing;
+  signing stays optional (agnosticism). How the setup declares it — a
+  `[TO BE DEFINED AT SETUP]` slot, or git's own `tag.gpgSign` — is part of the decision
+  (a new slot carries IMP-050 point 4's upgrade cost).
+- Expected benefit / risk: verifiable releases where a project wants them. Risk: a check
+  that fails on machines without the signing key — it must run on the releasing machine.
+- Applied in v1.3.4 ([[2026-10-10-integrate-two-blocks-1.3.4]]), covered by IMP-069's two blocks, as the user
+  decided. The choice the entry left open: git's own `tag.gpgSign` (the repository's
+  config or the global one, read with `git config --type=bool --get`), NO new setup
+  slot. `git tag -a` stays as it is — with `tag.gpgSign` true it signs by itself — and
+  block 1 adds `git tag -v <tag> && echo "signature: OK"`: the marker rests on the exit
+  code, whatever language gpg answers in. Signing stays optional: a project that does
+  not sign sees no check. `docs/04` (*Tag and push hygiene*) carries the rule.
+
+### IMP-069 — The `/integrate` block is copied whole: the pause before the push does not happen → applied on 2026-10-10, commits ca47c4d, 8adb1a9
+- Date: 2026-10-10 | Origin: [[2026-10-10-integrate-two-blocks-1.3.4]] — the user's report on the integration
+  of v1.3.2 and v1.3.3
+- Status: APPROVED on 2026-10-10 (the user's proposal, below) and applied in v1.3.4,
+  together with IMP-066.
+- Observed problem: in v1.3.2 and in v1.3.3 the user pasted steps 1-5 of the block in one
+  go: the checks of step 4 were printed AFTER the push had already started, and
+  `git tag -v` was not run at all. The block asked to "verify BEFORE the push" in a
+  comment. A pause written as a comment inside a copyable block is not a pause.
+- Proposal: `/integrate` prints TWO separate blocks. Block 1: rebase, merge, tag, and the
+  checks — `git rev-parse` of the tag, `git log origin/<integration>..<integration>` with
+  the expected number of lines and, ONLY when tag signing is configured in the repository
+  or in the global config (`git config --get tag.gpgSign`), `git tag -v <tag>`. Block 2:
+  the push and the branch deletion, preceded by one line OUTSIDE the blocks — "copy only
+  after checking block 1's output: N lines expected, a valid signature". The procedure of
+  `docs/04` is aligned.
+- Expected benefit / risk: nothing is published before its checks have been read; a
+  signed tag is verified where tags are signed, and a project that does not sign sees no
+  check. Risk: one paste more.
+- Applied (v1.3.4): `/integrate` prints block 1 (local: rebase, merge, tag, then the
+  checks) and block 2 (the publication), with one line between them naming what block 1
+  must have printed; `docs/04` rule 4 of *Execution boundary and blocks for the user*.
+  The review (one reviewer) added what pasting whole requires: block 1's constructive
+  lines are one `&&` chain (the loose lines tagged the wrong commit after a rebase
+  conflict — reproduced); each check prints a fixed line (`tag on <integration>: OK`,
+  `count: OK (N)`, `signature: OK`); no comment line inside a block (a `#` at a zsh
+  prompt with default options is a command — the user's own zsh has
+  `interactivecomments` off); block 2 is one `git push --atomic` of the branch and the
+  tag, then `git branch -d`.
 
 ## Deferred (not rejected — resumed at the right time)
 
