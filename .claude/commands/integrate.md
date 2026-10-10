@@ -1,14 +1,14 @@
 ---
-description: Generates the "READY FOR INTEGRATION" block — paste-ready commands for merge + tag, without running them
+description: Generates the "READY FOR INTEGRATION" blocks — paste-ready commands, merge + tag + checks then the push, without running them
 ---
-At the end of a deliverable, prepare the READY FOR INTEGRATION block for: $ARGUMENTS
+At the end of a deliverable, prepare the READY FOR INTEGRATION blocks for: $ARGUMENTS
 (if empty: for the current branch).
 
 Claude Code **does not push and does not merge** — that is a human action (see
 @.claude/docs/04-git-workflow.md). Here it COLLECTS the state with read-only commands
-and PRODUCES a block of exact commands, ready to paste. Run ONLY the read commands of
-steps 1-2 and the CHANGELOG update of step 3 (local commit); everything else must be
-PRINTED, not executed.
+and PRODUCES two blocks of exact commands, ready to paste. Run ONLY the read commands of
+steps 1-2, the CHANGELOG update of step 3 (local commit) and the read-only computations
+of step 4; everything else must be PRINTED, not executed.
 
 ## 1. Collect the state (read-only)
 - Current branch (feature): `git branch --show-current`.
@@ -31,7 +31,7 @@ Apply the *Versioning* rules of docs/04 to the branch's set of commits:
   breaking (`type!`/`BREAKING CHANGE:`)→MAJOR;
 - if there are only `refactor`/`perf`/`test`/`docs`/`build`/`ci`/`chore` or
   memory/doc-only commits → **no tag** (it is internal work, not a release: state it
-  explicitly in the block and omit the tag commands) — EXCEPT in a project whose
+  explicitly above the blocks and omit the tag commands) — EXCEPT in a project whose
   documentation is the product (docs/04, *Versioning*, "When the documentation IS the
   product"): there a change to the files it ships is a release, at least a PATCH,
   whatever the commit types, and only a change confined to its own memory or to files
@@ -48,64 +48,118 @@ If a `CHANGELOG.md` exists at the root (Keep a Changelog format):
 - otherwise: move the content of `## [Unreleased]` under a new entry
   `## [X.Y.Z] — YYYY-MM-DD` (version computed at step 2, today's date),
   integrating it with what emerges from the branch commits, and COMMIT on the feature
-  branch BEFORE printing the block: this way the changelog goes into the merge.
+  branch BEFORE printing the blocks: this way the changelog goes into the merge.
 
-## 4. Print the READY FOR INTEGRATION block
-A single copyable code block, with the placeholders already replaced by the real
-computed values. Do NOT run it:
+## 4. Print the READY FOR INTEGRATION blocks — two, never one
+Two copyable code blocks, with the placeholders replaced by the real computed values,
+and between them ONE line of plain text. Do NOT run them. They are two because a pause
+written as a comment inside a copyable block is not a pause: pasted whole, the push runs
+before anyone has read the checks. Block 1 touches only LOCAL history and ends with the
+checks; block 2 publishes (docs/04, "Execution boundary and blocks for the user").
+
+How the blocks are written, because they are pasted whole:
+- **No comment lines inside them.** In zsh with its default options a `#` at the prompt
+  is a command, not a comment (`command not found: #`), and inside a chain it breaks the
+  chain. Every explanation goes in the text around the blocks.
+- **The constructive lines are ONE chain** (each line ends with `&&`, which continues the
+  command in bash and zsh): after a failure — a rebase conflict, a refused checkout or
+  merge, a tag that already exists — nothing else runs, and no tag lands on the wrong
+  commit.
+- **Every check prints a fixed line when it passes** (`tag on <integration>: OK`,
+  `count: OK (<N>)`, `signature: OK`), whatever language git or gpg answer in; the
+  user looks for those lines, not for a reading of the output.
+
+First compute, read-only:
+- `N` = `git rev-list --count origin/<integration>..<feature>` + 1 (fallback without a
+  remote: `<integration>..<feature>`): the branch's commits plus the merge commit — what
+  `origin/<integration>..<integration>` holds after the merge;
+- the tag is free: `git rev-parse -q --verify refs/tags/v<X.Y.Z>` prints nothing. If it
+  prints a sha, the version is taken: if it is this deliverable's own tag, left by an
+  earlier paste of block 1 (it points at the `--no-ff` merge of `<feature>` on
+  `<integration>`), print only block 1's checks and block 2; otherwise STOP and report
+  it;
+- SIGNED = `git config --type=bool --get tag.gpgSign` prints `true` (the repository's
+  config or the global one). Then `git tag -a` signs the tag by itself, and block 1
+  verifies it. Otherwise leave out the signature line: signing stays optional, and a
+  project that does not sign sees no check.
+
+Block 1 — local only: the rebase, the merge (`--no-ff`, with a valid conventional type,
+never `merge:`), the annotated tag with the computed bump (its `-m` short and pure ASCII),
+then the checks — the tag on the integration tip, the signature (ONLY if SIGNED), the
+commits about to become public, their count:
 ```
-# 1. rebase the feature onto the updated integration branch (conflicts are resolved HERE)
-git checkout <feature>
-git fetch origin
-git rebase origin/<integration>
+git checkout <feature> &&
+git fetch origin &&
+git rebase origin/<integration> &&
+git checkout <integration> &&
+git merge --ff-only origin/<integration> &&
+git merge --no-ff <feature> -m "<type>(<scope>): merge <feature> into <integration>" &&
+git tag -a v<X.Y.Z> -m "v<X.Y.Z> - <deliverable summary>" &&
+echo "block 1: merged and tagged"
+test "$(git rev-parse 'v<X.Y.Z>^{commit}')" = "$(git rev-parse <integration>)" && echo "tag on <integration>: OK"
+git tag -v v<X.Y.Z> && echo "signature: OK"
+git --no-pager log --oneline origin/<integration>..<integration>
+test "$(git rev-list --count origin/<integration>..<integration>)" = <N> && echo "count: OK (<N>)"
+```
 
-# 2. bring the local integration branch level with the remote, then explicit non-fast-forward merge
-git checkout <integration>
-git merge --ff-only origin/<integration>
-git merge --no-ff <feature> -m "<type>(<scope>): merge <feature> into <integration>"
+Then the line, as plain text OUTSIDE any code block, with the real values:
 
-# 3. annotated tag with the computed bump   (if "no tag": omit this step)
-#    type the -m by hand, short and pure ASCII (no pasted em-dashes/accents)
-git tag -a v<X.Y.Z> -m "v<X.Y.Z> - <deliverable summary>"
+> Copy block 2 only if block 1 printed `block 1: merged and tagged`, `tag on <integration>:
+> OK`, `count: OK (<N>)` and `signature: OK` (the last only if SIGNED). If any is
+> missing, do not publish: repair what failed, then run `/integrate` again — it
+> recomputes the blocks.
 
-# 4. verify BEFORE the push: the tag exists and is sound, and you publish only the expected commits
-git rev-parse v<X.Y.Z>
-git log --oneline origin/<integration>..<integration>
-
-# 5. explicit push of branch and tag (YOU run it: it is the human action)
-git push origin <integration>
-git push origin v<X.Y.Z>
-
-# 6. delete the now-merged feature branch (safe: -d, never -D)
+Block 2 — publication, YOU run it: the branch and the tag in ONE atomic push — the remote
+takes both or neither, so a tag never goes public on a commit the remote branch lacks —
+then, only after the push succeeded, the safe deletion (`-d`, never `-D`) of the merged
+feature branch:
+```
+git push --atomic origin <integration> v<X.Y.Z> &&
 git branch -d <feature>
 ```
 
-If (and ONLY if) `git rev-parse v<X.Y.Z>` fails — corrupted tag, typically from a
-copy-paste — ALSO print this recovery block, SEPARATE from the one above
-(docs/04, "Execution boundary and blocks for the user"): never `tag -d` on a sound tag.
+With "no tag": block 1 without the `git tag -a` line, its marker `block 1: merged`, and
+neither the tag nor the signature check; block 2 `git push origin <integration> &&
+git branch -d <feature>`; the line names the marker and the count.
+
+If (and ONLY if) the tag exists but `tag on <integration>: OK` did not appear — a tag
+left by an earlier, failed paste — ALSO print this recovery block, SEPARATE from the ones
+above (docs/04, "Execution boundary and blocks for the user"): never `tag -d` on a sound
+tag.
 ```
-# ONLY if 'git rev-parse v<X.Y.Z>' failed at step 4:
 git tag -d v<X.Y.Z>
-# then recreate the tag by typing it by hand (step 3) and re-verify (step 4)
 ```
+Then repair what failed and run `/integrate` again. If `signature: OK` does not appear,
+the tag is not published either: find out why first — an SSH signature, for one,
+verifies only with `gpg.ssh.allowedSignersFile` configured.
 
 ## 5. Final verification (print it as a checklist)
 - the merge commit header is within the commit-linter limit: **100 characters**
   (conventional default, not overridden in `commitlint.config.cjs`);
 - the merge commit type is a valid type (`feat`/`fix`/...), NEVER `merge:`;
-- the tag version is consistent with the computed bump and with `git describe`;
+- the tag version is consistent with the computed bump and with `git describe`, and
+  the tag is free;
 - the git arguments use **normal spaces** and ASCII hyphens: no non-breaking/unicode
   spaces nor "long" dashes copied from an editor — a `--no-ff` with a wrong character
   fails obscurely;
-- the block contains the two PRE-push checks: `git rev-parse` of the tag and
-  `git log origin/<integration>..<integration>` (what becomes public);
+- no comment line inside the blocks; block 1's constructive lines form one `&&` chain
+  ending with its marker;
+- block 1 is local only and ends with the checks: the tag on the integration tip, the
+  signature only when SIGNED, the log of `origin/<integration>..<integration>` (what
+  becomes public) and its count against `N`, each printing its fixed line;
+- block 2 holds only the atomic push and the branch deletion, and the line before it,
+  outside the blocks, names every line block 1 must have printed;
 - every destructive command (e.g. `tag -d`) is in a SEPARATE block with its
   condition, never inline (docs/04, "Execution boundary and blocks for the user").
 
 ## Release variant (1.0.0 and post-1.0)
-For the `<integration>`→`<stable>` promotion the sequence is the same but on the
-stable branch, and the tag (`v1.0.0` or the MAJOR/MINOR/PATCH bump) goes on
-`<stable>` after the release merge — see *Versioning* in docs/04.
+For the `<integration>`→`<stable>` promotion the two blocks are the same, on the stable
+branch: block 1 checks out `<stable>`, fetches, merges `--ff-only origin/<stable>` and
+then `--no-ff <integration>`, and tags (`v1.0.0` or the MAJOR/MINOR/PATCH bump) on
+`<stable>` — see *Versioning* in docs/04; its checks look at `<stable>`, with `N` =
+`git rev-list --count origin/<stable>..<integration>` + 1. Block 2 is
+`git push --atomic origin <stable> v<X.Y.Z>` alone: the integration branch is never
+deleted.
 
-Do NOT run push/merge/tag: the block is for the user. Once integration has happened,
+Do NOT run push/merge/tag: the blocks are for the user. Once integration has happened,
 the user can run `/checkpoint` to reconcile `STATE.md` and the active branches.

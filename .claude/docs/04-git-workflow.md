@@ -99,7 +99,7 @@ if they touch logic, it STOPS and asks the user, showing both versions.
 Versions are **annotated git tags** (`git tag -a vX.Y.Z -m "..."`), never lightweight
 tags: an annotated tag carries author, date and message. (A precision about the
 rationale: `git describe` WITHOUT `--tags` considers annotated tags only; the
-`/integrate` block uses `git describe --tags`, which also accepts lightweight tags —
+`/integrate` command uses `git describe --tags`, which also accepts lightweight tags —
 inherited, for instance, from a graft onto an existing repo — and for that reason it
 VERIFIES that the base is a sane SemVer tag before computing the bump.) SemVer format
 `vX.Y.Z`.
@@ -173,15 +173,20 @@ on WHICH BRANCH the tag lives:
 > tag on the working line, post-1.0 on the released line.
 
 **Tag and push hygiene (for the user who runs the commands).**
-- The tag is TYPED by hand, with a single short `-m` in pure ASCII: em dashes,
-  accents and non-breaking spaces copied from an editor corrupt the command in
-  obscure ways.
-- Before pushing a tag: ALWAYS verify it with `git rev-parse <tag>`. `git tag -d` is
-  used ONLY if that verification fails — never on a healthy tag, and never inline
+- The tag's `-m` is a single short message in pure ASCII — the agent prints it so,
+  and whoever retypes or edits it keeps it so: em dashes, accents and non-breaking
+  spaces copied from an editor corrupt the command in obscure ways.
+- Before pushing a tag: ALWAYS verify that it points at the commit meant —
+  `git rev-parse '<tag>^{commit}'` equals the tip of the branch just merged. `git tag -d`
+  is used ONLY if that verification fails — never on a healthy tag, and never inline
   with the constructive commands (see "Execution boundary").
+- Where the repository signs its tags (`tag.gpgSign` true, in its config or the global
+  one), verify the signature too, `git tag -v <tag>`, and never publish a tag whose
+  signature does not verify. Signing stays optional: a project that does not sign has no
+  such check. (An SSH signature verifies only with `gpg.ssh.allowedSignersFile` set.)
 - Before every push to a shared branch: `git log origin/<branch>..<branch>` to see
-  EXACTLY what you are about to make public — a push drags ALL local commits along,
-  not only the last one.
+  EXACTLY what you are about to make public, and its count against the expected one —
+  a push drags ALL local commits along, not only the last one.
 
 ## Rollback — choosing the right tool
 
@@ -208,10 +213,11 @@ on WHICH BRANCH the tag lives:
 - Tags and releases: only the user decides when; Claude Code prepares (changelog from
   the conventional commits, version bump per *Versioning*, the annotated tag already
   written) and asks for confirmation.
-- Integration block: at the end of a deliverable, `/integrate` produces the sequence
-  of merge + tag commands ready to paste (the next version computed from
-  `git describe` and the bump of *Versioning*). Claude Code PRINTS it, it does not
-  run it: push, merge and tag remain human actions.
+- Integration blocks: at the end of a deliverable, `/integrate` produces the merge +
+  tag commands ready to paste, in two blocks — the local merge, the tag and the checks,
+  then the publication (the next version computed from `git describe` and the bump of
+  *Versioning*). Claude Code PRINTS them, it does not run them: push, merge and tag
+  remain human actions.
 
 ## Execution boundary and blocks for the user
 
@@ -240,6 +246,19 @@ Rules for every command block meant for manual execution by the user:
    commands. They go in a SEPARATE block, preceded by the EXACT condition that
    justifies them ("only if `<command>` fails") — never executable out of inertia
    while scrolling through the sequence.
+4. **Publishing goes in a block of its own.** A sequence that ends by publishing is
+   printed as TWO blocks: the first does everything local and ends with the checks;
+   the second only publishes (the push, then the cleanup), introduced by one line
+   OUTSIDE the blocks that names what the checks must have printed — the expected
+   count, a valid signature where tags are signed. A pause written as a comment inside
+   a copyable block is not a pause: pasted whole, the push runs before anyone reads the
+   checks. And because blocks are pasted whole: the constructive lines of the first
+   form ONE `&&` chain, so nothing runs after a failure and no tag lands on the wrong
+   commit; each check prints a fixed line when it passes; no comment line sits inside
+   a block (in zsh's default configuration a `#` at the prompt is a command, and in a
+   chain it breaks the chain); a publication that moves several refs is atomic
+   (`git push --atomic`). A failure in the first block leaves only local state to
+   repair, and the missing lines show it before anything leaves the machine.
 
 ## Enforcement of the execution boundary
 

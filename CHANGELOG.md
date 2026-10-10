@@ -3,9 +3,50 @@
 The relevant changes to this repo, in the
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format; versions follow the
 SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
-(*Versioning*). It is updated inside `/integrate`, before the merge+tag block.
+(*Versioning*). It is updated inside `/integrate`, before the merge+tag blocks.
 
 ## [Unreleased]
+
+## [1.3.4] — 2026-10-10
+
+### Fixed
+- **`/integrate` prints two blocks, and the push comes after the checks** (IMP-069). The
+  single block asked to verify "BEFORE the push" in a comment; pasted whole — as happened
+  at 1.3.2 and 1.3.3 — it pushed before anyone had read the checks. Block 1 is local only
+  and ends with the checks; one line outside the blocks names what they must have
+  printed; block 2 holds only the publication. Because blocks are pasted whole:
+  - block 1's constructive lines (rebase, merge, tag) are ONE `&&` chain, so after a
+    failure nothing else runs — the old block tagged the wrong commit after a rebase
+    conflict (reproduced), and a later paste could publish that tag;
+  - the checks print fixed lines — `tag on <integration>: OK` (the tag on the commit just
+    merged), `count: OK (N)` (the commits about to be published), `signature: OK` —
+    whatever language git or gpg answer in;
+  - no comment line inside the blocks: in zsh with its default options a `#` at the
+    prompt is a command (`command not found: #`), and in a chain it breaks the chain;
+  - block 2 pushes the branch and the tag in one atomic push, then deletes the merged
+    feature branch: a refused branch push no longer lets the tag go public.
+  The release variant is spelled out, and never deletes the integration branch.
+  `docs/04` (*Execution boundary and blocks for the user*, rule 4) states the rule for
+  every block that ends by publishing; `docs/00` describes the step accordingly.
+- **The tag's signature is verified where tags are signed** (IMP-066). When `tag.gpgSign`
+  is true in the repository's or the global config, block 1 runs `git tag -v`. Signing
+  stays optional: a project that does not sign sees no check. `docs/04` (*Tag and push
+  hygiene*) adds it, checks the tag against the merged tip rather than its mere
+  existence, and asks for a pure-ASCII `-m` printed so by the agent instead of a tag
+  "typed by hand".
+
+### Added
+- IMP-069, recorded and applied in this release; IMP-066 applied.
+
+**Upgrading from 1.3.3** (from an earlier release, also follow the entries in between —
+Step 2 of the upgrade says how they combine):
+- METHOD files — bring them over from the tag, after the pre-flight of edge case 7 (both
+  carry setup slots): `.claude/docs/00-overview.md`, `.claude/docs/04-git-workflow.md`.
+- `.claude/commands/integrate.md` (HYBRID, customised at setup, 3-way): the header and
+  step 2 speak of "blocks"; steps 4 and 5 and the release variant are rewritten. Keep
+  your integration and stable branch names in the merged text.
+- No script, hook or settings change: no `make hooks-install` is needed from 1.3.3;
+  `make test-scripts` as usual.
 
 ## [1.3.3] — 2026-10-10
 
