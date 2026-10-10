@@ -29,9 +29,9 @@ tags: [session, upgrade, tools, imp, plan]
 - [x] 5. `inventory`: the per-file triage and measurement, the edge-case flags, the marker delta and the §2 checklist diff, the *Upgrading* notes in order — commit: 75e7fb4
 - [x] 6. `invariant`: the closed list of allowed touches on `.claude/memory/`, the LEARNINGS body normalised (titles, labels, format comments) — commit: d32ef1a
 - [x] 7. `post`: METHOD files and modes at `vY`, orphans, markers, hooks; the read-only proof — commit: b057262
-- [x] 8. The trial, read-only, on the client project's three real upgrades; what it finds is fixed — commit: 350f6eb
-- [x] 9. `SETUP.md` (the box, the classes, the Precondition, Steps 0-6, edge case 3) and rule 9 (titles AND field labels) — commit: (this one)
-- [ ] 10. ONE reviewer + fixes — commit: —
+- [x] 8. The trial, read-only, on the client project's three real upgrades; what it finds is fixed — commit: 37fbc22
+- [x] 9. `SETUP.md` (the box, the classes, the Precondition, Steps 0-6, edge case 3) and rule 9 (titles AND field labels) — commit: 5648df0
+- [x] 10. ONE reviewer + fixes — commit: (this one)
 - [ ] 11. `/checkpoint` — commit: —
 - [ ] 12. `/integrate`: the CHANGELOG 1.4.0 entry; the two blocks — commit: —
 
@@ -138,4 +138,31 @@ the header region includes the frontmatter, whose `updated:` is the project's ow
 a VALUE, not the template. The script blanks that line in its header comparisons (it
 would otherwise report a template difference at every upgrade), and the procedure says
 the date stays the project's.
+
+## Review (task 10) — one reviewer, dispositions
+One independent reviewer over `def609d..bb47cda` and the CHANGELOG draft, about nineteen
+minutes; both repositories identical before and after. Verdict: not ready — two HIGH,
+seven MEDIUM, fifteen LOW. Both self-tests had passed: none of them could see these.
+
+| Finding | Severity | Disposition |
+| --- | --- | --- |
+| H1 — `labels_renamed`: `grep -q` on a pipe under `pipefail`; past the pipe's buffer `git show` dies of SIGPIPE (141), so for a `vY` from v1.3.0 on the label rename was never checked | HIGH | REPRODUCED under bash (141 at v1.3.4 and HEAD, 0 at v1.2.0). FIXED: the whole stream is read. RED then GREEN: the fixture's `vY` LEARNINGS now exceeds 128 KB, and `inventory` stopped asking for the rename on the old script |
+| H2 — the pointer check parsed `git diff` under the user's configuration: with `color.ui=always` or a `diff.external`, no line starts with `+`/`-`, every note edit passed | HIGH | REPRODUCED (10 lines plain, 0 with either setting). FIXED: every git call runs with colour off, no external diff, unquoted paths and the default conflict style; the self-test runs a violation under a hostile config |
+| M1 — the pointer check accepted any line carrying a pointer | MEDIUM | FIXED: per hunk, as many lines removed as added, each pair equal once the pointers are masked; a fact changed on a pointer line and a pointer line deleted now fail. Building the case found a second bug: an emptied line was not reported (an empty string is false in awk) — fixed |
+| M2 — STATE, TREE and INDEX were only INFO at Step 5 | MEDIUM | FIXED: before the checkpoint they too change only by pointer repairs and the renamed titles and labels; STATE overwritten by the template fails |
+| M3 — a project's own shortened title, renamed as SETUP says, failed the entries comparison | MEDIUM | FIXED: the titles become one placeholder in that comparison (the format check covers them); an entry moved across sections still fails |
+| M4 — a slot removed by `vY` made the "slot opened again" test fail falsely | MEDIUM | FIXED: compared against max(0, added) |
+| M5 — the restore point was never validated: HEAD made everything pass on nothing | MEDIUM | FIXED: an ancestor of HEAD, a payload that differs since, its pin read vX (a CHECK otherwise); Step 1 records its sha in the session note |
+| M6 — `post` showed a file left at vX like a reconciled one | MEDIUM | FIXED: a METHOD, TEMPLATE or HYBRID file still at `vX` when `vY` changed it fails |
+| M7 — the note named a branch of the client project, revealing its domain, in a commit not yet pushed | MEDIUM | FIXED in history: the local feature branch was rebased to make the sentence generic in the commit that introduced it (task 8 is now `37fbc22`, task 9 `5648df0`); the published history never carried it |
+| L1-L3 — a bare FW; the copy that runs only a CHECK; T unchecked | LOW | FIXED: a bare FW has no working tree to run from; the wrong copy is a FAIL; T must be absolute and outside both repositories |
+| L4-L9 — comments matched anywhere; a half-renamed `\| Origine:`; the obsolete Applied format comment; edge case 6 on the live LEARNINGS; the §2 items cut at their first line; markers counted per line | LOW | FIXED |
+| L10, L14 — the header recipe's exit status; the format comment "by hand" against the decision | LOW | FIXED: the recipe chains `cat` and `awk`; the format comment is reconciled 3-way like the header, with a recipe rehearsed on a copy of the client's file (its rewording kept) |
+| L11 — conflict markers left by a merge | LOW | FIXED: `post` fails on them, the LEARNINGS header included |
+| L12, L13 — the read-only proof blind to the index, the config and the hooks, and to a run that died; missing cases | LOW | FIXED: fingerprints of the three, each run's summary line asserted; the cases added (an entry deleted, added, moved; a hostile config; a large `vY`) |
+| L15 — IMP-070 without a `Proposal:` label | LOW | FIXED |
+| I1-I4 — non-ASCII paths quoted; a CRLF pin; renames over the live notes; a long line, CASE A's class list | INFO | FIXED |
+
+After the fixes, the trial was run again on two of the client's upgrades: the same
+verdicts, with one more CHECK where it belongs (the restore point's pin lacks its `v`).
 

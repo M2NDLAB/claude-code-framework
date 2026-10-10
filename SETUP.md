@@ -261,7 +261,8 @@ The existence of the directory alone is NOT enough to decide: look at what it co
   template over it — that is the project's memory. Resume from `STATE.md`; if you want
   to update the framework to a more recent version, **follow the dedicated procedure
   *«Upgrading the framework on an already-grafted project»*** at the end of this guide
-  — file-by-file reconciliation by class (method / project memory / hybrids), with the
+  — file-by-file reconciliation by class (method, hybrids, memory templates, project
+  memory), with the
   differences declared to the user. (If the provenance pin
   `.claude/framework-version` is missing, do not create it by hand here: it arrives
   from the retrofit at the close of the upgrade, Step 6.)
@@ -405,8 +406,9 @@ makes the framework's own self-test fail:
   `new-component.md`).
 - **MEMORY TEMPLATES** (the method's own files inside `.claude/memory/`, reconciled 3-way
   like the hybrids): the four guide READMEs — the `README.md` of `components/`,
-  `decisions/`, `plans/` and `sessions/` — and the HEADER of `LEARNINGS.md`, its lines
-  before the first `## `, with its format comment. A project may have customised them
+  `decisions/`, `plans/` and `sessions/` — and, of `LEARNINGS.md`, its HEADER (the lines
+  before the first `## `) and its format comment, which sits further down, in the body.
+  A project may have customised them
   (the slot of `decisions/README.md` answered, a block pruned, a paragraph of its own in
   the header): the 3-way keeps that, an overwrite would not.
 - **PROJECT-MEMORY** (stays UNTOUCHED): `.claude/memory/STATE.md`, `TREE.md`,
@@ -547,7 +549,9 @@ Determine `vX` like this, in order of preference:
 
 From the integration branch with a clean working tree:
 `git checkout -b chore/framework-upgrade-vX-to-vY`. The pre-upgrade HEAD is the restore
-point: **the memory lives in git, so the safety commit IS already the backup**
+point — write its sha (`git rev-parse HEAD`, before the branch's first commit) in the
+upgrade's session note: Step 5's `invariant` checks the memory against it. **The memory
+lives in git, so the safety commit IS already the backup**
 (selective restore with `git checkout <pre-upgrade-sha> -- .claude/memory/`). The whole
 upgrade is a throwaway unit — if it goes wrong, the branch is deleted (see *Rollback*
 in `docs/04`). No extra copy of the memory outside the tree is needed.
@@ -693,13 +697,36 @@ from a hand-written list; the memory's titles and field labels to rename; and th
   project's own date — then put it back in front of the project's entries:
 
   ```bash
-  { cat "${T:?}/lrn.mine"; awk '/^## /{b=1} b' .claude/memory/LEARNINGS.md; } > "${T:?}/lrn.new" \
+  cat "${T:?}/lrn.mine" > "${T:?}/lrn.new" \
+    && awk '/^## /{b=1} b' .claude/memory/LEARNINGS.md >> "${T:?}/lrn.new" \
     && cp "${T:?}/lrn.new" .claude/memory/LEARNINGS.md
   ```
 
-  Its format comment, inside the body, takes `vY`'s text by hand: `invariant` compares it
-  with `vY`'s. Commit the templates apart, declared:
-  `docs(memory): bring the memory templates to vY`.
+  Its format comment, further down in the body, is reconciled the same way, so a
+  project's own rewording survives; a project grafted before v1.1.0 loses its second,
+  obsolete comment block (the format of the Applied entries), which `vY` no longer has:
+
+  ```bash
+  lrn_comments() { awk '/^<!--/{c=1} c{print} /-->[[:space:]]*$/{c=0}' "$1"; }
+  lrn_comments "${T:?}/lrn.vx" > "${T:?}/fmt.base" \
+    && lrn_comments "${T:?}/lrn.vy" > "${T:?}/fmt.theirs" \
+    && lrn_comments .claude/memory/LEARNINGS.md > "${T:?}/fmt.mine" \
+    && git merge-file "${T:?}/fmt.mine" "${T:?}/fmt.base" "${T:?}/fmt.theirs"
+  ```
+
+  Resolve its conflicts in `"$T/fmt.mine"`, then put it in place of the file's comment
+  blocks:
+
+  ```bash
+  awk -v merged="${T:?}/fmt.mine" '
+    /^<!--/ { c = 1; if (!done) { while ((getline l < merged) > 0) print l; done = 1 } }
+    !c { print }
+    /-->[[:space:]]*$/ { c = 0 }' .claude/memory/LEARNINGS.md > "${T:?}/lrn.fmt" \
+    && cp "${T:?}/lrn.fmt" .claude/memory/LEARNINGS.md
+  ```
+
+  `invariant` compares the result with `vY`'s format and shows a difference for a human.
+  Commit the templates apart, declared: `docs(memory): bring the memory templates to vY`.
 - **The guard and `settings.json`: no order to respect** (from v1.3.1; v1.3.0 required
   the guard first). The merged settings wire the guard and Claude Code reloads them at
   once; until `scripts/agent-git-guard.mjs` is in place, only DELEGATED agents are blocked
@@ -764,8 +791,9 @@ The slots `vY` added, removed or MOVED are in `inventory`'s *Markers* section, a
 or re-worded item of the §2 checklist in the next one: both derived from the tags. Then
 `grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" .` lists every marker still in
 the project, to be filled in with the project's answers (reuse the dialogue of step 2
-of this guide); a slot that moved to another file is edge case 8. The dual-form grep matters here: a project grafted before the
-English marker existed still carries the Italian one.
+of this guide); a slot that moved to another file is edge case 8. The dual-form grep
+matters here: a project grafted before the English marker existed still carries the
+Italian one.
 
 ### Step 5 — Verify before finalising
 
@@ -856,9 +884,14 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
      Each printed line is a `vY` title the project lacks: find its old form — the table
      below, or a project's own shortened form — and rename that line. Nothing printed =
      nothing to rename. For the labels, when `vY`'s format comment uses the new ones,
-     `grep -nE '^- (Data|Origine|Problema osservato|Proposta|Beneficio atteso / rischio|Trigger di ripresa|Destinazione):' .claude/memory/LEARNINGS.md`
-     lists the lines still in the old form (outside the format comment): rename the label,
-     never the text after it. ONLY the title and label lines: the content is never
+     this lists the lines still in the old form (ignore the ones inside the format
+     comment, which Step 3 reconciles):
+
+     ```bash
+     grep -nE '^- (Data|Origine|Problema osservato|Proposta|Beneficio atteso / rischio|Trigger di ripresa|Destinazione):|\| Origine:' .claude/memory/LEARNINGS.md
+     ```
+
+     Rename the label, never the text after it. ONLY the title and label lines: the content is never
      touched and keeps its language. If the project's own code or tests cite the old
      titles (grep for them), update them in the same commit as the rename — the declared
      `docs(memory)` commit below — so that no commit leaves the project's tests red: that

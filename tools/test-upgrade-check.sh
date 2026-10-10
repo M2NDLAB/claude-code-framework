@@ -15,16 +15,21 @@
 #      cases (7, 1, 6, a mode), a slot that moved (edge case 8), the §2 diff, the titles
 #      and labels to rename, the Upgrading notes in release order.
 #   4. invariant — an upgrade that touched the memory only as allowed passes (templates at
-#      vY, titles and labels renamed, a pointer repaired, its own note and plan added);
-#      each of eight violations fails: an edited IMP entry, an entry hidden in an extra
-#      comment, a note edited beyond its pointers, a note deleted, a title or a label left
-#      in the old form, a file added to components/, a slot the project had answered
-#      opened again.
+#      vY, titles and labels renamed, a pointer repaired, its own note, plan and decision
+#      added); each violation fails with exactly one FAIL: an IMP entry edited, deleted,
+#      added or moved across sections, an entry hidden in an extra comment, a note edited
+#      beyond its pointers (a fact on a pointer line, a pointer line deleted), a note
+#      deleted, STATE.md overwritten, a title or a label left in the old form, a file
+#      added to components/, a slot the project had answered opened again; the same holds
+#      under a hostile git configuration; a restore point after which nothing changed
+#      fails.
 #   5. post — a reconciled project passes, with the reconciled METHOD file and the moved
 #      slot shown to a human; an orphan, a wrong mode, a missing hook, a missing METHOD
-#      file and a marker broken by a wrap fail.
-#   6. read-only — the four subcommands leave the project and the framework exactly as
-#      they were (scripts/repo-snapshot.sh, plus the content of the tracked files).
+#      file, a METHOD file left at vX, conflict markers and a marker broken by a wrap
+#      fail.
+#   6. read-only — the four subcommands run to their end and leave the project and the
+#      framework exactly as they were (scripts/repo-snapshot.sh, the tracked files, the
+#      index, the config, the hooks).
 # Run it from anywhere: bash tools/test-upgrade-check.sh
 set -euo pipefail
 
@@ -126,6 +131,10 @@ put "${FWD}" .claude/docs/00-overview.md '# 00\nThe method, revised.\n'
 put "${FWD}" .claude/memory/sessions/README.md 'sessions, second version\nThe plan block of the framework repo.\n'
 put "${FWD}" .claude/memory/STATE.md '# STATE\n\n## Progress\n- template\n\n## Active branches\n- template\n'
 put "${FWD}" .claude/memory/LEARNINGS.md "# Learnings\nHeader, second version.\n\n## OPEN proposals (awaiting the user's decision)\n\n<!-- Format of a proposal:\n### IMP-001 — <title>\n- Date: YYYY-MM-DD | Origin: <session>\n- Observed problem: <...>\n-->\n\n## Applied\n\n## Deferred (not rejected — resumed at the right time)\n\n## Rejected (with the reason — so they are not re-proposed)\n"
+# The framework's own entries make its LEARNINGS.md large (over 128 KB at v1.3.4): a
+# reader that stops early, a grep -q under pipefail, fails only past the pipe's buffer.
+awk 'BEGIN { for (i = 1; i <= 3000; i++) printf "- the framework entry line %04d, long enough to fill a pipe buffer quickly.\n", i }' >> "${FWD}/.claude/memory/LEARNINGS.md"
+[ "$(wc -c < "${FWD}/.claude/memory/LEARNINGS.md")" -gt 131072 ] || fail "fixture: v1.1.0's LEARNINGS.md is not larger than 128 KB"
 rm "${FWD}/scripts/test-repo-snapshot.sh"
 put "${FWD}" SETUP.md '# SETUP\n## 2. Fill in the slots\n- [ ] CLAUDE.md: the stack\n- [ ] docs/04: the merge form\n- [ ] Makefile: PROTECTED_BRANCHES\n## 3. Hooks\n'
 put "${FWD}" CHANGELOG.md '# Changelog\n\n## [1.1.0] — 2026-01-03\n- The protected branches move to the Makefile.\n\n**Upgrading from 1.0.1**: move your protected branches to the Makefile first.\n\n## [1.0.1] — 2026-01-02\n- Rule B fixed.\n\n**Upgrading from 1.0.0**: CLAUDE.md, rule B.\n\n## [1.0.0] — 2026-01-01\n- First release.\n'
@@ -176,6 +185,18 @@ printf '%s\n' "${pin_good}" > "${PRJ}/.claude/framework-version"
 T="${T_DIR}" run 2 "${PRJ}" preflight v1.0.0 v1.1.0
 has "FW is not set"
 FW="${PRJ}" T="${T_DIR}" run 2 "${PRJ}" preflight v1.0.0 v1.1.0
+FW="${FWD}" T=relative-T run 2 "${PRJ}" preflight v1.0.0 v1.1.0
+has "must be an absolute path"
+mkdir -p "${PRJ}/scratch-T"
+FW="${FWD}" T="${PRJ}/scratch-T" run 2 "${PRJ}" preflight v1.0.0 v1.1.0
+has "is inside a repository"
+rmdir "${PRJ}/scratch-T"
+set +e
+( cd "${PRJ}" && FW="${FWD}" T="${T_DIR}" bash "${FWD}/tools/upgrade-check.sh" preflight v1.0.0 v1.1.0 ) >"${out}" 2>&1
+rc=$?
+set -e
+[ "${rc}" -eq 1 ] || fail "preflight run from the framework's working tree: exit ${rc}, expected 1"
+has "FAIL   this copy runs from the framework's working tree"
 echo "PASS (upgrade-check preflight): a sound pin passes; a malformed or foreign one fails with its correction; a tag is suggested, never applied."
 
 # --- Case 3: inventory ----------------------------------------------------------------
@@ -229,12 +250,17 @@ violate() {
 upgraded_state
 FW="${FWD}" T="${T_DIR}" run 0 "${PRJ}" invariant v1.0.0 v1.1.0 "${RESTORE}"
 has "OK     .claude/memory/sessions/README.md: the memory template at v1.1.0"
-has "OK     .claude/memory/sessions/2026-01-02-start.md: pointer repairs only"
+has "OK     .claude/memory/sessions/2026-01-02-start.md: unchanged but for pointer repairs"
+has "OK     .claude/memory/STATE.md: unchanged but for pointer repairs (edge case 3 (a)) and renamed titles or labels"
 has "OK     .claude/memory/sessions/2026-01-10-framework-upgrade.md: added"
 has "OK     the IMP entries are unchanged"
 has "OK     titles and field labels in v1.1.0's form"
 lrn="${PRJ}/.claude/memory/LEARNINGS.md"
 note="${PRJ}/.claude/memory/sessions/2026-01-02-start.md"
+# move_entry_to_applied: the project's entry IMP-001, moved from the OPEN section to Applied.
+move_entry_to_applied() {
+  awk '/^### IMP-001/ { m = 1 } m && /^$/ { m = 0 } m { e = e $0 "\n"; next } { print } /^## Applied$/ { printf "\n%s", e }' "${lrn}" > "${lrn}.tmp" && mv "${lrn}.tmp" "${lrn}"
+}
 # subst <file> <from> <to>: replace a literal text, in place, with no backup file left.
 subst() {
   F="$2" R="$3" awk '{ p = index($0, ENVIRON["F"]); if (p) $0 = substr($0, 1, p - 1) ENVIRON["R"] substr($0, p + length(ENVIRON["F"])); print }' "$1" > "$1.tmp" && mv "$1.tmp" "$1"
@@ -250,7 +276,7 @@ violate "an edited entry" "FAIL   the IMP entries changed" \
   subst "${lrn}" "do it once" "do it twice"
 violate "a hidden entry" "comment block(s)" \
   insert_before "${lrn}" "## Applied" "<!-- a note" "### IMP-002 — an entry hidden in a comment" "- Proposal: never seen" "-->" ""
-violate "a note's fact" "changed beyond the pointer repairs" \
+violate "a note's fact" "changed beyond pointer repairs" \
   subst "${note}" "A fact of the project." "Another fact."
 violate "a deleted note" "is deleted: an upgrade removes nothing" rm "${note}"
 violate "a title left" "still lacks v1.1.0's title '## Progress'" \
@@ -270,6 +296,30 @@ FW="${FWD}" T="${T_DIR}" run 0 "${PRJ}" invariant v1.0.0 v1.1.0 "${RESTORE}"
 has "OK     .claude/memory/decisions/2026-01-10-upgrade-choice.md: added — the upgrade's own decision record"
 has "CHECK  the body has 0 comment block(s), v1.1.0's format has 1"
 rm -f "${PRJ}/.claude/memory/decisions/2026-01-10-upgrade-choice.md"
+violate "STATE overwritten by vY's template" ".claude/memory/STATE.md: changed beyond pointer repairs" \
+  cp "${FWD}/.claude/memory/STATE.md" "${PRJ}/.claude/memory/STATE.md"
+violate "a fact changed on a pointer line" "changed beyond pointer repairs" \
+  subst "${note}" "docs/04-git-workflow.md#merge." "docs/04-git-workflow.md#merge, never again."
+violate "a pointer line deleted" "changed beyond pointer repairs" \
+  subst "${note}" "See [[STATE]] and docs/04-git-workflow.md#merge." ""
+violate "an entry deleted" "FAIL   the IMP entries changed" \
+  subst "${lrn}" "- Proposal: do it once" ""
+violate "an entry added at Step 5" "FAIL   the IMP entries changed" \
+  insert_before "${lrn}" "## Applied" "### IMP-002 — added during the upgrade" "- Proposal: belongs to the retro, after Step 5" ""
+violate "an entry moved to Applied" "FAIL   the IMP entries changed" \
+  move_entry_to_applied
+# A hostile git configuration (colour forced, an external diff) changes nothing.
+printf '[color]\n\tui = always\n[diff]\n\texternal = /usr/bin/true\n' > "${workdir}/hostile.gitconfig"
+upgraded_state
+subst "${note}" "A fact of the project." "Another fact."
+GIT_CONFIG_GLOBAL="${workdir}/hostile.gitconfig" FW="${FWD}" T="${T_DIR}" run 1 "${PRJ}" invariant v1.0.0 v1.1.0 "${RESTORE}"
+has "2026-01-02-start.md: changed beyond pointer repairs"
+# A restore point after which nothing changed passes on nothing: it fails.
+upgraded_state
+g -C "${PRJ}" stash push -q -u
+FW="${FWD}" T="${T_DIR}" run 1 "${PRJ}" invariant v1.0.0 v1.1.0 "${RESTORE}"
+has "nothing in the payload changed since"
+g -C "${PRJ}" stash pop -q
 # An entry written INSIDE the format comment keeps the count: a human must see it.
 upgraded_state
 subst "${lrn}" "- Observed problem: <...>" "- Observed problem: an entry hidden in the format comment"
@@ -278,7 +328,7 @@ has "CHECK  the format comment differs from v1.1.0's"
 has "an entry hidden in the format comment"
 upgraded_state
 [ -z "$(find "${PRJ}/.claude/memory" -name '*.tmp' -o -name '*.bak')" ] || fail "the test left backup files in the memory"
-echo "PASS (upgrade-check invariant): the allowed touches pass; eight violations of the closed list fail."
+echo "PASS (upgrade-check invariant): the allowed touches pass; every violation of the closed list fails, under any git configuration."
 
 # --- Case 5: post ---------------------------------------------------------------------
 reconciled_state() {
@@ -326,6 +376,10 @@ break_post "a missing hook" "pre-push missing or foreign" \
   rm "${hooks_dir}/pre-push"
 break_post "a missing METHOD file" ".claude/commands/sos.md (METHOD) is missing" \
   rm "${PRJ}/.claude/commands/sos.md"
+break_post "a METHOD file left at vX" "scripts/reset-task.sh (METHOD) is still v1.0.0's" \
+  eval 'g -C "${FWD}" show v1.0.0:scripts/reset-task.sh > "${PRJ}/scripts/reset-task.sh"'
+break_post "conflict markers left" "CLAUDE.md: conflict markers left by a merge" \
+  put "${PRJ}" CLAUDE.md '# Index\nStack: bash\n<<<<<<< CLAUDE.md\nRule A: the project own wording.\n=======\nRule A: the framework second wording.\n>>>>>>> theirs\nRule B: fixed in 1.0.1.\n'
 break_post "a broken marker" "a marker broken by a line wrap" \
   put "${PRJ}" CLAUDE.md '# Index\nStack: bash\nNew slot: [TO BE DEFINED AT\nRule B: fixed in 1.0.1.\n'
 reconciled_state
@@ -336,11 +390,16 @@ snapshot() {
   bash "${REPO_ROOT}/scripts/repo-snapshot.sh" "$1"
   g -C "$1" --no-optional-locks diff HEAD
   g -C "$1" --no-optional-locks status --porcelain
+  # What the snapshot does not see: an index refresh, a config write, the hooks.
+  cksum "$1/.git/index" "$1/.git/config" 2>/dev/null
+  ls -la "$1/.git/hooks"
 }
 snapshot "${PRJ}" > "${workdir}/prj.before"
 snapshot "${FWD}" > "${workdir}/fw.before"
 for sub in "preflight v1.0.0 v1.1.0" "inventory v1.0.0 v1.1.0" "invariant v1.0.0 v1.1.0 ${RESTORE}" "post v1.0.0 v1.1.0"; do
-  ( cd "${PRJ}" && FW="${FWD}" T="${T_DIR}" bash "${CHECK}" ${sub} ) >/dev/null 2>&1 || true
+  ( cd "${PRJ}" && FW="${FWD}" T="${T_DIR}" bash "${CHECK}" ${sub} ) >"${out}" 2>&1 || true
+  # Each subcommand ran to its end: a run that died early would prove nothing.
+  grep -q "^${sub%% *} v1.0.0 -> v1.1.0.*: [0-9]* FAIL, [0-9]* CHECK$" "${out}" || fail "read-only: ${sub%% *} did not run to its end"
 done
 snapshot "${PRJ}" | diff "${workdir}/prj.before" - >/dev/null || fail "read-only: the project changed"
 snapshot "${FWD}" | diff "${workdir}/fw.before" - >/dev/null || fail "read-only: the framework changed"

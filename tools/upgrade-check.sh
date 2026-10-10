@@ -57,8 +57,15 @@ finish() {
   exit 1
 }
 
+# Every git call reads a fixed format, whatever the user's configuration: no colour, no
+# external diff driver, paths unquoted. Without it, color.ui=always or a diff.external
+# (difftastic's documented setup) leaves no line starting with + or -, and a check that
+# parses a diff passes on nothing.
+readonly GIT_FIXED=(-c color.ui=false -c core.quotePath=false -c diff.external= -c merge.conflictStyle=merge)
 # Framework side: always by -C, so nothing ever resolves in the project.
-fw() { git -C "${FW}" "$@"; }
+fw() { git -C "${FW}" "${GIT_FIXED[@]}" "$@"; }
+# Project side: read-only, never refreshing the index.
+pg() { git --no-optional-locks "${GIT_FIXED[@]}" "$@"; }
 
 # classify <path>: the class of a payload file, named one by one outside the memory, so
 # that a file added to the payload has NO class until someone decides it (the self-test
@@ -118,7 +125,15 @@ require_tag() {
 
 require_t() {
   [ -n "${T:-}" ] || die "T is not set: a scratch directory outside both repositories (SETUP.md, Precondition)"
+  case "${T}" in /*) ;; *) die "T=${T} must be an absolute path" ;; esac
   [ -d "${T}" ] || die "T=${T} does not exist: create it first (mkdir -p)"
+  # The script writes only in T, so T must lie outside both repositories.
+  local t_real top
+  t_real="$(cd "${T}" && pwd -P)"
+  for top in "$(pwd -P)" "$(fw rev-parse --show-toplevel 2>/dev/null)"; do
+    [ -n "${top}" ] || continue
+    case "${t_real}/" in "${top}/"*) die "T=${T} is inside a repository (${top}): choose a directory outside both" ;; esac
+  done
   WORK="${T}/upgrade-check"
   mkdir -p "${WORK}" || die "cannot create ${WORK}"
 }
@@ -165,7 +180,7 @@ cmd_classes() {
 # missing. The pin is .claude/framework-version, read from the project's root.
 pin_field() {
   awk -v k="$1" 'index($0, k ":") == 1 {
-      v = substr($0, length(k) + 2); sub(/#.*/, "", v); gsub(/^[ \t]+|[ \t]+$/, "", v)
+      v = substr($0, length(k) + 2); sub(/#.*/, "", v); gsub(/\r/, "", v); gsub(/^[ \t]+|[ \t]+$/, "", v)
       print v; exit
     }' .claude/framework-version
 }
@@ -182,15 +197,19 @@ tags_on() {
 check_own_copy() {
   local vy="$1" self top
   self="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/$(basename "${BASH_SOURCE[0]}")"
-  top="$(fw rev-parse --show-toplevel)"
-  case "${self}" in
-    "${top}"/*) check "this copy runs from the framework's working tree (${self}): run the one extracted at ${vy} (SETUP.md, Precondition)" ;;
-  esac
+  # A bare FW has no working tree, hence nothing to run from by mistake.
+  top="$(fw rev-parse --show-toplevel 2>/dev/null)"
+  if [ -n "${top}" ]; then
+    case "${self}" in
+      "${top}"/*) fail "this copy runs from the framework's working tree (${self}): run the one extracted at ${vy} (SETUP.md, Precondition)" ;;
+    esac
+  fi
   if fw cat-file -e "${vy}:tools/upgrade-check.sh" 2>/dev/null; then
-    if fw show "${vy}:tools/upgrade-check.sh" | cmp -s - "${self}"; then
+    fw show "${vy}:tools/upgrade-check.sh" > "${WORK}/own-copy.vy"
+    if cmp -s "${WORK}/own-copy.vy" "${self}"; then
       ok "this copy of upgrade-check.sh is ${vy}'s"
     else
-      check "this copy of upgrade-check.sh differs from ${vy}'s: extract it again with git -C \"\$FW\" show ${vy}:tools/upgrade-check.sh"
+      fail "this copy of upgrade-check.sh is not ${vy}'s: extract it again with git -C \"\$FW\" show ${vy}:tools/upgrade-check.sh"
     fi
   else
     info "${vy} carries no tools/upgrade-check.sh: this copy is newer than the release it checks"
@@ -204,6 +223,7 @@ cmd_preflight() {
   require_project_root
   require_tag "${vx}"
   require_tag "${vy}"
+  require_t
 
   section "The framework, the project, this script"
   ok "FW is a repository root; the project's root is $(pwd -P); git 2.31 or later"
@@ -271,7 +291,7 @@ cmd_preflight() {
 
   section "The project's working tree"
   local dirty
-  dirty="$(git --no-optional-locks status --porcelain | wc -l | tr -d ' ')"
+  dirty="$(pg status --porcelain | wc -l | tr -d ' ')"
   if [ "${dirty}" -eq 0 ]; then
     ok "clean: the restore point of Step 1 is the current commit"
   else
@@ -294,6 +314,15 @@ tree_of() {
 # blob_at <tag> <path> / mode_at <tag> <path>: from the listing; empty when absent.
 blob_at() { awk -F'\t' -v p="$2" '$2 == p { split($1, a, " "); print a[3]; exit }' "$(tree_of "$1")"; }
 mode_at() { awk -F'\t' -v p="$2" '$2 == p { split($1, a, " "); print a[1]; exit }' "$(tree_of "$1")"; }
+# version_id <tag> <path>: what identifies a file's framework part at a tag — its blob, or
+# for LEARNINGS.md the hash of its header region (its entries change at every release).
+version_id() {
+  if [ "$2" = .claude/memory/LEARNINGS.md ]; then
+    fw show "$1:$2" 2>/dev/null | header_region /dev/stdin | git hash-object --stdin
+  else
+    blob_at "$1" "$2"
+  fi
+}
 # The releases after vX up to vY, oldest first.
 releases_between() { fw tag --list 'v*' --sort=v:refname --merged "$2" --no-merged "$1"; }
 # header_region <file>: the lines before the first "## " heading (LEARNINGS.md's template
@@ -307,14 +336,19 @@ conflict_lines() { awk '/^<<<<<<< /{f=1} f{c++} /^>>>>>>> /{f=0} END{print c+0}'
 # prose names the marker.
 marker_count() {
   if [ "$2" = .claude/memory/LEARNINGS.md ]; then
-    fw show "$1:$2" 2>/dev/null | header_region /dev/stdin | grep -cE "${MARKER_RE}"
+    fw show "$1:$2" 2>/dev/null | header_region /dev/stdin | grep -oE "${MARKER_RE}" | wc -l | tr -d ' '
   else
-    fw show "$1:$2" 2>/dev/null | grep -cE "${MARKER_RE}"
+    fw show "$1:$2" 2>/dev/null | grep -oE "${MARKER_RE}" | wc -l | tr -d ' '
   fi
 }
+# file_markers <file>: the slot markers of a project file, by occurrence.
+file_markers() { grep -oE "${MARKER_RE}" "$1" 2>/dev/null | wc -l | tr -d ' '; }
 # labels_renamed <tag>: whether the tag's LEARNINGS format uses the field labels of v1.1.0
 # on — before it, the old-form labels ARE the current form, and nothing is to rename.
-labels_renamed() { fw show "$1:.claude/memory/LEARNINGS.md" 2>/dev/null | grep -q '^- Date:'; }
+# It reads the whole stream: a grep -q stops at the first match, git show then dies of
+# SIGPIPE, and under pipefail the function answered "no" for any LEARNINGS.md larger than
+# the pipe's buffer — the framework's own, from v1.3.0 on.
+labels_renamed() { fw show "$1:.claude/memory/LEARNINGS.md" 2>/dev/null | grep '^- Date:' >/dev/null; }
 
 # The memory's FORMAT lines (CLAUDE.md, rule 9): what v1.1.0 translated, old form -> new.
 # One "old<TAB>new" pair per line; the short forms are those seen in projects.
@@ -370,7 +404,7 @@ normalise_format() {
 
 # old_labels <file>: the lines that still carry an old-form label, outside comments.
 old_labels() {
-  awk '/<!--/{c=1} !c && /^- (Data|Origine|Problema osservato|Proposta|Beneficio atteso \/ rischio|Trigger di ripresa|Destinazione):/{n++} /-->/{c=0} END{print n+0}' "$1"
+  awk '/^<!--/{c=1} !c && (/^- (Data|Origine|Problema osservato|Proposta|Beneficio atteso \/ rischio|Trigger di ripresa|Destinazione):/ || /^- Date: .*\| Origine:/) {n++} /-->[[:space:]]*$/{c=0} END{print n+0}' "$1"
 }
 
 # missing_titles <tag> <memory file>: vY's "## " titles the project's file lacks.
@@ -415,7 +449,7 @@ cmd_inventory() {
       mine="${d}/lrn.mine"; base="${d}/lrn.base"; theirs="${d}/lrn.theirs"
     else
       if [ -f "${path}" ]; then
-        bp="$(git hash-object -- "${path}")"
+        bp="$(pg hash-object -- "${path}")"
         if [ "${bp}" = "${by}" ]; then prj="=vY"; elif [ "${bp}" = "${bx}" ]; then prj="=vX"; else prj=diverged; fi
       else
         prj=absent
@@ -425,7 +459,7 @@ cmd_inventory() {
     fi
     measure=""
     if [ "${fwst}" = M ] && [ "${prj}" = diverged ]; then
-      git merge-file -p "${mine}" "${base}" "${theirs}" > "${d}/merged" 2>/dev/null
+      pg merge-file -p "${mine}" "${base}" "${theirs}" > "${d}/merged" 2>/dev/null
       n=$?
       measure="3-way: ${n} conflict(s), $(conflict_lines "${d}/merged") of $(wc -l < "${d}/merged" | tr -d ' ') lines in conflict"
     fi
@@ -441,7 +475,7 @@ cmd_inventory() {
     if [ "${fwst}" = M ]; then
       changed=""; prev="${vx}"
       for r in ${releases}; do
-        [ "$(blob_at "${prev}" "${path}")" = "$(blob_at "${r}" "${path}")" ] || changed="${changed} ${r}"
+        [ "$(version_id "${prev}" "${path}")" = "$(version_id "${r}" "${path}")" ] || changed="${changed} ${r}"
         prev="${r}"
       done
       [ "$(echo ${changed} | wc -w | tr -d ' ')" -gt 1 ] \
@@ -454,7 +488,8 @@ cmd_inventory() {
     fi
   done < "${d}/paths"
   local renames
-  renames="$(fw diff -M --name-status "${vx}" "${vy}" -- "${PAYLOAD_PATHS[@]}" | awk -F'\t' '$1 ~ /^R/ {print $2 " -> " $3}')"
+  renames="$(fw diff --no-ext-diff -M --name-status "${vx}" "${vy}" -- "${PAYLOAD_PATHS[@]}" \
+    | awk -F'\t' '$1 ~ /^R/ && $2 !~ /^\.claude\/memory\// {print $2 " -> " $3}')"
   [ -z "${renames}" ] || while IFS= read -r r; do check "edge case 2: renamed in ${vy}: ${r} — move it, never keep both"; done <<< "${renames}"
 
   section "Markers — slots added or removed between ${vx} and ${vy}"
@@ -478,7 +513,13 @@ cmd_inventory() {
   section "The §2 checklist of SETUP.md — items added or re-worded between ${vx} and ${vy}"
   local s2x="${d}/s2.x" s2y="${d}/s2.y"
   for r in "${vx}:${s2x}" "${vy}:${s2y}"; do
-    fw show "${r%%:*}:SETUP.md" 2>/dev/null | awk '/^## 2\./{f=1;next} /^## 3\./{f=0} f' | grep '^- \[ \]' | sort > "${r#*:}" || true
+    # An item spans its continuation lines: they are joined, so a change on any of them
+    # shows and a re-wrap does not.
+    fw show "${r%%:*}:SETUP.md" 2>/dev/null | awk '/^## 2\./{f=1;next} /^## 3\./{f=0} f' | awk '
+      /^- \[ \]/ { if (item != "") print item; item = $0; next }
+      /^[ \t]+[^ \t]/ && item != "" { sub(/^[ \t]+/, ""); item = item " " $0; next }
+      { if (item != "") print item; item = "" }
+      END { if (item != "") print item }' | sort > "${r#*:}" || true
   done
   if [ ! -s "${s2y}" ]; then
     info "no §2 checklist in ${vy}'s SETUP.md"
@@ -551,12 +592,37 @@ format_done() {
 
 # --- invariant -------------------------------------------------------------------------
 
+# pointer_repairs_only <before> <after>: prints nothing when every change between the two
+# files is a pointer repair (edge case 3 (a)) — each hunk removes as many lines as it adds,
+# and each removed line equals its added one once its pointers are masked ([[wikilinks]],
+# paths ending in .md, docs/…). Otherwise it prints the first line that breaks the rule.
+pointer_repairs_only() {
+  diff -U0 "$1" "$2" | awk '
+    function mask(l) {
+      gsub(/\[\[[^]]*\]\]/, "[[@]]", l)
+      gsub(/[A-Za-z0-9_.\/#:-]*\.md[A-Za-z0-9_.\/#:-]*/, "@md", l)
+      gsub(/docs\/[A-Za-z0-9_.\/#:-]*/, "@docs", l)
+      return l
+    }
+    # The finding carries its sign, so that an emptied line is still a finding.
+    function close_hunk(   i) {
+      if (nr != na) { if (bad == "") bad = (nr > na ? "-" rem[1] : "+" add[1]) }
+      else for (i = 1; i <= nr; i++) if (bad == "" && mask(rem[i]) != mask(add[i])) bad = "-" rem[i] " => +" add[i]
+      nr = 0; na = 0
+    }
+    NR <= 2 { next }
+    /^@@/ { close_hunk(); next }
+    /^-/ { rem[++nr] = substr($0, 2); next }
+    /^\+/ { add[++na] = substr($0, 2); next }
+    END { close_hunk(); if (bad != "") print bad }'
+}
+
 # body_region <file>: from the first "## " heading to the end (LEARNINGS.md's memory part).
 body_region() { awk '/^## /{b=1} b' "$1"; }
 # comments_of <file>: its comment blocks, each closed by a line "@@END".
-comments_of() { awk '/<!--/{c=1} c{print} /-->/{if (c) print "@@END"; c=0}' "$1"; }
+comments_of() { awk '/^<!--/{c=1} c{print} /-->[[:space:]]*$/{if (c) print "@@END"; c=0}' "$1"; }
 # without_comments <file>: the file without its comment blocks.
-without_comments() { awk '/<!--/{c=1} !c{print} /-->/{c=0}' "$1"; }
+without_comments() { awk '/^<!--/{c=1} !c{print} /-->[[:space:]]*$/{c=0}' "$1"; }
 # show_diff <a> <b>: the first lines of a unified diff, indented, for a human to read.
 show_diff() { diff -u "$1" "$2" | sed -n '3,40p' | sed 's/^/       | /'; }
 
@@ -568,16 +634,33 @@ cmd_invariant() {
   require_tag "${vx}"
   require_tag "${vy}"
   require_t
-  git rev-parse -q --verify "${restore}^{commit}" >/dev/null || die "the restore point ${restore} is not a commit of the project"
+  pg rev-parse -q --verify "${restore}^{commit}" >/dev/null || die "the restore point ${restore} is not a commit of the project"
   local d="${WORK}/invariant"
   rm -rf "${d}" && mkdir -p "${d}" || die "cannot prepare ${d}"
 
-  section "The touches on .claude/memory/ since the restore point ${restore} — a closed list (SETUP.md, Step 5)"
-  { git --no-optional-locks diff --name-status --no-renames "${restore}" -- .claude/memory
-    git --no-optional-locks ls-files --others --exclude-standard -- .claude/memory | awk '{ print "A\t" $0 }'
+  # A wrong restore point makes every check below pass on nothing: it is checked first.
+  section "The restore point ${restore}"
+  local restore_pin
+  if pg merge-base --is-ancestor "${restore}" HEAD; then
+    ok "${restore} is an ancestor of HEAD"
+  else
+    fail "${restore} is not an ancestor of HEAD: the restore point is the commit the upgrade branch started from (Step 1)"
+  fi
+  if pg diff --quiet "${restore}" -- "${PAYLOAD_PATHS[@]}" \
+    && [ -z "$(pg ls-files --others --exclude-standard -- "${PAYLOAD_PATHS[@]}")" ]; then
+    fail "nothing in the payload changed since ${restore}: it is not the commit before the upgrade (Step 1)"
+  fi
+  restore_pin="$(pg show "${restore}:.claude/framework-version" 2>/dev/null \
+    | awk 'index($0, "version:") == 1 { v = substr($0, 9); sub(/#.*/, "", v); gsub(/\r/, "", v); gsub(/^[ \t]+|[ \t]+$/, "", v); print v; exit }')"
+  [ -z "${restore_pin}" ] || [ "${restore_pin}" = "${vx}" ] \
+    || check "the restore point's pin reads '${restore_pin}', not ${vx}: is it the commit before the upgrade?"
+
+  section "The touches on .claude/memory/ since ${restore} — a closed list (SETUP.md, Step 5, before the checkpoint)"
+  { pg diff --no-ext-diff --name-status --no-renames "${restore}" -- .claude/memory
+    pg ls-files --others --exclude-standard -- .claude/memory | awk '{ print "A\t" $0 }'
   } > "${d}/changes"
   [ -s "${d}/changes" ] || ok "no change under .claude/memory/"
-  local st path class bad mnow mrest mx my
+  local st path class bad mnow mrest mx my added
   while IFS=$'\t' read -r st path; do
     [ -n "${path}" ] || continue
     class="$(classify "${path}")"
@@ -587,25 +670,25 @@ cmd_invariant() {
     fi
     case "${class}" in
       TEMPLATE)
-        if [ "$(git hash-object -- "${path}")" = "$(blob_at "${vy}" "${path}")" ]; then
+        if [ "$(pg hash-object -- "${path}")" = "$(blob_at "${vy}" "${path}")" ]; then
           ok "${path}: the memory template at ${vy}"
         else
           check "${path}: a memory template that differs from ${vy}'s — fine only for the project's own customisation, kept through the 3-way:"
           fw show "${vy}:${path}" > "${d}/template"
           show_diff "${d}/template" "${path}"
         fi
-        # A slot answered at the restore point must not be open again.
-        mnow="$(grep -cE "${MARKER_RE}" "${path}")"
-        mrest="$(git show "${restore}:${path}" 2>/dev/null | grep -cE "${MARKER_RE}")"
+        # A slot answered at the restore point must not be open again: no more markers
+        # than vY itself added (none, when vY removed or moved one).
+        mnow="$(file_markers "${path}")"
+        mrest="$(pg show "${restore}:${path}" 2>/dev/null | grep -oE "${MARKER_RE}" | wc -l | tr -d ' ')"
         mx="$(marker_count "${vx}" "${path}")"; my="$(marker_count "${vy}" "${path}")"
-        [ $((mnow - mrest)) -le $((my - mx)) ] \
+        added=$((my - mx)); [ "${added}" -ge 0 ] || added=0
+        [ $((mnow - mrest)) -le "${added}" ] \
           || fail "${path}: a slot the project had answered is open again — re-apply its answer" ;;
       LEARNINGS)
         info "${path}: see its own section below" ;;
       PROJECT-MEMORY)
         case "${st}:${path}" in
-          *:.claude/memory/STATE.md | *:.claude/memory/TREE.md | *:.claude/memory/INDEX.md)
-            info "${path}: rewritten by the upgrade's checkpoint (Step 6)" ;;
           A:.claude/memory/sessions/* | A:.claude/memory/plans/*)
             ok "${path}: added — the upgrade's own session note or plan" ;;
           A:.claude/memory/decisions/*)
@@ -613,13 +696,16 @@ cmd_invariant() {
           A:*)
             fail "${path}: added outside the upgrade's own note, plan and decision records" ;;
           *)
-            # Only edge case 3 (a): a line that changes carries a pointer.
-            bad="$(git --no-optional-locks diff -U0 "${restore}" -- "${path}" \
-              | grep -E '^[-+]' | grep -vE '^(\+\+\+|---) ' | grep -vE '\[\[|\.md|docs/' | head -n 1)"
+            # STATE, TREE, INDEX and every note: only the pointer repairs of edge case 3 (a)
+            # and the titles and labels renamed by (b). Before the checkpoint, that is all.
+            pg show "${restore}:${path}" > "${d}/before.raw" 2>/dev/null
+            normalise_format "${d}/before.raw" > "${d}/before"
+            normalise_format "${path}" > "${d}/after"
+            bad="$(pointer_repairs_only "${d}/before" "${d}/after")"
             if [ -z "${bad}" ]; then
-              ok "${path}: pointer repairs only (edge case 3 (a))"
+              ok "${path}: unchanged but for pointer repairs (edge case 3 (a)) and renamed titles or labels"
             else
-              fail "${path}: changed beyond the pointer repairs of edge case 3 (a): ${bad}"
+              fail "${path}: changed beyond pointer repairs and the format's rename — at Step 5 the checkpoint has not run yet: ${bad}"
             fi ;;
         esac ;;
       *)
@@ -643,13 +729,13 @@ cmd_invariant() {
     fi
     body_region "${f}" > "${d}/b.now"
     body_region "${d}/vy.learnings" > "${d}/b.vy"
-    git show "${restore}:${f}" 2>/dev/null | body_region /dev/stdin > "${d}/b.before"
+    pg show "${restore}:${f}" 2>/dev/null | body_region /dev/stdin > "${d}/b.before"
     comments_of "${d}/b.now" > "${d}/c.now"
     comments_of "${d}/b.vy" > "${d}/c.vy"
     local cnow cvy
     cnow="$(grep -c '^@@END$' "${d}/c.now")"; cvy="$(grep -c '^@@END$' "${d}/c.vy")"
     if [ "${cnow}" -gt "${cvy}" ]; then
-      fail "the body has ${cnow} comment block(s), ${vy}'s format has ${cvy}: an extra block can hide an IMP entry"
+      fail "the body has ${cnow} comment block(s), ${vy}'s format has ${cvy}: an extra block can hide an IMP entry — a project grafted before v1.1.0 still has a second, obsolete format comment (the Applied one): remove it (Step 3)"
     elif [ "${cnow}" -lt "${cvy}" ]; then
       check "the body has ${cnow} comment block(s), ${vy}'s format has ${cvy}: bring ${vy}'s format comment over (Step 3), or confirm the project dropped it"
     elif cmp -s "${d}/c.now" "${d}/c.vy"; then
@@ -660,10 +746,13 @@ cmd_invariant() {
     fi
     # Blank lines carry no content, and replacing a format comment moves them: they are
     # left out of the comparison, as the old-form titles and labels are normalised.
+    # The section titles become one placeholder: format_done checks them against vY's,
+    # and a project's own shortened title, renamed, is not an entry's change. An entry
+    # moved across sections still shows: the order of lines and placeholders counts.
     without_comments "${d}/b.before" > "${d}/e.before.raw"
-    normalise_format "${d}/e.before.raw" | awk 'NF' > "${d}/e.before"
+    normalise_format "${d}/e.before.raw" | awk 'NF { if (/^## /) print "## <section>"; else print }' > "${d}/e.before"
     without_comments "${d}/b.now" > "${d}/e.now.raw"
-    normalise_format "${d}/e.now.raw" | awk 'NF' > "${d}/e.now"
+    normalise_format "${d}/e.now.raw" | awk 'NF { if (/^## /) print "## <section>"; else print }' > "${d}/e.now"
     if cmp -s "${d}/e.before" "${d}/e.now"; then
       ok "the IMP entries are unchanged (titles and field labels compared in their new form, blank lines aside)"
     else
@@ -686,7 +775,7 @@ cmd_post() {
   require_tag "${vx}"
   require_tag "${vy}"
   require_t
-  local d="${WORK}/post" path class by n_at=0 modey modep
+  local d="${WORK}/post" path class by bx bp n_at=0 modey modep
   rm -rf "${d}" && mkdir -p "${d}" || die "cannot prepare ${d}"
 
   section "The payload against ${vy} — METHOD files at ${vy}, every file present, modes"
@@ -699,15 +788,25 @@ cmd_post() {
       continue
     fi
     by="$(blob_at "${vy}" "${path}")"
+    bx="$(blob_at "${vx}" "${path}")"
+    bp="$(pg hash-object -- "${path}")"
+    if [ -n "${bx}" ] && [ "${bx}" != "${by}" ] && [ "${bp}" = "${bx}" ]; then
+      fail "${path} (${class}) is still ${vx}'s: Step 3 has not brought ${vy}'s over"
+      continue
+    fi
+    # The conflict markers a 3-way leaves behind.
+    if grep -nE '^(<<<<<<<|>>>>>>>|\|\|\|\|\|\|\|) ' "${path}" > "${d}/conflicts" 2>/dev/null; then
+      fail "${path}: conflict markers left by a merge, first at line $(head -n 1 "${d}/conflicts" | cut -d: -f1)"
+    fi
     case "${class}" in
       METHOD)
-        if [ "$(git hash-object -- "${path}")" = "${by}" ]; then
+        if [ "${bp}" = "${by}" ]; then
           n_at=$((n_at + 1))
         else
           check "${path} (METHOD) differs from ${vy}'s: fine only if it was reconciled as a hybrid (edge case 7)"
         fi ;;
       TEMPLATE)
-        [ "$(git hash-object -- "${path}")" = "${by}" ] && n_at=$((n_at + 1)) \
+        [ "${bp}" = "${by}" ] && n_at=$((n_at + 1)) \
           || check "${path} (TEMPLATE) differs from ${vy}'s: fine only for the project's own customisation" ;;
       NONE) fail "no class for ${path}" ;;
     esac
@@ -716,6 +815,9 @@ cmd_post() {
     [ "${modey}" = "${modep}" ] || fail "${path}: mode ${modep}, ${vy}'s is ${modey} (chmod, Step 3)"
   done < "${d}/paths.vy"
   ok "${n_at} METHOD and TEMPLATE files identical to ${vy}'s"
+  if grep -nE '^(<<<<<<<|>>>>>>>|\|\|\|\|\|\|\|) ' .claude/memory/LEARNINGS.md > "${d}/conflicts" 2>/dev/null; then
+    fail ".claude/memory/LEARNINGS.md: conflict markers left by the header's merge, first at line $(head -n 1 "${d}/conflicts" | cut -d: -f1)"
+  fi
   # Orphans: what vY removed must be gone from the project too.
   awk -F'\t' '{print $2}' "$(tree_of "${vx}")" | sort > "${d}/paths.vx.sorted"
   sort "${d}/paths.vy" > "${d}/paths.vy.sorted"

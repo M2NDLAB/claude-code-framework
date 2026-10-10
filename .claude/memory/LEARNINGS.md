@@ -928,10 +928,9 @@ tags: [improvement]
   Windows the Bash tool uses Git Bash; without it, commands go through the PowerShell
   tool, which the delegated-agent guard does not intercept — the read-only boundary of
   `docs/04` falls there (the `pre-push` holds: it is a git hook).
-- Direction decided by the user: (a) a POSIX environment on Windows too, through Git for
-  Windows (needed for git anyway). NO twin bash/PowerShell scripts; a rewrite in Node only
-  as plan B, if the tests on Windows show excessive costs.
-- To do:
+- Proposal: the direction the user decided — (a) a POSIX environment on Windows too,
+  through Git for Windows (needed for git anyway). NO twin bash/PowerShell scripts; a
+  rewrite in Node only as plan B, if the tests on Windows show excessive costs. To do:
   1. GitHub Actions CI on macOS, Ubuntu and Windows running `make test-scripts`, in the
      framework repository and OUTSIDE the payload, with minimal permissions;
   2. fix what fails;
@@ -948,7 +947,8 @@ tags: [improvement]
      human action. Called from `SETUP.md` (graft and upgrade) and from `hooks-install`;
   8. measure what the `Makefile` is for today: if it only gives short names to scripts,
      weigh dropping make from the prerequisites.
-- Resumption: v1.5.0 starts with a read-only phase 1, like the other blocks.
+- Resumption trigger: v1.4.1 integrated — v1.5.0 starts with a read-only phase 1, like the
+  other blocks.
 - Expected benefit / risk: the method holds where its users work, and its boundaries are
   stated where they do not. Risk: a matrix promising more than the CI proves — point 5
   guards it.
