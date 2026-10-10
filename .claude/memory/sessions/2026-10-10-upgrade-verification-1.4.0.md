@@ -32,7 +32,7 @@ tags: [session, upgrade, tools, imp, plan]
 - [x] 8. The trial, read-only, on the client project's three real upgrades; what it finds is fixed — commit: 37fbc22
 - [x] 9. `SETUP.md` (the box, the classes, the Precondition, Steps 0-6, edge case 3) and rule 9 (titles AND field labels) — commit: 5648df0
 - [x] 10. ONE reviewer + fixes — commit: 4e5e50c
-- [x] 11. `/checkpoint` — commit: (this one)
+- [x] 11. `/checkpoint` — commit: 8328765
 - [x] 12. `/integrate`: the CHANGELOG 1.4.0 entry; the two blocks — commit: the CHANGELOG commit (its own sha cannot be written in it)
 
 ## Assessment (task 2) — read-only measurements
