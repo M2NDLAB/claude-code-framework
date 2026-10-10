@@ -2,7 +2,7 @@
 date: 2026-10-10
 task: the upgrade block — phase 1 (read-only analysis of IMP-050 points 3-5, IMP-046, IMP-037, IMP-049 and the v1.3.x migrations, with the user's decisions) and v1.3.3, the upgrade's safety fixes
 branch: fix/upgrade-safety-1.3.3
-status: in-progress
+status: completed
 model: 'claude-opus-5-5'
 turns: 2
 tags: [session, upgrade, imp, plan]
@@ -30,9 +30,9 @@ tags: [session, upgrade, imp, plan]
 - [x] 7. Section titles: rule 9 separates the memory's format from its content; edge case 3 (b) by set comparison, the rename mandatory, the project's tests in the same commit, the table with the short forms — commit: 77dc84e
 - [x] 8. Prerequisites (git 2.31, Node.js 14.13); the upgrade's execution boundary (delegated agents read-only on git); Step 4, `settings.json` and the guard's self-test check each other — commit: b511da2
 - [x] 9. IMP-047: a tag when a change reaches what projects receive; `integrate.md` and `docs/04` aligned; `CONTRIBUTING.md` names the framework's shipped files — commit: cd6e820
-- [x] 10. ONE reviewer + fixes — commit: (this one)
-- [ ] 11. `/checkpoint` — commit: —
-- [ ] 12. `/integrate`: the CHANGELOG 1.3.3 entry — commit: —
+- [x] 10. ONE reviewer + fixes — commit: 2c6700e
+- [x] 11. `/checkpoint` — commit: (this one)
+- [x] 12. `/integrate`: the CHANGELOG 1.3.3 entry — commit: the CHANGELOG commit (its own sha cannot be written in it)
 
 ## Phase 1 — findings (framework `main`, `5b21770`; the client project's `main` only)
 - **IMP-050 point 3 — open.** Step 3 picks the strategy by file NAME ("additive union" for
@@ -184,3 +184,56 @@ run as written in throwaway repositories under `/tmp` (bash and zsh for the Step
   both AT the tag `vY`, so a change that cut no tag would never reach an upgrade, and
   v1.4.0 — decided as a MINOR — could not be released. Task 9 counts them as shipped
   (`CONTRIBUTING.md`, *What this framework ships*).
+
+## Done
+- `90aa776` the recordings (IMP-068, the IMP-048 note) and the phase-1 decisions;
+  `9cf7cb3` the hooks directory from any worktree, self-test case 3; `331f390` Step 4's
+  hook check; `a3a9836` Step 1's photograph and edge case 4; `3ef8915` the *Upgrading*
+  notes as a checklist; `2c6dd7f` the `Makefile` 3-way and edge case 8; `77dc84e` rule 9
+  and edge case 3 (b); `b511da2` prerequisites, write boundary, coupled self-test;
+  `cd6e820` IMP-047; `2c6700e` the review applied; this checkpoint; the CHANGELOG 1.3.3
+  entry at `/integrate`.
+- LEARNINGS: IMP-047 and IMP-050 (point 5, with the migrations) Applied; IMP-050 open for
+  points 3-4; IMP-037 split, option (b) open and approved for v1.4.0, option (a) deferred;
+  IMP-068 open.
+- Verification: `make test-scripts` five of five PASS after every code task. RED then
+  GREEN in `/tmp`: the linked worktree (rc 1, `Not a directory`) and outside a repository
+  (rc 0, a stray `.git`) on v1.3.2's script; the copy below the top level on `9cf7cb3`
+  (the enclosing repository got the hooks). Measured: a re-run of v1.2.0's script leaves
+  the generated `pre-push` installed; `make` runs both recipes of an additive union, or
+  warns and runs the last; the title comparison on copies of the client project's files
+  (ten titles missing, none after the rename); commitlint 21.2's Node floor from the npx
+  cache. Every `SETUP.md` snippet the release adds was extracted and run as written.
+- Edits to `.claude/` went through shell one-offs (Python), per this session's auto-mode
+  instruction to prefer the shell for file changes; `settings.json` and the guard were not
+  touched (IMP-065 stays open).
+
+## Problems encountered → cause → solution
+1. A zsh `bad substitution` in a probe → `$rev:scripts/…` read as a zsh modifier →
+   `${rev}` (the same trap as in v1.3.2's notes).
+2. The first draft of the hooks restore deleted the hooks before a copy that could fail →
+   rehearsed only on a plain hooks directory → the reviewer's M1/M2; the chains were
+   rebuilt and rehearsed with a subdirectory, a relative symlink and a repeated
+   photograph.
+
+## Retro
+Candidate lessons — offered, not recorded (the user listed this block's IMPs):
+- **Rehearse a destructive snippet on its failure paths, not only on the happy one.** The
+  restore passed its rehearsal on a plain directory and would have left a project with no
+  hooks at all on a subdirectory. Kin of `docs/02`, *Tests that demonstrate*: a green
+  rehearsal can pass for the wrong reason.
+- **commitlint runs unpinned through npx.** Its Node floor moves with every major (22.12
+  for the 21.x line), so a documented prerequisite goes stale with no change in the
+  framework. Pinning the major in the generated `commit-msg` hook is a decision with its
+  own cost (the pin must be moved).
+
+## Follow-up
+- **Before the merge: confirm or reject the reading of IMP-047** recorded above — that
+  `SETUP.md`'s procedures and v1.4.0's script count as shipped. If rejected, the
+  paragraph of `CONTRIBUTING.md` changes; the rest of the release does not depend on it.
+- **Field labels** (*Open points* above): to settle before v1.4.0.
+- `/integrate`: v1.3.3, a PATCH as the user's split decided; merge, tag and push are the
+  user's. Next: v1.4.0 (IMP-037 (b), IMP-046, IMP-050 points 3-4), then v1.4.1
+  (IMP-049, IMP-068). The client project's upgrade comes after the cycle, in one hop,
+  with the full dry run as its acceptance test.
+
