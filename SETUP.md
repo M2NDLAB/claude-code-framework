@@ -554,8 +554,9 @@ nothing to an upgrade from 1.2.0, whose hooks did change in 1.3.0.
 
 ### Step 3 — Reconcile by class
 
-- **METHOD** → after the pre-flight of edge case 7, bring the `vY` version over, read
-  from the tag, never from the framework's working tree:
+- **METHOD** → after the pre-flight of edge case 7 — and edge case 8, if `vY` moved a
+  slot out of the file — bring the `vY` version over, read from the tag, never from the
+  framework's working tree:
 
   ```bash
   git -C "${FW:?}" show vY:<path> > "${T:?}/theirs" && cp "${T:?}/theirs" <path>
@@ -585,10 +586,14 @@ nothing to an upgrade from 1.2.0, whose hooks did change in 1.3.0.
   one that was REMOVED **disappears**; one that was MOVED or co-edited surfaces as a
   **conflict** to resolve by hand. Always re-apply the project's
   `[TO BE DEFINED AT SETUP]` answers (branch names, `tree` patterns, formatter, the
-  stack's allow-list, the whole "Technical rules" section of `CLAUDE.md`). Trivial
-  hybrids (`.gitignore`, `Makefile`) are INTEGRATED (additive union: make sure the lines
-  of the `vY` base — `git -C "${FW:?}" show vY:<path>` — are present without removing
-  the project's); on `LEARNINGS.md` at most the header/format is updated, read from
+  stack's allow-list, the whole "Technical rules" section of `CLAUDE.md`) — and if `vY`
+  MOVED a slot to another file, see edge case 8 before merging either file. `.gitignore`
+  is INTEGRATED (additive union: make sure the lines of the `vY` base —
+  `git -C "${FW:?}" show vY:<path>` — are present without removing the project's). The
+  `Makefile` is NOT: it goes through the 3-way like the other hybrids. A union keeps the
+  old and the new recipe of the same target, and `make` then runs both, or warns
+  "overriding commands" and runs only the last — measured on v1.3.2's `reset-task`. On
+  `LEARNINGS.md` at most the header/format is updated, read from
   `git -C "${FW:?}" show vY:.claude/memory/LEARNINGS.md`, NEVER the project's IMP
   entries (its `## ` section titles go through edge case 3 (b), with `STATE.md`'s).
 - **The guard and `settings.json`: no order to respect** (from v1.3.1; v1.3.0 required
@@ -676,7 +681,7 @@ memory is safe in the pre-upgrade commit.
 ### Edge cases (to be handled explicitly)
 
 The "bring the `vY` version over" reconciliation of Step 3 is an OVERWRITE, not a
-`sync`, and the 3-way covers co-edits but not everything. These seven cases must be
+`sync`, and the 3-way covers co-edits but not everything. These eight cases must be
 handled on purpose, or the upgrade leaves the project in an incoherent state:
 
 1. **A file DELETED in `vY` (orphan).** If `vY` removes a METHOD file (a merged doc, a
@@ -775,6 +780,19 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    `git -C "${FW:?}" show vX:<path> > "${T:?}/base" && diff "${T:?}/base" <path>`. A
    bare `git diff vX -- <path>` in the project compares against the PROJECT's `vX`, the
    collision of the *Precondition*. If it diverges, treat it as a hybrid (3-way).
+
+8. **A slot that MOVES to another file.** A `vY` can move a `[TO BE DEFINED AT SETUP]`
+   slot from one file to another — v1.3.2 moved `reset-task.sh`'s protected branches
+   into the `Makefile`. The 3-way cannot follow it: the new home merges CLEANLY with the
+   framework's DEFAULT in the slot — Step 4's marker grep shows the marker, next to a
+   value that looks answered — while the project's answer stays behind in the old file,
+   as a conflict there, or lost if that file comes over as METHOD. Edge case 7 would
+   keep the answer where it was: the opposite of the migration. So: (1) carry the
+   project's answer to its new home FIRST, by hand; (2) only then bring the old file over
+   as its class says; (3) check EVERY way of reaching the answer — the `make` target, its
+   unattended form (`YES=1`), the script run directly, the docs that name the command —
+   not only the one you edited. The *Upgrading* note of the release that moved the slot
+   names both places (Step 2).
 
 > **Outside the upgrade payload.** `LICENSE`, `CONTRIBUTING.md`, `CHANGELOG.md` are
 > files of the FRAMEWORK REPO (not copied into the project, step 1): do not push them
