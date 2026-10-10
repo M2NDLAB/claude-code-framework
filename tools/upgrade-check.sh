@@ -300,8 +300,19 @@ releases_between() { fw tag --list 'v*' --sort=v:refname --merged "$2" --no-merg
 header_region() { awk '/^## /{exit} {print}' "$1"; }
 # conflict_lines <file>: the lines inside the conflict markers of a merge's output.
 conflict_lines() { awk '/^<<<<<<< /{f=1} f{c++} /^>>>>>>> /{f=0} END{print c+0}' "$1"; }
-# marker_count <tag> <path>: the slot markers of a framework file at a tag.
-marker_count() { fw show "$1:$2" 2>/dev/null | grep -cE "${MARKER_RE}"; }
+# marker_count <tag> <path>: the slot markers of a framework file at a tag — for
+# LEARNINGS.md, of its header region only: the framework's own entries are live, and their
+# prose names the marker.
+marker_count() {
+  if [ "$2" = .claude/memory/LEARNINGS.md ]; then
+    fw show "$1:$2" 2>/dev/null | header_region /dev/stdin | grep -cE "${MARKER_RE}"
+  else
+    fw show "$1:$2" 2>/dev/null | grep -cE "${MARKER_RE}"
+  fi
+}
+# labels_renamed <tag>: whether the tag's LEARNINGS format uses the field labels of v1.1.0
+# on — before it, the old-form labels ARE the current form, and nothing is to rename.
+labels_renamed() { fw show "$1:.claude/memory/LEARNINGS.md" 2>/dev/null | grep -q '^- Date:'; }
 
 # The memory's FORMAT lines (CLAUDE.md, rule 9): what v1.1.0 translated, old form -> new.
 # One "old<TAB>new" pair per line; the short forms are those seen in projects.
@@ -471,6 +482,8 @@ cmd_inventory() {
     info "no §2 checklist in ${vy}'s SETUP.md"
   elif cmp -s "${s2x}" "${s2y}"; then
     ok "the §2 checklist is unchanged"
+  elif [ -s "${s2x}" ] && [ -z "$(comm -12 "${s2x}" "${s2y}")" ]; then
+    check "the whole §2 checklist is re-worded ($(wc -l < "${s2x}" | tr -d ' ') items in ${vx}, $(wc -l < "${s2y}" | tr -d ' ') in ${vy}; a translation?): read ${vy}'s in full against the project's answers"
   else
     comm -13 "${s2x}" "${s2y}" > "${d}/s2.added"
     comm -23 "${s2x}" "${s2y}" > "${d}/s2.removed"
@@ -488,7 +501,9 @@ cmd_inventory() {
       pending=$((pending + 1))
     done <<< "$(missing_titles "${vy}" "${f}")"
   done
-  if [ -f .claude/memory/LEARNINGS.md ]; then
+  if [ -f .claude/memory/LEARNINGS.md ] && ! labels_renamed "${vy}"; then
+    info "${vy}'s field labels are still the old form: none to rename"
+  elif [ -f .claude/memory/LEARNINGS.md ]; then
     labels="$(old_labels .claude/memory/LEARNINGS.md)"
     [ "${labels}" -eq 0 ] || { check "${labels} line(s) of LEARNINGS.md carry an old-form field label: rename them (the table of edge case 3 (b))"; pending=$((pending + 1)); }
   fi
@@ -525,7 +540,7 @@ format_done() {
       pending=$((pending + 1))
     done <<< "$(missing_titles "${vy}" "${f}")"
   done
-  if [ -f .claude/memory/LEARNINGS.md ] && [ "$(old_labels .claude/memory/LEARNINGS.md)" -gt 0 ]; then
+  if [ -f .claude/memory/LEARNINGS.md ] && labels_renamed "${vy}" && [ "$(old_labels .claude/memory/LEARNINGS.md)" -gt 0 ]; then
     fail "$(old_labels .claude/memory/LEARNINGS.md) line(s) of LEARNINGS.md still carry an old-form field label: the rename is mandatory"
     pending=$((pending + 1))
   fi
@@ -591,8 +606,10 @@ cmd_invariant() {
             info "${path}: rewritten by the upgrade's checkpoint (Step 6)" ;;
           A:.claude/memory/sessions/* | A:.claude/memory/plans/*)
             ok "${path}: added — the upgrade's own session note or plan" ;;
+          A:.claude/memory/decisions/*)
+            ok "${path}: added — the upgrade's own decision record (docs/01: structural choices are recorded before the plan)" ;;
           A:*)
-            fail "${path}: added outside the upgrade's own note and plan" ;;
+            fail "${path}: added outside the upgrade's own note, plan and decision records" ;;
           *)
             # Only edge case 3 (a): a line that changes carries a pointer.
             bad="$(git --no-optional-locks diff -U0 "${restore}" -- "${path}" \
@@ -629,8 +646,10 @@ cmd_invariant() {
     comments_of "${d}/b.vy" > "${d}/c.vy"
     local cnow cvy
     cnow="$(grep -c '^@@END$' "${d}/c.now")"; cvy="$(grep -c '^@@END$' "${d}/c.vy")"
-    if [ "${cnow}" -ne "${cvy}" ]; then
+    if [ "${cnow}" -gt "${cvy}" ]; then
       fail "the body has ${cnow} comment block(s), ${vy}'s format has ${cvy}: an extra block can hide an IMP entry"
+    elif [ "${cnow}" -lt "${cvy}" ]; then
+      check "the body has ${cnow} comment block(s), ${vy}'s format has ${cvy}: bring ${vy}'s format comment over (Step 3), or confirm the project dropped it"
     elif cmp -s "${d}/c.now" "${d}/c.vy"; then
       ok "the format comment is ${vy}'s"
     else
@@ -646,7 +665,7 @@ cmd_invariant() {
     if cmp -s "${d}/e.before" "${d}/e.now"; then
       ok "the IMP entries are unchanged (titles and field labels compared in their new form, blank lines aside)"
     else
-      fail "the IMP entries changed — an upgrade never edits them:"
+      fail "the IMP entries changed — an upgrade never edits them (run this at Step 5, before the checkpoint: its retro may add entries):"
       show_diff "${d}/e.before" "${d}/e.now"
     fi
   fi
@@ -711,7 +730,7 @@ cmd_post() {
   section "Slots — markers broken by a wrap, and the slots ${vy} added"
   local mx my
   while IFS= read -r path; do
-    case "$(classify "${path}")" in METHOD | HYBRID | TEMPLATE | LEARNINGS) ;; *) continue ;; esac
+    case "$(classify "${path}")" in METHOD | HYBRID | TEMPLATE) ;; *) continue ;; esac
     [ -f "${path}" ] || continue
     # Read from a file, not a pipe: a loop on a pipe runs in a subshell, and its FAILs
     # would not be counted.

@@ -198,6 +198,9 @@ grep -n 'INFO   v1.1.0:' "${out}" | cut -d: -f1 >> "${workdir}/order"
 [ "$(sort -n "${workdir}/order" | tr '\n' ' ')" = "$(tr '\n' ' ' < "${workdir}/order")" ] && [ "$(wc -l < "${workdir}/order")" -eq 2 ] \
   || fail "inventory: the Upgrading notes are not listed oldest first"
 has "| **Upgrading from 1.0.1**: move your protected branches to the Makefile first."
+FW="${FWD}" T="${T_DIR}" run 0 "${PRJ}" inventory v1.0.0 v1.0.1
+has "v1.0.1's field labels are still the old form: none to rename"
+hasnt "old-form field label"
 echo "PASS (upgrade-check inventory): the 3-way measured, the edge cases flagged, the moved slot, §2, titles and labels, the notes in order."
 
 # --- Case 4: invariant ----------------------------------------------------------------
@@ -254,10 +257,19 @@ violate "a title left" "still lacks v1.1.0's title '## Progress'" \
   subst "${PRJ}/.claude/memory/STATE.md" "## Progress" "## Stato avanzamento"
 violate "a label left" "still carry an old-form field label" \
   subst "${lrn}" "- Proposal: do it once" "- Proposta: do it once"
-violate "a component added" "added outside the upgrade's own note and plan" \
-  put "${PRJ}" .claude/memory/components/extra.md 'x\n'
 violate "a slot re-opened" "a slot the project had answered is open again" \
   cp "${FWD}/.claude/memory/decisions/README.md" "${PRJ}/.claude/memory/decisions/README.md"
+violate "a component added" "added outside the upgrade's own note, plan and decision records" \
+  put "${PRJ}" .claude/memory/components/another.md 'x\n'
+rm -f "${PRJ}/.claude/memory/components/another.md"
+# The upgrade's own decision record is allowed; a format comment fewer than vY's is shown.
+upgraded_state
+put "${PRJ}" .claude/memory/decisions/2026-01-10-upgrade-choice.md '# A structural choice of the upgrade\n'
+awk '/<!--/{c=1} !c{print} /-->/{c=0}' "${lrn}" > "${lrn}.tmp" && mv "${lrn}.tmp" "${lrn}"
+FW="${FWD}" T="${T_DIR}" run 0 "${PRJ}" invariant v1.0.0 v1.1.0 "${RESTORE}"
+has "OK     .claude/memory/decisions/2026-01-10-upgrade-choice.md: added — the upgrade's own decision record"
+has "CHECK  the body has 0 comment block(s), v1.1.0's format has 1"
+rm -f "${PRJ}/.claude/memory/decisions/2026-01-10-upgrade-choice.md"
 # An entry written INSIDE the format comment keeps the count: a human must see it.
 upgraded_state
 subst "${lrn}" "- Observed problem: <...>" "- Observed problem: an entry hidden in the format comment"
