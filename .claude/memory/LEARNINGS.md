@@ -934,6 +934,26 @@ tags: [improvement]
   project's upgrade months later. Risk: one check per list to maintain — only the lists
   that CLAIM completeness are in scope.
 
+### IMP-069 — The `/integrate` block is copied whole: the pause before the push does not happen
+- Date: 2026-10-10 | Origin: [[2026-10-10-integrate-two-blocks-1.3.4]] — the user's report on the integration
+  of v1.3.2 and v1.3.3
+- Status: APPROVED on 2026-10-10 (the user's proposal, below), applied in v1.3.4 together
+  with IMP-066.
+- Observed problem: in v1.3.2 and in v1.3.3 the user pasted steps 1-5 of the block in one
+  go: the checks of step 4 were printed AFTER the push had already started, and
+  `git tag -v` was not run at all. The block asked to "verify BEFORE the push" in a
+  comment. A pause written as a comment inside a copyable block is not a pause.
+- Proposal: `/integrate` prints TWO separate blocks. Block 1: rebase, merge, tag, and the
+  checks — `git rev-parse` of the tag, `git log origin/<integration>..<integration>` with
+  the expected number of lines and, ONLY when tag signing is configured in the repository
+  or in the global config (`git config --get tag.gpgSign`), `git tag -v <tag>`. Block 2:
+  the push and the branch deletion, preceded by one line OUTSIDE the blocks — "copy only
+  after checking block 1's output: N lines expected, a valid signature". The procedure of
+  `docs/04` is aligned.
+- Expected benefit / risk: nothing is published before its checks have been read; a
+  signed tag is verified where tags are signed, and a project that does not sign sees no
+  check. Risk: one paste more.
+
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
 - Date: YYYY-MM-DD | Origin: [[<session note>]] — <problem>
