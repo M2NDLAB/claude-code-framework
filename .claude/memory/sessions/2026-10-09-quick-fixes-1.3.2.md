@@ -2,7 +2,7 @@
 date: 2026-10-09
 task: v1.3.2 — quick fixes from the earlier upgrade lessons (C11, C12, C13, B8, the §2 slots, reset-task.sh's class, a backtick, the client name) and F4 (a visible error when the guard breaks in the main session); IMP-067 recorded
 branch: fix/quick-fixes-1.3.2
-status: in-progress
+status: completed
 model: 'claude-opus-5-5'
 turns: 2
 tags: [session, imp, fixes, upgrade]
@@ -26,8 +26,8 @@ tags: [session, imp, fixes, upgrade]
 - [x] 6. B8: the prospective sentence in rule 9 of `CLAUDE.md` — commit: e1c0039
 - [x] 7. C12: `SETUP.md` edge case 3 extended to the memory's format lines read by name (the section titles of STATE and LEARNINGS) — commit: 1f1bc9f
 - [x] 8. The client project's name anonymised in `LEARNINGS.md` and five session notes — commit: ebe5122
-- [ ] 9. ONE reviewer + fixes — commit: —
-- [ ] 10. `/checkpoint` — commit: —
+- [x] 9. ONE reviewer + fixes — commit: 5afe3fe
+- [x] 10. `/checkpoint` — commit: the checkpoint commit (its own sha cannot be written in it)
 - [ ] 11. `/integrate`: the CHANGELOG 1.3.2 entry (Errata, Upgrading with the migration table) and one additive line under 1.1.0 — commit: —
 
 ## Phase 1 — verification on `main` (`c230a12`), read-only
@@ -122,6 +122,42 @@ shown it (its answer reported no warning): the notice is for the human, as inten
   repository is public: the anonymisation holds from v1.3.2 on only. Removing it from the
   history would mean rewriting published history — not done, and not proposed here. No
   commit message ever carried the name.
+
+## Done
+- `29df076` this note and the plan; `5c0426d` IMP-067; `1177abd` F4 (the wiring, its
+  self-test, `docs/04`); `3de2cab` C13, the backtick, three §2 slots; `507217d`
+  `reset-task`'s list moves to the `Makefile`; `e1c0039` B8 (rule 9); `1f1bc9f` C12
+  (edge case 3 extended); `ebe5122` the anonymisation; `5afe3fe` the review applied; this
+  checkpoint; the CHANGELOG 1.3.2 entry at `/integrate`.
+- Verification: `make test-scripts` 4 of 4 PASS after every task; F4 RED on the v1.3.1
+  wiring, then GREEN, then measured in a nested session's transcript; `reset-task` in
+  throwaway repositories under `/tmp` (project list, `YES=1`, the direct `--yes` refusal,
+  a feature branch cleaned); C13 on the real commitlint; the anonymisation by `git grep`
+  on the tree and on every release tag.
+
+## Problems encountered → cause → solution
+1. A `cd` inside a compound command moved the session's working directory into
+   `sessions/` → the shell keeps state between calls → absolute paths from then on.
+2. A `reset-task` probe "did not clean" → `| head -1` closed the pipe and SIGPIPE killed the
+   script before `git clean` → re-run without truncating the output.
+3. A commit body line starting with "branches:" drew a commitlint warning (read as a
+   trailer) → harmless; bodies avoid "word:" at the start of a line.
+4. The phase-1 table missed two setup slots (`SECURITY.md`'s, the list `docs/00` points
+   to) and the unattended `reset-task` path → found by the reviewer → fixed in task 9.
+
+## Retro
+Candidate lessons — offered, not recorded (the user listed this block's IMPs):
+- **A "complete list" claim deserves a mechanical check.** The §2 checklist calls itself
+  complete; twice now its gaps were found by hand. A `/lint-memory`-style check — every
+  `[TO BE DEFINED AT SETUP]` marker of the payload named by a §2 item — would catch the
+  next one when it is written (kin of IMP-038's inventory checks and IMP-049's (d)).
+- **Moving an answer means checking every entry point.** The `reset-task` answer moved to
+  the `Makefile`, and the direct, the `make` and the unattended (agent) paths each needed
+  their own check — the reviewer found the third.
+
+## Follow-up
+- `/integrate`: v1.3.2 (PATCH); merge, tag and push are the user's.
+- IMP-067 (headless, Agent SDK) and IMP-063..066 wait for the retro.
 
 ## Notes taken while planning
 - `SETUP.md` has no exception called "A": the only exception to the empty-diff invariant
