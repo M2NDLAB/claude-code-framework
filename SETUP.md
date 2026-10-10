@@ -704,23 +704,56 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
      `[[wikilink]]`s and the pointers (`docs/04:142`, …) in `STATE.md` and in the
      sessions **dangle**, and `/lint-memory` will flag them as broken.
    - **(b) Section titles looked up by name.** The `## ` titles of `STATE.md` and
-     `LEARNINGS.md` are format lines that the method cites by name (`/checkpoint`,
-     `/lint-memory`, `/retro`, `docs/03`, `docs/06`). If `vY` renames them — as v1.1.0
-     did when it translated them — rename them in the project to `vY`'s form. ONLY the
-     title lines: the content of the sections is never touched and keeps its language
-     (rule 9 is prospective).
+     `LEARNINGS.md` are FORMAT lines that the method cites by name (`/checkpoint`,
+     `/lint-memory`, `/retro`, `docs/03`, `docs/06`). Format is method (`CLAUDE.md`,
+     rule 9): the project's titles take `vY`'s form — the rename is mandatory, and a map
+     from old titles to new is not an alternative. Do not wait for a `vY` that renames
+     them: COMPARE the two sets at every upgrade, since a project can carry the titles of
+     any earlier release (v1.1.0 translated them, and a project that kept the old ones
+     has been read wrongly since). From the project root:
+
+     ```bash
+     : "${FW:?}" && for f in STATE LEARNINGS; do
+       git -C "${FW:?}" show "vY:.claude/memory/$f.md" | grep '^## ' \
+         | grep -vxF -f <(grep '^## ' ".claude/memory/$f.md") \
+         | sed "s|^|$f.md lacks: |"
+     done
+     ```
+
+     Each printed line is a `vY` title the project lacks: find its old form — the table
+     below, or a project's own shortened form — and rename that line. Nothing printed =
+     nothing to rename. ONLY the title lines: the content under them is never touched and
+     keeps its language. If the project's own code or tests cite the old titles (grep
+     for them), update them in the SAME commit: that side of the migration is the
+     project's.
+
+     | File | Title until 1.0.0 (and short forms seen) | Title since 1.1.0 |
+     | --- | --- | --- |
+     | `STATE.md` | `## Stato avanzamento` | `## Progress` |
+     | `STATE.md` | `## Cosa esiste adesso` | `## What exists now` |
+     | `STATE.md` | `## Decisioni prese (non ovvie dal codice)` | `## Decisions made (not obvious from the code)` |
+     | `STATE.md` | `## Debito documentazione` | `## Documentation debt` |
+     | `STATE.md` | `## Attenzione / problemi aperti` | `## Caution & open issues` |
+     | `STATE.md` | `## Branch attivi` | `## Active branches` |
+     | `LEARNINGS.md` | `## Proposte APERTE (in attesa di decisione utente)` | `## OPEN proposals (awaiting the user's decision)` |
+     | `LEARNINGS.md` | `## Applicate` | `## Applied` |
+     | `LEARNINGS.md` | `## Rimandate (non respinte — si riprendono al momento giusto)`, or `## Rimandate` | `## Deferred (not rejected — resumed at the right time)` |
+     | `LEARNINGS.md` | `## Rifiutate (con motivo — per non riproporle)`, or `## Rifiutate` | `## Rejected (with the reason — so they are not re-proposed)` |
+
    Here the "empty diff on `memory/`" invariant and the repair conflict: the way out is
    to treat the repair as an **EXPLICIT and DECLARED exception**, in a **separate
    commit** per kind (`docs(memory): update the pointers to the docs renamed by vY`;
    `docs(memory): rename the memory's section titles to vY's form`), distinct from the
    upgrade's commits. That way the invariant stays useful (it catches ACCIDENTAL edits to
    the memory) and the necessary repair does not slip through unnoticed. For the
-   project's memory these are the only legitimate touches during an upgrade, and only if
-   `vY` forces them. (The method's own files under `memory/` — the guide READMEs, the
+   project's memory these are the only legitimate touches during an upgrade, and only
+   where they are needed: a doc `vY` renamed, a title the comparison of (b) prints. (The
+   method's own files under `memory/` — the guide READMEs, the
    header and format of `LEARNINGS.md` — follow Step 3 instead; that the invariant and
    Step 3 disagree on them is IMP-046, open.) (Kind (b) was added in v1.3.2: until then
    the exception named the pointers alone, and the titles translated by v1.1.0 had no
-   declared way in.)
+   declared way in. From v1.3.3 it starts from the comparison of the two sets, not from a
+   rename in `vY`.)
 
 4. **Installed hooks (`.git/hooks/*`) live outside the git graph.** The
    `make hooks-install` of Step 4 materialises the hooks in the repository's common git
