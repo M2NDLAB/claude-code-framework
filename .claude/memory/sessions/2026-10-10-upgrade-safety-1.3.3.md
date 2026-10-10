@@ -22,8 +22,8 @@ tags: [session, upgrade, imp, plan]
 
 ## Plan (one commit per task)
 - [x] 1. Record IMP-068 (OPEN, a list that declares itself complete), the moved-answer note in IMP-048, the phase-1 decisions (this note, a dated line in each IMP they decide) — commit: 90aa776
-- [x] 2. `hooks-install.sh` resolves the hooks directory with `--git-common-dir` (a linked worktree, a subdirectory, outside a repository); self-test case 3, RED then GREEN — commit: (this one)
-- [ ] 3. Upgrade Step 4: check that every generated hook is installed; the hooks directory is shared by the worktrees — commit: —
+- [x] 2. `hooks-install.sh` resolves the hooks directory with `--git-common-dir` (a linked worktree, a subdirectory, outside a repository); self-test case 3, RED then GREEN — commit: 9cf7cb3
+- [x] 3. Upgrade Step 4: check that every generated hook is installed; the hooks directory is shared by the worktrees — commit: (this one)
 - [ ] 4. Upgrade Step 1 photographs the hooks; edge case 4 restores the photograph (the destructive lines in their own block) — commit: —
 - [ ] 5. Upgrade Step 2: the *Upgrading* notes between `vX` and `vY` become a checklist (different topics add up; on the same topic the latest wins) — commit: —
 - [ ] 6. Upgrade Step 3: the `Makefile` through the 3-way, only `.gitignore` additive; edge case 8, a slot that moves to another file — commit: —
