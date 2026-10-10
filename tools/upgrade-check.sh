@@ -472,8 +472,10 @@ cmd_inventory() {
   elif cmp -s "${s2x}" "${s2y}"; then
     ok "the §2 checklist is unchanged"
   else
-    comm -13 "${s2x}" "${s2y}" | while IFS= read -r line; do check "§2, new or re-worded: ${line#- \[ \] }"; done
-    comm -23 "${s2x}" "${s2y}" | while IFS= read -r line; do info "§2, gone or re-worded: ${line#- \[ \] }"; done
+    comm -13 "${s2x}" "${s2y}" > "${d}/s2.added"
+    comm -23 "${s2x}" "${s2y}" > "${d}/s2.removed"
+    while IFS= read -r line; do check "§2, new or re-worded: ${line#- \[ \] }"; done < "${d}/s2.added"
+    while IFS= read -r line; do info "§2, gone or re-worded: ${line#- \[ \] }"; done < "${d}/s2.removed"
   fi
 
   section "The memory's format — titles and field labels to rename (edge case 3 (b))"
@@ -509,6 +511,25 @@ cmd_inventory() {
     fi
   done
   finish "inventory ${vx} -> ${vy}"
+}
+
+# format_done <vY>: after the rename, no title of vY missing and no old-form label (FAIL).
+format_done() {
+  local vy="$1" f t pending=0
+  section "The memory's format — titles and field labels (edge case 3 (b))"
+  for f in .claude/memory/STATE.md .claude/memory/LEARNINGS.md; do
+    [ -f "${f}" ] || continue
+    while IFS= read -r t; do
+      [ -n "${t}" ] || continue
+      fail "${f} still lacks ${vy}'s title '${t}': the rename is mandatory"
+      pending=$((pending + 1))
+    done <<< "$(missing_titles "${vy}" "${f}")"
+  done
+  if [ -f .claude/memory/LEARNINGS.md ] && [ "$(old_labels .claude/memory/LEARNINGS.md)" -gt 0 ]; then
+    fail "$(old_labels .claude/memory/LEARNINGS.md) line(s) of LEARNINGS.md still carry an old-form field label: the rename is mandatory"
+    pending=$((pending + 1))
+  fi
+  [ "${pending}" -gt 0 ] || ok "titles and field labels in ${vy}'s form"
 }
 
 # --- invariant -------------------------------------------------------------------------
@@ -630,22 +651,107 @@ cmd_invariant() {
     fi
   fi
 
-  section "The memory's format — titles and field labels (edge case 3 (b))"
-  local t pending=0
-  for f in .claude/memory/STATE.md .claude/memory/LEARNINGS.md; do
-    [ -f "${f}" ] || continue
-    while IFS= read -r t; do
-      [ -n "${t}" ] || continue
-      fail "${f} still lacks ${vy}'s title '${t}': the rename is mandatory"
-      pending=$((pending + 1))
-    done <<< "$(missing_titles "${vy}" "${f}")"
-  done
-  if [ -f .claude/memory/LEARNINGS.md ] && [ "$(old_labels .claude/memory/LEARNINGS.md)" -gt 0 ]; then
-    fail "$(old_labels .claude/memory/LEARNINGS.md) line(s) of LEARNINGS.md still carry an old-form field label: the rename is mandatory"
-    pending=$((pending + 1))
-  fi
-  [ "${pending}" -gt 0 ] || ok "titles and field labels in ${vy}'s form"
+  format_done "${vy}"
   finish "invariant ${vx} -> ${vy}, since ${restore}"
+}
+
+# --- post --------------------------------------------------------------------------------
+
+cmd_post() {
+  [ $# -eq 2 ] || die "usage: post vX vY"
+  local vx="$1" vy="$2"
+  require_fw
+  require_project_root
+  require_tag "${vx}"
+  require_tag "${vy}"
+  require_t
+  local d="${WORK}/post" path class by n_at=0 modey modep
+  rm -rf "${d}" && mkdir -p "${d}" || die "cannot prepare ${d}"
+
+  section "The payload against ${vy} — METHOD files at ${vy}, every file present, modes"
+  awk -F'\t' '{print $2}' "$(tree_of "${vy}")" > "${d}/paths.vy"
+  while IFS= read -r path; do
+    class="$(classify "${path}")"
+    case "${class}" in PROJECT-MEMORY | LOCAL | GRAFT-STATE | LEARNINGS) continue ;; esac
+    if [ ! -f "${path}" ]; then
+      fail "${path} (${class}) is missing: bring it over from ${vy}"
+      continue
+    fi
+    by="$(blob_at "${vy}" "${path}")"
+    case "${class}" in
+      METHOD)
+        if [ "$(git hash-object -- "${path}")" = "${by}" ]; then
+          n_at=$((n_at + 1))
+        else
+          check "${path} (METHOD) differs from ${vy}'s: fine only if it was reconciled as a hybrid (edge case 7)"
+        fi ;;
+      TEMPLATE)
+        [ "$(git hash-object -- "${path}")" = "${by}" ] && n_at=$((n_at + 1)) \
+          || check "${path} (TEMPLATE) differs from ${vy}'s: fine only for the project's own customisation" ;;
+      NONE) fail "no class for ${path}" ;;
+    esac
+    modey="$(mode_at "${vy}" "${path}")"
+    if [ -x "${path}" ]; then modep=100755; else modep=100644; fi
+    [ "${modey}" = "${modep}" ] || fail "${path}: mode ${modep}, ${vy}'s is ${modey} (chmod, Step 3)"
+  done < "${d}/paths.vy"
+  ok "${n_at} METHOD and TEMPLATE files identical to ${vy}'s"
+  # Orphans: what vY removed must be gone from the project too.
+  awk -F'\t' '{print $2}' "$(tree_of "${vx}")" | sort > "${d}/paths.vx.sorted"
+  sort "${d}/paths.vy" > "${d}/paths.vy.sorted"
+  comm -23 "${d}/paths.vx.sorted" "${d}/paths.vy.sorted" | while IFS= read -r path; do
+    case "$(classify "${path}")" in PROJECT-MEMORY | LOCAL | GRAFT-STATE) continue ;; esac
+    [ -e "${path}" ] && echo "${path}"
+  done > "${d}/orphans"
+  if [ -s "${d}/orphans" ]; then
+    while IFS= read -r path; do fail "${path} is an orphan: ${vy} removed it (edge case 1)"; done < "${d}/orphans"
+  else
+    ok "no orphan of a file ${vy} removed"
+  fi
+
+  section "Slots — markers broken by a wrap, and the slots ${vy} added"
+  local mx my
+  while IFS= read -r path; do
+    case "$(classify "${path}")" in METHOD | HYBRID | TEMPLATE | LEARNINGS) ;; *) continue ;; esac
+    [ -f "${path}" ] || continue
+    # Read from a file, not a pipe: a loop on a pipe runs in a subshell, and its FAILs
+    # would not be counted.
+    grep -nE "${BROKEN_MARKER_RE}" "${path}" > "${d}/broken" || true
+    while IFS= read -r line; do
+      fail "${path}:${line} — a marker broken by a line wrap: keep it on one line"
+    done < "${d}/broken"
+    mx="$(marker_count "${vx}" "${path}")"; my="$(marker_count "${vy}" "${path}")"
+    if [ "${my}" -gt "${mx}" ]; then
+      check "${vy} added $((my - mx)) slot(s) to ${path}: confirm the project's answer is in place, not the framework's default:"
+      grep -nE -A1 "${MARKER_RE}" "${path}" | sed 's/^/       | /'
+    fi
+  done < "${d}/paths.vy"
+
+  section "Hooks — every hook of the project's scripts/hooks-install.sh is installed (Step 4)"
+  local hooks h n_h=0
+  hooks="$(git rev-parse --path-format=absolute --git-common-dir)/hooks"
+  for h in $(sed -n 's/^for hook in \(.*\); do$/\1/p' scripts/hooks-install.sh 2>/dev/null); do
+    n_h=$((n_h + 1))
+    if grep -qF "${HOOK_MARKER}" "${hooks}/${h}" 2>/dev/null; then
+      ok "${h} installed, with the generator's marker"
+    else
+      fail "${h} missing or foreign in ${hooks}: run make hooks-install"
+    fi
+  done
+  [ "${n_h}" -gt 0 ] || fail "no hook list found in scripts/hooks-install.sh"
+
+  format_done "${vy}"
+
+  section "The provenance pin"
+  local version
+  version="$( [ -f .claude/framework-version ] && pin_field version )"
+  if [ "${version}" = "${vy}" ]; then
+    ok "the pin reads ${vy}"
+  elif [ "${version}" = "${vx}" ] || [ -z "${version}" ]; then
+    check "the pin reads '${version:-nothing}': Step 6 writes 'version: ${vy}' and its commit"
+  else
+    fail "the pin reads '${version}', neither ${vx} nor ${vy}"
+  fi
+  finish "post ${vx} -> ${vy}"
 }
 
 main() {
@@ -657,6 +763,7 @@ main() {
     preflight) cmd_preflight "$@" ;;
     inventory) cmd_inventory "$@" ;;
     invariant) cmd_invariant "$@" ;;
+    post) cmd_post "$@" ;;
     *) die "unknown subcommand: ${sub}" ;;
   esac
 }
