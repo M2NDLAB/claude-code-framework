@@ -511,6 +511,143 @@ cmd_inventory() {
   finish "inventory ${vx} -> ${vy}"
 }
 
+# --- invariant -------------------------------------------------------------------------
+
+# body_region <file>: from the first "## " heading to the end (LEARNINGS.md's memory part).
+body_region() { awk '/^## /{b=1} b' "$1"; }
+# comments_of <file>: its comment blocks, each closed by a line "@@END".
+comments_of() { awk '/<!--/{c=1} c{print} /-->/{if (c) print "@@END"; c=0}' "$1"; }
+# without_comments <file>: the file without its comment blocks.
+without_comments() { awk '/<!--/{c=1} !c{print} /-->/{c=0}' "$1"; }
+# show_diff <a> <b>: the first lines of a unified diff, indented, for a human to read.
+show_diff() { diff -u "$1" "$2" | sed -n '3,40p' | sed 's/^/       | /'; }
+
+cmd_invariant() {
+  [ $# -eq 3 ] || die "usage: invariant vX vY <restore point: the project's pre-upgrade commit>"
+  local vx="$1" vy="$2" restore="$3"
+  require_fw
+  require_project_root
+  require_tag "${vx}"
+  require_tag "${vy}"
+  require_t
+  git rev-parse -q --verify "${restore}^{commit}" >/dev/null || die "the restore point ${restore} is not a commit of the project"
+  local d="${WORK}/invariant"
+  rm -rf "${d}" && mkdir -p "${d}" || die "cannot prepare ${d}"
+
+  section "The touches on .claude/memory/ since the restore point ${restore} — a closed list (SETUP.md, Step 5)"
+  { git --no-optional-locks diff --name-status --no-renames "${restore}" -- .claude/memory
+    git --no-optional-locks ls-files --others --exclude-standard -- .claude/memory | awk '{ print "A\t" $0 }'
+  } > "${d}/changes"
+  [ -s "${d}/changes" ] || ok "no change under .claude/memory/"
+  local st path class bad mnow mrest mx my
+  while IFS=$'\t' read -r st path; do
+    [ -n "${path}" ] || continue
+    class="$(classify "${path}")"
+    if [ "${st}" = D ]; then
+      fail "${path} is deleted: an upgrade removes nothing from the memory"
+      continue
+    fi
+    case "${class}" in
+      TEMPLATE)
+        if [ "$(git hash-object -- "${path}")" = "$(blob_at "${vy}" "${path}")" ]; then
+          ok "${path}: the memory template at ${vy}"
+        else
+          check "${path}: a memory template that differs from ${vy}'s — fine only for the project's own customisation, kept through the 3-way:"
+          fw show "${vy}:${path}" > "${d}/template"
+          show_diff "${d}/template" "${path}"
+        fi
+        # A slot answered at the restore point must not be open again.
+        mnow="$(grep -cE "${MARKER_RE}" "${path}")"
+        mrest="$(git show "${restore}:${path}" 2>/dev/null | grep -cE "${MARKER_RE}")"
+        mx="$(marker_count "${vx}" "${path}")"; my="$(marker_count "${vy}" "${path}")"
+        [ $((mnow - mrest)) -le $((my - mx)) ] \
+          || fail "${path}: a slot the project had answered is open again — re-apply its answer" ;;
+      LEARNINGS)
+        info "${path}: see its own section below" ;;
+      PROJECT-MEMORY)
+        case "${st}:${path}" in
+          *:.claude/memory/STATE.md | *:.claude/memory/TREE.md | *:.claude/memory/INDEX.md)
+            info "${path}: rewritten by the upgrade's checkpoint (Step 6)" ;;
+          A:.claude/memory/sessions/* | A:.claude/memory/plans/*)
+            ok "${path}: added — the upgrade's own session note or plan" ;;
+          A:*)
+            fail "${path}: added outside the upgrade's own note and plan" ;;
+          *)
+            # Only edge case 3 (a): a line that changes carries a pointer.
+            bad="$(git --no-optional-locks diff -U0 "${restore}" -- "${path}" \
+              | grep -E '^[-+]' | grep -vE '^(\+\+\+|---) ' | grep -vE '\[\[|\.md|docs/' | head -n 1)"
+            if [ -z "${bad}" ]; then
+              ok "${path}: pointer repairs only (edge case 3 (a))"
+            else
+              fail "${path}: changed beyond the pointer repairs of edge case 3 (a): ${bad}"
+            fi ;;
+        esac ;;
+      *)
+        fail "${path}: ${class} — not a file an upgrade touches under .claude/memory/" ;;
+    esac
+  done < "${d}/changes"
+
+  section "LEARNINGS.md — the header is a template; the IMP entries are the project's memory"
+  local f=.claude/memory/LEARNINGS.md
+  if [ ! -f "${f}" ]; then
+    info "${f}: absent"
+  else
+    header_region "${f}" > "${d}/h.now"
+    fw show "${vy}:${f}" > "${d}/vy.learnings"
+    header_region "${d}/vy.learnings" > "${d}/h.vy"
+    if cmp -s "${d}/h.now" "${d}/h.vy"; then
+      ok "the header is ${vy}'s"
+    else
+      check "the header differs from ${vy}'s — fine only for the project's own text, kept through the 3-way:"
+      show_diff "${d}/h.vy" "${d}/h.now"
+    fi
+    body_region "${f}" > "${d}/b.now"
+    body_region "${d}/vy.learnings" > "${d}/b.vy"
+    git show "${restore}:${f}" 2>/dev/null | body_region /dev/stdin > "${d}/b.before"
+    comments_of "${d}/b.now" > "${d}/c.now"
+    comments_of "${d}/b.vy" > "${d}/c.vy"
+    local cnow cvy
+    cnow="$(grep -c '^@@END$' "${d}/c.now")"; cvy="$(grep -c '^@@END$' "${d}/c.vy")"
+    if [ "${cnow}" -ne "${cvy}" ]; then
+      fail "the body has ${cnow} comment block(s), ${vy}'s format has ${cvy}: an extra block can hide an IMP entry"
+    elif cmp -s "${d}/c.now" "${d}/c.vy"; then
+      ok "the format comment is ${vy}'s"
+    else
+      check "the format comment differs from ${vy}'s — a project's rewording, or an entry hidden inside it:"
+      show_diff "${d}/c.vy" "${d}/c.now"
+    fi
+    # Blank lines carry no content, and replacing a format comment moves them: they are
+    # left out of the comparison, as the old-form titles and labels are normalised.
+    without_comments "${d}/b.before" > "${d}/e.before.raw"
+    normalise_format "${d}/e.before.raw" | awk 'NF' > "${d}/e.before"
+    without_comments "${d}/b.now" > "${d}/e.now.raw"
+    normalise_format "${d}/e.now.raw" | awk 'NF' > "${d}/e.now"
+    if cmp -s "${d}/e.before" "${d}/e.now"; then
+      ok "the IMP entries are unchanged (titles and field labels compared in their new form, blank lines aside)"
+    else
+      fail "the IMP entries changed — an upgrade never edits them:"
+      show_diff "${d}/e.before" "${d}/e.now"
+    fi
+  fi
+
+  section "The memory's format — titles and field labels (edge case 3 (b))"
+  local t pending=0
+  for f in .claude/memory/STATE.md .claude/memory/LEARNINGS.md; do
+    [ -f "${f}" ] || continue
+    while IFS= read -r t; do
+      [ -n "${t}" ] || continue
+      fail "${f} still lacks ${vy}'s title '${t}': the rename is mandatory"
+      pending=$((pending + 1))
+    done <<< "$(missing_titles "${vy}" "${f}")"
+  done
+  if [ -f .claude/memory/LEARNINGS.md ] && [ "$(old_labels .claude/memory/LEARNINGS.md)" -gt 0 ]; then
+    fail "$(old_labels .claude/memory/LEARNINGS.md) line(s) of LEARNINGS.md still carry an old-form field label: the rename is mandatory"
+    pending=$((pending + 1))
+  fi
+  [ "${pending}" -gt 0 ] || ok "titles and field labels in ${vy}'s form"
+  finish "invariant ${vx} -> ${vy}, since ${restore}"
+}
+
 main() {
   [ $# -ge 1 ] || die "usage: upgrade-check.sh classes|preflight|inventory|invariant|post ..."
   local sub="$1"
@@ -519,6 +656,7 @@ main() {
     classes) cmd_classes "$@" ;;
     preflight) cmd_preflight "$@" ;;
     inventory) cmd_inventory "$@" ;;
+    invariant) cmd_invariant "$@" ;;
     *) die "unknown subcommand: ${sub}" ;;
   esac
 }

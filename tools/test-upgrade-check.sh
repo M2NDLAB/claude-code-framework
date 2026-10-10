@@ -14,6 +14,12 @@
 #   3. inventory — on the same pair: the measured 3-way of a co-edited hybrid, the edge
 #      cases (7, 1, 6, a mode), a slot that moved (edge case 8), the §2 diff, the titles
 #      and labels to rename, the Upgrading notes in release order.
+#   4. invariant — an upgrade that touched the memory only as allowed passes (templates at
+#      vY, titles and labels renamed, a pointer repaired, its own note and plan added);
+#      each of eight violations fails: an edited IMP entry, an entry hidden in an extra
+#      comment, a note edited beyond its pointers, a note deleted, a title or a label left
+#      in the old form, a file added to components/, a slot the project had answered
+#      opened again.
 # Run it from anywhere: bash tools/test-upgrade-check.sh
 set -euo pipefail
 
@@ -188,3 +194,71 @@ grep -n 'INFO   v1.1.0:' "${out}" | cut -d: -f1 >> "${workdir}/order"
   || fail "inventory: the Upgrading notes are not listed oldest first"
 has "| **Upgrading from 1.0.1**: move your protected branches to the Makefile first."
 echo "PASS (upgrade-check inventory): the 3-way measured, the edge cases flagged, the moved slot, §2, titles and labels, the notes in order."
+
+# --- Case 4: invariant ----------------------------------------------------------------
+RESTORE="$(g -C "${PRJ}" rev-parse HEAD)"
+upgraded_state() {
+  g -C "${FWD}" show v1.1.0:.claude/memory/sessions/README.md > "${PRJ}/.claude/memory/sessions/README.md"
+  put "${PRJ}" .claude/memory/decisions/README.md 'decisions\nADR home: docs/adr\nend\n'
+  put "${PRJ}" .claude/memory/LEARNINGS.md "# Learnings\nHeader, second version.\n\n## OPEN proposals (awaiting the user's decision)\n\n### IMP-001 — A lesson of the project\n- Date: 2026-01-02 | Origin: a session\n- Observed problem: something recurs\n- Proposal: do it once\n\n<!-- Format of a proposal:\n### IMP-001 — <title>\n- Date: YYYY-MM-DD | Origin: <session>\n- Observed problem: <...>\n-->\n\n## Applied\n\n## Deferred (not rejected — resumed at the right time)\n\n## Rejected (with the reason — so they are not re-proposed)\n"
+  put "${PRJ}" .claude/memory/STATE.md '# STATE\n\n## Progress\n- the project is under way\n\n## Active branches\n- main\n'
+  put "${PRJ}" .claude/memory/sessions/2026-01-02-start.md '# The first session\nSee [[STATE]] and docs/04-git-workflow.md#merge.\nA fact of the project.\n'
+  put "${PRJ}" .claude/memory/sessions/2026-01-10-framework-upgrade.md '# The upgrade to v1.1.0\n'
+  put "${PRJ}" .claude/memory/plans/framework-upgrade-v1.0.0-to-v1.1.0.md '# Plan\n'
+  rm -f "${PRJ}/.claude/memory/components/extra.md"
+}
+# violate <description> <expected line> <command...>: from the sound state, one violation.
+violate() {
+  local what="$1" expected="$2"
+  shift 2
+  upgraded_state
+  "$@"
+  FW="${FWD}" T="${T_DIR}" run 1 "${PRJ}" invariant v1.0.0 v1.1.0 "${RESTORE}"
+  grep -qF -- "${expected}" "${out}" || fail "invariant, ${what}: expected a line with: ${expected}"
+  # Exactly one FAIL: the violation is caught for its own reason, not for a side effect.
+  grep -q ": 1 FAIL, " "${out}" || fail "invariant, ${what}: not exactly one FAIL"
+}
+upgraded_state
+FW="${FWD}" T="${T_DIR}" run 0 "${PRJ}" invariant v1.0.0 v1.1.0 "${RESTORE}"
+has "OK     .claude/memory/sessions/README.md: the memory template at v1.1.0"
+has "OK     .claude/memory/sessions/2026-01-02-start.md: pointer repairs only"
+has "OK     .claude/memory/sessions/2026-01-10-framework-upgrade.md: added"
+has "OK     the IMP entries are unchanged"
+has "OK     titles and field labels in v1.1.0's form"
+lrn="${PRJ}/.claude/memory/LEARNINGS.md"
+note="${PRJ}/.claude/memory/sessions/2026-01-02-start.md"
+# subst <file> <from> <to>: replace a literal text, in place, with no backup file left.
+subst() {
+  F="$2" R="$3" awk '{ p = index($0, ENVIRON["F"]); if (p) $0 = substr($0, 1, p - 1) ENVIRON["R"] substr($0, p + length(ENVIRON["F"])); print }' "$1" > "$1.tmp" && mv "$1.tmp" "$1"
+}
+# insert_before <file> <line> <text...>: insert lines before the first exact match.
+insert_before() {
+  local f="$1" at="$2"
+  shift 2
+  printf '%s\n' "$@" > "${workdir}/insert"
+  AT="${at}" awk -v ins="${workdir}/insert" '!done && $0 == ENVIRON["AT"] { while ((getline l < ins) > 0) print l; done = 1 } { print }' "${f}" > "${f}.tmp" && mv "${f}.tmp" "${f}"
+}
+violate "an edited entry" "FAIL   the IMP entries changed" \
+  subst "${lrn}" "do it once" "do it twice"
+violate "a hidden entry" "comment block(s)" \
+  insert_before "${lrn}" "## Applied" "<!-- a note" "### IMP-002 — an entry hidden in a comment" "- Proposal: never seen" "-->" ""
+violate "a note's fact" "changed beyond the pointer repairs" \
+  subst "${note}" "A fact of the project." "Another fact."
+violate "a deleted note" "is deleted: an upgrade removes nothing" rm "${note}"
+violate "a title left" "still lacks v1.1.0's title '## Progress'" \
+  subst "${PRJ}/.claude/memory/STATE.md" "## Progress" "## Stato avanzamento"
+violate "a label left" "still carry an old-form field label" \
+  subst "${lrn}" "- Proposal: do it once" "- Proposta: do it once"
+violate "a component added" "added outside the upgrade's own note and plan" \
+  put "${PRJ}" .claude/memory/components/extra.md 'x\n'
+violate "a slot re-opened" "a slot the project had answered is open again" \
+  cp "${FWD}/.claude/memory/decisions/README.md" "${PRJ}/.claude/memory/decisions/README.md"
+# An entry written INSIDE the format comment keeps the count: a human must see it.
+upgraded_state
+subst "${lrn}" "- Observed problem: <...>" "- Observed problem: an entry hidden in the format comment"
+FW="${FWD}" T="${T_DIR}" run 0 "${PRJ}" invariant v1.0.0 v1.1.0 "${RESTORE}"
+has "CHECK  the format comment differs from v1.1.0's"
+has "an entry hidden in the format comment"
+upgraded_state
+[ -z "$(find "${PRJ}/.claude/memory" -name '*.tmp' -o -name '*.bak')" ] || fail "the test left backup files in the memory"
+echo "PASS (upgrade-check invariant): the allowed touches pass; eight violations of the closed list fail."
