@@ -5,7 +5,8 @@
 #      Code session marker is REFUSED in every form, a push without markers (the human's
 #      terminal) goes through — see "Case 2";
 #   3. where the hooks land: the repository's common git directory, from a linked worktree
-#      or from a subdirectory; outside any repository, a refusal — see "Case 3" at the end.
+#      or from a subdirectory; outside any repository, or from a copy below the top level of
+#      the repository it sits in, a refusal — see "Case 3" at the end.
 #
 # Case 1.
 # Defect (RED, before the fix): in the FORCE_OVERWRITE=1 branch, a pre-existing hook that is a
@@ -206,4 +207,18 @@ set -e
 [[ ! -e "${norepo}/.git" ]] || fail3 "outside a repository: a stray .git was created"
 grep -q "not inside a git repository" "${workdir}/out3.log" || fail3 "outside a repository: the refusal does not say why"
 
-echo "PASS (hooks directory): from a linked worktree the hooks land in the common .git/hooks; no stray .git from a subdirectory; outside a repository, a refusal."
+# 3d. A copy that is not at the top level of the repository it sits in (inside someone
+# else's working tree): a refusal, and no hook installed into that repository.
+nested="${wt_repo}/vendor/framework"
+mkdir -p "${nested}/scripts"
+cp "${HOOKS_INSTALL}" "${nested}/scripts/hooks-install.sh"
+rm -f "${wt_repo}/.git/hooks/pre-commit" "${wt_repo}/.git/hooks/commit-msg" "${wt_repo}/.git/hooks/pre-push"
+set +e
+bash "${nested}/scripts/hooks-install.sh" >"${workdir}/out3.log" 2>&1
+rc=$?
+set -e
+[[ ${rc} -ne 0 ]] || fail3 "a copy below the top level: expected a refusal, got exit 0"
+[[ ! -e "${wt_repo}/.git/hooks/pre-commit" ]] || fail3 "a copy below the top level: hooks were installed into the enclosing repository"
+grep -q "not the top level of its git repository" "${workdir}/out3.log" || fail3 "a copy below the top level: the refusal does not say why"
+
+echo "PASS (hooks directory): from a linked worktree the hooks land in the common .git/hooks; no stray .git from a subdirectory; outside a repository or below its top level, a refusal."

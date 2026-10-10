@@ -29,8 +29,8 @@ tags: [session, upgrade, imp, plan]
 - [x] 6. Upgrade Step 3: the `Makefile` through the 3-way, only `.gitignore` additive; edge case 8, a slot that moves to another file — commit: 2c6dd7f
 - [x] 7. Section titles: rule 9 separates the memory's format from its content; edge case 3 (b) by set comparison, the rename mandatory, the project's tests in the same commit, the table with the short forms — commit: 77dc84e
 - [x] 8. Prerequisites (git 2.31, Node.js 14.13); the upgrade's execution boundary (delegated agents read-only on git); Step 4, `settings.json` and the guard's self-test check each other — commit: b511da2
-- [x] 9. IMP-047: a tag when a change reaches what projects receive; `integrate.md` and `docs/04` aligned; `CONTRIBUTING.md` names the framework's shipped files — commit: (this one)
-- [ ] 10. ONE reviewer + fixes — commit: —
+- [x] 9. IMP-047: a tag when a change reaches what projects receive; `integrate.md` and `docs/04` aligned; `CONTRIBUTING.md` names the framework's shipped files — commit: cd6e820
+- [x] 10. ONE reviewer + fixes — commit: (this one)
 - [ ] 11. `/checkpoint` — commit: —
 - [ ] 12. `/integrate`: the CHANGELOG 1.3.3 entry — commit: —
 
@@ -145,6 +145,33 @@ tags: [session, upgrade, imp, plan]
   phase 1 (IMP-068; the note in IMP-048); a dedicated branch from `main`; probes only in
   `/tmp`; the client only read, with `git -C`; ONE reviewer; `/checkpoint` and the
   `/integrate` block; merge, tag and push are the user's.
+
+## Review (task 10) — one reviewer, dispositions
+One independent reviewer over `5b21770..cd6e820` and the CHANGELOG draft (kept outside the
+repository until task 12), about fifteen minutes. It wrote nothing in either repository:
+both snapshots identical before and after. Verdict: fit to merge after the six MEDIUM
+items; nothing HIGH. Every snippet changed below was then extracted from `SETUP.md` and
+run as written in throwaway repositories under `/tmp` (bash and zsh for the Step 4 loop).
+
+| Finding | Severity | Disposition |
+| --- | --- | --- |
+| M1 — the restore's `rm` stopped on a subdirectory of the hooks directory, after deleting the hooks: no hooks left, nothing restored | MEDIUM | FIXED: the installed hooks are moved aside into `T` and the photograph copied back; rehearsed with a subdirectory and a relative symlink |
+| M2 — a failed photograph still created its directory, so the restore wiped the hooks and said "restored"; a second Step 1 merged `vY`'s hooks into the photograph | MEDIUM | FIXED: a `.partial` name renamed only on success, never over an existing photograph, a success line |
+| M3 — "Node.js 14.13 … used by commitlint" is wrong: npx fetches commitlint's latest, whose 21.x line declares Node 22.12 (verified in the local npx cache); the guard's `node:` imports need 14.13.1 | MEDIUM | FIXED: §0 names the two floors; `scripts/README.md` says 14.13.1 |
+| M4 — the presence check was said to catch a forgotten re-run; it catches a missing or foreign hook only | MEDIUM | FIXED: the wording of Step 4 and of edge case 4 (a) |
+| M5 — the no-photograph fallback would delete working hooks that Step 4 rewrote unchanged | MEDIUM | FIXED: hook by hook — a WARNING's `.bak` back, a new hook removed, the rest left |
+| M6 — `CONTRIBUTING.md` claimed upgrades read `SETUP.md` by tag, which `SETUP.md` never says, and stated as decided what the note calls an interpretation | MEDIUM | FIXED in part: the reason is now that an upgrade targets a tag (the script runs at `vY` by decision 1). That `SETUP.md` and the script count as shipped stays an interpretation for the user to confirm before the merge — recorded in IMP-047 |
+| L1 — `CONTRIBUTING.md` and `docs/04` gave the bump by different criteria | LOW | FIXED: `CONTRIBUTING.md` points to `docs/04`. v1.3.3 stays a PATCH, as the user's split decided |
+| L2 — `diff -r` follows symlinks | LOW | FIXED: `--no-dereference` |
+| L3 — rule 9 said "the upgrade that changes them", edge case 3 (b) "every upgrade" | LOW | FIXED in `CLAUDE.md` and the draft |
+| L4 — "the SAME commit" ambiguous next to the separate `docs(memory)` commit | LOW | FIXED: the same commit as the rename |
+| L5 — no top-level check (a copy inside another working tree installs into it); a missing git misreported | LOW | FIXED: both checks, the hooks directory in the OK line; case 3d RED on `9cf7cb3` (the enclosing repository got the hooks), GREEN now |
+| L6 — IMP-037 moved whole, its deferred half out of the *Deferred* section | LOW | FIXED: split into option (b), open, and option (a), deferred with the new trigger |
+| L7, L8, L9 — the self-test row of `scripts/README.md`; the draft's `REPO_ROOT` line and "moves"; `.git/hooks/pre-push.local` from a linked worktree | LOW | FIXED: the row; the draft; the refusal names the absolute path, Step 4 says "the same hooks directory" |
+| I1 — case 3b is a regression guard, not a RED proof | INFO | As the test says; no change |
+| I2 — the Step 4 loop hard-coded the hook list (IMP-068's shape) | INFO | ADOPTED: the list is read from the script's loop, with a line that stops on an empty list |
+| I3 — `SECURITY.md`, `README.md`, "memory TEMPLATES" in `CONTRIBUTING.md` | INFO | FIXED wording |
+| I5, I6 — `T` under `/tmp`; the 1.3.3 rule-9 note anchors on lines 1.3.2 added | INFO | ADOPTED |
 
 ## Open points — recorded, not decided
 - **Field labels.** `/harvest-framework` reads the IMP field labels by name (Origin,

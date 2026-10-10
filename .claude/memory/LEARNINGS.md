@@ -27,59 +27,23 @@ tags: [improvement]
 
 ## OPEN proposals (awaiting the user's decision)
 
-### IMP-037 — Upgrade automation: a read-only verification script (b) approved; the `/upgrade-framework` command (a) deferred
-- Status: **(b) APPROVED on 2026-10-10** ([[2026-10-10-upgrade-safety-1.3.3]]), applied in v1.4.0:
-  a READ-ONLY upgrade verification script; `SETUP.md` stays the procedure and calls it. It
-  reads the framework by tag with `git -C "${FW:?}"` — the "no cross-repo git" boundary
-  below was about writes and `FW`'s working tree, not about reads by tag (the v1.2.1
-  rule, IMP-050 points 1-2). It lives OUTSIDE the payload, is never copied into a project,
-  and runs in its version AT the tag `vY`, never from the framework's working tree. The
-  "No automation, for now" box of `SETUP.md` is updated with it (Level 2, approved).
-  **(a), the full command, stays DEFERRED** — new trigger: the first upgrade of a SECOND
-  project (the three cases below are all one project's). Why (b) and not (a): across the
-  three upgrades the judgement differed every time and the mechanics did not; a command
-  would shadow a procedure that changed in 7 of 11 releases, and could not be tested.
-  Moved from *Deferred* to here on that date; the history follows.
-- User decision (periodic retro): DEFER (confirmed). A command that ONLY READS AND PRINTS
-  (the boundary of `/harvest-framework`/IMP-009) the `vX→vY` upgrade plan — the delta
-  from the CHANGELOG, the taxonomy by class, the block of reconciliations — with no
-  writes/merges/pushes and no cross-repo git. It abstracts the manual procedure of
-  `SETUP.md`, but with 0 real upgrades the common pattern is not distillable: premature
-  automation (the anti-hype filter, as with IMP-027 `graft.sh`).
-- Resumption trigger: after 2-3 real upgrades, when the common pattern is distillable
-  from the tested text (D3 is case #1 of the 2-3 needed; on its own it does NOT fire the
-  trigger).
-- **Case #1 happened** (targeted-retro annotation 2026-07-18): the first real upgrade was
-  performed on 2026-07-17 (the client project, v0.2.0→v0.5.1) — see
-  [[2026-07-18-retro-mirata-imp-036-037]]. Friction observed: the cost was in the
-  file-by-file JUDGEMENT (decisions R1/R3/R4/R5 + the per-version 3-way of
-  `hooks-install.sh`), which a read-and-print command does not remove; the manual
-  procedure of `SETUP.md` held up (the memory invariant respected, the functional
-  verification of the hooks demonstrated). Counter: **1 of 2-3**, trigger NOT fired.
-  User decision: deferral CONFIRMED.
-- **Case #2 happened** (bookkeeping annotation 2026-09-23, found during the IMP-044
-  assessment — see [[2026-09-23-memory-model-turns]]): the same client project performed
-  its second real upgrade on 2026-07-19 (v0.5.1→v1.0.0, crossing the first stable
-  release). Counter: **2 of 2-3** — the trigger is CLOSE, not fired. Bookkeeping only
-  (user decision): the IMP is NOT reopened here; its evaluation belongs to a retro. Note
-  for that retro: both upgrades hit the contradiction recorded in IMP-046.
-- **Case #3 happened — TRIGGER FIRED on the count** (annotation 2026-09-24,
-  [[2026-09-24-third-upgrade-lessons]]): the same client project performed its third
-  real upgrade (v1.0.0→v1.2.0, across the full translation of v1.1.0). Counter: **3 of
-  2-3** — the count condition is MET; the second clause ("when the common pattern is
-  distillable from the tested text") is the retro's call, and the input below bears on
-  it. Recording only: the IMP is NOT reopened here; whether to reopen, re-scope or
-  confirm the deferral is decided at a retro. Input for that retro (IMP-050, point 3):
-  the case-#1 friction was "the file-by-file JUDGEMENT, which a read-and-print command
-  does not remove"; case #3 split that judgement — the per-file churn table and the
-  diff-against-baseline inventory are its MECHANICAL, printable inputs (the upgrade
-  produced them with ad-hoc scripts that read the framework by tag), while the per-item
-  decisions stay human. Also for that retro: such a command reads the framework repo —
-  by tag and with `-C` (IMP-050, points 1-2) — while the boundary above says "no
-  cross-repo git" (the execution boundary and the agnosticism inherited from
-  `/harvest-framework`: the project does not know where the framework repo lives).
-  `git -C "$FW"` tag reads cross it: whether reads are allowed is an open question for
-  that retro. All three upgrades hit IMP-046.
+### IMP-037 (option b) — A read-only upgrade verification script (approved; applied in v1.4.0)
+- Date: 2026-10-10 | Origin: [[2026-10-10-upgrade-safety-1.3.3]] — the decision on IMP-037 after its
+  count trigger fired (three real upgrades); the history is under *Deferred*, IMP-037
+  (option a)
+- Status: **APPROVED on 2026-10-10**, applied in v1.4.0: a READ-ONLY upgrade verification
+  script; `SETUP.md` stays the procedure and calls it. It reads the framework by tag with
+  `git -C "${FW:?}"` — the "no cross-repo git" boundary of option (a) was about writes and
+  `FW`'s working tree, not about reads by tag (the v1.2.1 rule, IMP-050 points 1-2). It
+  lives OUTSIDE the payload, is never copied into a project, and runs in its version AT
+  the tag `vY`, never from the framework's working tree. The "No automation, for now" box
+  of `SETUP.md` is updated with it (Level 2, approved).
+- Why (b) and not (a): across the three upgrades the judgement differed every time and
+  the mechanics did not; a command would shadow a procedure that changed in 7 of 11
+  releases, and could not be tested. The script holds the mechanics: preflight (the pin —
+  an explicit error, never a silent normalisation, IMP-050), the per-file inventory and
+  measurement, the marker and §2-checklist delta between the tags, the memory invariant
+  (IMP-046), the post-checks.
 
 ### IMP-046 — The upgrade procedure contradicts itself on `.claude/memory/`
 - Date: 2026-09-22 | Origin: [[2026-09-23-memory-model-turns]] — the upgrade demands an
@@ -1562,6 +1526,53 @@ tags: [improvement]
   `SETUP.md` must be tried in the field first.
 - Resumption trigger: after 2-3 real brownfield grafts, when the common pattern is
   distillable from the tested text.
+
+### IMP-037 (option a) — The `/upgrade-framework` read-and-print command (the inverse twin of `/harvest-framework`) → deferred on 2026-07-17, again on 2026-10-10
+- **Re-deferred on 2026-10-10** ([[2026-10-10-upgrade-safety-1.3.3]]): the count trigger below fired;
+  the user split the entry. Option (b), a read-only verification script, is approved —
+  see IMP-037 (option b) in the OPEN proposals. This option, the full command, stays
+  deferred. New resumption trigger: the first upgrade of a SECOND project (the three
+  cases below are all one project's).
+- User decision (periodic retro): DEFER (confirmed). A command that ONLY READS AND PRINTS
+  (the boundary of `/harvest-framework`/IMP-009) the `vX→vY` upgrade plan — the delta
+  from the CHANGELOG, the taxonomy by class, the block of reconciliations — with no
+  writes/merges/pushes and no cross-repo git. It abstracts the manual procedure of
+  `SETUP.md`, but with 0 real upgrades the common pattern is not distillable: premature
+  automation (the anti-hype filter, as with IMP-027 `graft.sh`).
+- Resumption trigger: after 2-3 real upgrades, when the common pattern is distillable
+  from the tested text (D3 is case #1 of the 2-3 needed; on its own it does NOT fire the
+  trigger).
+- **Case #1 happened** (targeted-retro annotation 2026-07-18): the first real upgrade was
+  performed on 2026-07-17 (the client project, v0.2.0→v0.5.1) — see
+  [[2026-07-18-retro-mirata-imp-036-037]]. Friction observed: the cost was in the
+  file-by-file JUDGEMENT (decisions R1/R3/R4/R5 + the per-version 3-way of
+  `hooks-install.sh`), which a read-and-print command does not remove; the manual
+  procedure of `SETUP.md` held up (the memory invariant respected, the functional
+  verification of the hooks demonstrated). Counter: **1 of 2-3**, trigger NOT fired.
+  User decision: deferral CONFIRMED.
+- **Case #2 happened** (bookkeeping annotation 2026-09-23, found during the IMP-044
+  assessment — see [[2026-09-23-memory-model-turns]]): the same client project performed
+  its second real upgrade on 2026-07-19 (v0.5.1→v1.0.0, crossing the first stable
+  release). Counter: **2 of 2-3** — the trigger is CLOSE, not fired. Bookkeeping only
+  (user decision): the IMP is NOT reopened here; its evaluation belongs to a retro. Note
+  for that retro: both upgrades hit the contradiction recorded in IMP-046.
+- **Case #3 happened — TRIGGER FIRED on the count** (annotation 2026-09-24,
+  [[2026-09-24-third-upgrade-lessons]]): the same client project performed its third
+  real upgrade (v1.0.0→v1.2.0, across the full translation of v1.1.0). Counter: **3 of
+  2-3** — the count condition is MET; the second clause ("when the common pattern is
+  distillable from the tested text") is the retro's call, and the input below bears on
+  it. Recording only: the IMP is NOT reopened here; whether to reopen, re-scope or
+  confirm the deferral is decided at a retro. Input for that retro (IMP-050, point 3):
+  the case-#1 friction was "the file-by-file JUDGEMENT, which a read-and-print command
+  does not remove"; case #3 split that judgement — the per-file churn table and the
+  diff-against-baseline inventory are its MECHANICAL, printable inputs (the upgrade
+  produced them with ad-hoc scripts that read the framework by tag), while the per-item
+  decisions stay human. Also for that retro: such a command reads the framework repo —
+  by tag and with `-C` (IMP-050, points 1-2) — while the boundary above says "no
+  cross-repo git" (the execution boundary and the agnosticism inherited from
+  `/harvest-framework`: the project does not know where the framework repo lives).
+  `git -C "$FW"` tag reads cross it: whether reads are allowed is an open question for
+  that retro. All three upgrades hit IMP-046.
 
 ### IMP-042 — `/change-language` (an automated translation command) → deferred on 2026-07-20
 - User decision (language deliverable, phase 1): DEFER — the same anti-hype filter as

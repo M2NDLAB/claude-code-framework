@@ -55,18 +55,19 @@ of stability, applied to a method — the general, agnostic criterion is in
 the general rule is `.claude/docs/04-git-workflow.md`, *Versioning*, "When the
 documentation IS the product"). A deliverable is a release, with a tag, when it changes
 what projects receive:
-- the PAYLOAD that setup copies (`SETUP.md`, step 1): `.claude/` — commands, docs,
-  settings and the memory TEMPLATES, not the framework's own memory —, `CLAUDE.md`,
-  `Makefile`, `commitlint.config.cjs`, `.gitignore`, `scripts/`;
-- and what a project's upgrade READS from this repo at the tag `vY` without copying it:
-  `SETUP.md`'s procedure, and the upgrade's verification tooling once it exists
-  (IMP-037). They count as shipped because the upgrade reads them by tag: a change to
-  them that cut no tag would never reach an upgrade.
+- the PAYLOAD that setup copies (`SETUP.md`, step 1): `.claude/` as setup copies it —
+  commands, docs, settings and the memory's starting files, not the framework's own IMP
+  entries and session notes —, `CLAUDE.md`, `Makefile`, `commitlint.config.cjs`,
+  `.gitignore`, `scripts/`; and the `SECURITY.md` scaffold setup offers;
+- what a project's setup and upgrade take from this repo at a tag without copying it:
+  `SETUP.md`'s procedures and, once it exists, the upgrade's verification script, which
+  runs in its version at the tag `vY` (IMP-037). An upgrade targets a tag: a change to
+  them that cut no tag would reach no project.
 
-The bump is at least a PATCH; a MINOR or a MAJOR by the commit types and the
-breaking-change criterion above. A change confined to the framework's own memory
-(`LEARNINGS.md`'s entries, `sessions/`) or to files no project receives (`README.md`,
-this file, the checks that run only here) is no tag.
+The bump is at least a PATCH; a MINOR or a MAJOR by the criteria of `docs/04`,
+*Versioning*. A change confined to the framework's own memory (`LEARNINGS.md`'s entries,
+`sessions/`) or to files that serve this repo only (`README.md`, this file, `LICENSE`,
+the checks that run only here) is no tag.
 
 ## This repo's memory: the "declared hybrid" regime
 
