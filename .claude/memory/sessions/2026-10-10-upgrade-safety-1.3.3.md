@@ -31,7 +31,7 @@ tags: [session, upgrade, imp, plan]
 - [x] 8. Prerequisites (git 2.31, Node.js 14.13); the upgrade's execution boundary (delegated agents read-only on git); Step 4, `settings.json` and the guard's self-test check each other — commit: b511da2
 - [x] 9. IMP-047: a tag when a change reaches what projects receive; `integrate.md` and `docs/04` aligned; `CONTRIBUTING.md` names the framework's shipped files — commit: cd6e820
 - [x] 10. ONE reviewer + fixes — commit: 2c6700e
-- [x] 11. `/checkpoint` — commit: (this one)
+- [x] 11. `/checkpoint` — commit: 1b5ef42
 - [x] 12. `/integrate`: the CHANGELOG 1.3.3 entry — commit: the CHANGELOG commit (its own sha cannot be written in it)
 
 ## Phase 1 — findings (framework `main`, `5b21770`; the client project's `main` only)

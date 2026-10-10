@@ -7,6 +7,101 @@ SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [1.3.3] — 2026-10-10
+
+### Fixed
+- **`make hooks-install` from a linked worktree.** `scripts/hooks-install.sh` wrote to
+  `<repository>/.git/hooks`, but in a linked worktree `.git` is a file: the script aborted
+  with `mkdir: … Not a directory` — an upgrade run on its own worktree hit it at Step 4.
+  It now resolves the repository's common git directory, shared by all worktrees
+  (`git rev-parse --path-format=absolute --git-common-dir`). It stops with a clear message
+  outside a repository — where it printed OK and created a stray `.git` — and when its
+  copy is not at the top level of the repository it sits in, where it would have
+  installed the hooks into the enclosing repository. Its messages name the hooks
+  directory. The self-test gains a third case: a linked worktree, a subdirectory, outside
+  a repository, below the top level.
+- **The upgrade's Step 4 could pass with the push boundary missing.** Its proofs exercise
+  behaviour, not version: they pass with older hooks installed, and none reaches the
+  `pre-push` 1.3.0 added. Step 4 now checks that every hook the script generates is
+  installed and carries the generator's marker — the list read from the script's own
+  loop. It catches a missing or foreign hook; the re-run is what makes them current.
+- **The upgrade's rollback of the hooks did not work.** Edge case 4 said to re-run
+  `vX`'s `make hooks-install`: that leaves the `pre-push` a `vX` before 1.3.0 never had, a
+  `vX` from 0.3.0 to 1.0.0 refuses the English marker, and `FORCE_OVERWRITE=1` overwrites
+  the pre-upgrade `.bak`. Step 1 now photographs the hooks directory into the scratch
+  directory (never over an existing photograph), and edge case 4 moves the installed
+  hooks aside and restores the photograph byte for byte.
+- **The `Makefile` is no longer an "additive union" in the upgrade.** Step 3 still said
+  so, against the 1.3.2 notes: a union keeps two `reset-task` recipes, and `make` runs
+  both, or warns and runs only the last. The `Makefile` goes through the 3-way like every
+  hybrid; only `.gitignore` stays additive.
+- **A slot that moves to another file** (the upgrade's new edge case 8). A clean 3-way of
+  its new home lands the framework's default while the project's answer stays in the old
+  file: move the answer first, then bring the old file over, then check every way of
+  reaching it.
+- **The *Upgrading* notes are part of the procedure** (Step 2): collected from every entry
+  between `vX` and `vY`, oldest first. Notes on different topics add up; notes on the
+  same topic supersede each other, the latest winning.
+- **The memory's section titles are compared at every upgrade** (edge case 3 (b)), not
+  only when `vY` renames them: a project that kept the titles of an earlier release was
+  never caught. The rename is mandatory, and the project's own code and tests that cite
+  the old titles change in the same commit as the rename. The title table is now also in
+  `SETUP.md`, with the shortened forms seen in projects (`## Rimandate`, `## Rifiutate`).
+- `SETUP.md`: the prerequisites name git 2.31, and Node.js for two users with different
+  floors — the guard needs 14.13.1, while commitlint, run through npx at its latest
+  release, declares its own (22.12 for the 21.x line); the upgrade's execution boundary
+  says that delegated agents only read; Step 4 explains why `make test-scripts` checks
+  `settings.json`.
+
+### Changed
+- **Rule 9 separates the memory's content from its format** (`CLAUDE.md`). What the memory
+  holds is never bulk-translated; the section titles the commands look up by name are
+  format, and format is method, so the upgrade renames them in the project — never
+  through a map from old titles to new.
+- **When the documentation is the product, a release is what reaches the consumers**
+  (IMP-047). `docs/04` (*Versioning*) and `/integrate` no longer send every doc-only
+  change to "no tag" in such a project: a change to the files it ships is a release, at
+  least a PATCH. `CONTRIBUTING.md` names what this framework ships — the payload, plus
+  what an upgrade reads at the tag (`SETUP.md`, the upgrade's tooling).
+
+### Added
+- IMP-068 (open): a list that declares itself complete deserves a mechanical check.
+- The upgrade block's decisions: IMP-037 option (b), a read-only upgrade verification
+  script, approved for 1.4.0, option (a) deferred under a new trigger; directions and
+  target releases for IMP-046, IMP-049 and IMP-050.
+
+**Upgrading from 1.3.2** (from an earlier release, also follow the entries in between —
+Step 2 of the upgrade now says how they combine):
+- METHOD files — bring them over from the tag, after the pre-flight of edge case 7
+  (`docs/04` carries setup slots): `.claude/docs/04-git-workflow.md`,
+  `scripts/test-hooks-install.sh`, `scripts/README.md`.
+- `scripts/hooks-install.sh` (HYBRID, 3-way): the `HOOKS_DIR=` line becomes the block
+  that resolves the common git directory (`REPO_ROOT` is unchanged: the block reads it);
+  the pre-push refusal and the final OK line name the hooks directory.
+- `.claude/commands/integrate.md` (HYBRID, customised at setup, 3-way): step 2's no-tag
+  bullet gains the exception for a project whose documentation is the product.
+- `CLAUDE.md` (HYBRID): in rule 9, the lines that begin "The rule applies from the graft"
+  and end before "Past git history is never translated" become exactly (from a release
+  before 1.3.2, which has no such lines, add them right before "Past git history is
+  never translated"):
+
+  ```
+     The rule applies from the graft, or from the upgrade that brought it, onwards: to
+     the method's artifacts and to the new ones the project produces; what already
+     exists is never bulk-translated (translating it is a task the user decides). That
+     protects the memory's CONTENT. Its FORMAT is method: the section titles the
+     commands look up by name take the method's form, and every upgrade brings the
+     project's titles to it, leaving the content under them as it is — never a map
+     from old titles to new, which every command would have to consult.
+  ```
+
+- Before Step 4, photograph the hooks (Step 1 of the upgrade). Then `make hooks-install`
+  (the script changed; from a linked worktree too) and the Step 4 checks,
+  `make test-scripts` included (git 2.31 or later).
+- The memory's section titles: run the comparison of edge case 3 (b). It applies to every
+  project still carrying titles from before 1.1.0, whether or not it followed the 1.3.2
+  note.
+
 ## [1.3.2] — 2026-10-10
 
 ### Fixed
