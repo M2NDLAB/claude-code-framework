@@ -239,6 +239,12 @@ tags: [improvement]
   the upgrade (edge case 3 (b)), and rule 9 says so from v1.3.3. A project's own tests
   that cite the titles are updated in the same commit, by the project. Relayed proposal
   (1), the title grep in both directions, goes to v1.4.0's verification script (IMP-037).
+- **Decision 2026-10-10 on the field labels** ([[2026-10-10-integrate-two-blocks-1.3.4]]): the IMP field
+  labels ("Origin", "Observed problem", …) are FORMAT, like the titles — renamed at the
+  upgrade with the same table. In v1.4.0, with a constraint on IMP-046's checks: the
+  "LEARNINGS body unchanged" comparison runs AFTER normalising the labels by the table,
+  or the mandatory rename makes it fail. To measure first, on the client project
+  (read-only): how many label lines are involved.
 
 ### IMP-049 — Payload purity: method files that only make sense in the framework repo
 - Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — the third real
@@ -1378,10 +1384,13 @@ tags: [improvement]
   "When the documentation IS the product" — a change to the shipped files is a release,
   at least a PATCH; a change confined to the project's own memory or to unshipped files is
   no tag; `integrate.md` step 2 points to it; `CONTRIBUTING.md` names what this framework
-  ships. **Awaiting the user's confirmation** (review M6): the shipped set includes
-  `SETUP.md`'s procedures and v1.4.0's verification script, which setup does not copy —
-  read literally, "files outside the payload: no tag" would leave them untagged, while an
-  upgrade targets a tag and v1.4.0 was decided as a MINOR.
+  ships. The shipped set includes `SETUP.md`'s procedures and v1.4.0's verification
+  script, which setup does not copy — read literally, "files outside the payload: no tag"
+  would leave them untagged, while an upgrade targets a tag and v1.4.0 was decided as a
+  MINOR. **Confirmed by the user on 2026-10-10** ([[2026-10-10-integrate-two-blocks-1.3.4]]): "a release is
+  what reaches the consumers" — the payload AND the files read at the tag during graft
+  and upgrade (`SETUP.md`, the CHANGELOG, the verification script); the paragraph of
+  `CONTRIBUTING.md` stays.
 
 ### IMP-050 (points 1-2) — The framework is read only by tag, via `git -C "${FW:?}"` → applied on 2026-09-25, commit 190404a
 - Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — the upgrade read the
