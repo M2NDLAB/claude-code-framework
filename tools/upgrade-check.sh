@@ -280,6 +280,237 @@ cmd_preflight() {
   finish "preflight ${vx} -> ${vy}"
 }
 
+# --- Reading the framework by tag, through cached listings --------------------------------
+
+# tree_of <tag>: the payload's listing at a tag ("<mode> <type> <blob>\t<path>"), cached.
+tree_of() {
+  local f="${WORK}/trees/$1"
+  if [ ! -f "${f}" ]; then
+    mkdir -p "${WORK}/trees"
+    fw ls-tree -r "$1" -- "${PAYLOAD_PATHS[@]}" > "${f}.tmp" && mv "${f}.tmp" "${f}"
+  fi
+  printf '%s\n' "${f}"
+}
+# blob_at <tag> <path> / mode_at <tag> <path>: from the listing; empty when absent.
+blob_at() { awk -F'\t' -v p="$2" '$2 == p { split($1, a, " "); print a[3]; exit }' "$(tree_of "$1")"; }
+mode_at() { awk -F'\t' -v p="$2" '$2 == p { split($1, a, " "); print a[1]; exit }' "$(tree_of "$1")"; }
+# The releases after vX up to vY, oldest first.
+releases_between() { fw tag --list 'v*' --sort=v:refname --merged "$2" --no-merged "$1"; }
+# header_region <file>: the lines before the first "## " heading (LEARNINGS.md's template part).
+header_region() { awk '/^## /{exit} {print}' "$1"; }
+# conflict_lines <file>: the lines inside the conflict markers of a merge's output.
+conflict_lines() { awk '/^<<<<<<< /{f=1} f{c++} /^>>>>>>> /{f=0} END{print c+0}' "$1"; }
+# marker_count <tag> <path>: the slot markers of a framework file at a tag.
+marker_count() { fw show "$1:$2" 2>/dev/null | grep -cE "${MARKER_RE}"; }
+
+# The memory's FORMAT lines (CLAUDE.md, rule 9): what v1.1.0 translated, old form -> new.
+# One "old<TAB>new" pair per line; the short forms are those seen in projects.
+TITLE_TABLE='## Stato avanzamento	## Progress
+## Cosa esiste adesso	## What exists now
+## Decisioni prese (non ovvie dal codice)	## Decisions made (not obvious from the code)
+## Debito documentazione	## Documentation debt
+## Attenzione / problemi aperti	## Caution & open issues
+## Branch attivi	## Active branches
+## Proposte APERTE (in attesa di decisione utente)	## OPEN proposals (awaiting the user'"'"'s decision)
+## Applicate	## Applied
+## Rimandate (non respinte — si riprendono al momento giusto)	## Deferred (not rejected — resumed at the right time)
+## Rimandate	## Deferred (not rejected — resumed at the right time)
+## Rifiutate (con motivo — per non riproporle)	## Rejected (with the reason — so they are not re-proposed)
+## Rifiutate	## Rejected (with the reason — so they are not re-proposed)'
+# The field labels: at the start of an entry's line, and "| Origin" after the date.
+LABEL_TABLE='- Data:	- Date:
+| Origine:	| Origin:
+- Origine:	- Origin:
+- Problema osservato:	- Observed problem:
+- Proposta:	- Proposal:
+- Beneficio atteso / rischio:	- Expected benefit / risk:
+- Trigger di ripresa:	- Resumption trigger:
+- Destinazione:	- Destination:'
+
+# normalise_format <file>: the file with its old-form titles and labels in the new form, so
+# that the mandatory rename does not read as a change of the memory's content.
+normalise_format() {
+  # The tables travel in the environment: BSD awk refuses a newline in a -v value.
+  UC_TITLES="${TITLE_TABLE}" UC_LABELS="${LABEL_TABLE}" awk '
+    BEGIN {
+      titles = ENVIRON["UC_TITLES"]; labels = ENVIRON["UC_LABELS"]
+      nt = split(titles, tl, "\n")
+      for (i = 1; i <= nt; i++) { split(tl[i], kv, "\t"); tmap[kv[1]] = kv[2] }
+      nl = split(labels, ll, "\n")
+      for (i = 1; i <= nl; i++) { split(ll[i], kv, "\t"); lold[i] = kv[1]; lnew[i] = kv[2] }
+    }
+    {
+      line = $0
+      if (line in tmap) line = tmap[line]
+      for (i = 1; i <= nl; i++) {
+        p = index(line, lold[i])
+        if (p == 0) continue
+        if (substr(lold[i], 1, 1) == "|") {
+          if (line ~ /^- (Data|Date):/) line = substr(line, 1, p - 1) lnew[i] substr(line, p + length(lold[i]))
+        } else if (p == 1) {
+          line = lnew[i] substr(line, length(lold[i]) + 1)
+        }
+      }
+      print line
+    }' "$1"
+}
+
+# old_labels <file>: the lines that still carry an old-form label, outside comments.
+old_labels() {
+  awk '/<!--/{c=1} !c && /^- (Data|Origine|Problema osservato|Proposta|Beneficio atteso \/ rischio|Trigger di ripresa|Destinazione):/{n++} /-->/{c=0} END{print n+0}' "$1"
+}
+
+# missing_titles <tag> <memory file>: vY's "## " titles the project's file lacks.
+missing_titles() {
+  local own="${WORK}/titles.own"
+  grep '^## ' "$2" > "${own}" 2>/dev/null || : > "${own}"
+  fw show "$1:$2" 2>/dev/null | grep '^## ' | grep -vxF -f "${own}" || true
+}
+
+cmd_inventory() {
+  [ $# -eq 2 ] || die "usage: inventory vX vY"
+  local vx="$1" vy="$2"
+  require_fw
+  require_project_root
+  require_tag "${vx}"
+  require_tag "${vy}"
+  require_t
+  local d="${WORK}/inventory"
+  rm -rf "${d}" && mkdir -p "${d}" || die "cannot prepare ${d}"
+  local releases
+  releases="$(releases_between "${vx}" "${vy}" | tr '\n' ' ')"
+
+  section "Files — class, the framework vX->vY (=, M, A, D), the project against the tags, the 3-way's measure"
+  local path class bx by bp fwst prj measure n mine base theirs r prev changed modey modep
+  { awk -F'\t' '{print $2}' "$(tree_of "${vx}")"; awk -F'\t' '{print $2}' "$(tree_of "${vy}")"; } | sort -u > "${d}/paths"
+  while IFS= read -r path; do
+    class="$(classify "${path}")"
+    case "${class}" in
+      PROJECT-MEMORY | LOCAL | GRAFT-STATE) continue ;;
+      NONE) fail "no class for ${path} (a payload file of ${vx} or ${vy})"; continue ;;
+    esac
+    bx="$(blob_at "${vx}" "${path}")"
+    by="$(blob_at "${vy}" "${path}")"
+    if [ -z "${bx}" ]; then fwst=A; elif [ -z "${by}" ]; then fwst=D; elif [ "${bx}" = "${by}" ]; then fwst="="; else fwst=M; fi
+    # LEARNINGS.md: only its header region is the framework's.
+    if [ "${class}" = LEARNINGS ]; then
+      header_region "${path}" > "${d}/lrn.mine" 2>/dev/null
+      fw show "${vx}:${path}" | header_region /dev/stdin > "${d}/lrn.base"
+      fw show "${vy}:${path}" | header_region /dev/stdin > "${d}/lrn.theirs"
+      if cmp -s "${d}/lrn.base" "${d}/lrn.theirs"; then fwst="="; else fwst=M; fi
+      if cmp -s "${d}/lrn.mine" "${d}/lrn.theirs"; then prj="=vY"; elif cmp -s "${d}/lrn.mine" "${d}/lrn.base"; then prj="=vX"; else prj=diverged; fi
+      mine="${d}/lrn.mine"; base="${d}/lrn.base"; theirs="${d}/lrn.theirs"
+    else
+      if [ -f "${path}" ]; then
+        bp="$(git hash-object -- "${path}")"
+        if [ "${bp}" = "${by}" ]; then prj="=vY"; elif [ "${bp}" = "${bx}" ]; then prj="=vX"; else prj=diverged; fi
+      else
+        prj=absent
+      fi
+      mine="${path}"; base="${d}/base"; theirs="${d}/theirs"
+      [ "${fwst}" = M ] && { fw show "${vx}:${path}" > "${base}"; fw show "${vy}:${path}" > "${theirs}"; }
+    fi
+    measure=""
+    if [ "${fwst}" = M ] && [ "${prj}" = diverged ]; then
+      git merge-file -p "${mine}" "${base}" "${theirs}" > "${d}/merged" 2>/dev/null
+      n=$?
+      measure="3-way: ${n} conflict(s), $(conflict_lines "${d}/merged") of $(wc -l < "${d}/merged" | tr -d ' ') lines in conflict"
+    fi
+    [ "${class}" = LEARNINGS ] && path="${path} (header)"
+    info "$(printf '%-9s %-2s %-9s %s%s' "${class}" "${fwst}" "${prj}" "${path}" "${measure:+ — ${measure}}")"
+    path="${path% (header)}"
+    # The flags of the edge cases (SETUP.md, *Edge cases*).
+    [ "${class}" = METHOD ] && [ "${prj}" = diverged ] && [ "${fwst}" != D ] \
+      && check "edge case 7: ${path} is METHOD but customised in the project — reconcile it as a HYBRID (3-way), never overwrite"
+    [ "${fwst}" = D ] && [ "${prj}" != absent ] && check "edge case 1: ${path} is deleted in ${vy} — remove it from the project (git rm), after checking it holds nothing of the project's"
+    [ "${fwst}" = A ] && [ "${prj}" = diverged ] && check "${path} is new in ${vy}, but the project already has a file there: compare before taking ${vy}'s"
+    [ "${path}" = .gitignore ] && [ "${fwst}" = M ] && info "  .gitignore: an additive union (Step 3), not a 3-way"
+    if [ "${fwst}" = M ]; then
+      changed=""; prev="${vx}"
+      for r in ${releases}; do
+        [ "$(blob_at "${prev}" "${path}")" = "$(blob_at "${r}" "${path}")" ] || changed="${changed} ${r}"
+        prev="${r}"
+      done
+      [ "$(echo ${changed} | wc -w | tr -d ' ')" -gt 1 ] \
+        && check "edge case 6: ${path} changed in${changed} — if its 3-way is intricate, reconcile one release at a time"
+    fi
+    if [ -n "${by}" ] && [ -f "${path}" ]; then
+      modey="$(mode_at "${vy}" "${path}")"
+      if [ -x "${path}" ]; then modep=100755; else modep=100644; fi
+      [ "${modey}" = "${modep}" ] || check "${path}: ${vy}'s mode is ${modey}, the project's ${modep} (chmod after the copy, Step 3)"
+    fi
+  done < "${d}/paths"
+  local renames
+  renames="$(fw diff -M --name-status "${vx}" "${vy}" -- "${PAYLOAD_PATHS[@]}" | awk -F'\t' '$1 ~ /^R/ {print $2 " -> " $3}')"
+  [ -z "${renames}" ] || while IFS= read -r r; do check "edge case 2: renamed in ${vy}: ${r} — move it, never keep both"; done <<< "${renames}"
+
+  section "Markers — slots added or removed between ${vx} and ${vy}"
+  local added="" removed="" mx my
+  while IFS= read -r path; do
+    case "$(classify "${path}")" in METHOD | HYBRID | TEMPLATE | LEARNINGS) ;; *) continue ;; esac
+    mx="$(marker_count "${vx}" "${path}")"; my="$(marker_count "${vy}" "${path}")"
+    [ "${my}" -gt "${mx}" ] && added="${added} ${path}(+$((my - mx)))"
+    [ "${mx}" -gt "${my}" ] && removed="${removed} ${path}(-$((mx - my)))"
+  done < "${d}/paths"
+  if [ -n "${added}" ] && [ -n "${removed}" ]; then
+    check "markers removed in${removed} and added in${added}: a slot may have MOVED — if the project answered it in the old file, carry the answer to the new one first (edge case 8)"
+  elif [ -n "${added}" ]; then
+    check "new slots in${added}: fill them with the project's answers (Step 4)"
+  elif [ -n "${removed}" ]; then
+    info "slots removed in${removed}"
+  else
+    ok "no slot added or removed"
+  fi
+
+  section "The §2 checklist of SETUP.md — items added or re-worded between ${vx} and ${vy}"
+  local s2x="${d}/s2.x" s2y="${d}/s2.y"
+  for r in "${vx}:${s2x}" "${vy}:${s2y}"; do
+    fw show "${r%%:*}:SETUP.md" 2>/dev/null | awk '/^## 2\./{f=1;next} /^## 3\./{f=0} f' | grep '^- \[ \]' | sort > "${r#*:}" || true
+  done
+  if [ ! -s "${s2y}" ]; then
+    info "no §2 checklist in ${vy}'s SETUP.md"
+  elif cmp -s "${s2x}" "${s2y}"; then
+    ok "the §2 checklist is unchanged"
+  else
+    comm -13 "${s2x}" "${s2y}" | while IFS= read -r line; do check "§2, new or re-worded: ${line#- \[ \] }"; done
+    comm -23 "${s2x}" "${s2y}" | while IFS= read -r line; do info "§2, gone or re-worded: ${line#- \[ \] }"; done
+  fi
+
+  section "The memory's format — titles and field labels to rename (edge case 3 (b))"
+  local f t pending=0 labels
+  for f in .claude/memory/STATE.md .claude/memory/LEARNINGS.md; do
+    [ -f "${f}" ] || { info "${f}: absent in the project"; continue; }
+    while IFS= read -r t; do
+      [ -n "${t}" ] || continue
+      check "${f} lacks ${vy}'s title '${t}': rename the old one (the table of edge case 3 (b))"
+      pending=$((pending + 1))
+    done <<< "$(missing_titles "${vy}" "${f}")"
+  done
+  if [ -f .claude/memory/LEARNINGS.md ]; then
+    labels="$(old_labels .claude/memory/LEARNINGS.md)"
+    [ "${labels}" -eq 0 ] || { check "${labels} line(s) of LEARNINGS.md carry an old-form field label: rename them (the table of edge case 3 (b))"; pending=$((pending + 1)); }
+  fi
+  [ "${pending}" -gt 0 ] || ok "titles and field labels already in ${vy}'s form"
+
+  section "The Upgrading notes of the releases after ${vx}, oldest first — different topics add up; on the same topic the most recent wins (Step 2)"
+  fw show "${vy}:CHANGELOG.md" > "${d}/changelog" 2>/dev/null || : > "${d}/changelog"
+  for r in ${releases}; do
+    awk -v h="## [${r#v}]" '
+      index($0, h) == 1 { s = 1; next }
+      s && /^## \[/ { exit }
+      s && /^\*\*Upgrading/ { u = 1 }
+      s && u { l[++n] = $0; if (NF) last = n }
+      END { for (i = 1; i <= last; i++) print l[i] }' "${d}/changelog" > "${d}/note"
+    if [ -s "${d}/note" ]; then
+      info "${r}:"
+      sed 's/^/       | /' "${d}/note"
+    else
+      info "${r}: no Upgrading paragraph — read its entry in ${vy}'s CHANGELOG"
+    fi
+  done
+  finish "inventory ${vx} -> ${vy}"
+}
+
 main() {
   [ $# -ge 1 ] || die "usage: upgrade-check.sh classes|preflight|inventory|invariant|post ..."
   local sub="$1"
@@ -287,6 +518,7 @@ main() {
   case "${sub}" in
     classes) cmd_classes "$@" ;;
     preflight) cmd_preflight "$@" ;;
+    inventory) cmd_inventory "$@" ;;
     *) die "unknown subcommand: ${sub}" ;;
   esac
 }

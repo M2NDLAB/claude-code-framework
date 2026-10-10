@@ -11,6 +11,9 @@
 #      grafted at v1.0.0: a sound pin passes; a version without its v, a commit that is
 #      the tag object, a commit of another release, an unset FW or FW = the project fail;
 #      a tag on the pinned commit is suggested, never applied.
+#   3. inventory — on the same pair: the measured 3-way of a co-edited hybrid, the edge
+#      cases (7, 1, 6, a mode), a slot that moved (edge case 8), the §2 diff, the titles
+#      and labels to rename, the Upgrading notes in release order.
 # Run it from anywhere: bash tools/test-upgrade-check.sh
 set -euo pipefail
 
@@ -163,3 +166,25 @@ T="${T_DIR}" run 2 "${PRJ}" preflight v1.0.0 v1.1.0
 has "FW is not set"
 FW="${PRJ}" T="${T_DIR}" run 2 "${PRJ}" preflight v1.0.0 v1.1.0
 echo "PASS (upgrade-check preflight): a sound pin passes; a malformed or foreign one fails with its correction; a tag is suggested, never applied."
+
+# --- Case 3: inventory ----------------------------------------------------------------
+FW="${FWD}" T="${T_DIR}" run 0 "${PRJ}" inventory v1.0.0 v1.1.0
+has "HYBRID    M  diverged  CLAUDE.md — 3-way: 1 conflict(s)"
+has "edge case 6: CLAUDE.md changed in v1.0.1 v1.1.0"
+has "edge case 7: .claude/docs/00-overview.md is METHOD but customised"
+has "edge case 7: scripts/reset-task.sh is METHOD but customised"
+has "scripts/reset-task.sh: v1.1.0's mode is 100755"
+has "edge case 1: scripts/test-repo-snapshot.sh is deleted in v1.1.0"
+has "markers removed in scripts/reset-task.sh(-1) and added in Makefile(+1): a slot may have MOVED"
+has "§2, new or re-worded: Makefile: PROTECTED_BRANCHES"
+has "LEARNINGS M  =vX       .claude/memory/LEARNINGS.md (header)"
+has "TEMPLATE  =  diverged  .claude/memory/decisions/README.md"
+has ".claude/memory/STATE.md lacks v1.1.0's title '## Progress'"
+has ".claude/memory/LEARNINGS.md lacks v1.1.0's title '## Deferred (not rejected — resumed at the right time)'"
+has "3 line(s) of LEARNINGS.md carry an old-form field label"
+grep -n 'INFO   v1.0.1:' "${out}" | cut -d: -f1 > "${workdir}/order"
+grep -n 'INFO   v1.1.0:' "${out}" | cut -d: -f1 >> "${workdir}/order"
+[ "$(sort -n "${workdir}/order" | tr '\n' ' ')" = "$(tr '\n' ' ' < "${workdir}/order")" ] && [ "$(wc -l < "${workdir}/order")" -eq 2 ] \
+  || fail "inventory: the Upgrading notes are not listed oldest first"
+has "| **Upgrading from 1.0.1**: move your protected branches to the Makefile first."
+echo "PASS (upgrade-check inventory): the 3-way measured, the edge cases flagged, the moved slot, §2, titles and labels, the notes in order."
