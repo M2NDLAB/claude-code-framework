@@ -21,8 +21,8 @@ tags: [session, upgrade, imp, plan]
 - `turns: 2` — the phase-1 request; the decisions with the v1.3.3 go-ahead.
 
 ## Plan (one commit per task)
-- [ ] 1. Record IMP-068 (OPEN, a list that declares itself complete), the moved-answer note in IMP-048, the phase-1 decisions (this note, a dated line in each IMP they decide) — commit: —
-- [ ] 2. `hooks-install.sh` resolves the hooks directory with `--git-common-dir` (a linked worktree, a subdirectory, outside a repository); self-test case 3, RED then GREEN — commit: —
+- [x] 1. Record IMP-068 (OPEN, a list that declares itself complete), the moved-answer note in IMP-048, the phase-1 decisions (this note, a dated line in each IMP they decide) — commit: 90aa776
+- [x] 2. `hooks-install.sh` resolves the hooks directory with `--git-common-dir` (a linked worktree, a subdirectory, outside a repository); self-test case 3, RED then GREEN — commit: (this one)
 - [ ] 3. Upgrade Step 4: check that every generated hook is installed; the hooks directory is shared by the worktrees — commit: —
 - [ ] 4. Upgrade Step 1 photographs the hooks; edge case 4 restores the photograph (the destructive lines in their own block) — commit: —
 - [ ] 5. Upgrade Step 2: the *Upgrading* notes between `vX` and `vY` become a checklist (different topics add up; on the same topic the latest wins) — commit: —

@@ -16,7 +16,22 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-HOOKS_DIR="${REPO_ROOT}/.git/hooks"
+
+# The hooks live in the repository's COMMON git directory, shared by all its worktrees:
+# in a linked worktree `.git` is a file, so "${REPO_ROOT}/.git/hooks" cannot exist there.
+# `--path-format=absolute` (git 2.31+) keeps the path independent of the caller's working
+# directory; `--git-common-dir` rather than `--git-path hooks`, which would follow
+# core.hooksPath (refused below in any case). Outside a repository, or with an older git
+# (which echoes the unknown option back instead of a path), the script stops: it never
+# creates a .git of its own.
+git_common_dir="$(git -C "${REPO_ROOT}" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)"
+if [[ "${git_common_dir}" != /* || ! -d "${git_common_dir}" ]]; then
+  echo "ERROR: ${REPO_ROOT} is not inside a git repository, or git is older than 2.31." >&2
+  echo "  The hooks are installed into the repository that contains this script: run it" >&2
+  echo "  from the project's copy (make hooks-install), with git 2.31 or later." >&2
+  exit 1
+fi
+HOOKS_DIR="${git_common_dir}/hooks"
 
 # --- Prerequisites ----------------------------------------------------------
 if ! command -v gitleaks >/dev/null 2>&1; then
