@@ -100,7 +100,7 @@ documentation → the client project's upgrade, as the acceptance test → the n
 - [x] 2. Record IMP-069 (approved, applied in this release): the `/integrate` block is copied whole, so the pause before the push does not happen — commit: a4ca575
 - [x] 3. `/integrate` prints two blocks — local work ending with the checks, then the publication — with `git tag -v` only when tags are signed (IMP-066); `docs/04` and `docs/00` aligned — commit: ca47c4d
 - [x] 4. ONE reviewer + fixes — commit: 8adb1a9
-- [x] 5. `/checkpoint` — commit: (this one)
+- [x] 5. `/checkpoint` — commit: 933fe95
 - [x] 6. `/integrate`: the CHANGELOG 1.3.4 entry; the blocks printed in the new format — commit: the CHANGELOG commit (its own sha cannot be written in it)
 
 ## Rehearsals (task 3) — throwaway repositories under `/tmp`, no push
