@@ -507,6 +507,18 @@ point: **the memory lives in git, so the safety commit IS already the backup**
 upgrade is a throwaway unit — if it goes wrong, the branch is deleted (see *Rollback*
 in `docs/04`). No extra copy of the memory outside the tree is needed.
 
+One thing the restore point does not hold: the installed hooks, which live outside git
+(edge case 4). Photograph them into `T` before anything else, from the project root:
+
+```bash
+H="$(git rev-parse --path-format=absolute --git-common-dir)/hooks"
+mkdir -p "${T:?}/hooks-before" && cp -pPR "$H/." "${T:?}/hooks-before/"
+```
+
+The photograph is the only way back for the hooks: keep `T` until the upgrade branch is
+merged or thrown away, and write its path in the upgrade's session note — an upgrade
+resumed or abandoned in a later session needs it.
+
 ### Step 2 — Derive "what changed" (framework side)
 
 From the project root, reading the framework only by tag (*Precondition*), combine two
@@ -694,14 +706,34 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    declared way in.)
 
 4. **Installed hooks (`.git/hooks/*`) live outside the git graph.** The
-   `make hooks-install` of Step 4 materialises the hooks in `.git/hooks/`, which is
-   neither tracked nor on the branch. Two consequences: (a) if you forget the re-run,
-   the installed hooks stay old while `hooks-install.sh` is updated — a silent
-   incoherence; (b) **throwing away the branch does NOT uninstall** the new hooks
-   already materialised, and the safety commit never captured them. Therefore: the
-   re-run is MANDATORY, not optional; and if you abort the upgrade after Step 4, re-run
-   `make hooks-install` from version `vX` to bring the hooks back in line with the
-   restored code.
+   `make hooks-install` of Step 4 materialises the hooks in the repository's common git
+   directory — `.git/hooks/`, shared by every worktree — which is neither tracked nor on
+   the branch. Two consequences: (a) if you forget the re-run, the installed hooks stay
+   old while `hooks-install.sh` is updated — a silent incoherence, which Step 4's
+   presence check catches: the re-run is MANDATORY; (b) **throwing away the branch does
+   NOT uninstall** the hooks already materialised, and the safety commit never captured
+   them. Re-running `vX`'s script does not bring them back either: it leaves in place a
+   `pre-push` that a `vX` before v1.3.0 never had; a `vX` from v0.3.0 to v1.0.0 refuses
+   the hooks that carry the English marker; `FORCE_OVERWRITE=1` replaces the pre-upgrade
+   `.bak` with the new hook; and a `pre-push` renamed to `pre-push.local` at Step 4 stays
+   renamed. The way back is Step 1's photograph. If you abort the upgrade after Step 4,
+   run this — in a block of its own, as `docs/04` wants for destructive lines:
+
+   ```bash
+   # ONLY if the upgrade is aborted after Step 4: put back the hooks photographed at Step 1.
+   H="$(git rev-parse --path-format=absolute --git-common-dir)/hooks"
+   test -d "${T:?}/hooks-before" \
+     && rm -f -- "$H"/* \
+     && cp -pPR "${T:?}/hooks-before/." "$H/" \
+     && diff -r "${T:?}/hooks-before" "$H" && echo "hooks restored"
+   ```
+
+   It removes the installed hook files and copies the photograph back byte for byte, a
+   renamed `pre-push` included: `diff` prints nothing and the last line says "hooks
+   restored". Without a photograph, the fallback is manual: remove the hooks Step 4
+   generated, move back a `.bak` ONLY if this Step 4 announced it with a WARNING (an
+   older `.bak` would install hooks older than `vX`), and rename a `pre-push.local` back
+   to `pre-push`.
 
 5. **Crossing `1.0.0` (`0.x → 1.0`) changes LIVE rules.** Updating `docs/04` across the
    first stable release is not just text: it changes the versioning regime (in `0.x` the
