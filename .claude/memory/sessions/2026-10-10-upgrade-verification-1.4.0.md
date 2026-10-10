@@ -2,7 +2,7 @@
 date: 2026-10-10
 task: v1.4.0 — the upgrade's verification script outside the payload (IMP-037 (b)), the memory templates and the closed list of allowed touches (IMP-046), the per-file strategy driven by measurement and the marker comparison (IMP-050 points 3-4), titles AND field labels renamed (rule 9); IMP-070 recorded
 branch: feat/upgrade-verification-1.4.0
-status: in-progress
+status: completed
 model: 'claude-opus-5-5'
 turns: 1
 tags: [session, upgrade, tools, imp, plan]
@@ -31,9 +31,9 @@ tags: [session, upgrade, tools, imp, plan]
 - [x] 7. `post`: METHOD files and modes at `vY`, orphans, markers, hooks; the read-only proof — commit: b057262
 - [x] 8. The trial, read-only, on the client project's three real upgrades; what it finds is fixed — commit: 37fbc22
 - [x] 9. `SETUP.md` (the box, the classes, the Precondition, Steps 0-6, edge case 3) and rule 9 (titles AND field labels) — commit: 5648df0
-- [x] 10. ONE reviewer + fixes — commit: (this one)
-- [ ] 11. `/checkpoint` — commit: —
-- [ ] 12. `/integrate`: the CHANGELOG 1.4.0 entry; the two blocks — commit: —
+- [x] 10. ONE reviewer + fixes — commit: 4e5e50c
+- [x] 11. `/checkpoint` — commit: (this one)
+- [x] 12. `/integrate`: the CHANGELOG 1.4.0 entry; the two blocks — commit: the CHANGELOG commit (its own sha cannot be written in it)
 
 ## Assessment (task 2) — read-only measurements
 - **Field labels** (the user asked for the count). The client project's `LEARNINGS.md`
@@ -165,4 +165,39 @@ seven MEDIUM, fifteen LOW. Both self-tests had passed: none of them could see th
 
 After the fixes, the trial was run again on two of the client's upgrades: the same
 verdicts, with one more CHECK where it belongs (the restore point's pin lacks its `v`).
+
+## Done
+- `21617c5` IMP-070 and the plan; `c5a1873` the measurements and the design; `b40b76a`
+  the script's skeleton and class table; `11381b5` `preflight`; `75e7fb4` `inventory`;
+  `d32ef1a` `invariant`; `b057262` `post` and the read-only proof; `37fbc22` the trial's
+  fixes; `5648df0` `SETUP.md` and rule 9; `4e5e50c` the review applied; this checkpoint;
+  the CHANGELOG 1.4.0 entry at `/integrate`.
+- LEARNINGS: IMP-037 (option b), IMP-046 and IMP-050 (points 3-4) Applied — IMP-050 is
+  closed in all its points; IMP-048 annotated (titles and labels applied, the discipline
+  open); IMP-070 and IMP-068 open.
+- Verification: `bash tools/test-upgrade-check.sh` six of six PASS and `make test-scripts`
+  five of five after every task; the trial on three real upgrades, run twice.
+- Edits to `.claude/` went through shell one-offs (Python), as in v1.3.3 and v1.3.4.
+
+## Retro
+Candidate lessons — offered, not recorded (the user listed this block's IMPs):
+- **A fixture at toy size hides size-dependent bugs.** `grep -q` under `pipefail` failed
+  only past a pipe's buffer: the self-test's tiny LEARNINGS passed, the framework's own
+  132 KB file did not. A fixture should carry at least one artefact of real size.
+- **A sterile git configuration in a self-test hides the user's.** The tests run with
+  `GIT_CONFIG_GLOBAL=/dev/null` for good reasons, and so never saw `color.ui=always` or
+  an external diff driver. A script that parses git's output needs one run under a
+  hostile configuration.
+- **The failure paths again, for the third release in a row** — v1.3.3's restore,
+  v1.3.4's block 1, v1.4.0's emptied line and wrong restore point — all found by the
+  reviewer, none by the author's rehearsal. The candidate of
+  [[2026-10-10-integrate-two-blocks-1.3.4]] now has three cases.
+
+## Follow-up
+- `/integrate`: v1.4.0, a MINOR (`feat` commits; `tools/` and `SETUP.md` reach the
+  projects at the tag, IMP-047's criterion); merge, tag and push are the user's.
+- Next: v1.4.1 — the payload's purity (IMP-049) and the mechanical documentation checks
+  (IMP-068), a PATCH; then v1.5.0, multi-platform (IMP-070).
+- The client project's upgrade, at the end of the cycle, runs this script from its first
+  step: `preflight` will stop on its pin (`version: 1.2.0`, without the `v`).
 

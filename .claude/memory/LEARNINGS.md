@@ -27,121 +27,6 @@ tags: [improvement]
 
 ## OPEN proposals (awaiting the user's decision)
 
-### IMP-037 (option b) — A read-only upgrade verification script (approved; applied in v1.4.0)
-- Date: 2026-10-10 | Origin: [[2026-10-10-upgrade-safety-1.3.3]] — the decision on IMP-037 after its
-  count trigger fired (three real upgrades); the history is under *Deferred*, IMP-037
-  (option a)
-- Status: **APPROVED on 2026-10-10**, applied in v1.4.0: a READ-ONLY upgrade verification
-  script; `SETUP.md` stays the procedure and calls it. It reads the framework by tag with
-  `git -C "${FW:?}"` — the "no cross-repo git" boundary of option (a) was about writes and
-  `FW`'s working tree, not about reads by tag (the v1.2.1 rule, IMP-050 points 1-2). It
-  lives OUTSIDE the payload, is never copied into a project, and runs in its version AT
-  the tag `vY`, never from the framework's working tree. The "No automation, for now" box
-  of `SETUP.md` is updated with it (Level 2, approved).
-- Why (b) and not (a): across the three upgrades the judgement differed every time and
-  the mechanics did not; a command would shadow a procedure that changed in 7 of 11
-  releases, and could not be tested. The script holds the mechanics: preflight (the pin —
-  an explicit error, never a silent normalisation, IMP-050), the per-file inventory and
-  measurement, the marker and §2-checklist delta between the tags, the memory invariant
-  (IMP-046), the post-checks.
-
-### IMP-046 — The upgrade procedure contradicts itself on `.claude/memory/`
-- Date: 2026-09-22 | Origin: [[2026-09-23-memory-model-turns]] — the upgrade demands an
-  empty diff on `.claude/memory/` yet classifies its guide READMEs as METHOD (a side
-  finding of the IMP-044 assessment)
-- Observed problem: `SETUP.md` (*Upgrading the framework*) classifies "the guide READMEs
-  inside `.claude/memory/*/`" as METHOD (brought to `vY`) and `LEARNINGS.md` as HYBRID
-  ("at most the header/format is updated"), while Steps 3 and 5 demand an EMPTY
-  `git diff` on `.claude/memory/` ("a non-empty diff = a bug in the upgrade") and edge
-  case 3 calls the pointer repair "the only exception". Step 2's diff also excludes
-  `.claude/memory` on purpose, so a change to a guide README never shows up in the
-  exact-text source of the upgrade. Two rules of the same procedure cannot both hold.
-- Evidence — the two real upgrades of the same client project (2026-07-17,
-  v0.2.0→v0.5.1; 2026-07-19, v0.5.1→v1.0.0): both treated the whole of `.claude/memory/`
-  as project memory — the first with an ad-hoc second exception (the LEARNINGS header),
-  the second with an empty diff. That project's `sessions/README.md` is still
-  byte-identical to v0.2.0 while its provenance pin says 1.0.0: the README changes of
-  v0.5.1 (IMP-034, `da0e158`) never arrived. The contradiction is live since v0.5.0,
-  the release that introduced the procedure and its invariant (`8eb3107`); the first
-  template change it strands is older — the LEARNINGS format of v0.4.0 (`d2856be`). It
-  is not an effect of IMP-044.
-- Why it matters now: IMP-044 changes two templates under `.claude/memory/`, and an
-  upgraded project will receive neither: `sessions/README.md` (the `/checkpoint` clause
-  of IMP-044 carries the minimal format of the two fields for this very reason — a
-  MITIGATION, not the fix) and the Origin line of the LEARNINGS format comment (D2),
-  which has NO mitigation: `/retro` does not carry the IMP format.
-- Proposal: NOT decided here — a contradiction in the method is a BUG, to be resolved at
-  a dedicated retro (user decision 2026-09-23). Direction to evaluate: scope the
-  invariant to the PROJECT-MEMORY files (notes, STATE/TREE/INDEX, the IMP entries),
-  NAMING the guide READMEs and the LEARNINGS header and format comment as declared,
-  expected hunks — and bring them into Step 2's diff.
-- Expected benefit / risk: the method's own changes to the memory templates reach
-  upgraded projects, while the invariant keeps catching accidental edits to the real
-  memory. Risk: a looser invariant that lets an accidental edit through — the fix must
-  name the allowed files, never relax to "some diff is fine".
-- **Evidence from the third upgrade** (annotation 2026-09-24,
-  [[2026-09-24-third-upgrade-lessons]]): the format guides live under `memory/` but are
-  not memory. The client's `sessions/README.md` is the template blob of v0.2.0-v0.5.0
-  (after v0.2.0 the file first changed at v0.5.1), so the relayed "stayed at v0.5.0
-  across two upgrades" and "byte-identical to v0.2.0" above are the same fact; no commit
-  on the client's main has touched a guide README since the graft. NEW:
-  `decisions/README.md` carries a setup slot (where
-  formal ADRs live), which the client answered — so that README is a HYBRID, while
-  `SETUP.md` files it at once as METHOD ("the guide READMEs", brought to `vY`) and,
-  through `decisions/`, as PROJECT-MEMORY (untouched). A plain overwrite re-opens the
-  answered slot; the 3-way surfaces exactly that hunk. Consequence for the direction
-  above: the guide READMEs are not ONE class — a "format guides" class overwritten
-  wholesale, or guides moved out of `memory/` (the two options raised), must still
-  3-way `decisions/README.md`. The third upgrade's branch (not yet merged) brings all
-  four guides to v1.2.0 as a declared exception citing this IMP — `sessions/README.md`
-  minus the framework-repo Plan block and IMP number, the ADR answer kept: the third
-  time the contradiction had to be worked around.
-- **Annotation 2026-10-10** ([[2026-10-09-quick-fixes-1.3.2]]): edge case 3 of `SETUP.md`
-  is no longer "the only exception" but two DECLARED exceptions for the project's memory
-  lines — (a) the pointers to renamed docs, (b) the `## ` section titles of `STATE.md`
-  and `LEARNINGS.md` that the method reads by name (v1.3.2, for the titles v1.1.0
-  translated) — and it now points here for the method's own files under `memory/`. The
-  contradiction this entry records is unchanged; (b) follows its direction of named,
-  declared exceptions.
-- **Evidence from a client harvest — the verification half** (annotation 2026-09-26,
-  [[2026-09-26-client-harvest-registration]]): once the invariant allows named files
-  and parts (the third upgrade's declared exception), a plain `git diff` cannot prove
-  it — a legitimate format update and an edited IMP entry touch the same file list; the
-  invariant has to be CONTENT-based. And content, not the "declared, expected hunks" of
-  the direction above: the framework's `LEARNINGS.md` is live, so its tag diff is
-  mostly its own entries (v1.1.0→v1.2.0: 5 hunks, +169/−4, the format change one of
-  them), and the format comment's position depends on each project's body — the hunks
-  cannot be derived from the framework. The client built the checks as a script:
-  (1) an allowed-path diff; (2) a `LEARNINGS.md` body normaliser (from the first `## `
-  to the end, minus the format comment) — generically it must strip exactly `vX`'s
-  format comment(s), read by tag (two at v1.0.0, one from v1.1.0), and compare the
-  header and format with `vY`'s by content, or an edit inside the format comment
-  passes; (3) the guide READMEs compared with their expected content, not by hunk
-  headers — this overlaps the blob-id check recorded as input of IMP-050 (points 3-4),
-  `decisions/README.md` being the hybrid exception (the third upgrade's annotation above —
-  B7 of [[2026-09-24-third-upgrade-lessons]]); (4) no backfill of the
-  IMP-044 fields (`sessions/README.md`, *Absent = not recorded*); (5) the scope of the
-  checkpoint commits. Run on a clone, one positive and eight negative branches: all
-  caught (client-side, relayed). Relayed proposal: ship them as
-  `scripts/verify-memory-invariant.sh` or a Step 5 recipe, template paths only — to be
-  weighed against `SETUP.md`'s "No automation, for now", IMP-037 (trigger fired on the
-  count) and IMP-049 (d) (a check hosted in the payload ships to clients).
-- **Decision 2026-10-10** ([[2026-10-10-upgrade-safety-1.3.3]]): in v1.4.0, the direction proposed in
-  phase 1, accepted with the release split. A named set of MEMORY TEMPLATES — the guide
-  READMEs of `components/`, `plans/`, `sessions/` and `decisions/`, the `LEARNINGS.md`
-  lines before the first `## ` and its format comment — reconciled 3-way with base `vX`;
-  PROJECT-MEMORY becomes `decisions/*.md` except the README; the invariant becomes a
-  CLOSED list of allowed touches (the templates, edge case 3's lines, the upgrade's own
-  plan file; the session note, `STATE.md` and `TREE.md` only in the checkpoint commit),
-  checked by content. `STATE.md`, `TREE.md` and `INDEX.md` are NOT memory templates (user
-  decision 4): in a project they are compiled memory, never reconciled 3-way, and a change
-  to their format arrives only as a declared migration. Measured in phase 1 with a real
-  `git merge-file`: the client's `decisions/README.md` gives 1 conflict when `vY` edits
-  the slot line and none for an edit elsewhere; `sessions/README.md` pruned by `vY` as the
-  client pruned it merges clean. The client's invariant script was never committed: the
-  checks are rebuilt from their description, with the number of format comments read from
-  `vY` (an entry hidden inside an injected format comment passes otherwise).
-
 ### IMP-048 — Classify file content before rewriting it (prose / values / code-read strings)
 - Date: 2026-09-23 | Origin: no session note in this repo (the trigger, the upgrade of a
   client project to v1.2.0, is recorded in that project) — the prose / values /
@@ -245,6 +130,11 @@ tags: [improvement]
   "LEARNINGS body unchanged" comparison runs AFTER normalising the labels by the table,
   or the mandatory rename makes it fail. To measure first, on the client project
   (read-only): how many label lines are involved.
+- **Applied in v1.4.0** ([[2026-10-10-upgrade-verification-1.4.0]]): rule 9 names the section titles AND the
+  field labels as format; edge case 3 (b) of `SETUP.md` carries both tables; the
+  verification script compares the LEARNINGS entries after normalising them (56 label
+  lines measured on the client project). The rest of this entry — the classification
+  before a rewrite, as one discipline — stays open.
 
 ### IMP-049 — Payload purity: method files that only make sense in the framework repo
 - Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — the third real
@@ -307,167 +197,6 @@ tags: [improvement]
   fix ships first (v1.4.0), or the pruning of `sessions/README.md` never reaches a
   project. Measured at v1.3.2 against v1.2.0: pointer lines 13 → 14 (9 → 10 files), IMP
   numbers 10 → 23 occurrences (4 → 9 files), all thirteen new ones from v1.3.0.
-
-### IMP-050 (points 3-4) — Upgrade procedure hardening: the remaining mechanical traps of `SETUP.md`
-- Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — the read-only
-  assessment of the third real upgrade (v1.0.0 → v1.2.0, across the full translation of
-  v1.1.0) found five traps that *Upgrading the framework* does not guard against
-  (points 4-5 were then avoided rather than hit)
-- Status: points 1-2 APPLIED on 2026-09-25, commit 190404a — see *Applied*, IMP-050
-  (points 1-2). Point 5 APPLIED on 2026-10-10 in v1.3.3 — see *Applied*, IMP-050
-  (point 5). Points 3-4 below stay OPEN, for v1.4.0, numbered as before (IMP-037's
-  case-#3 annotation cites them by number); the heading said "points 3-5" until then.
-- Observed problem (each verified on the source):
-  1. → APPLIED (see *Applied*, IMP-050 (points 1-2)).
-  2. → APPLIED (same entry).
-  3. A STRATEGY PER FILE, DRIVEN BY MEASUREMENT. Step 3 picks the strategy by class,
-     plus a fixed split by file name (additive union for `.gitignore`/`Makefile`,
-     header/format only for `LEARNINGS.md`); every other hybrid goes through the 3-way
-     with base = `vX`, and nothing measures churn. v1.0.0 → v1.2.0 changes 31 payload
-     files (+1801/−1701; 24 of them in Step 2's scope): on the translated hybrids the
-     3-way degenerates into near-whole-file conflicts (`CLAUDE.md`: 161 of 197 output
-     lines inside conflict markers), while where the framework change does not overlap
-     the project's edits it stays surgical (`settings.json`, `reset-task.sh`,
-     `hooks-install.sh` — the last two with 40-50% framework churn too). Churn alone
-     does not predict the conflict mass; its overlap with the project's divergence
-     does — so both are measured. The upgrade worked around it with a per-file churn
-     table, a per-file strategy (3-way vs rebuild from `vY` + re-applied inventory) and
-     an inventory of the project's customisations built by diff against the baseline.
-     What `SETUP.md` has is a proto-inventory by category (the answers to re-apply in
-     Step 3, checked in Step 5): not mechanical, and blind to free-form edits. Not
-     "drop the 3-way": keep it where it stays surgical.
-  4. A CHANGED SLOT WITHOUT ITS OWN MARKER NEVER RE-MATERIALISES. Step 3 promises that a
-     marker added by `vY` re-materialises, and Step 4 greps for it. But the bullets of
-     the example list in `CLAUDE.md`'s technical rules carry no marker — only the section
-     heading does — and Step 3 re-applies the project's whole section. So the one slot
-     that changed between v1.0.0 and v1.2.0 ("Lingua/e del progetto" → "Interaction
-     language", v1.1.0) cannot come back, and in `CLAUDE.md` the grep returns only the
-     two rule-9 prose lines that name the marker — one of which points at the slot, but
-     only as prose. The CHANGELOG names the change (1.1.0) and Step 2 already reads the
-     CHANGELOG as its index: the missing link is from that index (or from the diff of
-     the `SETUP.md` §2 checklist) to Step 4's audit. One instance so far (a re-scoped
-     slot, not a new marker) — the defect is structural.
-  5. THE HOOKS STEP FROM A LINKED WORKTREE, AND THE ROLLBACK. `hooks-install.sh`
-     hard-codes `HOOKS_DIR="${REPO_ROOT}/.git/hooks"`; in a linked worktree `.git` is a
-     file and `make hooks-install` aborts with a raw `mkdir: … Not a directory`. The
-     natural workarounds give a FALSE GREEN: the main worktree's script prints OK but
-     installs the version checked out THERE (the old one), and Step 4's functional proof
-     passes anyway — the executable lines of the generated hooks are identical from
-     v1.0.0 to v1.2.0, so the proof cannot tell old hooks from new. `SETUP.md` never
-     mentions worktrees, while `docs/00` recommends "a separate branch (or worktree)".
-     Rollback: a pre-v1.1.0 script knows only the Italian marker and refuses a hook that
-     carries the English one (the IMP-041 compatibility is one-way); edge case 4 says
-     "re-run `make hooks-install` from `vX`" without saying it fails. Ways out: remove
-     the two hooks by hand (keeps the pre-upgrade `.bak`), or `FORCE_OVERWRITE=1` —
-     which overwrites that `.bak` with the new hook, losing the pre-upgrade backup.
-     Reproduced in a throwaway repo with the real scripts.
-- Proposal: NOT decided here (retro). Directions to evaluate: (1)+(2) applied; (3) Step
-  3 opens with a per-file churn measurement (framework side and project side) and picks
-  the strategy per file, the mechanical inventory being the input of a rebuild — its
-  items carry IMP-048's three levels, which the upgrade used as-is; (4) a slot
-  checklist derived from the CHANGELOG / the §2 checklist diff and linked into Step 4,
-  or a marker on each bullet of the technical-rules list; (5) resolve the hooks
-  directory with `git rev-parse --git-path hooks`, state the main-worktree constraint in
-  Steps 1/4, and in edge case 4 the rollback caveat (manual removal preferred to
-  `FORCE_OVERWRITE=1`).
-- Input for this block from the application of points 1-2
-  ([[2026-09-25-imp-050-read-by-tag]]). Moved here by the user (D1): a mechanised `vX`
-  estimate in Step 0 (blob ids read by tag), a blob-id check in Step 5 that the METHOD
-  files are `vY`'s, an anti-orphan command in edge case 1. Found by the pre-commit
-  review, outside the 1-2 perimeter: graft step 1 still copies the payload from whatever
-  the framework clone has checked out while the pin records a tag — point 1's trap at
-  graft time (`ff7fbb6` put METHOD changes on `main` between v1.1.0 and v1.2.0); a
-  pin-identity check (`FW`'s `vX^{commit}` = the pin's `commit`, which would also catch
-  a moved tag — pins rewritten at Step 6 before v1.2.1, which named no command, may
-  hold the tag object's id); and which copy
-  of `SETUP.md` governs an upgrade (a project's reference copy is `vX`'s, without the
-  newer rules).
-- Expected benefit / risk: the next upgrade does not rediscover these traps by trial.
-  Risk: a longer procedure; the mechanical part is what IMP-037's command would absorb
-  (see its case-#3 annotation).
-- **Evidence from a client harvest** (annotation 2026-09-26,
-  [[2026-09-26-client-harvest-registration]]) — four of its lessons land here, verified
-  on v1.2.1 and by experiment in throwaway repositories. They come from the same third
-  upgrade as B9 and B10 of [[2026-09-24-third-upgrade-lessons]]: re-harvested, not new
-  occurrences — what follows is what they ADD.
-  - **Point 4 — the producer side, and the sentinel.** The slot is confirmed (re-scoped
-    at v1.1.0, not added; its marker is lost when Step 3 re-applies the project's whole
-    section). New: every release that adds or changes a slot lists it under a fixed
-    field of its CHANGELOG entry ("New slots to fill on upgrade"), which Step 4 reads
-    for the entries between `vX` and `vY` — the direction above has only the consumer
-    side; releases already cut are not covered. And the check-10 sentinel of
-    `/lint-memory` (`TO BE DEFINED AT$|DA DEFINIRE AL$`, `lint-memory.md`:47, Applied
-    IMP-031) catches only a break right before `SETUP`: against every wrap position it
-    misses the inner breaks (`DEFINED⏎AT`, `BE⏎DEFINED`, `TO⏎BE`, `DEFINIRE⏎AL`,
-    `DA⏎DEFINIRE`) and any break after a trailing blank — 3 of 16 variants caught, 4
-    where the grep matches before a CR. A tested widening (16/16 broken caught, 0/2
-    intact, no hit on the v1.2.1 tree):
-    `\[(TO|TO BE|TO BE DEFINED|TO BE DEFINED AT)[[:space:]]*$|\[(DA|DA DEFINIRE|DA DEFINIRE AL)[[:space:]]*$`
-    — dual form kept (IMP-048, level 3), the false-positive declaration kept (its
-    category, prose that discusses the marker, recurs). Its fix sites lie outside the
-    upgrade: `lint-memory.md` and the §2 Convention box of `SETUP.md`, which promises
-    a sentinel that "flags broken slots".
-  - **Point 5 — the hooks directory: both one-liners are wrong as written.** The
-    direction above (`git rev-parse --git-path hooks`) has no anchor: it resolves the
-    repository of the CALLER's cwd, so `make test-scripts` installs into the calling
-    repository and fails. The client's anchored `git -C "$REPO_ROOT" rev-parse
-    --git-path hooks` returns a RELATIVE `.git/hooks` in a main worktree, and the script
-    never `cd`s: run from a subdirectory, it prints OK and writes a stray
-    `<cwd>/.git/hooks`. What passes the self-test, a linked worktree and a
-    subdirectory:
-    `HOOKS_DIR="$(git -C "${REPO_ROOT}" rev-parse --path-format=absolute --git-common-dir)/hooks"`
-    — `--git-common-dir` rather than `--git-path hooks`, which follows `core.hooksPath`
-    (safe today only because the script's guard runs first); the idiom of `SETUP.md`'s
-    own check; git 2.31 or later. The self-test needs a case run from a cwd other than
-    the repository root. Bonus: outside a repository
-    the v1.2.1 script prints OK and creates a stray `<dir>/.git/hooks` (it never checks
-    it is in one); the `rev-parse` line aborts instead. Span: hard-coded in every tag
-    from v0.1.0 to v1.2.1. Stale since v1.2.1: "`SETUP.md` never mentions worktrees"
-    (three mentions now, all framework-side) — and its Precondition check PASSES from a
-    linked worktree of the project, whose Step 4 then aborts. A git property for edge
-    case 4 (b): the hooks directory is shared by all worktrees, so `vY`'s hooks reach
-    every worktree whichever one runs Step 4.
-  - **Point 5 — the rollback.** A third way out: move the two `.bak` back over the
-    hooks — the pre-upgrade hooks come back byte for byte, with no script run — but
-    ONLY if THIS Step 4 printed the WARNING pair: a `.bak` left by an earlier upgrade
-    survives an upgrade that does not change the hooks, and a blind restore installs
-    hooks older than `vX` (reproduced); the manual removal above is immune. Across the
-    marker switch the `vY` run warns for BOTH hooks even when the project changed
-    nothing, while Step 4 mentions only "a `.bak` of the project's formatting block"
-    (`commit-msg` has none). `FORCE_OVERWRITE=1` is lossless when the customisation
-    lives in the SCRIPT and loses it when it lives in the HOOK, a place the framework
-    also sanctions — so the client's "harmless: the originals are regenerable" holds
-    only for the former. Scope correction to "a pre-v1.1.0 script … refuses": only a
-    `vX` from v0.3.0 to v1.0.0 refuses (rc 1, at the first hook); v0.1.0 and v0.2.0
-    have no guard and overwrite without a `.bak`. Client-side, relayed: its notes of
-    two earlier upgrades prescribe the failing rollback command.
-  - **Input for point 3 — the harvested "read by tag" lesson's sanity check** (the rest
-    of that lesson is covered, see *Applied*, IMP-050 (points 1-2)): `git -C
-    <framework> rev-parse vY:<file>` against a known blob is NOT in v1.2.1. The
-    Precondition check prints "FW OK" for a separate clone of the project or for an
-    unrelated repository with a same-named `vY` (reproduced), and `SETUP.md` does not
-    state that limit — only [[2026-09-25-imp-050-read-by-tag]] does. For the
-    pin-identity input above: one file's blob is a weak key (`CLAUDE.md` has the same
-    blob at v1.2.0 and v1.2.1) — compare a commit or tree id; the method holds no
-    trusted `vY` commit (the pin records `vX`, the tags are unsigned), but the first
-    released heading of `vY:CHANGELOG.md`, which Step 2 already reads, is a free
-    self-consistency anchor — of four checks measured, the only one that catches a `vY`
-    re-created on an earlier commit (it misses a tag moved later and a crafted
-    repository); and pin-identity closes the declared limit only when the pin records
-    the framework's real `vX` commit — never for `commit: n/a` pins or pre-pin grafts.
-- **Decision 2026-10-10** ([[2026-10-10-upgrade-safety-1.3.3]]): point 5 in v1.3.3 —
-  `--path-format=absolute --git-common-dir`, with a self-test from a linked worktree, a
-  subdirectory and outside a repository; Step 4 checks that every generated hook is
-  installed; Step 1 photographs the hooks and edge case 4 restores the photograph. Points
-  3-4 in v1.4.0, through IMP-037's script: the per-file triage and measurement, the marker
-  delta and the §2 checklist diff between the tags. NO hand-written "Slots changed" field
-  in the CHANGELOG (user decision 3): it can diverge from the text, the class of C11/C12;
-  the script flags a slot that changes file, and moving its answer is a migration for the
-  *Upgrading* note. Also in v1.3.3, because a project's next hop would hit it: the
-  `Makefile` goes through the 3-way (an additive union runs `reset-task` twice), and a new
-  edge case covers a slot that moves. The pin (input above): an explicit error with the
-  correcting instruction, no silent normalisation; a tag on the pinned commit may be
-  SUGGESTED, never applied (user decision 6).
 
 ### IMP-051 — The memory lags one merge: `/checkpoint` runs before the merge
 - Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — a post-merge
@@ -1607,6 +1336,302 @@ tags: [improvement]
   `interactivecomments` off); block 2 is one `git push --atomic` of the branch and the
   tag, then `git branch -d`.
 
+### IMP-037 (option b) — A read-only upgrade verification script → applied on 2026-10-10, commits b40b76a, 11381b5, 75e7fb4, d32ef1a, b057262, 37fbc22, 5648df0, 4e5e50c
+- Date: 2026-10-10 | Origin: [[2026-10-10-upgrade-safety-1.3.3]] — the decision on IMP-037 after its
+  count trigger fired (three real upgrades); the history is under *Deferred*, IMP-037
+  (option a)
+- Status: **APPROVED on 2026-10-10**, applied in v1.4.0: a READ-ONLY upgrade verification
+  script; `SETUP.md` stays the procedure and calls it. It reads the framework by tag with
+  `git -C "${FW:?}"` — the "no cross-repo git" boundary of option (a) was about writes and
+  `FW`'s working tree, not about reads by tag (the v1.2.1 rule, IMP-050 points 1-2). It
+  lives OUTSIDE the payload, is never copied into a project, and runs in its version AT
+  the tag `vY`, never from the framework's working tree. The "No automation, for now" box
+  of `SETUP.md` is updated with it (Level 2, approved).
+- Why (b) and not (a): across the three upgrades the judgement differed every time and
+  the mechanics did not; a command would shadow a procedure that changed in 7 of 11
+  releases, and could not be tested. The script holds the mechanics: preflight (the pin —
+  an explicit error, never a silent normalisation, IMP-050), the per-file inventory and
+  measurement, the marker and §2-checklist delta between the tags, the memory invariant
+  (IMP-046), the post-checks.
+- Applied in v1.4.0 ([[2026-10-10-upgrade-verification-1.4.0]]): `tools/upgrade-check.sh` with `classes`,
+  `preflight`, `inventory`, `invariant`, `post`, outside the payload, run at the tag
+  `vY`; its self-test (`bash tools/test-upgrade-check.sh`) fails when a payload file has
+  no class; tried read-only on the client project's three real upgrades, where it
+  reproduced the hand measurements and raised false alarms that were fixed; the
+  "No automation" box of `SETUP.md` rewritten. Option (a) stays under *Deferred*.
+
+### IMP-046 — The upgrade procedure contradicts itself on `.claude/memory/` → applied on 2026-10-10, commits d32ef1a, 37fbc22, 5648df0, 4e5e50c
+- Date: 2026-09-22 | Origin: [[2026-09-23-memory-model-turns]] — the upgrade demands an
+  empty diff on `.claude/memory/` yet classifies its guide READMEs as METHOD (a side
+  finding of the IMP-044 assessment)
+- Observed problem: `SETUP.md` (*Upgrading the framework*) classifies "the guide READMEs
+  inside `.claude/memory/*/`" as METHOD (brought to `vY`) and `LEARNINGS.md` as HYBRID
+  ("at most the header/format is updated"), while Steps 3 and 5 demand an EMPTY
+  `git diff` on `.claude/memory/` ("a non-empty diff = a bug in the upgrade") and edge
+  case 3 calls the pointer repair "the only exception". Step 2's diff also excludes
+  `.claude/memory` on purpose, so a change to a guide README never shows up in the
+  exact-text source of the upgrade. Two rules of the same procedure cannot both hold.
+- Evidence — the two real upgrades of the same client project (2026-07-17,
+  v0.2.0→v0.5.1; 2026-07-19, v0.5.1→v1.0.0): both treated the whole of `.claude/memory/`
+  as project memory — the first with an ad-hoc second exception (the LEARNINGS header),
+  the second with an empty diff. That project's `sessions/README.md` is still
+  byte-identical to v0.2.0 while its provenance pin says 1.0.0: the README changes of
+  v0.5.1 (IMP-034, `da0e158`) never arrived. The contradiction is live since v0.5.0,
+  the release that introduced the procedure and its invariant (`8eb3107`); the first
+  template change it strands is older — the LEARNINGS format of v0.4.0 (`d2856be`). It
+  is not an effect of IMP-044.
+- Why it matters now: IMP-044 changes two templates under `.claude/memory/`, and an
+  upgraded project will receive neither: `sessions/README.md` (the `/checkpoint` clause
+  of IMP-044 carries the minimal format of the two fields for this very reason — a
+  MITIGATION, not the fix) and the Origin line of the LEARNINGS format comment (D2),
+  which has NO mitigation: `/retro` does not carry the IMP format.
+- Proposal: NOT decided here — a contradiction in the method is a BUG, to be resolved at
+  a dedicated retro (user decision 2026-09-23). Direction to evaluate: scope the
+  invariant to the PROJECT-MEMORY files (notes, STATE/TREE/INDEX, the IMP entries),
+  NAMING the guide READMEs and the LEARNINGS header and format comment as declared,
+  expected hunks — and bring them into Step 2's diff.
+- Expected benefit / risk: the method's own changes to the memory templates reach
+  upgraded projects, while the invariant keeps catching accidental edits to the real
+  memory. Risk: a looser invariant that lets an accidental edit through — the fix must
+  name the allowed files, never relax to "some diff is fine".
+- **Evidence from the third upgrade** (annotation 2026-09-24,
+  [[2026-09-24-third-upgrade-lessons]]): the format guides live under `memory/` but are
+  not memory. The client's `sessions/README.md` is the template blob of v0.2.0-v0.5.0
+  (after v0.2.0 the file first changed at v0.5.1), so the relayed "stayed at v0.5.0
+  across two upgrades" and "byte-identical to v0.2.0" above are the same fact; no commit
+  on the client's main has touched a guide README since the graft. NEW:
+  `decisions/README.md` carries a setup slot (where
+  formal ADRs live), which the client answered — so that README is a HYBRID, while
+  `SETUP.md` files it at once as METHOD ("the guide READMEs", brought to `vY`) and,
+  through `decisions/`, as PROJECT-MEMORY (untouched). A plain overwrite re-opens the
+  answered slot; the 3-way surfaces exactly that hunk. Consequence for the direction
+  above: the guide READMEs are not ONE class — a "format guides" class overwritten
+  wholesale, or guides moved out of `memory/` (the two options raised), must still
+  3-way `decisions/README.md`. The third upgrade's branch (not yet merged) brings all
+  four guides to v1.2.0 as a declared exception citing this IMP — `sessions/README.md`
+  minus the framework-repo Plan block and IMP number, the ADR answer kept: the third
+  time the contradiction had to be worked around.
+- **Annotation 2026-10-10** ([[2026-10-09-quick-fixes-1.3.2]]): edge case 3 of `SETUP.md`
+  is no longer "the only exception" but two DECLARED exceptions for the project's memory
+  lines — (a) the pointers to renamed docs, (b) the `## ` section titles of `STATE.md`
+  and `LEARNINGS.md` that the method reads by name (v1.3.2, for the titles v1.1.0
+  translated) — and it now points here for the method's own files under `memory/`. The
+  contradiction this entry records is unchanged; (b) follows its direction of named,
+  declared exceptions.
+- **Evidence from a client harvest — the verification half** (annotation 2026-09-26,
+  [[2026-09-26-client-harvest-registration]]): once the invariant allows named files
+  and parts (the third upgrade's declared exception), a plain `git diff` cannot prove
+  it — a legitimate format update and an edited IMP entry touch the same file list; the
+  invariant has to be CONTENT-based. And content, not the "declared, expected hunks" of
+  the direction above: the framework's `LEARNINGS.md` is live, so its tag diff is
+  mostly its own entries (v1.1.0→v1.2.0: 5 hunks, +169/−4, the format change one of
+  them), and the format comment's position depends on each project's body — the hunks
+  cannot be derived from the framework. The client built the checks as a script:
+  (1) an allowed-path diff; (2) a `LEARNINGS.md` body normaliser (from the first `## `
+  to the end, minus the format comment) — generically it must strip exactly `vX`'s
+  format comment(s), read by tag (two at v1.0.0, one from v1.1.0), and compare the
+  header and format with `vY`'s by content, or an edit inside the format comment
+  passes; (3) the guide READMEs compared with their expected content, not by hunk
+  headers — this overlaps the blob-id check recorded as input of IMP-050 (points 3-4),
+  `decisions/README.md` being the hybrid exception (the third upgrade's annotation above —
+  B7 of [[2026-09-24-third-upgrade-lessons]]); (4) no backfill of the
+  IMP-044 fields (`sessions/README.md`, *Absent = not recorded*); (5) the scope of the
+  checkpoint commits. Run on a clone, one positive and eight negative branches: all
+  caught (client-side, relayed). Relayed proposal: ship them as
+  `scripts/verify-memory-invariant.sh` or a Step 5 recipe, template paths only — to be
+  weighed against `SETUP.md`'s "No automation, for now", IMP-037 (trigger fired on the
+  count) and IMP-049 (d) (a check hosted in the payload ships to clients).
+- **Decision 2026-10-10** ([[2026-10-10-upgrade-safety-1.3.3]]): in v1.4.0, the direction proposed in
+  phase 1, accepted with the release split. A named set of MEMORY TEMPLATES — the guide
+  READMEs of `components/`, `plans/`, `sessions/` and `decisions/`, the `LEARNINGS.md`
+  lines before the first `## ` and its format comment — reconciled 3-way with base `vX`;
+  PROJECT-MEMORY becomes `decisions/*.md` except the README; the invariant becomes a
+  CLOSED list of allowed touches (the templates, edge case 3's lines, the upgrade's own
+  plan file; the session note, `STATE.md` and `TREE.md` only in the checkpoint commit),
+  checked by content. `STATE.md`, `TREE.md` and `INDEX.md` are NOT memory templates (user
+  decision 4): in a project they are compiled memory, never reconciled 3-way, and a change
+  to their format arrives only as a declared migration. Measured in phase 1 with a real
+  `git merge-file`: the client's `decisions/README.md` gives 1 conflict when `vY` edits
+  the slot line and none for an edit elsewhere; `sessions/README.md` pruned by `vY` as the
+  client pruned it merges clean. The client's invariant script was never committed: the
+  checks are rebuilt from their description, with the number of format comments read from
+  `vY` (an entry hidden inside an injected format comment passes otherwise).
+- Applied in v1.4.0 ([[2026-10-10-upgrade-verification-1.4.0]]): the MEMORY TEMPLATES class (the four guide
+  READMEs, the header and the format comment of `LEARNINGS.md`), reconciled 3-way with
+  recipes for the header and the comment; `STATE.md`, `TREE.md` and `INDEX.md` compiled
+  memory, never 3-way (user decision 4); the invariant a closed list checked by content
+  by `upgrade-check.sh invariant`, at Step 5, before the checkpoint — the templates, the
+  pointer repairs and the renamed titles and labels, the upgrade's own note, plan and
+  decision records; the LEARNINGS entries compared with titles and labels normalised and
+  the format comments counted against `vY`'s. The client's lost V1-V7 script is rebuilt
+  on generic rules, with its negative branches in the self-test.
+
+### IMP-050 (points 3-4) — Upgrade procedure hardening: a strategy per file from measurement, the slots that change → applied on 2026-10-10, commits 75e7fb4, 5648df0, 4e5e50c
+- Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — the read-only
+  assessment of the third real upgrade (v1.0.0 → v1.2.0, across the full translation of
+  v1.1.0) found five traps that *Upgrading the framework* does not guard against
+  (points 4-5 were then avoided rather than hit)
+- Status: points 1-2 APPLIED on 2026-09-25, commit 190404a — see *Applied*, IMP-050
+  (points 1-2). Point 5 APPLIED on 2026-10-10 in v1.3.3 — see *Applied*, IMP-050
+  (point 5). Points 3-4 below stay OPEN, for v1.4.0, numbered as before (IMP-037's
+  case-#3 annotation cites them by number); the heading said "points 3-5" until then.
+- Observed problem (each verified on the source):
+  1. → APPLIED (see *Applied*, IMP-050 (points 1-2)).
+  2. → APPLIED (same entry).
+  3. A STRATEGY PER FILE, DRIVEN BY MEASUREMENT. Step 3 picks the strategy by class,
+     plus a fixed split by file name (additive union for `.gitignore`/`Makefile`,
+     header/format only for `LEARNINGS.md`); every other hybrid goes through the 3-way
+     with base = `vX`, and nothing measures churn. v1.0.0 → v1.2.0 changes 31 payload
+     files (+1801/−1701; 24 of them in Step 2's scope): on the translated hybrids the
+     3-way degenerates into near-whole-file conflicts (`CLAUDE.md`: 161 of 197 output
+     lines inside conflict markers), while where the framework change does not overlap
+     the project's edits it stays surgical (`settings.json`, `reset-task.sh`,
+     `hooks-install.sh` — the last two with 40-50% framework churn too). Churn alone
+     does not predict the conflict mass; its overlap with the project's divergence
+     does — so both are measured. The upgrade worked around it with a per-file churn
+     table, a per-file strategy (3-way vs rebuild from `vY` + re-applied inventory) and
+     an inventory of the project's customisations built by diff against the baseline.
+     What `SETUP.md` has is a proto-inventory by category (the answers to re-apply in
+     Step 3, checked in Step 5): not mechanical, and blind to free-form edits. Not
+     "drop the 3-way": keep it where it stays surgical.
+  4. A CHANGED SLOT WITHOUT ITS OWN MARKER NEVER RE-MATERIALISES. Step 3 promises that a
+     marker added by `vY` re-materialises, and Step 4 greps for it. But the bullets of
+     the example list in `CLAUDE.md`'s technical rules carry no marker — only the section
+     heading does — and Step 3 re-applies the project's whole section. So the one slot
+     that changed between v1.0.0 and v1.2.0 ("Lingua/e del progetto" → "Interaction
+     language", v1.1.0) cannot come back, and in `CLAUDE.md` the grep returns only the
+     two rule-9 prose lines that name the marker — one of which points at the slot, but
+     only as prose. The CHANGELOG names the change (1.1.0) and Step 2 already reads the
+     CHANGELOG as its index: the missing link is from that index (or from the diff of
+     the `SETUP.md` §2 checklist) to Step 4's audit. One instance so far (a re-scoped
+     slot, not a new marker) — the defect is structural.
+  5. THE HOOKS STEP FROM A LINKED WORKTREE, AND THE ROLLBACK. `hooks-install.sh`
+     hard-codes `HOOKS_DIR="${REPO_ROOT}/.git/hooks"`; in a linked worktree `.git` is a
+     file and `make hooks-install` aborts with a raw `mkdir: … Not a directory`. The
+     natural workarounds give a FALSE GREEN: the main worktree's script prints OK but
+     installs the version checked out THERE (the old one), and Step 4's functional proof
+     passes anyway — the executable lines of the generated hooks are identical from
+     v1.0.0 to v1.2.0, so the proof cannot tell old hooks from new. `SETUP.md` never
+     mentions worktrees, while `docs/00` recommends "a separate branch (or worktree)".
+     Rollback: a pre-v1.1.0 script knows only the Italian marker and refuses a hook that
+     carries the English one (the IMP-041 compatibility is one-way); edge case 4 says
+     "re-run `make hooks-install` from `vX`" without saying it fails. Ways out: remove
+     the two hooks by hand (keeps the pre-upgrade `.bak`), or `FORCE_OVERWRITE=1` —
+     which overwrites that `.bak` with the new hook, losing the pre-upgrade backup.
+     Reproduced in a throwaway repo with the real scripts.
+- Proposal: NOT decided here (retro). Directions to evaluate: (1)+(2) applied; (3) Step
+  3 opens with a per-file churn measurement (framework side and project side) and picks
+  the strategy per file, the mechanical inventory being the input of a rebuild — its
+  items carry IMP-048's three levels, which the upgrade used as-is; (4) a slot
+  checklist derived from the CHANGELOG / the §2 checklist diff and linked into Step 4,
+  or a marker on each bullet of the technical-rules list; (5) resolve the hooks
+  directory with `git rev-parse --git-path hooks`, state the main-worktree constraint in
+  Steps 1/4, and in edge case 4 the rollback caveat (manual removal preferred to
+  `FORCE_OVERWRITE=1`).
+- Input for this block from the application of points 1-2
+  ([[2026-09-25-imp-050-read-by-tag]]). Moved here by the user (D1): a mechanised `vX`
+  estimate in Step 0 (blob ids read by tag), a blob-id check in Step 5 that the METHOD
+  files are `vY`'s, an anti-orphan command in edge case 1. Found by the pre-commit
+  review, outside the 1-2 perimeter: graft step 1 still copies the payload from whatever
+  the framework clone has checked out while the pin records a tag — point 1's trap at
+  graft time (`ff7fbb6` put METHOD changes on `main` between v1.1.0 and v1.2.0); a
+  pin-identity check (`FW`'s `vX^{commit}` = the pin's `commit`, which would also catch
+  a moved tag — pins rewritten at Step 6 before v1.2.1, which named no command, may
+  hold the tag object's id); and which copy
+  of `SETUP.md` governs an upgrade (a project's reference copy is `vX`'s, without the
+  newer rules).
+- Expected benefit / risk: the next upgrade does not rediscover these traps by trial.
+  Risk: a longer procedure; the mechanical part is what IMP-037's command would absorb
+  (see its case-#3 annotation).
+- **Evidence from a client harvest** (annotation 2026-09-26,
+  [[2026-09-26-client-harvest-registration]]) — four of its lessons land here, verified
+  on v1.2.1 and by experiment in throwaway repositories. They come from the same third
+  upgrade as B9 and B10 of [[2026-09-24-third-upgrade-lessons]]: re-harvested, not new
+  occurrences — what follows is what they ADD.
+  - **Point 4 — the producer side, and the sentinel.** The slot is confirmed (re-scoped
+    at v1.1.0, not added; its marker is lost when Step 3 re-applies the project's whole
+    section). New: every release that adds or changes a slot lists it under a fixed
+    field of its CHANGELOG entry ("New slots to fill on upgrade"), which Step 4 reads
+    for the entries between `vX` and `vY` — the direction above has only the consumer
+    side; releases already cut are not covered. And the check-10 sentinel of
+    `/lint-memory` (`TO BE DEFINED AT$|DA DEFINIRE AL$`, `lint-memory.md`:47, Applied
+    IMP-031) catches only a break right before `SETUP`: against every wrap position it
+    misses the inner breaks (`DEFINED⏎AT`, `BE⏎DEFINED`, `TO⏎BE`, `DEFINIRE⏎AL`,
+    `DA⏎DEFINIRE`) and any break after a trailing blank — 3 of 16 variants caught, 4
+    where the grep matches before a CR. A tested widening (16/16 broken caught, 0/2
+    intact, no hit on the v1.2.1 tree):
+    `\[(TO|TO BE|TO BE DEFINED|TO BE DEFINED AT)[[:space:]]*$|\[(DA|DA DEFINIRE|DA DEFINIRE AL)[[:space:]]*$`
+    — dual form kept (IMP-048, level 3), the false-positive declaration kept (its
+    category, prose that discusses the marker, recurs). Its fix sites lie outside the
+    upgrade: `lint-memory.md` and the §2 Convention box of `SETUP.md`, which promises
+    a sentinel that "flags broken slots".
+  - **Point 5 — the hooks directory: both one-liners are wrong as written.** The
+    direction above (`git rev-parse --git-path hooks`) has no anchor: it resolves the
+    repository of the CALLER's cwd, so `make test-scripts` installs into the calling
+    repository and fails. The client's anchored `git -C "$REPO_ROOT" rev-parse
+    --git-path hooks` returns a RELATIVE `.git/hooks` in a main worktree, and the script
+    never `cd`s: run from a subdirectory, it prints OK and writes a stray
+    `<cwd>/.git/hooks`. What passes the self-test, a linked worktree and a
+    subdirectory:
+    `HOOKS_DIR="$(git -C "${REPO_ROOT}" rev-parse --path-format=absolute --git-common-dir)/hooks"`
+    — `--git-common-dir` rather than `--git-path hooks`, which follows `core.hooksPath`
+    (safe today only because the script's guard runs first); the idiom of `SETUP.md`'s
+    own check; git 2.31 or later. The self-test needs a case run from a cwd other than
+    the repository root. Bonus: outside a repository
+    the v1.2.1 script prints OK and creates a stray `<dir>/.git/hooks` (it never checks
+    it is in one); the `rev-parse` line aborts instead. Span: hard-coded in every tag
+    from v0.1.0 to v1.2.1. Stale since v1.2.1: "`SETUP.md` never mentions worktrees"
+    (three mentions now, all framework-side) — and its Precondition check PASSES from a
+    linked worktree of the project, whose Step 4 then aborts. A git property for edge
+    case 4 (b): the hooks directory is shared by all worktrees, so `vY`'s hooks reach
+    every worktree whichever one runs Step 4.
+  - **Point 5 — the rollback.** A third way out: move the two `.bak` back over the
+    hooks — the pre-upgrade hooks come back byte for byte, with no script run — but
+    ONLY if THIS Step 4 printed the WARNING pair: a `.bak` left by an earlier upgrade
+    survives an upgrade that does not change the hooks, and a blind restore installs
+    hooks older than `vX` (reproduced); the manual removal above is immune. Across the
+    marker switch the `vY` run warns for BOTH hooks even when the project changed
+    nothing, while Step 4 mentions only "a `.bak` of the project's formatting block"
+    (`commit-msg` has none). `FORCE_OVERWRITE=1` is lossless when the customisation
+    lives in the SCRIPT and loses it when it lives in the HOOK, a place the framework
+    also sanctions — so the client's "harmless: the originals are regenerable" holds
+    only for the former. Scope correction to "a pre-v1.1.0 script … refuses": only a
+    `vX` from v0.3.0 to v1.0.0 refuses (rc 1, at the first hook); v0.1.0 and v0.2.0
+    have no guard and overwrite without a `.bak`. Client-side, relayed: its notes of
+    two earlier upgrades prescribe the failing rollback command.
+  - **Input for point 3 — the harvested "read by tag" lesson's sanity check** (the rest
+    of that lesson is covered, see *Applied*, IMP-050 (points 1-2)): `git -C
+    <framework> rev-parse vY:<file>` against a known blob is NOT in v1.2.1. The
+    Precondition check prints "FW OK" for a separate clone of the project or for an
+    unrelated repository with a same-named `vY` (reproduced), and `SETUP.md` does not
+    state that limit — only [[2026-09-25-imp-050-read-by-tag]] does. For the
+    pin-identity input above: one file's blob is a weak key (`CLAUDE.md` has the same
+    blob at v1.2.0 and v1.2.1) — compare a commit or tree id; the method holds no
+    trusted `vY` commit (the pin records `vX`, the tags are unsigned), but the first
+    released heading of `vY:CHANGELOG.md`, which Step 2 already reads, is a free
+    self-consistency anchor — of four checks measured, the only one that catches a `vY`
+    re-created on an earlier commit (it misses a tag moved later and a crafted
+    repository); and pin-identity closes the declared limit only when the pin records
+    the framework's real `vX` commit — never for `commit: n/a` pins or pre-pin grafts.
+- **Decision 2026-10-10** ([[2026-10-10-upgrade-safety-1.3.3]]): point 5 in v1.3.3 —
+  `--path-format=absolute --git-common-dir`, with a self-test from a linked worktree, a
+  subdirectory and outside a repository; Step 4 checks that every generated hook is
+  installed; Step 1 photographs the hooks and edge case 4 restores the photograph. Points
+  3-4 in v1.4.0, through IMP-037's script: the per-file triage and measurement, the marker
+  delta and the §2 checklist diff between the tags. NO hand-written "Slots changed" field
+  in the CHANGELOG (user decision 3): it can diverge from the text, the class of C11/C12;
+  the script flags a slot that changes file, and moving its answer is a migration for the
+  *Upgrading* note. Also in v1.3.3, because a project's next hop would hit it: the
+  `Makefile` goes through the 3-way (an additive union runs `reset-task` twice), and a new
+  edge case covers a slot that moves. The pin (input above): an explicit error with the
+  correcting instruction, no silent normalisation; a tag on the pinned commit may be
+  SUGGESTED, never applied (user decision 6).
+- Applied in v1.4.0 ([[2026-10-10-upgrade-verification-1.4.0]]): point 3 — Step 3 picks the strategy per file from
+  `inventory`'s measure (the 3-way's conflicts, git merge-file -p), a rebuild from `vY`
+  where most of a file conflicts; point 4 — the slots added, removed or moved and the §2
+  checklist's changes derived from the tags, with no hand-written field (user decision 3).
+  The pin's format checked, an explicit error, a tag only suggested (decision 6).
+
 ## Deferred (not rejected — resumed at the right time)
 
 ### IMP-023 — CODE_OF_CONDUCT.md and .github/ templates → deferred on 2026-07-11
@@ -1642,7 +1667,7 @@ tags: [improvement]
 ### IMP-037 (option a) — The `/upgrade-framework` read-and-print command (the inverse twin of `/harvest-framework`) → deferred on 2026-07-17, again on 2026-10-10
 - **Re-deferred on 2026-10-10** ([[2026-10-10-upgrade-safety-1.3.3]]): the count trigger below fired;
   the user split the entry. Option (b), a read-only verification script, is approved —
-  see IMP-037 (option b) in the OPEN proposals. This option, the full command, stays
+  see IMP-037 (option b) under *Applied* (v1.4.0). This option, the full command, stays
   deferred. New resumption trigger: the first upgrade of a SECOND project (the three
   cases below are all one project's).
 - User decision (periodic retro): DEFER (confirmed). A command that ONLY READS AND PRINTS
