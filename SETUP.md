@@ -221,8 +221,17 @@ The method's own layer (`.claude/docs/04-git-workflow.md`, *Enforcement of the e
 boundary*) has a declared threat model: an agent's ACCIDENTAL errors with ordinary
 commands — the kind every real incident was. Deliberate evasion (disabling a hook,
 unsetting the session marker, writing to the forge with the owner's credential) is
-outside it: only the forge's rules or the operating system stop it. Two layers beyond the
-method, neither switched on by the template:
+outside it: only the forge's rules or the operating system stop it.
+
+**On Windows, Git Bash.** The method's layer is wired for the Bash tool, which on Windows
+runs in Git Bash (Git for Windows, a prerequisite); Claude Code runs the hooks there too.
+Its PowerShell tool is kept off by `CLAUDE_CODE_USE_POWERSHELL_TOOL=0` in
+`.claude/settings.json`: with the tool on, Claude takes PowerShell as its primary shell, and
+a `bash` called from PowerShell can be WSL's. A developer who turns it on keeps the guard —
+it reads PowerShell's commands too, in their ordinary forms — and the `pre-push`; the
+`deny` rules, Bash rules, do not reach it.
+
+Two layers beyond the method, neither switched on by the template:
 
 - **Server-side layer — the forge's rules.** They hold for every client and every route
   (git, the forge's CLI, its API), the owner included when no bypass is granted. The

@@ -91,7 +91,7 @@ consecutive runs.
 - [x] 1. This note and its plan, phase 1's analysis and the decisions; the registrations — IMP-071 to IMP-077, IMP-070 annotated with the decisions and the plan B threshold — and the principle for `tools/` — commit: a787c9a
 - [x] 2. The CI: `.github/workflows/test.yml` on ubuntu-24.04, macos-26 and windows-2025 — read-only token, checkout pinned by full SHA, GNU make on Windows at a fixed version; the documents that list what setup does not copy; `CONTRIBUTING.md`: block 0, the remote branch deleted in block 2, no required checks on `main` — commit: f1147f5
 - [x] 3. `.gitattributes` in the payload (HYBRID, the framework's paths only) and `tools/.gitattributes`; the upgrade check's payload and classes; `SETUP.md` (the copy list, the classes, Step 2) — commit: 40d6075
-- [ ] 4. `upgrade-check.sh` reads the project's files whatever their line ends: the CRLF case first, failing (RED), then the fix (GREEN) — commit: —
+- [x] 4. `upgrade-check.sh` reads the project's files whatever their line ends: the CRLF case first, failing (RED), then the fix (GREEN) — commit: cc16df0
 - [ ] 5. PowerShell, option C: the tool off in `settings.json`, the guard reading `PowerShell` too (`git.exe`, case, backtick continuations), its self-test, `docs/04`, `SETUP.md` *Hardening* — commit: —
 - [ ] 6. The prerequisites by tool name (`SETUP.md` §0, `hooks-install.sh`'s message, the READMEs): git, bash and a POSIX userland (Git for Windows), GNU make, gitleaks, Node.js 22.12 — commit: —
 - [ ] 7. The upgrade 1.4.1 → 1.5.0 rehearsed, LF and CRLF, the renormalisation step measured; the Upgrading note drafted — commit: —
@@ -219,6 +219,25 @@ the full history and the tags.
 - `old_labels`, the marker counts and the conflict and broken-marker greps were left as
   they are: anchored at a line's start or counting inside a line, a `\r` does not reach
   them.
+
+## PowerShell, option C (task 5)
+- Built and tested in a copy under the scratchpad first, so the two files of the boundary
+  were written once each through the file tools — one `ask` approval each — and compared
+  byte for byte with the tested copy.
+- `settings.json`: `CLAUDE_CODE_USE_POWERSHELL_TOOL=0` in `env`, the matcher
+  `Bash|PowerShell|Monitor`. The guard: the tool list, PowerShell's escape (the backtick,
+  a backslash ordinary), `commandName` (the last path component after `/` or `\`, lower
+  case, without `.exe`), CRLF read as LF. Its self-test: 10 writes and 7 reads through
+  PowerShell, three spellings of git through Bash, the main session free through
+  PowerShell, the matcher and the `env` key checked.
+- Each piece undone in turn fails the self-test: the tool list, the PowerShell mode,
+  the case, `.exe`, the `\` separator, the CRLF normalisation, the matcher, the `env` key
+  (8 of 8; the control passes). The CRLF case first survived: its `\r` stuck to an
+  argument (`-1`), which decides nothing; it now sticks to the subcommand (`git log` at a
+  line's end), which a raw read would take for a write.
+- Documented, not measured: that Claude Code honours the `env` key and calls the hook
+  with `tool_name: "PowerShell"` — the CI does not run Claude Code; the guard's reading of
+  PowerShell's text is measured, on every platform.
 
 ## Resumption notes
 - The CI runs only on what the user pushes: the first push of this branch comes after

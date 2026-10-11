@@ -13,8 +13,9 @@
 # guard, decides the failure case.
 #
 # It FAILS if the guard stops blocking a write or starts blocking a read or the main
-# session, if the wiring disappears from settings.json, if a broken guard lets an agent
-# through, blocks the main session or stays silent there, or if the first line of a
+# session — through Bash, PowerShell or Monitor —, if the wiring disappears from
+# settings.json or the PowerShell tool is no longer off there, if a broken guard lets an
+# agent through, blocks the main session or stays silent there, or if the first line of a
 # failure is not the wiring's own message.
 #
 # HERMETIC: the wired command is READ from .claude/settings.json (never retyped here) and
@@ -41,13 +42,17 @@ wired="$("${NODE}" -e '
 const settings = require(process.argv[1]);
 const tools = (group) => (group.matcher ?? "").split("|");
 const hook = (settings.hooks?.PreToolUse ?? [])
-  .filter((group) => tools(group).includes("Bash") && tools(group).includes("Monitor"))
+  .filter((group) => ["Bash", "PowerShell", "Monitor"].every((t) => tools(group).includes(t)))
   .flatMap((group) => group.hooks ?? [])
   .find((h) => /scripts\/agent-git-guard\.mjs/.test(h.command ?? ""));
 if (!hook) process.exit(3);
 process.stdout.write(hook.command);
 ' "${REPO_ROOT}/.claude/settings.json")" \
-  || fail "no PreToolUse hook on Bash and Monitor runs scripts/agent-git-guard.mjs in .claude/settings.json"
+  || fail "no PreToolUse hook on Bash, PowerShell and Monitor runs scripts/agent-git-guard.mjs in .claude/settings.json"
+# The PowerShell tool off: on Windows the framework's shell is Git Bash's.
+"${NODE}" -e '
+if (require(process.argv[1]).env?.CLAUDE_CODE_USE_POWERSHELL_TOOL !== "0") process.exit(3);
+' "${REPO_ROOT}/.claude/settings.json" || fail "settings.json does not keep the PowerShell tool off (env CLAUDE_CODE_USE_POWERSHELL_TOOL=0)"
 # The checkpoint on the boundary's own files (an accidental edit would change it at once).
 "${NODE}" -e '
 const ask = require(process.argv[1]).permissions?.ask ?? [];
@@ -192,9 +197,43 @@ done
 expect 2 "agent Monitor write not blocked" "${REPO_ROOT}" "$(hook_input 'while true; do git pull; sleep 30; done' agent Monitor)"
 expect 0 "agent Monitor read blocked" "${REPO_ROOT}" "$(hook_input 'tail -f app.log | grep --line-buffered ERROR' agent Monitor)"
 
+# --- 2c. The PowerShell tool, if a developer turns it on: same rule, PowerShell's syntax ----
+PS_WRITES=(
+  'git checkout main'
+  '& git commit -m "x"'
+  'git.exe switch main'
+  'Git checkout main'
+  "& 'C:\\Program Files\\Git\\cmd\\git.exe' commit -m x"
+  'cd C:\repo; git stash'
+  $'git `\n  checkout main'
+  $'git log -1\r\ngit merge feature'
+  'if ($ready) { git reset --hard HEAD~1 }'
+  '$out = $(git switch main)'
+)
+for c in "${PS_WRITES[@]}"; do
+  expect 2 "agent PowerShell write not blocked: ${c}" "${REPO_ROOT}" "$(hook_input "${c}" agent PowerShell)"
+done
+PS_READS=(
+  'git log -1'
+  'git --no-optional-locks status'
+  'git.exe diff HEAD~1'
+  $'git log `\n  -1'
+  $'git log\r\ngit --no-optional-locks status\r\n'
+  'Get-ChildItem -Recurse | Select-String "git checkout"'
+  "Write-Output 'git switch main'"
+)
+for c in "${PS_READS[@]}"; do
+  expect 0 "agent PowerShell read blocked: ${c}" "${REPO_ROOT}" "$(hook_input "${c}" agent PowerShell)"
+done
+# Through Bash too (Git Bash on Windows), git may be spelled git.exe, Git or a Windows path.
+for c in 'git.exe checkout main' 'GIT checkout main' '/c/Program\ Files/Git/cmd/git.exe switch main'; do
+  expect 2 "agent write not blocked: ${c}" "${REPO_ROOT}" "$(hook_input "${c}" agent)"
+done
+
 # --- 3. Main session: never restricted (pushes are the pre-push hook's job, not this one) --
 for c in 'git switch -c feat/x' 'git commit -m "x"' 'git push origin main'; do
   expect 0 "main session blocked: ${c}" "${REPO_ROOT}" "$(hook_input "${c}")"
+  expect 0 "main session blocked (PowerShell): ${c}" "${REPO_ROOT}" "$(hook_input "${c}" '' PowerShell)"
 done
 
 # --- 4. A broken guard: fail-CLOSED for a delegated agent, open for the main session ------
@@ -233,4 +272,4 @@ expect 2 "a healthy guard's block stands (escaped agent_id key)" "${REPO_ROOT}" 
 expect 1 "a main session with agent_type only (broken guard)" "${workdir}/empty" \
   '{"tool_name":"Bash","tool_input":{"command":"git log -1"},"cwd":"/tmp","agent_type":"reviewer"}'
 
-echo "PASS (agent git guard): ${#AGENT_WRITES[@]} agent writes blocked, ${#AGENT_READS[@]} reads allowed, main session free; a broken guard (node missing / file missing / crash / bad input) blocks agents and shows a non-blocking error to the main session."
+echo "PASS (agent git guard): ${#AGENT_WRITES[@]} agent writes blocked, ${#AGENT_READS[@]} reads allowed, through PowerShell ${#PS_WRITES[@]} and ${#PS_READS[@]}, main session free; a broken guard (node missing / file missing / crash / bad input) blocks agents and shows a non-blocking error to the main session."
