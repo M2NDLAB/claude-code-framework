@@ -94,12 +94,17 @@ consecutive runs.
 - [x] 4. `upgrade-check.sh` reads the project's files whatever their line ends: the CRLF case first, failing (RED), then the fix (GREEN) — commit: cc16df0
 - [x] 5. PowerShell, option C: the tool off in `settings.json`, the guard reading `PowerShell` too (`git.exe`, case, backtick continuations), its self-test, `docs/04`, `SETUP.md` *Hardening* — commit: db1fc77
 - [x] 6. The prerequisites by tool name (`SETUP.md` §0, `hooks-install.sh`'s message, the READMEs): git, bash and a POSIX userland (Git for Windows), GNU make, gitleaks, Node.js 22.12 — commit: ecd2b8d
-- [ ] 7. The upgrade 1.4.1 → 1.5.0 rehearsed, LF and CRLF, the renormalisation step measured; the Upgrading note drafted — commit: —
-- [ ] 8. The CI's first runs (block 0, the user's pushes): what fails, fixed, until green on the three platforms — commit: —
-- [ ] 9. The platform matrix (`README.md`, `SETUP.md`): only what the CI verified — commit: —
-- [ ] 10. ONE reviewer + fixes — commit: —
-- [ ] 11. `/checkpoint` (the rehearsal re-run on the final payload) — commit: —
-- [ ] 12. `/integrate`: the CHANGELOG 1.5.0 entry; blocks 0, 1 and 2 — commit: —
+- [x] 7. The upgrade 1.4.1 → 1.5.0 rehearsed, LF and CRLF, the renormalisation step measured; the Upgrading note drafted — commit: c22c9b3
+- [ ] 8. The line-end step of Step 3 in `SETUP.md`, refusing a change not yet committed on the framework's paths (the user's request after task 7): the case first (RED), then the guard (GREEN) — commit: —
+- [ ] 9. The CI's runs (block 0, the user's pushes): what fails, fixed, until green on the three platforms — commit: —
+- [ ] 10. The platform matrix (`README.md`, `SETUP.md`): only what the CI verified — commit: —
+- [ ] 11. ONE reviewer + fixes — commit: —
+- [ ] 12. `/checkpoint` (the rehearsal re-run on the final payload) — commit: —
+- [ ] 13. `/integrate`: the CHANGELOG 1.5.0 entry; blocks 0, 1 and 2 — commit: —
+
+The plan was amended after task 7, by the user's request of 2026-10-11: task 8 is new,
+the tasks after it move by one, and the commits from task 8 on count 13 (those before,
+12). Task 9 may take several commits, one per CI round: each round needs the user's push.
 
 ## Phase 1 — the read-only analysis (2026-10-11)
 Measured on macOS 27.0.1 (Apple M4 Pro): `/bin/bash` 3.2.57, the BSD userland (grep
@@ -264,10 +269,31 @@ checkout: every text file CRLF), with and without a `.gitattributes` of its own.
 - The Upgrading note is drafted on these measures (the scratchpad's draft, inserted at
   `/integrate`).
 
+## The line-end step guarded (task 8)
+The user's request after task 7: `git checkout HEAD -- <the framework's paths>` overwrites
+what those paths hold, so the procedure must refuse a change not yet committed there,
+with a case in a self-test.
+- The step moved into `SETUP.md`, as the first point of Step 3 (*Line ends, first*): the
+  Upgrading note now points there, and a self-test can read the block where the
+  procedure keeps it — `tools/test-upgrade-check.sh`, case 7, never retypes it.
+- RED first: the step as task 7 measured it ran on a tree with an uncommitted edit of
+  `CLAUDE.md`; run by hand on a CRLF clone, it erased the edit — 1 line before, 0 after —,
+  and `git status` showed nothing left to see: a silent loss.
+- GREEN: the block refuses, rewriting nothing, while `git diff --quiet HEAD` finds the
+  framework's files different from the last commit. The case: on a CRLF clone, a clean
+  tree — 0 framework files left with CRLF, the project's own file untouched —; an edit
+  unstaged, staged, staged only (the file back to the commit's text) — refused each time,
+  the edit and the staged entry kept, nothing rewritten.
+- The guard had a second half, `git diff --cached --quiet`, for a change only staged.
+  Mutated, it changed nothing: `git rm --cached` itself refuses an index entry that
+  differs from both the commit and the file. It was removed; the staged-only case stays,
+  measuring git's own refusal. Without the first half, the self-test fails (the unstaged
+  edit).
+
 ## Resumption notes
-- The CI runs only on what the user pushes: the first push of this branch comes after
-  task 7, so the CI's rounds (task 8) start there. Once pushed, the branch's commits are
-  shared history: none is rewritten after it.
+- The CI runs only on what the user pushes: the first push of this branch came after
+  task 7 (round 1, below). The branch is public from then on: no commit is rewritten,
+  every fix is a new commit.
 
 ## Received for later blocks
 - **v1.6.0** (prerequisites and versions): point 7 of IMP-070, the prerequisite check;

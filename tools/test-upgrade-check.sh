@@ -30,7 +30,11 @@
 #   6. line ends — the graft, the upgraded memory and the reconciled project, rebuilt in a
 #      copy whose files all have CRLF line ends (core.autocrlf=true: a Windows checkout),
 #      print the very lines they print with LF, for inventory, invariant and post.
-#   7. read-only — the four subcommands run to their end and leave the project and the
+#   7. the line-end step of SETUP.md, Step 3 — read from SETUP.md, run on the project as
+#      Git for Windows checks it out: on a clean tree it leaves no framework file with CRLF
+#      and the project's own files as they were; with a change not yet committed on a
+#      framework file — unstaged, staged, or staged only — it refuses and keeps the change.
+#   8. read-only — the four subcommands run to their end and leave the project and the
 #      framework exactly as they were (scripts/repo-snapshot.sh, the tracked files, the
 #      index, the config, the hooks).
 # Run it from anywhere: bash tools/test-upgrade-check.sh
@@ -436,7 +440,59 @@ same_lines reconciled_from_graft 0 post v1.0.0 v1.1.0
 grep -q "OK     pre-push installed" "${workdir}/out.crlf" || fail "line ends: post read no hook list"
 echo "PASS (upgrade-check line ends): with CRLF line ends the graft, the upgraded memory and the reconciled project get the verdicts they get with LF."
 
-# --- Case 7: read-only ----------------------------------------------------------------
+# --- Case 7: the line-end step of Step 3 ------------------------------------------------
+# SETUP.md, Step 3, "Line ends, first": on a working tree with CRLF line ends, it rewrites
+# the framework's paths with LF from the last commit — so it must refuse, rewriting
+# nothing, when those paths carry a change not yet committed. The block is READ from
+# SETUP.md, never retyped here.
+step="${workdir}/line-end-step.sh"
+awk '/\*\*Line ends, first/ { f = 1 } f && /^  ```bash$/ { b = 1; next } b && /^  ```$/ { exit } b { sub(/^  /, ""); print }' \
+  "${REPO_ROOT}/SETUP.md" > "${step}"
+[ -s "${step}" ] || fail "line-end step: no bash block under \"Line ends, first\" in SETUP.md"
+# crlf_left <dir>: how many of the framework's files still carry CRLF line ends.
+crlf_left() {
+  ( cd "$1" && g ls-files -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts \
+      | while IFS= read -r f; do grep -q $'\r$' "${f}" && echo "${f}"; done | wc -l | tr -d ' ' )
+}
+# windows_project <name>: the project as Git for Windows checks it out (a clone with
+# core.autocrlf=true), a file of its own outside the framework's paths, and the framework's
+# .gitattributes brought in, as the step's sentence says.
+windows_project() {
+  g clone -q -c core.autocrlf=true "${PRJ}" "${workdir}/$1"
+  printf 'notes of the project\r\n' > "${workdir}/$1/notes.txt"
+  g -C "${workdir}/$1" add notes.txt && g -C "${workdir}/$1" commit -q -m "docs: the project's own notes"
+  cp "${REPO_ROOT}/.gitattributes" "${workdir}/$1/.gitattributes"
+}
+# run_step <dir>: the step, from the project's root; its exit code in ${rc}.
+run_step() { set +e; ( cd "$1" && bash "${step}" ) > "${out}" 2>&1; rc=$?; set -e; }
+windows_project win-clean
+[ "$(crlf_left "${workdir}/win-clean")" -gt 0 ] || fail "line-end step: the clone has no CRLF framework file to rewrite"
+cksum "${workdir}/win-clean/notes.txt" > "${workdir}/notes.before"
+run_step "${workdir}/win-clean"
+[ "${rc}" -eq 0 ] || fail "line-end step on a clean tree: exit ${rc}"
+[ "$(crlf_left "${workdir}/win-clean")" -eq 0 ] || fail "line-end step: framework files left with CRLF"
+cksum "${workdir}/win-clean/notes.txt" | diff "${workdir}/notes.before" - >/dev/null || fail "line-end step: the project's own file changed"
+# A change not yet committed on a framework file — unstaged; staged; staged only, the
+# working file back to the commit's text: refused every time, and kept.
+for kind in unstaged staged staged-only; do
+  windows_project "win-${kind}"
+  w="${workdir}/win-${kind}"
+  printf 'An answer of the project, not yet committed.\r\n' >> "${w}/CLAUDE.md"
+  case "${kind}" in staged*) g -C "${w}" add CLAUDE.md ;; esac
+  [ "${kind}" = staged-only ] && g -C "${w}" show HEAD:CLAUDE.md > "${w}/CLAUDE.md"
+  cksum "${w}/CLAUDE.md" > "${workdir}/claude.before"
+  before="$(crlf_left "${w}")"
+  run_step "${w}"
+  [ "${rc}" -ne 0 ] || fail "line-end step with a ${kind} change: it ran instead of refusing"
+  cksum "${w}/CLAUDE.md" | diff "${workdir}/claude.before" - >/dev/null || fail "line-end step with a ${kind} change: the change was overwritten"
+  [ "$(crlf_left "${w}")" -eq "${before}" ] || fail "line-end step with a ${kind} change: files were rewritten before the refusal"
+  case "${kind}" in
+    staged*) g -C "${w}" diff --cached --quiet -- CLAUDE.md && fail "line-end step with a ${kind} change: the staged change was dropped" ;;
+  esac
+done
+echo "PASS (upgrade-check line-end step): SETUP.md's step leaves no framework file with CRLF and the project's own files untouched; with a change not yet committed, staged or not, it refuses and keeps it."
+
+# --- Case 8: read-only ----------------------------------------------------------------
 snapshot() {
   bash "${REPO_ROOT}/scripts/repo-snapshot.sh" "$1"
   g -C "$1" --no-optional-locks diff HEAD

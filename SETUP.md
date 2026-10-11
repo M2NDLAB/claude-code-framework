@@ -651,6 +651,29 @@ from a hand-written list; the memory's titles and field labels to rename; and th
 
 ### Step 3 — Reconcile by class
 
+- **Line ends, first — a working tree with CRLF.** Where `git config core.autocrlf` prints
+  `true` — Git for Windows' default — and no `.gitattributes` holds the framework's paths
+  to LF yet, the framework's files carry CRLF in the working tree, and every 3-way below
+  would conflict on every line. Before any other change of this step, bring
+  `.gitattributes` over (copied, or integrated after the project's own lines, below), then
+  rewrite the framework's paths, and only them, from the last commit:
+
+  ```bash
+  if git diff --quiet HEAD -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts; then
+    git rm --cached -r -q -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts \
+      && git checkout HEAD -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts
+  else
+    echo "refused: the framework's paths carry changes not yet committed; commit them first" >&2
+    false
+  fi
+  ```
+
+  `git checkout HEAD` overwrites what those paths hold, so the step first refuses —
+  rewriting nothing — when their files differ from the last commit, a change staged or
+  not; a change only staged, its file back to the commit's text, makes `git rm --cached`
+  refuse by itself. Commit the change, and run the step again. A plain
+  `git checkout -- <paths>` is not enough: git takes the files for up to date and rewrites
+  nothing.
 - **The strategy, file by file, from the measure** (`inventory`, Step 2). Where a file's
   3-way leaves few lines in conflict, it stays surgical: take it. Where most of a file is
   in conflict — a translation release, a wide rewrite — rebuild it from `vY` and
