@@ -692,7 +692,9 @@ from a hand-written list; the memory's titles and field labels to rename; and th
 
   `show` does not carry the file's mode: take it from
   `git -C "${FW:?}" ls-tree vY -- <path>` (`100755` = executable) and `chmod` a new
-  file, or one whose mode `vY` changed, accordingly.
+  file, or one whose mode `vY` changed, accordingly. On Windows, where the filesystem
+  keeps no executable bit and `chmod` changes nothing, the mode lives in the index:
+  `git update-index --chmod=+x -- <path>` once the file is tracked.
 - **PROJECT-MEMORY** → do not touch: only the declared commits of edge case 3 enter the
   closed list of Step 5, and `STATE.md`, `TREE.md` and `INDEX.md` never go through a
   3-way.

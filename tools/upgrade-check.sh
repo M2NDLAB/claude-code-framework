@@ -71,6 +71,21 @@ pg() { git --no-optional-locks "${GIT_FIXED[@]}" "$@"; }
 # every pattern anchored at a line's end, would see the \r: the project's text is read
 # through here. (git's own reads — hash-object, diff — already convert line ends.)
 lf() { tr -d '\r' < "$1"; }
+# mode_of <path>: the mode the project commits for a file — the filesystem's executable
+# bit where git trusts it; where it does not (core.fileMode false, as on Windows: NTFS keeps
+# no such bit, and Git Bash takes any script with a shebang for executable — measured in
+# the CI), the mode the index holds.
+mode_of() {
+  if [ "$(pg config --type=bool --get core.fileMode 2>/dev/null)" = false ]; then
+    local m
+    m="$(pg ls-files -s -- "$1" | awk '{ print $1; exit }')"
+    printf '%s\n' "${m:-100644}"
+  elif [ -x "$1" ]; then
+    echo 100755
+  else
+    echo 100644
+  fi
+}
 # within <dir> <top>: whether <dir> is <top> or lies below it, compared by identity (-ef),
 # never as strings — on Windows git prints C:/… where Git Bash names the same directory
 # /c/… (measured in the CI on Windows). <dir> is the shell's own path, walked up to /.
@@ -498,7 +513,7 @@ cmd_inventory() {
     fi
     if [ -n "${by}" ] && [ -f "${path}" ]; then
       modey="$(mode_at "${vy}" "${path}")"
-      if [ -x "${path}" ]; then modep=100755; else modep=100644; fi
+      modep="$(mode_of "${path}")"
       [ "${modey}" = "${modep}" ] || check "${path}: ${vy}'s mode is ${modey}, the project's ${modep} (chmod after the copy, Step 3)"
     fi
   done < "${d}/paths"
@@ -827,7 +842,7 @@ cmd_post() {
       NONE) fail "no class for ${path}" ;;
     esac
     modey="$(mode_at "${vy}" "${path}")"
-    if [ -x "${path}" ]; then modep=100755; else modep=100644; fi
+    modep="$(mode_of "${path}")"
     [ "${modey}" = "${modep}" ] || fail "${path}: mode ${modep}, ${vy}'s is ${modey} (chmod, Step 3)"
   done < "${d}/paths.vy"
   ok "${n_at} METHOD and TEMPLATE files identical to ${vy}'s"
