@@ -611,7 +611,8 @@ tags: [improvement]
 Once applied, the entry moves under "Applied" and is rewritten in its final form — what
 was verified, the decisions, what stays uncovered —, its evidence condensed; the detail
 stays in the session notes and the git history. Every applied entry cites the session
-note its evidence comes from: [[<session note>]].
+note its evidence comes from: [[<session note>]] — from the release that brought this
+line on; older entries are not backfilled.
 -->
 
 ## Applied
@@ -1552,7 +1553,7 @@ note its evidence comes from: [[<session note>]].
   checklist's changes derived from the tags, with no hand-written field (user decision 3).
   The pin's format checked, an explicit error, a tag only suggested (decision 6).
 
-### IMP-049 — Payload purity: method files that only make sense in the framework repo → applied on 2026-10-11, commits b2248cf, a1779d5, 33f7263, 18873cf
+### IMP-049 — Payload purity: method files that only make sense in the framework repo → applied on 2026-10-11, commits b2248cf, a1779d5, 33f7263, 18873cf, 1c6093d, 603fa6b
 - Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — the third real upgrade
   of a client project pruned by hand, once more, text that points at the framework repo
 - Observed problem (condensed): the files a project receives carried three couplings to
@@ -1574,20 +1575,29 @@ note its evidence comes from: [[<session note>]].
   of `docs/06`, the moot clause of `/harvest-framework` and two sentences of this header
   live in `CONTRIBUTING.md`; `docs/01` keeps one conditional line at its top; the
   method/tooling bullet of `docs/04` is agnostic. The 19 numbers left after the move are
-  gone, the self-tests printing descriptive labels; the 14 pointers are rephrased or
-  labelled, the SessionStart message included. `tools/docs-check.mjs` (Node.js) and its
-  self-test run in `make test-scripts` behind a presence guard, a no-op in a project; it
-  fails an IMP number or an unlabelled pointer in the payload, the format example
-  `IMP-001` its one declared exception.
-- Verified: the self-test breaks each rule on a throwaway clone of the repository and
-  sees it fail; every rule, mutated, was seen failing the self-test; the guarded line of
-  the `Makefile` exits 0 where `tools/` is absent.
+  gone, the self-tests printing descriptive labels; of the 14 pointers, 2 left with the
+  moved blocks and 12 are rephrased or labelled, the SessionStart message included.
+  `tools/docs-check.mjs` (Node.js) and its self-test run in `make test-scripts` behind a
+  presence guard, a no-op in a project; it fails an IMP number in the payload — the
+  format example `IMP-001` its one declared exception — and a pointer out of it, whether a
+  name, a link, a cited path, an @-import or a wikilink, unless labelled or conditional
+  (the links and paths after the single reviewer's HIGH).
+- Verified ([[2026-10-11-payload-purity-1.4.1]]): the self-test plants each defect on a
+  throwaway clone of the repository and sees it fail with its own line; the repository
+  passes, above a floor per family, under a hostile git configuration and with CRLF line
+  ends. By mutation, each disabled in turn, the 75 places where the check reports and 29
+  detection and exemption paths that share one — a pointer's forms, a version's, a
+  title's, an accent, a trailer, a pending entry's date — each make the self-test fail.
+  One reviewer, two passes: the second found eight of those paths unplanted and two
+  regressions of the first fixes, all planted since. An upgrade from 1.4.0 rehearsed in a
+  throwaway clone: every 3-way clean, `invariant` 0 FAIL. The guarded line of the
+  `Makefile` exits 0 where `tools/` is absent.
 - Uncovered: a pointer phrased without a file name or a section the rules know ("the
   setup guide") passes; a label is accepted within its sentence, never checked for
   meaning; a project that customised a moved block, rather than pruning it, meets a 3-way
   conflict at its upgrade (the *Upgrading* note of 1.4.1 says so).
 
-### IMP-068 — A list that declares itself complete deserves a mechanical check → applied on 2026-10-11, commits b2248cf, bddd64a
+### IMP-068 — A list that declares itself complete deserves a mechanical check → applied on 2026-10-11, commits b2248cf, 66f3e50
 - Date: 2026-10-10 | Origin: [[2026-10-09-quick-fixes-1.3.2]] (its retro) — recorded in
   [[2026-10-10-upgrade-safety-1.3.3]]
 - Observed problem (condensed): `SETUP.md` §2, "the complete list" of the setup slots,
@@ -1604,11 +1614,16 @@ note its evidence comes from: [[<session note>]].
   against it; the copy lists of the payload; the inventories (commands, process targets,
   self-tests, the script and tool tables, the README tree); the counts in prose; the
   upgrade check's subcommands; the sections of the backlog; the commit types; the tables
-  of titles and labels. A slot in a short form the greps cannot see fails too. Fixed:
-  the slot of `new-component.md` invisible since v0.2.0, the unmarked placeholders of
-  `checkpoint.md`, step 1 silent on `tools/`, "Its subcommands:" without `classes`, the
-  brownfield row without `test-scripts`, the backlog's sections without Rejected, the
-  hooks self-test's hard-coded loop.
+  of titles and labels. A slot in a short form, or wrapped inside its brackets, fails
+  too. Fixed: the slot of `new-component.md` invisible since v0.1.0, the unmarked
+  placeholders of `checkpoint.md`, step 1 silent on `tools/`, "Its subcommands:" without
+  `classes`, the brownfield row without `test-scripts`, the backlog's sections without
+  Rejected, the hooks self-test's hard-coded loop.
+- Verified ([[2026-10-11-payload-purity-1.4.1]]): each list comparison of the check,
+  disabled in turn, fails the self-test, the guards that fail when an extraction finds
+  nothing included; replayed on the tags, §2's comparison and its tripwire together catch
+  the six historical gaps; the upgrade from 1.4.0, rehearsed in a throwaway clone, flags
+  the two new slots, of `checkpoint.md` and `new-component.md`, which §2 names.
 - Uncovered: a list with no structure a program can extract is out of reach — such a
   list stops claiming completeness ("the FOURTH species" and "three real upgrades" were
   reworded); the tripwire sees how many markers a file has, not which slot is new.

@@ -37,6 +37,9 @@ const fail = (m) => { say('FAIL', m); nFail++ }
 const check = (m) => { say('CHECK', m); nCheck++ }
 const section = (m) => console.log(`\n== ${m}`)
 const die = (m) => { console.error(`docs-check: ${m}`); process.exit(2) }
+// An error of the check itself — a file it needs missing, a bug — is never a verdict: it
+// exits 2, wherever it happens, before the checks or during them.
+process.on('uncaughtException', (e) => die(`the check itself failed — ${e?.stack ?? e}`))
 const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
 
 // --- The repository ----------------------------------------------------------------------
@@ -53,6 +56,8 @@ try { ROOT = gitAt(process.cwd(), ['rev-parse', '--show-toplevel']).trim() } cat
 const git = (args) => gitAt(ROOT, args)
 // gitOr(args): git's output, or null when the command fails (a missing revision).
 const gitOr = (args) => { try { return git(args) } catch { return null } }
+// blob(rev, path): a file at a revision, its line ends normalised; null when absent.
+const blob = (rev, path) => gitOr(['show', `${rev}:${path}`])?.replace(/\r\n/g, '\n') ?? null
 
 // The working tree as it is: tracked and new files, never ignored or deleted ones — so a
 // file is checked before its first commit.
@@ -62,11 +67,12 @@ const FILES = [...new Set(git(['ls-files', '-z', '--cached', '--others', '--excl
 const FILESET = new Set(FILES)
 const isDir = (d) => FILES.some((p) => p.startsWith(`${d.replace(/\/$/, '')}/`))
 const cache = new Map()
-// text(p): a file's text; '' for a binary one.
+// text(p): a file's text, its line ends normalised (a Windows checkout writes CRLF); ''
+// for a binary one.
 function text(p) {
   if (!cache.has(p)) {
     const buf = readFileSync(join(ROOT, p))
-    cache.set(p, buf.includes(0) ? '' : buf.toString('utf8'))
+    cache.set(p, buf.includes(0) ? '' : buf.toString('utf8').replace(/\r\n/g, '\n'))
   }
   return cache.get(p)
 }
@@ -118,6 +124,8 @@ const isHistory = (p) => p === CHANGELOG || isLiveNote(p)
 const presentMask = (p) => (p === LEARNINGS ? learningsTemplate() : lines(p).map(() => !isHistory(p)))
 const allMask = (p) => lines(p).map(() => true)
 const PRESENT = FILES.filter((p) => !isHistory(p) && p !== 'LICENSE')
+// This check's own files: their word lists, legacy forms and planted defects are data.
+const OWN = ['tools/docs-check.mjs', 'tools/test-docs-check.sh']
 
 // --- Markdown, just enough of it ---------------------------------------------------------
 // fencedMask(lines): true on every line of a fenced code block, its fences included.
@@ -241,8 +249,10 @@ const ENTRIES = lines(CHANGELOG).flatMap((l, i) => {
   const m = ENTRY_RE.exec(l)
   return m ? [{ version: m[1], date: m[2], line: i + 1 }] : []
 })
-const TODAY = (() => {
-  const d = new Date()
+// The latest date a pending entry may carry: tomorrow, by this machine's clock — its author
+// dated it in their own time zone, which may be a day ahead of this one.
+const LATEST_DATE = (() => {
+  const d = new Date(Date.now() + 864e5)
   const p = (n) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
 })()
@@ -259,8 +269,10 @@ const CURRENT = PENDING?.version ?? LATEST_TAG?.version
 // --- Findings and the allow-list ---------------------------------------------------------
 // A finding is {file, line, text, message}, text being the line it is on (for a file name,
 // the name). An ALLOW entry covers the findings of its check in its file ('*': any file)
-// whose line or message holds its `text` — or, with `section`, every finding under the
-// heading that holds it. Each entry carries its reason, and must cover at least one finding.
+// whose MESSAGE holds its `text` — the subject of the finding, never the rest of its line,
+// so another finding on the same line stays visible; with `line`, those whose line holds
+// it; with `section`, every finding under the heading that holds it. Each entry carries its
+// reason, and must cover at least one finding.
 const findings = new Map()
 function report(id, file, line, message, textOverride) {
   const t = textOverride ?? (file && line ? lines(file)[line - 1] ?? '' : '')
@@ -273,7 +285,8 @@ function headingOver(p, line) {
   return hs.length ? hs[hs.length - 1].title : ''
 }
 const covers = (a, id, f) => a.check === id && (a.file === '*' || a.file === f.file)
-  && (a.section ? Boolean(f.file && f.line) && headingOver(f.file, f.line).includes(a.section) : f.text.includes(a.text) || f.message.includes(a.text))
+  && (a.section ? Boolean(f.file && f.line) && headingOver(f.file, f.line).includes(a.section)
+    : a.line ? f.text.includes(a.line) : f.message.includes(a.text))
 // settle(id, what): the check's findings, minus what ALLOW declares — a FAIL line for each,
 // or one OK line saying what was checked.
 function settle(id, what) {
@@ -319,46 +332,81 @@ function checkImpNumbers() {
 // CONTRIBUTING.md, CHANGELOG.md, LICENSE, tools/, its session notes. A pointer that assumes
 // one is local is rephrased; one that must cross to the framework says so — "the
 // framework's `SETUP.md`" — in the same sentence; a conditional one ("where present", "if
-// the project keeps one") is harmless.
+// the project keeps one") is harmless. A pointer is a name or a section of those files, or
+// a link, a cited path, an @-import or a wikilink that resolves to one.
 const OUTSIDE = [
-  { re: /(?<![\w./-])SETUP\.md\b|(?<![\w./-])SETUP\s*§|(?<![\w./-])§\s?\d/g, what: 'SETUP.md' },
-  { re: /\b[Ss]tep \d+ of the upgrade\b|\bupgrade(?:'s)? [Ss]tep \d+\b|\bsetup step \d+\b|\*Hardening\*/g, what: 'a section of SETUP.md' },
-  { re: /(?<![\w./-])CONTRIBUTING(?:\.md)?\b/g, what: 'CONTRIBUTING.md' },
-  { re: /(?<![\w./-])CHANGELOG(?:\.md)?\b/g, what: 'CHANGELOG.md' },
-  { re: /(?<![\w./-])LICENSE\b/g, what: 'LICENSE' },
-  { re: /(?<![\w./-]|this |This |its )README(?:\.md)?\b(?! of\b)/g, what: 'the root README.md' },
-  { re: /`tools\/|(?<![\w./-])tools\/[\w.-]+\.(?:sh|mjs|md)\b/g, what: 'tools/' },
-  { re: /\[\[(?:sessions\/)?\d{4}-\d{2}-\d{2}-[^\]|#]+/g, what: 'a session note of the framework' },
+  { re: /(?<![\w./-])SETUP\.md\b|(?<![\w./-])SETUP\s*§|(?<![\w./-])§\s?\d/g, target: () => 'SETUP.md' },
+  { re: /\b[Ss]tep \d+ of the upgrade\b|\bupgrade(?:'s)? [Ss]tep \d+\b|\bsetup step \d+\b|\*Hardening\*/g, target: () => 'SETUP.md' },
+  { re: /(?<![\w./-])CONTRIBUTING(?:\.md)?\b/g, target: () => 'CONTRIBUTING.md' },
+  { re: /(?<![\w./-])CHANGELOG(?:\.md)?\b/g, target: () => 'CHANGELOG.md' },
+  { re: /(?<![\w./-])LICENSE\b/g, target: () => 'LICENSE' },
+  { re: /(?<![\w./-]|this |This |its )README(?:\.md)?\b(?! of\b)/g, target: () => 'README.md' },
+  { re: /`tools\/`?|(?<![\w./-])tools\/[\w.-]+\.(?:sh|mjs|md)\b/g, target: (m) => m.replace(/`/g, '') },
 ]
 const LABEL = /\bthe framework(?:'s|’s)\b|\bframework(?:'s|’s)? repo(?:sitory)?\b|\bof the framework\b/gi
 const CONDITION = /\b(?:where present|if present|when present|where (?:a copy|one) is kept|if (?:the|a) project keeps|if (?:a |the )?`?[\w./-]+`? exists)\b|\bif \[ -[efd] /i
+// outsideOf(paths): the first of the paths a token resolves to, when none is in the
+// payload — a directory counts as payload when it holds a payload file.
+const inPayload = (x) => (FILESET.has(x) ? isPayload(x) : FILES.some((f) => f.startsWith(`${x.replace(/\/$/, '')}/`) && isPayload(f)))
+const outsideOf = (paths) => (paths && paths.length && !paths.some(inPayload) ? paths[0] : null)
 function checkPointers() {
   section('Payload — no pointer to a file outside it, unless labelled or conditional')
   let pointers = 0
   for (const p of PAYLOAD) {
     for (const u of units(p, payloadMask(p))) {
-      for (const { re, what } of OUTSIDE) {
-        for (const m of u.text.matchAll(re)) {
-          pointers++
-          const [a, b] = sentenceAround(u.text, m.index)
-          const sentence = u.text.slice(a, b)
-          const labelled = [...u.text.slice(a, m.index + m[0].length + 40).matchAll(LABEL)]
-            .some((l) => Math.abs(a + l.index - m.index) <= 80)
-          if (labelled || CONDITION.test(sentence)) continue
-          report('pointer', p, u.at[m.index], `"${m[0].trim()}" points at ${what}, which a project does not have: rephrase it, or say it is the framework's`)
-        }
+      // Every mention is judged on its own sentence; a line names a target once in the
+      // report, however many of its mentions are bare.
+      const hits = new Map()
+      const hit = (index, token, target) => {
+        if (!target) return
+        const key = `${u.at[index]}|${target.replace(/\/$/, '')}`
+        if (!hits.has(key)) hits.set(key, [])
+        hits.get(key).push({ index, token, target })
+      }
+      for (const { re, target } of OUTSIDE) for (const m of u.text.matchAll(re)) hit(m.index, m[0], target(m[0]))
+      const s = blankOut(u.text, CODE_SPAN)
+      for (const m of s.matchAll(/\]\(([^)\s#?]+)[^)]*\)/g)) {
+        if (/^[a-z][\w+.-]*:/i.test(m[1])) continue
+        const c = posix.normalize(posix.join(posix.dirname(p), m[1]))
+        hit(m.index, m[1], outsideOf(FILESET.has(c) || isDir(c) ? [c] : null))
+      }
+      for (const m of u.text.matchAll(/`([^`\n]+)`/g)) {
+        if (m[1].includes('/') && PATHLIKE.test(m[1]) && !NOT_A_PATH.test(m[1])) hit(m.index, m[1], outsideOf(resolvePath(m[1], p)))
+      }
+      for (const m of u.text.matchAll(/(?:^|\s)@(\.claude\/[\w./-]+\.md)/g)) hit(m.index, m[1], outsideOf(FILESET.has(m[1]) ? [m[1]] : null))
+      for (const m of s.matchAll(/\[\[([^\]|#\n]+)/g)) {
+        const r = resolveWikilink(m[1])
+        hit(m.index, m[1], r && r !== 'ambiguous' ? outsideOf([r]) : null)
+      }
+      for (const mentions of hits.values()) {
+        pointers++
+        const bare = mentions.find(({ index, token }) => {
+          const [a, b] = sentenceAround(u.text, index)
+          const labelled = [...u.text.slice(a, index + token.length + 40).matchAll(LABEL)]
+            .some((l) => Math.abs(a + l.index - index) <= 80)
+          return !labelled && !CONDITION.test(u.text.slice(a, b))
+        })
+        if (bare) report('pointer', p, u.at[bare.index], `"${bare.token.trim()}" points at ${bare.target}, which a project does not have: rephrase it, or say it is the framework's`)
       }
     }
   }
   settle('pointer', `${plural(pointers, 'pointer')} out of the payload, each labelled as the framework's or conditional`)
 }
 
-
 // --- The payload: every slot in the full form --------------------------------------------
 // The setup and the upgrade find the slots with a grep for the full marker, in its English
-// and its legacy Italian form. A slot in the short form escapes both, and the upgrade
-// check's slot tracking.
+// and its legacy Italian form. A slot in a short form, or broken by a line wrap anywhere
+// inside its brackets, escapes both, and the upgrade check's slot tracking. The wraps are
+// those tools/upgrade-check.sh already knows (BROKEN_MARKER_RE), read from it.
 const MARKER_RE = /TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP/
+const BROKEN_MARKER = (() => {
+  const m = /^readonly BROKEN_MARKER_RE='([^']*)'/m.exec(text(UPGRADE_CHECK))
+  if (!m) die(`no BROKEN_MARKER_RE in ${UPGRADE_CHECK}`)
+  const js = m[1].replace(/\[\[:space:\]\]/g, '\\s')
+  // Only [[:space:]] is translated: another POSIX class would silently mean something else.
+  if (js.includes('[[:')) die(`BROKEN_MARKER_RE of ${UPGRADE_CHECK} uses a POSIX class this check does not translate`)
+  return new RegExp(js)
+})()
 function checkShortSlots() {
   section('Payload — every slot in the full, grep-visible form')
   let slots = 0
@@ -367,12 +415,13 @@ function checkShortSlots() {
     lines(p).forEach((l, i) => {
       if (!mask[i]) return
       slots += (l.match(new RegExp(MARKER_RE.source, 'g')) ?? []).length
-      for (const m of l.matchAll(/\[(TO BE DEFINED|DA DEFINIRE)(?! A[TL] SETUP\])/g)) {
-        report('short-slot', p, i + 1, `"${l.slice(m.index, m.index + 24).trim()}…": a slot the setup and upgrade greps cannot see — write [TO BE DEFINED AT SETUP] on one line`)
-      }
+      const short = /\[(TO BE DEFINED|DA DEFINIRE)(?! A[TL] SETUP\b)/.exec(l)
+      const broken = BROKEN_MARKER.exec(l)
+      const at = short ?? broken
+      if (at) report('short-slot', p, i + 1, `"${l.slice(at.index, at.index + 24).trim()}…": a slot the setup and upgrade greps cannot see — write [TO BE DEFINED AT SETUP] on one line`)
     })
   }
-  settle('short-slot', `${plural(slots, 'marker')} in the full form, none in the short one`)
+  settle('short-slot', `${plural(slots, 'marker')} in the full form, none short or broken by a wrap`)
 }
 
 // --- Inventories: the documents' lists against the files they enumerate ------------------
@@ -512,8 +561,8 @@ function checkChangelog() {
   }
   for (const e of ENTRIES) {
     if (TAGS.some((t) => t.version === e.version)) continue
-    if (PENDING && e === PENDING && e.date <= TODAY) check(`${e.version}: the release being prepared — its entry is written, its tag comes after the merge`)
-    else report('changelog', CHANGELOG, e.line, `${e.version} has no tag v${e.version}${e === ENTRIES[0] ? ` (a pending entry is one SemVer step above v${LATEST_TAG.version}, dated no later than today)` : ''}`)
+    if (PENDING && e === PENDING && e.date <= LATEST_DATE) check(`${e.version}: the release being prepared — its entry is written, its tag comes after the merge`)
+    else report('changelog', CHANGELOG, e.line, `${e.version} has no tag v${e.version}${e === ENTRIES[0] ? ` (a pending entry is one SemVer step above v${LATEST_TAG.version}, dated no later than tomorrow)` : ''}`)
   }
   // The "Upgrading from X" notes, which an upgrade collects in order, name the release just
   // below their own — or its X.Y.x line.
@@ -538,7 +587,7 @@ function checkChangelog() {
 // self-tests, whose fixtures reuse real version names.
 const TOOL_BEFORE = /(?:git|node|Node\.js|bash|npx|Claude Code|commitlint|gitleaks|Keep a Changelog|Node)\s*`?$/i
 const HISTORICAL = /(?:\b(?:from|since|until|up to|before|after|in|crossed|crossing|introduced|added|moved|translated|required|measured on|of|to|by|than|at|between|and|or)|→|->|,)\s*`?v?$/i
-const MARKER_BEFORE = /(?:as of|(?:is|now|currently) at|we are (?:on|at)|latest(?: release)?:?|current(?: version| release)?(?: is)?:?|supported:?(?: the)?)\s*`?v?$/i
+const MARKER_BEFORE = /(?:as of|(?:is|now|currently) at|we are (?:on|at)|latest(?: release| version)?[:,]?|current(?: version| release)?(?: is)?[:,]?|supported[:,]?(?: the)?)\s*`?v?$/i
 const CURRENCY = /\b(?:current|currently|latest|newest|now|today|this release|this version|at present|presently|as of|at the time of writing)\b/i
 function checkCurrentVersion() {
   section('Versions — no document cites an old version as the current one')
@@ -562,9 +611,13 @@ function checkCurrentVersion() {
         if (!old) continue
         const near = s.slice(Math.max(0, m.index - 40), m.index + m[0].length + 40)
         const self = (isMd(p) && /^#{1,6}\s/.test(s)) || /\bversion\s*[:=]\s*`?v?$/.test(before)
-          || /(?:--branch|checkout|switch)\s+$/.test(before) || /shields\.io\/badge\//.test(s)
+          || /(?:--branch|checkout|switch)\s+$/.test(before)
         const claim = MARKER_BEFORE.test(before) || ((CURRENCY.test(near) || self) && !HISTORICAL.test(before))
         if (claim) report('current-version', p, u.at[m.index], `${m[0]} reads as the current version, which is ${CURRENT}`)
+      }
+      // A static badge states a version by itself: shields.io/badge/<label>-<version>-<colour>.
+      for (const m of s.matchAll(/shields\.io\/badge\/[^)\s]*?-v?(\d+\.\d+\.\d+)-/g)) {
+        if (releases.has(m[1]) && cmpVer(m[1], CURRENT) < 0) report('current-version', p, u.at[m.index], `a static badge reads ${m[1]}, the current version is ${CURRENT}`)
       }
     }
   }
@@ -608,8 +661,8 @@ function resolvePath(token, from) {
 }
 const PATHLIKE = /^[.\w@-]*(?:\/[\w.@-]*)*\/?(?::\d+(?:-\d+)?)?$/
 // A cited path that is a placeholder, a git ref, a git internal, a command or a system path
-// names nothing to resolve.
-const NOT_A_PATH = /[<>*…$]|YYYY|NNN|\bv[XY]\b|^(?:origin|refs|feat|fix|hotfix|chore|docs|release|worktree-agent)\/|(?:^|\/)\.git\/|^\/|^\.\.?\//
+// names nothing to resolve; a relative one (../) is resolved from the citing file.
+const NOT_A_PATH = /[<>*…$]|YYYY|NNN|\bv[XY]\b|^(?:origin|refs|feat|fix|hotfix|chore|docs|release|worktree-agent)\/|(?:^|\/)\.git\/|^\//
 function checkLinks() {
   section('Links — Markdown links, wikilinks, @-imports, cited paths and section titles resolve')
   const n = { md: 0, wiki: 0, at: 0, path: 0, title: 0 }
@@ -620,7 +673,12 @@ function checkLinks() {
         if (/^(?:[a-z]+:|#$)/i.test(m[1])) continue
         n.md++
         const [path, anchor] = m[1].split('#')
-        const target = path ? posix.normalize(posix.join(posix.dirname(p), decodeURI(path))) : p
+        let decoded
+        try { decoded = decodeURI(path) } catch {
+          report('link', p, u.at[m.index], `[…](${m[1]}): a malformed %-escape`)
+          continue
+        }
+        const target = path ? posix.normalize(posix.join(posix.dirname(p), decoded)) : p
         if (!FILESET.has(target) && !isDir(target)) report('link', p, u.at[m.index], `[…](${m[1]}): ${target} does not exist`)
         else if (anchor !== undefined && isMd(target) && !anchors(target).has(anchor.toLowerCase())) report('link', p, u.at[m.index], `[…](${m[1]}): no heading of ${target} has the anchor #${anchor}`)
       }
@@ -649,35 +707,69 @@ function checkLinks() {
       for (const m of u.text.matchAll(/`([^`\n]+)`/g)) {
         const t = m[1]
         if (!PATHLIKE.test(t) || NOT_A_PATH.test(t) || !(/\//.test(t) || /\.(?:md|sh|mjs|cjs|json)$/.test(t))) continue
-        const [a, b] = sentenceAround(u.text, m.index)
-        if (/\be\.g\.|\bfor example\b|\bsuch as\b/i.test(u.text.slice(a, b))) continue
+        // A path an example introduces names nothing: "e.g." (or "for example", "such as")
+        // before it, in the same sentence.
+        const [a] = sentenceAround(u.text, m.index)
+        if (/\be\.g\.|\bfor example\b|\bsuch as\b/i.test(u.text.slice(a, m.index))) continue
         n.path++
         if (!resolvePath(t, p)) report('link', p, u.at[m.index], `\`${t}\` names no file or directory of the repository`)
       }
-      for (const r of sectionRefs(u.text)) {
-        const files = resolvePath(r.file, p)
-        if (!files || files.length !== 1 || !isMd(files[0])) continue
-        n.title++
-        if (!titleIn(files[0], r)) report('link', p, u.at[r.index], `${r.file} has no section ${r.kind === 'number' ? `§${r.title}` : `"${r.title}"`}`)
-      }
+      n.title += checkTitles(p, u)
     }
   }
+  for (const p of PRESENT.filter((f) => !isMd(f) && !OWN.includes(f))) for (const u of codeUnits(p)) n.title += checkTitles(p, u)
   settle('link', `${n.md} Markdown links, ${n.wiki} wikilinks, ${n.at} @-imports, ${n.path} cited paths and ${n.title} section titles resolve`)
 }
-// sectionRefs(s): the sections a unit cites WITH their file — `file`, *Title*;
-// `file` (*Title*); `file` ("Title"); `file` §N — and docs/NN, *Title* without backticks.
+// checkTitles(p, u): the section titles a unit cites with their file, each looked up in
+// that file; returns how many it checked.
+function checkTitles(p, u) {
+  let n = 0
+  for (const r of sectionRefs(u.text)) {
+    const files = resolvePath(r.file, p)
+    if (!files || files.length !== 1 || !isMd(files[0])) continue
+    n++
+    if (!titleIn(files[0], r)) report('link', p, u.at[r.index], `${r.file} has no section ${r.kind === 'number' ? `§${r.title}` : `"${r.title}"`}`)
+  }
+  return n
+}
+// codeUnits(p): the text of a code file as units — each run of comment lines joined (a
+// title cited in a comment may wrap), each other line on its own (a message string).
+function codeUnits(p) {
+  const out = []
+  let cur = null
+  lines(p).forEach((l, i) => {
+    const c = /^\s*(?:#|\/\/)\s?(.*)$/.exec(l)
+    if (c && !/^#!/.test(l)) {
+      if (!cur) { cur = { text: '', at: [] }; out.push(cur) }
+      const piece = (cur.text ? ' ' : '') + c[1].trim()
+      for (let k = 0; k < piece.length; k++) cur.at.push(i + 1)
+      cur.text += piece
+      return
+    }
+    cur = null
+    out.push({ text: l, at: Array.from({ length: l.length + 1 }, () => i + 1) })
+  })
+  for (const u of out) u.at.push(u.at[u.at.length - 1] ?? 1)
+  return out
+}
+// sectionRefs(s): the sections a unit cites WITH their file — `file`, *Title*; `file`
+// (*Title*); `file`, "Title"; `file` ("Title"); `file` §N — the file backticked or bare
+// (a .md path, or docs/NN), the quotes straight or curly. A phrase in quotes right after a
+// file name is read as a section title, never as a quotation: quote a sentence elsewhere.
 function sectionRefs(s) {
   const out = []
-  const file = String.raw`(?:\`([^\`\n]+\.md|docs\/\d\d)\`|\b(docs\/\d\d)\b)(?:'s)?`
-  for (const m of s.matchAll(new RegExp(`${file}\\s*(?:,\\s*|\\(\\s*)\\*"?([^*"\\n]+?)"?\\*`, 'g'))) out.push({ file: m[1] ?? m[2], title: m[3], kind: 'title', index: m.index })
-  for (const m of s.matchAll(new RegExp(`${file}\\s*,?\\s*\\(\\s*"([^"\\n]+)"\\s*\\)`, 'g'))) out.push({ file: m[1] ?? m[2], title: m[3], kind: 'title', index: m.index })
+  const file = String.raw`(?:\`([^\`\n]+\.md|docs\/\d\d)\`|(?<![\w./-])((?:[\w.-]+\/)*[\w.-]+\.md|docs\/\d\d)\b)(?:'s)?`
+  const title = String.raw`(?:\*"?([^*"\n]+?)"?\*|["“]([^"”\n]+)["”])`
+  for (const m of s.matchAll(new RegExp(`${file}\\s*(?:,\\s*|\\(\\s*)${title}`, 'g'))) out.push({ file: m[1] ?? m[2], title: m[3] ?? m[4], kind: m[4] ? 'quote' : 'title', index: m.index })
   for (const m of s.matchAll(new RegExp(`${file},?\\s*§\\s*(\\d+)`, 'g'))) out.push({ file: m[1] ?? m[2], title: m[3], kind: 'number', index: m.index })
   return out
 }
 const normTitle = (t) => t.replace(/[`*"“”]/g, '').replace(/\s+/g, ' ').trim().toLowerCase()
-  .replace(/^(?:\d+\.|step \d+ —)\s*/, '')
+  .replace(/^(?:\d+\.|step \d+ —)\s*/, '').replace(/[.:;,]+$/, '')
 // titleIn(p, ref): whether a cited title is a heading or a bold lead-in of p — exactly, cut
-// at its first " — ", ":" or " (", or as a whole-word prefix; a §N, a "## N." heading.
+// at its first " — ", ":" or " (", or as a whole-word prefix; a §N, a "## N." heading. A
+// title in quotes is held to the same: a phrase the file merely contains would survive the
+// rename of the heading it cites.
 function titleIn(p, ref) {
   if (ref.kind === 'number') return headings(p).some((h) => new RegExp(`^${ref.title}\\.\\s`).test(h.title))
   const want = normTitle(ref.title)
@@ -747,11 +839,11 @@ function checkLists() {
     }
   }
   // The tripwire: a file that gained a slot since the latest release needs a changed §2 item.
-  const prevSetup = LATEST_TAG ? gitOr(['show', `${LATEST_TAG.name}:${SETUP}`]) : null
+  const prevSetup = LATEST_TAG ? blob(LATEST_TAG.name, SETUP) : null
   if (prevSetup) {
     const prevItems = checklistItems(prevSetup)
     for (const p of slotted) {
-      const before = gitOr(['show', `${LATEST_TAG.name}:${p}`]) ?? ''
+      const before = blob(LATEST_TAG.name, p) ?? ''
       if (slotsOf(p) <= slotsOf(p, before)) continue
       const names = shortNames(p)
       const pick = (list) => list.filter((i) => names.some((n) => i.text.includes(n))).map((i) => i.text).join('\n')
@@ -901,19 +993,21 @@ function checkLists() {
 // brought the rule on. What a program or a procedure reads on purpose in its legacy Italian
 // form stays (LEGACY); the memory written before the rule is not rewritten — what this
 // check sees there is declared in ALLOW, never translated. A word list cannot see a calque.
-const IT_WORDS = new Set(`definire origine innesto innestare rimandate rifiutate applicate proposta proposte
-  destinazione stato problema problemi osservato allineamento ripresa riprendi riprendono avanzamento pubblica
-  integrazione attivi aperte aperti progetto consolidamento debito documentazione esiste beneficio atteso attesa
-  rischio decisione decisioni utente motivo riproporle registrazione mirata ponte promozione cosa adesso prese
-  attenzione raccolta respinte momento giusto ibrido sessione ovvie codice blocco blocchi nota metodo procedura
-  periodica inventari igiene formato titolo questo questa quello sono bloccati sempre lavoro mergiato eliminato
-  italiano dichiarato umano umana ciclo oneroso atomico resiliente cruscotto diario storia condivisa esecuzione
-  marcatore curatela ereditata filtro attrito correzione fattuale livello componenti sensibili classi
-  miglioramento senza aggiornata finito comandi rapidi risposta altrimenti firma valida iniziale pagamenti
-  generato percorso modulo della delle degli dello nella nelle alla alle anche quando ogni essere deve viene tutto
-  tutti dopo ancora perche gli una uno dalla sul sulla nel il che del dei lingua memoria regola regole pronto
+const IT_WORDS = new Set(`definire origine innesto innestare rimandate rifiutate applicate proposta proposte destinazione stato
+  problema problemi osservato allineamento ripresa riprendi riprendono avanzamento pubblica integrazione
+  attivi aperte aperti progetto consolidamento debito documentazione esiste beneficio atteso attesa rischio
+  decisione decisioni utente motivo riproporle registrazione mirata ponte promozione cosa adesso prese
+  attenzione raccolta respinte giusto ibrido sessione ovvie codice blocco blocchi nota metodo procedura
+  periodica inventari igiene formato titolo questo questa quello sono bloccati sempre lavoro mergiato
+  eliminato italiano dichiarato umano umana ciclo oneroso atomico resiliente cruscotto diario storia condivisa
+  esecuzione marcatore curatela ereditata filtro attrito correzione fattuale livello componenti sensibili
+  classi miglioramento senza aggiornata finito comandi rapidi risposta altrimenti firma valida iniziale
+  pagamenti generato percorso della delle degli dello nella nelle alla alle anche quando ogni essere deve
+  viene tutto dopo ancora perche gli una uno dalla sul sulla nel il che del dei lingua memoria regola regole
   stabile`.split(/\s+/).filter(Boolean))
-const ACCENTED = /[àèéìòù]/i
+// Italian accents fall on a word's last letter (è, già, più, perché); a French or Spanish
+// name or word (José, café, résumé) is not Italian.
+const ACCENTED = /(?:[àèìòù]|ché)$/i
 // The legacy forms a program or a procedure reads on purpose: the old marker and hook
 // marker, the old titles, labels and block delimiters. Each must still occur where it is
 // declared, or it fails as stale.
@@ -945,10 +1039,7 @@ function checkItalian() {
   const legacyUsed = new Set()
   let scanned = 0
   const lineUnit = (l, i) => ({ text: l, at: Array.from({ length: l.length + 1 }, () => i + 1) })
-  // This check's own files carry Italian as data — its word list, the legacy forms, the
-  // residue its self-test plants — and are left out.
-  const own = ['tools/docs-check.mjs', 'tools/test-docs-check.sh']
-  for (const p of FILES.filter((f) => f !== 'LICENSE' && !own.includes(f))) {
+  for (const p of FILES.filter((f) => f !== 'LICENSE' && !OWN.includes(f))) {
     const strict = payloadMask(p)
     const legacy = LEGACY.filter((l) => l.where.test(p))
     const ls = lines(p)
@@ -991,7 +1082,9 @@ function checkItalian() {
   else {
     for (const c of log.split('\x1e').map((x) => x.trim()).filter(Boolean)) {
       const [sha, body] = c.split('\x1f')
-      const found = italianIn(blankOut(blankOut(body, CODE_SPAN), /"[^"]*"|“[^”]*”/g))
+      // A trailer names a person, it is not prose.
+      const prose = body.replace(/^(?:Co-authored-by|Signed-off-by|Reviewed-by|Acked-by|Reported-by|Refs?):.*$/gim, '')
+      const found = italianIn(blankOut(blankOut(prose, CODE_SPAN), /"[^"]*"|“[^”]*”/g))
       if (found.length) report('italian', null, 0, `commit ${sha}: Italian in its message (${[...new Set(found)].slice(0, 5).join(', ')})`, sha)
     }
   }
@@ -1004,10 +1097,10 @@ function checkItalian() {
 const NOTES = '.claude/memory/sessions/'
 const ALLOW = [
   // The payload.
-  { check: 'imp-number', file: LEARNINGS, text: '### IMP-001 — <short title>', reason: 'the format example of the template: a project numbers its own IMPs from 001' },
+  { check: 'imp-number', file: LEARNINGS, line: '### IMP-001 — <short title>', reason: 'the format example of the template: a project numbers its own IMPs from 001' },
   // Inventories.
-  { check: 'inventory', file: '*', text: '`/clear`', reason: 'a command of Claude Code itself, not one of the method' },
-  { check: 'inventory', file: SETUP, text: '`/tmp`', reason: 'a directory, not a command' },
+  { check: 'inventory', file: '*', text: '/clear: no such command', reason: 'a command of Claude Code itself, not one of the method' },
+  { check: 'inventory', file: SETUP, text: '/tmp: no such command', reason: 'a directory, not a command' },
   // Links: names that are not meant to exist in this repository.
   { check: 'link', file: '*', text: '`.claude/framework-version`', reason: 'the provenance pin: created in a project at its graft, never here' },
   { check: 'link', file: '*', text: '`settings.local.json`', reason: 'personal permissions: local and unversioned by design (.gitignore)' },
@@ -1033,16 +1126,17 @@ const ALLOW = [
     .map((n) => ({ check: 'italian', file: `${NOTES}${n}.md`, text: 'an Italian file name', reason: 'a note named before the language rule: notes are never renamed' })),
   { check: 'italian', file: `${NOTES}2026-07-21-retro-mirata-imp-043.md`, text: 'an Italian file name', reason: 'named after the rule, before this check: notes are never renamed' },
   { check: 'italian', file: `${NOTES}2026-07-20-language-rule-phase1.md`, section: 'Glossary (APPROVED', reason: 'the approved glossary of the translation: its Italian column is the point' },
-  { check: 'italian', file: `${NOTES}2026-07-20-language-rule-phase1.md`, text: 'Confirmed key terms: innesto', reason: 'the glossary\'s key terms, quoted' },
-  { check: 'italian', file: `${NOTES}2026-07-17-audit-preintegrate-closeout-v0.3.0.md`, text: '(nota); lavoro su', reason: 'a frontmatter value the translation of the memory missed; the memory is not rewritten' },
+  { check: 'italian', file: `${NOTES}2026-07-20-language-rule-phase1.md`, line: 'Confirmed key terms: innesto', reason: 'the glossary\'s key terms, quoted' },
+  { check: 'italian', file: `${NOTES}2026-07-17-audit-preintegrate-closeout-v0.3.0.md`, line: '(nota); lavoro su', reason: 'a frontmatter value the translation of the memory missed; the memory is not rewritten' },
 ]
 
 // --- The allow-list itself ---------------------------------------------------------------
 function checkAllowList() {
   section('The allow-list — every declared exception still matches something')
   for (const a of ALLOW) {
-    if (!a.reason) fail(`ALLOW ${a.check} ${a.file} "${a.text ?? a.section}": an exception without its reason`)
-    if (!a.used) fail(`ALLOW ${a.check} ${a.file} "${a.text ?? a.section}" matches nothing: its cause is gone, remove it`)
+    const what = a.text ?? a.line ?? a.section
+    if (!a.reason) fail(`ALLOW ${a.check} ${a.file} "${what}": an exception without its reason`)
+    if (!a.used) fail(`ALLOW ${a.check} ${a.file} "${what}" matches nothing: its cause is gone, remove it`)
   }
   if (ALLOW.every((a) => a.used && a.reason)) ok(`${plural(ALLOW.length, 'declared exception')}, each with its reason, each still needed`)
 }

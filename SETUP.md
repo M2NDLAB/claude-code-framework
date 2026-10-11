@@ -109,8 +109,9 @@ Here is the complete list, grouped by file:
       (*Versioning*).
 
 ### `.claude/commands/`
-- [ ] `checkpoint.md`: patterns to ignore for `tree`, name of the integration branch (its
-      placeholders `<pattern-to-ignore-for-the-stack>` and `<integration>`).
+- [ ] `checkpoint.md`: patterns to ignore for `tree`, name of the integration branch — its
+      placeholders `<pattern-to-ignore-for-the-stack>` and `<integration>`, then the
+      paragraph at its top that marks them.
 - [ ] `integrate.md`: real names of the integration and stable branches (the ROLES of
       `docs/04`) used in the integration block.
 - [ ] `new-component.md`: standard structure of a component in this project, and its
@@ -522,9 +523,9 @@ when they do not. It reads the framework only by tag and the project read-only, 
 writes only under `"$T/upgrade-check/"`. Each of its lines reads `OK`, `FAIL` (a rule of
 this procedure is broken; the exit code is then 1) or `CHECK` (a human looks); it decides
 nothing. Its subcommands: `classes` (the class table, file by file), `preflight` (this
-Precondition and the pin of Step 0), `inventory` (Step 2), `invariant` and `post` (Step 5). `tools/` is not copied into the
-project (step 1). For a `vY` before v1.4.0 there is no script: the steps are done by
-hand.
+Precondition and the pin of Step 0), `inventory` (Step 2), `invariant` and `post`
+(Step 5). `tools/` is not copied into the project (step 1). For a `vY` before v1.4.0
+there is no script: the steps are done by hand.
 
 ### Step 0 — Determine the `vX` baseline
 

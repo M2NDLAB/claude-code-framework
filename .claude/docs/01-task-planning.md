@@ -4,9 +4,10 @@ PERMANENT protocol for running heavy prompts in a way that survives interruption
 (usage limits, crashes, deliberate stops). The goal: NEVER lose more than a single
 task of work, and resume without reconstructing anything by hand.
 
-> Where `plans/` stays a clean template — the framework's own repository — a heavy
-> deliverable keeps its plan in a block of its session note instead, and resumption looks
-> for it in the most recent note: the framework's `CONTRIBUTING.md` says how.
+> Where `plans/` and `decisions/` stay clean templates — the framework's own
+> repository — a heavy deliverable keeps its plan and its structural decision in its
+> session note instead, and resumption looks for the plan in the most recent note: the
+> framework's `CONTRIBUTING.md` says how.
 
 ## Principle
 

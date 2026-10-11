@@ -29,8 +29,12 @@ This repo applies to itself the method it describes (`.claude/docs/`):
 - **`tools/` holds this repository's own tools**, outside the payload: the upgrade's
   verification script, the documentation check and their self-tests (`tools/README.md`).
   `make test-scripts` runs the documentation check here, after its self-test: what it
-  finds is fixed in the release that brings it. Run `bash tools/test-upgrade-check.sh`
-  before every release too: it fails when a payload file has no class.
+  finds is fixed in the release that brings it. Its guarded line in the `Makefile`, the
+  comment above it and the conditional line at the top of `docs/01` are the only text of
+  the payload that holds only here: in a project, where `tools/` is absent, the line does
+  nothing.
+  Run `bash tools/test-upgrade-check.sh` before every release too: it fails when a payload
+  file has no class.
 
 ## This repo's git model (a declared exception)
 

@@ -70,10 +70,10 @@ and push are the user's.
 - [x] 4. The framework-repo-only blocks moved to `CONTRIBUTING.md`, one conditional line left in `docs/01` — commit: a1779d5
 - [x] 5. Framework IMP numbers out of the payload's text, the why in prose, and the check that keeps them out — commit: 33f7263
 - [x] 6. The payload's pointers to files outside it rewritten (a local assumption rephrased, a cross-repo pointer labelled), and the check — commit: 18873cf
-- [x] 7. Internal links resolve; tags and CHANGELOG entries match; no old version cited as current — the checks and the fixes — commit: d8e0113
-- [x] 8. The lists that declare themselves complete (the §2 checklist, the class table, the inventories, the counts in prose) against what exists — the checks and the fixes — commit: bddd64a
-- [x] 9. No Italian residue in the artifacts, the memory checked prospectively — the check and the fixes — commit: dbefeff
-- [ ] 10. `LEARNINGS.md`: the applied-entry convention in its format comment; IMP-049 and IMP-068 applied, in their final form — commit: —
+- [x] 7. Internal links resolve; tags and CHANGELOG entries match; no old version cited as current — the checks and the fixes — commit: 1c6093d
+- [x] 8. The lists that declare themselves complete (the §2 checklist, the class table, the inventories, the counts in prose) against what exists — the checks and the fixes — commit: 66f3e50
+- [x] 9. No Italian residue in the artifacts, the memory checked prospectively — the check and the fixes — commit: 603fa6b
+- [x] 10. `LEARNINGS.md`: the applied-entry convention in its format comment; IMP-049 and IMP-068 applied, in their final form — commit: 88513b3
 - [ ] 11. ONE reviewer + fixes — commit: —
 - [ ] 12. `/checkpoint` — commit: —
 - [ ] 13. `/integrate`: the CHANGELOG 1.4.1 entry; the two blocks — commit: —
@@ -114,7 +114,8 @@ the format comment of `LEARNINGS.md`).
 **Lists that claim completeness** — 41 checked against their source; 33 match. The eight
 that do not: `SETUP.md` calls the pin "the FOURTH species" (fifth since v1.4.0 added the
 memory templates); `new-component.md` holds a slot in the short form `[TO BE DEFINED]`,
-invisible to every grep and to `upgrade-check.sh`'s slot tracking since v0.2.0;
+invisible to every grep and to `upgrade-check.sh`'s slot tracking since v0.1.0 (the reviewer's
+correction: "v0.2.0" here first);
 `checkpoint.md` is in §2 with no marker (its slots are angle-bracket placeholders);
 `SETUP.md`'s "Its subcommands:" omits `classes`; the brownfield `Makefile` row omits
 `test-scripts`; "OPEN / Applied / Deferred — the whole backlog" (`harvest-framework.md`,
@@ -198,3 +199,121 @@ Italian. The memory stays as it is: what the check sees there is declared, not r
   repository: 161 findings on the first run, 64 once the rules were right — every one of
   them real), then brought in one family per task, each with the fixes it needs, so
   `make test-scripts` stays green at every commit.
+- The single reviewer's findings made two commit messages false (the mutations of task 7,
+  "since v0.2.0" in task 8): the four unpublished commits from task 7 on were replayed
+  from `18873cf` with those two messages corrected — the trees identical, the earlier
+  commits untouched. Old tips: task 7 `d8e0113`, 8 `bddd64a`, 9 `dbefeff`, 10 `bca957a`;
+  now `1c6093d`, `66f3e50`, `603fa6b`, `88513b3`.
+
+## Rehearsing the Upgrading note (before the review)
+A project grafted at v1.4.0 was simulated in a throwaway clone — the framework's live
+memory emptied, `checkpoint.md`'s placeholders answered, the hybrid box of `docs/01` and the
+plan block of `sessions/README.md` pruned by hand, a pin — and upgraded to this branch,
+tagged v1.4.1 in the clone only. `inventory` flagged what the note says: edge case 7 on
+`docs/01`, one new slot each in `checkpoint.md` and `new-component.md`, their §2 items
+re-worded. Every 3-way merged with 0 conflicts — the answered `checkpoint.md`, the pruned
+`docs/01` and `sessions/README.md`, the `LEARNINGS.md` header and format comment through
+Step 3's recipes. `invariant`: 0 FAIL, 0 CHECK — the new line inside the format comment
+crosses the upgrade's machinery. `post`: the hooks not reinstalled in the rehearsal
+(Step 4) and the new slots to confirm, as expected.
+
+## Review (task 11) — one reviewer, dispositions
+One independent reviewer over `2bb8f08..HEAD`, the uncommitted CRLF hardening and the
+CHANGELOG draft, about thirty minutes, its experiments in copies under the scratchpad;
+the repository identical before and after. Verdict: fit to merge after one HIGH, four
+MEDIUM and the record corrections. Its second pass, the verification round below,
+replayed every attack on the fixed tree: all caught, but L11's English homographs.
+
+| Finding | Severity | Disposition |
+| --- | --- | --- |
+| H1 — a pointer written as a link, a relative path, an @-import or a session note's path passed the payload's purity | HIGH | FIXED: links, cited paths, @-imports and wikilinks of the payload are resolved, and one that lands outside it is a pointer like a name; six planted cases |
+| M1 — an allow-list entry hid every other finding of its line | MEDIUM | FIXED: an entry matches the finding's subject (its message); the line only through an explicit field |
+| M2 — titles cited as `(docs/04, "Title")`, and in the scripts, were never checked | MEDIUM | FIXED: the quoted form, in the docs and in the code files' comments and strings: 23 → 44 titles checked. A fallback that accepted a quoted phrase found anywhere in the file was tried and dropped — `docs/04` quotes its own old titles, and the rename passed |
+| M3 — several advertised rules had no planted defect, and the record said every mutation failed the self-test | MEDIUM | FIXED in two steps: planted defects and a mutation campaign over every place the check reports (below), the two false commit messages reworded; the verification round found eight forms still unplanted (V1), planted then |
+| M4 — a slot wrapped after `[TO` or `[TO BE` passed | MEDIUM | FIXED: `BROKEN_MARKER_RE`, read from `tools/upgrade-check.sh`, applied to the payload |
+| L1 — counts and attributions in the record | LOW | FIXED: 12 pointers rewritten and 2 moved; the commit lists; "since v0.1.0" |
+| L2 — IMP-068 without its Verified part | LOW | FIXED in the verification round (V5) |
+| L3 — the convention line unqualified; `docs/06` silent | LOW | FIXED: older entries are not backfilled; step 2 of `docs/06` points to the format comment |
+| L4, L5 — the Upgrading note's "take `vY`'s copy" unconditional; `CLAUDE.md` would conflict in every project | LOW | FIXED in the draft |
+| L6 — `docs/01`'s line named `plans/` only | LOW | FIXED: `plans/` and `decisions/` |
+| L7 — a malformed `%`-escape crashed the check (exit 1, a stack trace) | LOW | FIXED: a finding; any error of the check itself exits 2 |
+| L8 — the self-test's fake `v9.0.0` moved the current version | LOW | FIXED: `v0.0.9`; the pending case asserts its CHECK, not the exit code |
+| L9, L10 — "The latest release, v1.3.0", a static badge; "e.g." exempting every path of its sentence | LOW | FIXED |
+| L11 — accented names (José, café) read as Italian, a co-author trailer would fail `make test-scripts` | LOW | FIXED: an accent counts only at an Italian word's end; trailers are names; the English homographs out of the word list (V8) |
+| L12 — the SessionStart message said step 4 creates `STATE.md` | LOW | FIXED: step 1 copies it, step 4 fills it |
+| L13 — a pending entry failed in a time zone behind its author's | LOW | FIXED: it may carry tomorrow's date |
+| L14 — a new rule in a shipped file reads as a MINOR | LOW | FOR THE USER: PATCH kept, as the brief decided; the convention is filed under Changed — it makes explicit what the applied entries did |
+| I1-I3 — the `Makefile`'s guarded line undeclared; `/harvest-framework` in the framework repository; `checkpoint.md`'s marker surviving setup | INFO | FIXED: `CONTRIBUTING.md` declares the line, and `docs/01`'s (V6); the harvest's grep anchored at the line's start, a hit counting only inside an entry (V4); the paragraph says setup deletes it, and §2 too |
+| I4, I6, I7, I8 — CRLF partial; a misleading message; overlong lines; task 10 unticked | INFO | FIXED |
+| I5, I9 — the self-test's duration; `.github/` or `.gitattributes` will fail three checks by design | INFO | RECORDED for v1.5.0 |
+
+### The verification round — the same reviewer, a second pass
+Over the fixed working tree on top of `88513b3`, the CHANGELOG draft inserted in a copy.
+Verdict: fit to merge after V1 and V5, ideally V2 and V4; no HIGH. The replayed commits of
+task 7 on carry exactly the trees of the old tips.
+
+| Finding | Severity | Disposition |
+| --- | --- | --- |
+| V1 — eight forms without a planted defect, each mutated with the self-test still green: the wikilink and @-import pointers, the currency word, a version in a heading, the commit-trailer skip, the tomorrow tolerance, `§N`, wrapped comments — and the records claimed every rule planted | MEDIUM | FIXED: one planted line each, the floors raised (titles 40, pointers 15); each of the eight mutants now dies in its own case. An inventory of the forms the check's comments name found 19 more unplanted — the pointer's six other name forms and six section forms, the three checkout forms, curly quotes, a bare file name, a script's message, an accent alone —: planted, each mutant killed. The self-test's header no longer claims more than its cases name |
+| V2 — a labelled first mention hid a bare one on the same line, a regression of the de-duplication; `tools/` reported twice | LOW | FIXED: every mention judged, a line reported once per target, a directory's trailing `/` normalised; planted, its mutant killed |
+| V3 — a quotation right after a file name is read as a section title | LOW | KEPT AND DECLARED: the check's comment and `tools/README.md` say so |
+| V4 — `/harvest-framework` counted prose mentions of the marker | LOW | FIXED: the grep anchored at the line's start |
+| V5 — the records not true yet | LOW | FIXED: IMP-049's Verified part rewritten, IMP-068's written, this note's rows and the CHANGELOG's claims made to match what was measured |
+| V6 — `CONTRIBUTING.md` named the `Makefile` line as the only framework-only text | LOW | FIXED: `docs/01`'s conditional line named too |
+| V7 — an error before the checks exited 1 with a stack trace | LOW | FIXED: any error of the check itself exits 2; planted (a CHANGELOG moved away), its mutant killed |
+| V8 — "modulo", "pronto", "tutti", "momento" failed in English text | LOW | FIXED: out of the word list; the attack replayed, an Italian control still failing |
+| INFO — the floors; the POSIX translation; the badge scan; `../` paths; a ragged line; the self-test's cost | INFO | FIXED: the floors raised, an untranslated POSIX class stops the check, the badge scan limited to releases, the line reflowed; `../` paths outside the repository and the cost RECORDED for v1.5.0 |
+
+## Building the check (tasks 3-11) — what it found, and what it taught
+- **What it found, fixed in this release.** IMP numbers 23 (19 after the move), pointers
+  14 (12 rewritten, 2 moved), framework-only blocks 6, lists out of step 8 (the short-form
+  slot invisible since v0.1.0, `checkpoint.md` unmarked, the brownfield row without
+  `test-scripts`, step 1 silent on `tools/`, `classes` missing, the backlog without
+  Rejected, the hard-coded hook loop, the "FOURTH species"), Italian residue 6 (two
+  example-name lines, a fixture path, the calque, two pairs of guillemets), one factual
+  error (the IMP format "in the header").
+- **It found itself, twice.** Its word list and legacy forms are Italian by design: the
+  check's own two files are declared out of the language scan (and of the title scan,
+  their planted defects being data). And the commit-message rule flagged this branch's
+  task-9 commit, whose message quoted the slugs it fixed: code spans count as quotes in
+  commit messages, as in the memory, and the message was amended before anything else
+  was built on it.
+- **The tripwire asks for a §2 change whenever a file gains a marker.** Two files did in
+  this release (`checkpoint.md` 0 → 1, `new-component.md` 2 → 3), and their §2 items were
+  reworded to name the new slot — which is the point.
+- **The fixture is the repository itself.** The self-test clones this repository, tags
+  and working tree included: realistic (the toy-fixture lesson of v1.4.0), but coupled to
+  its state — the CHANGELOG cases first tag the topmost entry when it is still pending, a
+  fake tag stays below every release, the pointer case cites the most recent note.
+- **Mutation, measured rather than sampled.** After the review, every place where the
+  check reports — each `report(` and each list comparison, 75 of them — was disabled in
+  turn in its own copy of the repository, and the self-test run against it. The 24
+  survivors were exactly the paths no planted defect reached (the guards that fail when
+  an extraction finds nothing, `[Unreleased]`, the recipe of `test-scripts`); each got
+  its case, and a second campaign killed all 24. Some mutants die on the unchanged
+  repository rather than in their own case: the declared exceptions they feed go unused,
+  and the bidirectional allow-list fails.
+- **A report site is not a rule.** That campaign could not see a detection path feeding a
+  site another planted defect already reaches: the verification round found eight such
+  paths alive. The remedy was an inventory, not more sampling — every form the check's
+  comments name, set against what the cases plant: 19 more were missing. Each of the 29
+  mutants of a form (with the pointer rule's link and path branches) and the two of the
+  verification round's regressions now dies in its own case, the control passing.
+- **The environment moved under the session.** A `brew upgrade` in the user's terminal
+  replaced `simdjson` while Node 26.8.1 still linked the old library: `node` stopped
+  starting for a few minutes (dyld), and with it the guard (delegated agents blocked, the
+  main session notified) and the commit-msg hook's `npx`. Nothing was touched; the work
+  resumed when Homebrew had relinked Node (26.11.1).
+
+## Received for later blocks (additions of this session)
+- **v1.5.0**: the documentation check needs the tags (a CI checkout with its full
+  history — it fails on a clone without tags, by design) and Node.js 18 or later. Its
+  self-test runs the check about sixty times on clones of the repository: about a minute
+  and a half here, more on Windows. Adding `.github/` or `.gitattributes` fails three of
+  its checks by design (the README tree, step 1's list of what is not copied, the
+  "Outside the upgrade payload" box): update those documents in the same change. A path a
+  document cites outside the repository (a sibling clone, `../other/…`) fails "names no
+  file" unless written as a placeholder (`$FW/…`). The self-test costs about 2.5× the CPU
+  of its first version. A Node
+  that is installed but does not START (the dyld failure above) is the case the
+  prerequisite check of IMP-070 (point 7) must catch: run it, do not only find it.

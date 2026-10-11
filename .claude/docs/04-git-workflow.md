@@ -300,9 +300,9 @@ command does not matter:
   session, if its wiring leaves `settings.json`, or if a broken guard lets a delegated
   agent through or blocks the main session.
 - **Installed, not versioned.** The `pre-push` exists only after `make hooks-install`
-  (at setup, and again at each upgrade of the framework). A project's own pre-push (git-lfs's, for one) goes in
-  `.git/hooks/pre-push.local`: the generated hook runs it after the check. The guard needs
-  Node.js, already a prerequisite of the hooks.
+  (at setup, and again at each upgrade of the framework). A project's own pre-push
+  (git-lfs's, for one) goes in `.git/hooks/pre-push.local`: the generated hook runs it after
+  the check. The guard needs Node.js, already a prerequisite of the hooks.
 - **If the guard cannot run** — its file or `node` missing, a crash — delegated agents
   lose the Bash and Monitor tools until it is repaired; the main session keeps them, sees
   an `agent-git-guard: cannot run` notice on each call, and repairs it.
