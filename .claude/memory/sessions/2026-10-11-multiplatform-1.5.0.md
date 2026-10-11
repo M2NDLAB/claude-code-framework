@@ -92,7 +92,7 @@ consecutive runs.
 - [x] 2. The CI: `.github/workflows/test.yml` on ubuntu-24.04, macos-26 and windows-2025 — read-only token, checkout pinned by full SHA, GNU make on Windows at a fixed version; the documents that list what setup does not copy; `CONTRIBUTING.md`: block 0, the remote branch deleted in block 2, no required checks on `main` — commit: f1147f5
 - [x] 3. `.gitattributes` in the payload (HYBRID, the framework's paths only) and `tools/.gitattributes`; the upgrade check's payload and classes; `SETUP.md` (the copy list, the classes, Step 2) — commit: 40d6075
 - [x] 4. `upgrade-check.sh` reads the project's files whatever their line ends: the CRLF case first, failing (RED), then the fix (GREEN) — commit: cc16df0
-- [ ] 5. PowerShell, option C: the tool off in `settings.json`, the guard reading `PowerShell` too (`git.exe`, case, backtick continuations), its self-test, `docs/04`, `SETUP.md` *Hardening* — commit: —
+- [x] 5. PowerShell, option C: the tool off in `settings.json`, the guard reading `PowerShell` too (`git.exe`, case, backtick continuations), its self-test, `docs/04`, `SETUP.md` *Hardening* — commit: db1fc77
 - [ ] 6. The prerequisites by tool name (`SETUP.md` §0, `hooks-install.sh`'s message, the READMEs): git, bash and a POSIX userland (Git for Windows), GNU make, gitleaks, Node.js 22.12 — commit: —
 - [ ] 7. The upgrade 1.4.1 → 1.5.0 rehearsed, LF and CRLF, the renormalisation step measured; the Upgrading note drafted — commit: —
 - [ ] 8. The CI's first runs (block 0, the user's pushes): what fails, fixed, until green on the three platforms — commit: —

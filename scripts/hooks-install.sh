@@ -49,7 +49,7 @@ HOOKS_DIR="${git_common_dir}/hooks"
 # --- Prerequisites ----------------------------------------------------------
 if ! command -v gitleaks >/dev/null 2>&1; then
   echo "ERROR: gitleaks not installed (it is rule 1 of CLAUDE.md, not optional)." >&2
-  echo "  macOS: brew install gitleaks   |   others: https://github.com/gitleaks/gitleaks" >&2
+  echo "  Install it for your platform: https://github.com/gitleaks/gitleaks#installing" >&2
   exit 1
 fi
 if ! command -v npx >/dev/null 2>&1; then

@@ -17,4 +17,5 @@ rule in `upgrade-check.sh` or `docs-check.mjs` answers a defect that was OBSERVE
 upgrade, a review, a CI run, a measured simulation —, never a hypothetical one.
 
 Prerequisites: git 2.31 or later, bash 3.2 or later (the scripts avoid what bash 3.2,
-macOS's `/bin/bash`, lacks); Node.js 18 or later for the documentation check.
+macOS's `/bin/bash`, lacks); Node.js 22.12 or later, the framework's minimum, for the
+documentation check.

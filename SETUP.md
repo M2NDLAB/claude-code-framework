@@ -5,14 +5,24 @@ Code". Estimated time: 15-30 minutes, most of it spent filling in the technical 
 
 ## 0. Prerequisites
 
+The tools, by name; how to install each one depends on your platform.
+
 - **git 2.31 or later** (the framework is git-centric: branches, per-task commits,
   hooks; `make hooks-install` and the upgrade's checks use `rev-parse --path-format`).
-- **gitleaks** — secret scanning in the hooks. macOS: `brew install gitleaks`.
-- **Node.js, with npx** — for two users with different floors. commitlint (Conventional
-  Commits) runs through npx at its latest release, which declares its own minimum (Node.js
-  22.12 for the 21.x line). The agent git guard, `scripts/agent-git-guard.mjs`, needs
-  14.13.1 or later: without a working `node`, delegated agents lose their Bash tool
-  (fail-closed, `docs/04`) and the main session sees a notice on every call.
+- **bash 3.2 or later, with a POSIX userland** (`awk`, `sed`, `grep`, `find`, `xargs`,
+  `sort`, `diff`, …): the framework's scripts and hooks are bash. macOS and Linux have
+  them; on Windows, Git for Windows brings both with Git Bash, which Claude Code needs too,
+  for its Bash tool and its hooks (*Hardening*, below).
+- **GNU make** — the process targets (`make hooks-install`, `make test-scripts`,
+  `make reset-task`). macOS has it with Xcode's command-line tools, Linux distributions
+  with their build tools; on Windows install it apart: Git for Windows ships none.
+- **gitleaks** (https://github.com/gitleaks/gitleaks) — secret scanning in the
+  pre-commit hook.
+- **Node.js 22.12 or later, with npx.** commitlint (Conventional Commits) runs through npx
+  at its latest release, whose minimum is 22.12 (the 21.x line); the agent git guard,
+  `scripts/agent-git-guard.mjs`, runs on Node.js too: without a working `node`, delegated
+  agents lose their shell tools (fail-closed, `docs/04`) and the main session sees a notice
+  on every call.
 - *(optional)* **tree** — to regenerate `TREE.md`. Fallback: `git ls-files`.
 - *(optional)* **Obsidian** — the `.claude/` directory opens as a vault; the `[[...]]`
   wikilinks become a navigable graph. It is not required: the links work as pointers
