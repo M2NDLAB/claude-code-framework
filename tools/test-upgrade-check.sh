@@ -453,10 +453,12 @@ step="${workdir}/line-end-step.sh"
 awk '/\*\*Line ends, first/ { f = 1 } f && /^  ```bash$/ { b = 1; next } b && /^  ```$/ { exit } b { sub(/^  /, ""); print }' \
   "${REPO_ROOT}/SETUP.md" > "${step}"
 [ -s "${step}" ] || fail "line-end step: no bash block under \"Line ends, first\" in SETUP.md"
-# crlf_left <dir>: how many of the framework's files still carry CRLF line ends.
+# crlf_left <dir>: how many of the framework's files still carry CRLF line ends, as git
+# reads them (ls-files --eol: w/crlf). On Windows a grep for $'\r$' counted none in a clone
+# made with core.autocrlf=true (measured in the CI); git reads the bytes themselves.
 crlf_left() {
-  ( cd "$1" && g ls-files -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts \
-      | while IFS= read -r f; do grep -q $'\r$' "${f}" && echo "${f}"; done | wc -l | tr -d ' ' )
+  ( cd "$1" && g ls-files --eol -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts \
+      | grep -c 'w/crlf' || true )
 }
 # windows_project <name>: the project as Git for Windows checks it out (a clone with
 # core.autocrlf=true), a file of its own outside the framework's paths, and the framework's
