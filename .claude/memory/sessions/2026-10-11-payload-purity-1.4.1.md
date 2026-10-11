@@ -72,7 +72,7 @@ and push are the user's.
 - [x] 6. The payload's pointers to files outside it rewritten (a local assumption rephrased, a cross-repo pointer labelled), and the check — commit: 18873cf
 - [x] 7. Internal links resolve; tags and CHANGELOG entries match; no old version cited as current — the checks and the fixes — commit: d8e0113
 - [x] 8. The lists that declare themselves complete (the §2 checklist, the class table, the inventories, the counts in prose) against what exists — the checks and the fixes — commit: bddd64a
-- [ ] 9. No Italian residue in the artifacts, the memory checked prospectively — the check and the fixes — commit: —
+- [x] 9. No Italian residue in the artifacts, the memory checked prospectively — the check and the fixes — commit: dbefeff
 - [ ] 10. `LEARNINGS.md`: the applied-entry convention in its format comment; IMP-049 and IMP-068 applied, in their final form — commit: —
 - [ ] 11. ONE reviewer + fixes — commit: —
 - [ ] 12. `/checkpoint` — commit: —

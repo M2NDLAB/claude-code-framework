@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-10-10
+updated: 2026-10-11
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -131,68 +131,6 @@ tags: [improvement]
   verification script compares the LEARNINGS entries after normalising them (56 label
   lines measured on the client project). The rest of this entry — the classification
   before a rewrite, as one discipline — stays open.
-
-### IMP-049 — Payload purity: method files that only make sense in the framework repo
-- Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — the third real
-  upgrade of a client project had to prune by hand, once more, text that points at the
-  framework repo
-- Observed problem: the files a client receives (the payload: `.claude/`, `CLAUDE.md`,
-  `Makefile`, `commitlint.config.cjs`, `.gitignore`, `scripts/` — `SETUP.md` step 1)
-  carry three kinds of coupling to the framework repo, and every upgrade that touches
-  those files brings them back where the client had pruned them:
-  1. POINTERS TO FILES OUTSIDE THE PAYLOAD. `CONTRIBUTING.md` is never copied;
-     `SETUP.md` only optionally, "for reference", and Step 2's diff never refreshes it.
-     At v1.2.0: the SessionStart hook message of `settings.json` ("see SETUP.md"),
-     check 10 of `lint-memory.md`, `docs/03`, `docs/06`, the licence example of
-     `CLAUDE.md` — and, beyond the reported list, `docs/01` (the hybrid box),
-     `harvest-framework.md` and the `LEARNINGS.md` header. None is new: they date back
-     to v0.x and come back with every upgrade whose `vY` touches the file (only check
-     10 at the second upgrade, all of them at the third). (Conditional pointers —
-     "where present", "if the project keeps one" — are harmless.)
-  2. FRAMEWORK IMP NUMBERS IN METHOD TEXT. 10 occurrences of 6 numbers in 4 payload
-     files (`harvest-framework.md` IMP-009; `docs/01` IMP-024/034/043;
-     `sessions/README.md` IMP-044/024; `scripts/test-hooks-install.sh` IMP-032). A
-     client restarts its numbering at 001 (`SETUP.md` step 2), so they are orphans or
-     they COLLIDE: v1.2.0 re-proposes the framework's IMP-009 in `/harvest-framework` —
-     pruned by the client at its first upgrade, when it was only an orphan — and it now
-     collides with the client's own IMP-009, an unrelated lesson recorded since. v1.2.0
-     added two more numbers (IMP-043, IMP-044).
-  3. FRAMEWORK-REPO-ONLY BLOCKS. The hybrid-regime box of `docs/01` and its RESUMPTION
-     patch, the "Plan block" section of `sessions/README.md` (IMP-024/034). They declare
-     their own scope, so they are not wrong in a client, but they are dead weight there:
-     the client drops them as framework-repo-specific (a decision taken at its first
-     upgrade), and they also carry the pointers and numbers of points 1-2. They return
-     with upgrades whose `vY` touches those files: the `docs/01` box with the first and
-     the third; the `sessions/README.md` block only with the third, since the earlier
-     upgrades left `memory/` untouched (IMP-046).
-- The cost is recurring: the client keeps a standing decision to prune/rephrase these
-  "file by file" at every upgrade (taken at its first upgrade, re-applied at the second
-  and third). Nothing in the framework catches a new occurrence when it is written.
-- Proposal: NOT decided here (retro). Directions to evaluate: (a) method text cites no
-  framework IMP number (the preferred option of the relayed lesson) — or a namespace
-  such as `fw:IMP-NNN`; (b) pointers outside the payload removed, or made conditional;
-  (c) framework-repo-only text moved out of the payload (`CONTRIBUTING.md` already
-  describes the hybrid regime); (d) an AUTOMATIC check in the framework repo that greps
-  the payload for these patterns — a `make` target or a lint check, NOT "CI": there is
-  none in any tag. Caveat for (d): `Makefile` and `/lint-memory` are themselves
-  payload, so a check hosted there ships to clients and must declare itself moot there
-  — the mirror of `/harvest-framework`, which is moot in the framework repo.
-- Expected benefit / risk: an upgrade stops re-deriving and re-applying the same
-  pruning, and a new dangling pointer is caught when it is written, not at the next
-  client upgrade. Risk: dropping IMP numbers loses traceability inside the framework
-  repo — the pointer can live in the commit message or the CHANGELOG instead.
-- **Decision 2026-10-10** ([[2026-10-10-upgrade-safety-1.3.3]]): all four directions, in v1.4.1 (a
-  PATCH by IMP-047's criterion). (a) IMP numbers out of ALL the payload's text, the
-  scripts' header comments included: the why in prose, the provenance in the CHANGELOG,
-  this file and the commits (user decision 5). (b) The pointers that assume a local file
-  rephrased, the cross-repo ones labelled as such. (c) The framework-repo-only blocks
-  moved to `CONTRIBUTING.md`, one conditional line left in `docs/01`; `docs/04`'s "as this
-  framework is" generalised, or moved there if only the framework needs it. (d) The
-  purity check, outside the payload, with a bidirectional allow-list (IMP-057), in the
-  end-of-cycle mechanical documentation check that also hosts IMP-068. Ordering: IMP-046's
-  fix ships first (v1.4.0), or the pruning of `sessions/README.md` never reaches a
-  project. Measured at v1.3.2 against v1.2.0: pointer lines 13 → 14 (9 → 10 files), IMP
-  numbers 10 → 23 occurrences (4 → 9 files), all thirteen new ones from v1.3.0.
 
 ### IMP-051 — The memory lags one merge: `/checkpoint` runs before the merge
 - Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — a post-merge
@@ -381,6 +319,11 @@ tags: [improvement]
 - Expected benefit / risk: removes the incentive to lie in the registries that security
   assertions rely on. Risk: an allow-list can become a comfortable parking lot —
   mitigated by check (b) and by a recorded reason for every entry.
+- **First use, 2026-10-11** ([[2026-10-11-payload-purity-1.4.1]]): the documentation
+  check of v1.4.1 keeps its exceptions this way, each with its reason, an unused one
+  failing. Direction (b) proved itself at once: a mutation that silenced the language rule
+  was caught on the unchanged repository, because the declared exceptions of the frozen
+  memory stopped matching. The `docs/02` rule itself stays open.
 
 ### IMP-058 — Widening a claim beyond the diff widens the gate's perimeter
 - Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
@@ -619,29 +562,6 @@ tags: [improvement]
 - Expected benefit / risk: the boundaries are known where they hold and where they do not.
   Risk: none for the investigation itself.
 
-### IMP-068 — A list that declares itself complete deserves a mechanical check
-- Date: 2026-10-10 | Origin: [[2026-10-09-quick-fixes-1.3.2]] (its retro) — recorded at
-  the user's request in [[2026-10-10-upgrade-safety-1.3.3]], linked to the mechanical documentation
-  check planned at the end of the cycle
-- Observed problem: `SETUP.md` §2 calls its checklist "the complete list" of the setup
-  slots, and until v1.3.2 it missed four of them (`decisions/README.md`'s; the merge form
-  and the public contract of `docs/04`; the protected branches of `reset-task.sh`) and
-  then two more (`SECURITY.md`'s; the sensitive list `docs/00` points to) — found by
-  reading, twice, never by a check. A list that claims completeness is believed, so its
-  gap is silent. The same shape recurs wherever a text enumerates a set that lives
-  elsewhere: the upgrade's class lists against the payload (`scripts/test-hooks-install.sh`
-  sat in no class from v0.5.1 to v1.2.1), the hooks a check names against the script's
-  own loop, a count written in prose ("these seven cases").
-- Proposal: NOT decided here (retro). Direction: every list that declares itself complete
-  gets a mechanical check against its source of truth — the §2 checklist against the
-  payload's markers, the classes against the payload's files — in the end-of-cycle
-  mechanical documentation check that hosts IMP-049 (d), outside the payload, with a
-  bidirectional allow-list (IMP-057) for the legitimate differences. Or the list stops
-  claiming completeness.
-- Expected benefit / risk: a gap breaks a check in the release that opens it, not a
-  project's upgrade months later. Risk: one check per list to maintain — only the lists
-  that CLAIM completeness are in scope.
-
 ### IMP-070 — Multi-platform support: macOS, Linux, Windows
 - Date: 2026-10-10 | Origin: the user's requirement of 2026-10-10, recorded in
   [[2026-10-10-integrate-two-blocks-1.3.4]] and here in [[2026-10-10-upgrade-verification-1.4.0]] — the
@@ -688,6 +608,10 @@ tags: [improvement]
 - Destination: framework   (OPTIONAL — only in a client project and only if the lesson
                             must be sent upstream to the framework; a single physical
                             line, for the grep)
+Once applied, the entry moves under "Applied" and is rewritten in its final form — what
+was verified, the decisions, what stays uncovered —, its evidence condensed; the detail
+stays in the session notes and the git history. Every applied entry cites the session
+note its evidence comes from: [[<session note>]].
 -->
 
 ## Applied
@@ -1627,6 +1551,67 @@ tags: [improvement]
   where most of a file conflicts; point 4 — the slots added, removed or moved and the §2
   checklist's changes derived from the tags, with no hand-written field (user decision 3).
   The pin's format checked, an explicit error, a tag only suggested (decision 6).
+
+### IMP-049 — Payload purity: method files that only make sense in the framework repo → applied on 2026-10-11, commits b2248cf, a1779d5, 33f7263, 18873cf
+- Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — the third real upgrade
+  of a client project pruned by hand, once more, text that points at the framework repo
+- Observed problem (condensed): the files a project receives carried three couplings to
+  the framework repository — pointers to files a project does not have, numbers of the
+  framework's IMP backlog (orphans there, or collisions with the project's own numbers),
+  and blocks that hold only in the framework repository — and every upgrade brought them
+  back where the project had pruned them; nothing caught a new one when it was written.
+  Measured at v1.4.0: 23 IMP numbers on 22 lines in 9 files, 14 pointer lines in 9 files,
+  6 framework-only blocks ([[2026-10-11-payload-purity-1.4.1]], assessment).
+- Decisions ([[2026-10-10-upgrade-safety-1.3.3]], user decision 5; the v1.4.1 brief of
+  2026-10-11): (a) no framework IMP number in the payload's text, the scripts' headers
+  included — the why in prose; (b) the pointers rewritten — a local assumption rephrased,
+  a cross-repo pointer labelled "the framework's"; (c) the framework-only blocks moved to
+  `CONTRIBUTING.md`, one conditional line left in `docs/01`; (d) a mechanical check
+  outside the payload, with a bidirectional allow-list, that checks the documentation too
+  and hosts IMP-068 — run by `make test-scripts`.
+- Applied in v1.4.1 ([[2026-10-11-payload-purity-1.4.1]]): the hybrid-regime box and the
+  resumption patch of `docs/01`, the plan block of `sessions/README.md`, the closing box
+  of `docs/06`, the moot clause of `/harvest-framework` and two sentences of this header
+  live in `CONTRIBUTING.md`; `docs/01` keeps one conditional line at its top; the
+  method/tooling bullet of `docs/04` is agnostic. The 19 numbers left after the move are
+  gone, the self-tests printing descriptive labels; the 14 pointers are rephrased or
+  labelled, the SessionStart message included. `tools/docs-check.mjs` (Node.js) and its
+  self-test run in `make test-scripts` behind a presence guard, a no-op in a project; it
+  fails an IMP number or an unlabelled pointer in the payload, the format example
+  `IMP-001` its one declared exception.
+- Verified: the self-test breaks each rule on a throwaway clone of the repository and
+  sees it fail; every rule, mutated, was seen failing the self-test; the guarded line of
+  the `Makefile` exits 0 where `tools/` is absent.
+- Uncovered: a pointer phrased without a file name or a section the rules know ("the
+  setup guide") passes; a label is accepted within its sentence, never checked for
+  meaning; a project that customised a moved block, rather than pruning it, meets a 3-way
+  conflict at its upgrade (the *Upgrading* note of 1.4.1 says so).
+
+### IMP-068 — A list that declares itself complete deserves a mechanical check → applied on 2026-10-11, commits b2248cf, bddd64a
+- Date: 2026-10-10 | Origin: [[2026-10-09-quick-fixes-1.3.2]] (its retro) — recorded in
+  [[2026-10-10-upgrade-safety-1.3.3]]
+- Observed problem (condensed): `SETUP.md` §2, "the complete list" of the setup slots,
+  missed six of them over the releases, each found by reading, never by a check; the same
+  shape recurs wherever a text enumerates a set that lives elsewhere — the class lists,
+  the hooks a check names, a count written in prose.
+- Decision (the v1.4.1 brief of 2026-10-11): the mechanical documentation check of
+  IMP-049 (d) hosts it; what it finds is fixed in the same release.
+- Applied in v1.4.1 ([[2026-10-11-payload-purity-1.4.1]]): 41 lists measured, 8 out of
+  step. The check holds each one against its source, both ways: §2 against the payload's
+  markers, with a tripwire on a slot added since the latest tag while its §2 item stayed
+  unchanged (replayed on the tags, the two together catch all six historical gaps); the
+  class table against the payload of every tag, and the class bullets of `SETUP.md`
+  against it; the copy lists of the payload; the inventories (commands, process targets,
+  self-tests, the script and tool tables, the README tree); the counts in prose; the
+  upgrade check's subcommands; the sections of the backlog; the commit types; the tables
+  of titles and labels. A slot in a short form the greps cannot see fails too. Fixed:
+  the slot of `new-component.md` invisible since v0.2.0, the unmarked placeholders of
+  `checkpoint.md`, step 1 silent on `tools/`, "Its subcommands:" without `classes`, the
+  brownfield row without `test-scripts`, the backlog's sections without Rejected, the
+  hooks self-test's hard-coded loop.
+- Uncovered: a list with no structure a program can extract is out of reach — such a
+  list stops claiming completeness ("the FOURTH species" and "three real upgrades" were
+  reworded); the tripwire sees how many markers a file has, not which slot is new.
 
 ## Deferred (not rejected — resumed at the right time)
 
