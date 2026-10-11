@@ -144,7 +144,7 @@ diff "${workdir}/plain.log" "${out}" >/dev/null || fail "a hostile git configura
 c="$(copy crlf)"
 ( cd "${c}" && git ls-files -z | xargs -0 node -e 'const fs = require("fs");
     for (const f of process.argv.slice(1)) {
-      const b = fs.readFileSync(f); if (!b.includes(0)) fs.writeFileSync(f, b.toString("utf8").replace(/\n/g, "\r\n"))
+      const b = fs.readFileSync(f); if (!b.includes(0)) fs.writeFileSync(f, b.toString("utf8").replace(/\r?\n/g, "\r\n"))
     }' )
 run 0 "${c}"
 diff "${workdir}/plain.log" "${out}" >/dev/null || fail "CRLF line ends change the verdict"

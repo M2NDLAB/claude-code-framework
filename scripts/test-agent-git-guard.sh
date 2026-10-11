@@ -62,14 +62,18 @@ if (missing.length) { console.error(missing.join(", ")); process.exit(3); }
 
 # The hook input for a command; "agent" as the second argument adds agent_id/agent_type;
 # the third names the tool (default Bash).
+# The command travels on stdin, as Claude Code hands the hook its input: on Windows, Git
+# Bash rewrites an ARGUMENT that looks like a POSIX path (/usr/bin/git becomes
+# C:/Program Files/Git/usr/bin/git) before node.exe sees it — measured in the CI.
 hook_input() {
-  "${NODE}" -e '
-const [command, who, tool] = process.argv.slice(1);
+  printf '%s' "$1" | "${NODE}" -e '
+const command = require("fs").readFileSync(0, "utf8");
+const [who, tool] = process.argv.slice(1);
 const input = { session_id: "self-test", hook_event_name: "PreToolUse", tool_name: tool || "Bash",
   tool_input: { command }, cwd: process.cwd() };
 if (who === "agent") Object.assign(input, { agent_id: "a-self-test", agent_type: "general-purpose" });
 process.stdout.write(JSON.stringify(input));
-' "$1" "${2:-}" "${3:-}"
+' "${2:-}" "${3:-}"
 }
 
 # Runs the wired command as Claude Code would (sh -c, CLAUDE_PROJECT_DIR set) and prints
