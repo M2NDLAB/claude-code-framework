@@ -10,7 +10,9 @@
 #      extraction cannot pass — and gives the same verdict under a hostile git
 #      configuration;
 #   2. the payload — a framework IMP number in its text fails; the same number outside the
-#      payload (CONTRIBUTING.md, a session note of the framework) does not;
+#      payload (CONTRIBUTING.md, a session note of the framework) does not; a bare pointer
+#      to a file a project lacks fails, labelled as the framework's or conditional it
+#      does not;
 #   3. inventories — a command no list names, a row missing from a script table, a process
 #      target the lists do not name: each fails;
 #   4. the allow-list — an exception whose cause is gone fails;
@@ -86,6 +88,7 @@ run 0 "${base}"
 has "docs-check: 0 FAIL"
 floor 'commands, .* process targets' 8
 floor 'no framework IMP number in' 30
+floor 'pointers? out of the payload' 10
 hostile="${workdir}/hostile.gitconfig"
 printf '[color]\n\tui = always\n[core]\n\tquotePath = true\n[log]\n\tshowSignature = true\n[i18n]\n\tlogOutputEncoding = ISO-8859-1\n' > "${hostile}"
 cp "${out}" "${workdir}/plain.log"
@@ -103,7 +106,15 @@ c="$(copy imp-outside)"
 printf '\nAs IMP-123 found.\n' >> "${c}/CONTRIBUTING.md"
 printf -- '---\ndate: 2099-01-01\n---\n# A session note\n\nAs IMP-123 found.\n' > "${c}/.claude/memory/sessions/2099-01-01-a-note.md"
 run 0 "${c}"
-echo "PASS (docs-check, payload): a framework IMP number fails in the payload, and only there."
+c="$(copy pointer-bare)"
+printf '\nThe slots are listed in `SETUP.md`, step 2.\n' >> "${c}/.claude/docs/00-overview.md"
+run 1 "${c}"
+fails 1 '"SETUP.md" points at SETUP.md'
+c="$(copy pointer-labelled)"
+printf '\nThe slots are listed in the framework'"'"'s `SETUP.md`, step 2.\n' >> "${c}/.claude/docs/00-overview.md"
+printf '\nRecord it in the CHANGELOG, if the project keeps one.\n' >> "${c}/.claude/docs/02-code-quality.md"
+run 0 "${c}"
+echo "PASS (docs-check, payload): an IMP number fails in the payload and only there; a pointer out of it fails unless labelled or conditional."
 
 # --- Case 3: inventories --------------------------------------------------------------------
 c="$(copy inv-command)"

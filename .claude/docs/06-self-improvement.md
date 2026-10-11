@@ -25,7 +25,7 @@ than a doc that is missing.
 
 > **Scope of LEVEL 1.** It concerns the documentation of the METHOD and of the
 > project MANAGED with this framework. During a GRAFT onto an existing project
-> (brownfield — see `SETUP.md`, dedicated section), the host's pre-existing
+> (brownfield — the dedicated section of the framework's `SETUP.md`), the host's pre-existing
 > documentation that disagrees with reality is NOT corrected as a matter of course:
 > it is recorded in `STATE.md` ("Documentation debt") and corrected only as a task
 > decided by the user — the scope hygiene of `00-overview.md` prevails (one change at
@@ -77,12 +77,12 @@ the framework (rather than IS the framework), some of the lessons are not about 
 project: they are about the METHOD — an ambiguous rule, a missing command, a process
 step that creates friction everywhere, not only here. Those lessons have a second
 destination, the framework repo, so that they improve the NEXT project too: it is the
-"loop" of the README's Philosophy, formalised in `SETUP.md` §5 *"Evolving the
-framework"*.
+"loop" the framework's README calls its *Philosophy*, formalised in §5 of the
+framework's `SETUP.md`, *"Evolving the framework"*.
 
 **How it is marked.** An IMP that concerns the framework carries, in its body in
-`LEARNINGS.md`, the line `- Destination: framework` (see the IMP format in the header
-of `LEARNINGS.md`). It is a DESTINATION attribute, not a third level: the lesson stays
+`LEARNINGS.md`, the line `- Destination: framework` (see the IMP format in the format
+comment of `LEARNINGS.md`). It is a DESTINATION attribute, not a third level: the lesson stays
 a Level 2 one (it is PROPOSED, not applied autonomously) and follows its normal cycle
 IN the project; the marker only adds "this one, besides here, must be sent upstream".
 The criterion for marking it: it is useful to ANY project using the framework, not
@@ -97,7 +97,7 @@ repos, does not run git/push towards the framework. The transfer is **human
 curation**: whoever runs it pastes the block, **anonymises** it (no name of this
 project/client/environment in the framework's shared history —
 `04-git-workflow.md`) and records it as a new proposal in the framework, where it will
-be assessed like any other contribution (`CONTRIBUTING.md`).
+be assessed like any other contribution (the framework's `CONTRIBUTING.md`).
 
 **Why this boundary.** A command that actually wrote into the framework repo would
 violate two rules at once: the execution boundary — shared history is moved by the

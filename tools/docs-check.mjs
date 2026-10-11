@@ -314,6 +314,46 @@ function checkImpNumbers() {
 }
 
 
+// --- The payload: no pointer to a file a project does not have ---------------------------
+// A project has none of the framework repository's own files: its README, SETUP.md,
+// CONTRIBUTING.md, CHANGELOG.md, LICENSE, tools/, its session notes. A pointer that assumes
+// one is local is rephrased; one that must cross to the framework says so — "the
+// framework's `SETUP.md`" — in the same sentence; a conditional one ("where present", "if
+// the project keeps one") is harmless.
+const OUTSIDE = [
+  { re: /(?<![\w./-])SETUP\.md\b|(?<![\w./-])SETUP\s*§|(?<![\w./-])§\s?\d/g, what: 'SETUP.md' },
+  { re: /\b[Ss]tep \d+ of the upgrade\b|\bupgrade(?:'s)? [Ss]tep \d+\b|\bsetup step \d+\b|\*Hardening\*/g, what: 'a section of SETUP.md' },
+  { re: /(?<![\w./-])CONTRIBUTING(?:\.md)?\b/g, what: 'CONTRIBUTING.md' },
+  { re: /(?<![\w./-])CHANGELOG(?:\.md)?\b/g, what: 'CHANGELOG.md' },
+  { re: /(?<![\w./-])LICENSE\b/g, what: 'LICENSE' },
+  { re: /(?<![\w./-]|this |This |its )README(?:\.md)?\b(?! of\b)/g, what: 'the root README.md' },
+  { re: /`tools\/|(?<![\w./-])tools\/[\w.-]+\.(?:sh|mjs|md)\b/g, what: 'tools/' },
+  { re: /\[\[(?:sessions\/)?\d{4}-\d{2}-\d{2}-[^\]|#]+/g, what: 'a session note of the framework' },
+]
+const LABEL = /\bthe framework(?:'s|’s)\b|\bframework(?:'s|’s)? repo(?:sitory)?\b|\bof the framework\b/gi
+const CONDITION = /\b(?:where present|if present|when present|where (?:a copy|one) is kept|if (?:the|a) project keeps|if (?:a |the )?`?[\w./-]+`? exists)\b|\bif \[ -[efd] /i
+function checkPointers() {
+  section('Payload — no pointer to a file outside it, unless labelled or conditional')
+  let pointers = 0
+  for (const p of PAYLOAD) {
+    for (const u of units(p, payloadMask(p))) {
+      for (const { re, what } of OUTSIDE) {
+        for (const m of u.text.matchAll(re)) {
+          pointers++
+          const [a, b] = sentenceAround(u.text, m.index)
+          const sentence = u.text.slice(a, b)
+          const labelled = [...u.text.slice(a, m.index + m[0].length + 40).matchAll(LABEL)]
+            .some((l) => Math.abs(a + l.index - m.index) <= 80)
+          if (labelled || CONDITION.test(sentence)) continue
+          report('pointer', p, u.at[m.index], `"${m[0].trim()}" points at ${what}, which a project does not have: rephrase it, or say it is the framework's`)
+        }
+      }
+    }
+  }
+  settle('pointer', `${plural(pointers, 'pointer')} out of the payload, each labelled as the framework's or conditional`)
+}
+
+
 // --- Inventories: the documents' lists against the files they enumerate ------------------
 // The mechanical twin of /lint-memory's check 11, which projects run by hand.
 const childrenOf = (dir) => new Set(FILES.filter((p) => p.startsWith(`${dir}/`))
@@ -440,6 +480,7 @@ function checkAllowList() {
 }
 
 checkImpNumbers()
+checkPointers()
 checkInventories()
 checkAllowList()
 console.log(`\ndocs-check: ${nFail} FAIL, ${nCheck} CHECK`)

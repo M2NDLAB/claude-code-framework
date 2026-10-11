@@ -7,8 +7,8 @@ At the end of a deliverable, prepare the READY FOR INTEGRATION blocks for: $ARGU
 Claude Code **does not push and does not merge** — that is a human action (see
 @.claude/docs/04-git-workflow.md). Here it COLLECTS the state with read-only commands
 and PRODUCES two blocks of exact commands, ready to paste. Run ONLY the read commands of
-steps 1-2, the CHANGELOG update of step 3 (local commit) and the read-only computations
-of step 4; everything else must be PRINTED, not executed.
+steps 1-2, the CHANGELOG update of step 3 if the project keeps one (a local commit) and
+the read-only computations of step 4; everything else must be PRINTED, not executed.
 
 ## 1. Collect the state (read-only)
 - Current branch (feature): `git branch --show-current`.

@@ -68,8 +68,8 @@ project.
 
 ## 5. Close
 - Recall that the next step is HUMAN: open the framework repo and register the
-  entries as IMP proposals (`CONTRIBUTING.md`), one by one, after re-checking the
-  anonymisation.
+  entries as IMP proposals (the framework's `CONTRIBUTING.md`), one by one, after
+  re-checking the anonymisation.
 - Do NOT mark anything as "already carried upstream" and do NOT modify `LEARNINGS.md`: the
   command does not mutate state. De-duplication between successive harvests is human
   curation — to avoid raking up again the lessons already carried upstream, narrow with

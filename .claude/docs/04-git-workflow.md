@@ -267,7 +267,7 @@ commands extracted from a doc, a review agent that checks out a revision to read
 real incidents behind this section were all of this kind; no agent has ever pushed or
 bypassed a control on purpose. Deliberate evasion — disabling a hook, unsetting a
 marker, writing to the forge with the owner's credential — is outside this layer: only
-the operating system or the forge's rules stop it (`SETUP.md`, *Hardening*).
+the operating system or the forge's rules stop it (the framework's `SETUP.md`, *Hardening*).
 
 A permission rule is not this layer. A `Bash(...)` rule matches the command TEXT, not the
 program: `git -C <dir> push`, `git 'push'`, an alias or a script all get past
@@ -300,7 +300,7 @@ command does not matter:
   session, if its wiring leaves `settings.json`, or if a broken guard lets a delegated
   agent through or blocks the main session.
 - **Installed, not versioned.** The `pre-push` exists only after `make hooks-install`
-  (setup step 3; upgrade Step 4). A project's own pre-push (git-lfs's, for one) goes in
+  (at setup, and again at each upgrade of the framework). A project's own pre-push (git-lfs's, for one) goes in
   `.git/hooks/pre-push.local`: the generated hook runs it after the check. The guard needs
   Node.js, already a prerequisite of the hooks.
 - **If the guard cannot run** — its file or `node` missing, a crash — delegated agents

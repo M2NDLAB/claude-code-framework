@@ -35,7 +35,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '=== PROJECT MEMORY (STATE.md) ===' && cat .claude/memory/STATE.md 2>/dev/null || echo 'Memory not initialised: see SETUP.md'"
+            "command": "echo '=== PROJECT MEMORY (STATE.md) ===' && cat .claude/memory/STATE.md 2>/dev/null || echo 'Memory not initialised: no .claude/memory/STATE.md yet (the framework setup guide, step 4, creates it)'"
           }
         ]
       }
