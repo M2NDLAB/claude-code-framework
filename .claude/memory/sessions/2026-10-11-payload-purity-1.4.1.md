@@ -64,7 +64,7 @@ and push are the user's.
   stops on it — the intended behaviour (an explicit error, never a silent normalisation).
 
 ## Plan (one commit per task)
-- [ ] 1. This note and its plan; the notes received for later blocks — commit: —
+- [x] 1. This note and its plan; the notes received for later blocks — commit: f1357c8
 - [ ] 2. Assessment, read-only: the payload's impurities measured (IMP numbers, pointers, framework-only blocks), the lists that claim completeness, the links, the version mentions, the Italian residue; the check's design — commit: —
 - [ ] 3. `tools/`: the check's frame and self-test (the payload's model, the OK/FAIL/CHECK lines, the bidirectional allow-list); the first check, the inventories of commands, targets and scripts against the files; wired into `make test-scripts`, moot where `tools/` is absent; `tools/README.md`, `CONTRIBUTING.md` — commit: —
 - [ ] 4. Framework IMP numbers out of the payload's text, the why in prose, and the check that keeps them out — commit: —
@@ -77,3 +77,116 @@ and push are the user's.
 - [ ] 11. ONE reviewer + fixes — commit: —
 - [ ] 12. `/checkpoint` — commit: —
 - [ ] 13. `/integrate`: the CHANGELOG 1.4.1 entry; the two blocks — commit: —
+
+## Assessment (task 2) — read-only, five analysts
+One workflow of five read-only analysts over `f1357c8` (payload impurities, lists that
+claim completeness, internal links, versions and the CHANGELOG, Italian residue), about
+twelve minutes; the repository's snapshot and status identical before and after. Each
+measured the current state and proposed the rule its check would apply, with the false
+positives it measured.
+
+**The payload's impurities** (the payload: the 36 files setup copies, plus the header and
+the format comment of `LEARNINGS.md`).
+- Framework IMP numbers: 23 occurrences on 22 lines in 9 files — IMP-009, 024, 032, 034,
+  043, 044, 054, 055, 062; ten of them are self-test PASS/FAIL labels, which nothing reads
+  (the third case of `test-hooks-install.sh` already prints a descriptive label). One
+  legitimate form: the format comment's `### IMP-001 — <short title>`.
+- Pointers to files a project does not have: 14 lines in 9 files. Assuming a local file
+  (to rephrase): `settings.json`'s SessionStart message, `CLAUDE.md`'s licence example,
+  `docs/03`, `docs/06` (brownfield), `lint-memory.md` check 10 (twice). Cross-repo (to
+  label as the framework's): `docs/04` (*Hardening*; "setup step 3; upgrade Step 4"),
+  `docs/06` (the README's *Philosophy*, SETUP §5, CONTRIBUTING), `harvest-framework.md`,
+  `lint-memory.md` (§2, Step 4 of the upgrade). Two leave with the blocks below. Harmless:
+  the conditional CHANGELOG of `integrate.md` and `lint-memory.md`, "the framework repo" as
+  the bridge's destination; data, not pointers: the guard's self-test feeding
+  `cat README.md` to the guard.
+- Framework-repo-only text: `docs/01`'s hybrid-regime box and its RESUMPTION patch,
+  `sessions/README.md`'s *Plan block*, `docs/06`'s final box, `harvest-framework.md` §1, two
+  sentences of the `LEARNINGS.md` header, `docs/04`'s "(as this framework is)" —
+  `CONTRIBUTING.md` already states the framework's own breaking-change criterion. The only
+  citation of the moved blocks is `CONTRIBUTING.md`'s own paragraph on the regime.
+- A constraint for the applied-entry convention: the format comment must stay ONE block —
+  Step 3's recipe gathers the merged blocks at the first one, and `invariant` fails on an
+  extra block. The convention goes inside it.
+- Factual, found on the way: `docs/06` and `SETUP.md` §5 place the IMP format "in the header
+  of `LEARNINGS.md`"; it is the format comment, in the body.
+
+**Lists that claim completeness** — 41 checked against their source; 33 match. The eight
+that do not: `SETUP.md` calls the pin "the FOURTH species" (fifth since v1.4.0 added the
+memory templates); `new-component.md` holds a slot in the short form `[TO BE DEFINED]`,
+invisible to every grep and to `upgrade-check.sh`'s slot tracking since v0.2.0;
+`checkpoint.md` is in §2 with no marker (its slots are angle-bracket placeholders);
+`SETUP.md`'s "Its subcommands:" omits `classes`; the brownfield `Makefile` row omits
+`test-scripts`; "OPEN / Applied / Deferred — the whole backlog" (`harvest-framework.md`,
+`INDEX.md`, `STATE.md`) omits Rejected; `test-hooks-install.sh` hard-codes the hook list
+instead of reading the generator's loop; minor ones (step 1 never names `tools/` though two
+files cite it for that; the TREE legend without `LEARNINGS.md`; README's step 4 without
+`INDEX.md`; "three real upgrades", true until the next one). Matching today: the class
+table against the payload at every tag, both ways; the four copy lists of the payload; the
+README tree; the commands, targets and script tables; the counts of hooks, edge cases and
+guide READMEs; the commit types; the title and label tables. Replayed on the tags, a
+file-level §2 check plus a tripwire on the release's new slots catches all six historical
+§2 gaps; the file level alone, four.
+
+**Links**: 5 relative Markdown links (no anchors), 156 wikilinks, 17 `@`-imports — all
+resolve. Backticked repository paths: none broken in the present documents, given a small
+list of names that are not meant to exist here (the pin, `settings.local.json`, `.git/`
+paths, generic examples). Section titles cited by name with their file: 39, all present.
+
+**Versions**: 19 tags, all annotated, 19 CHANGELOG entries, both ways; order, format and
+dates sound (each entry dated no later than its tag). The one real past drift: v1.1.0 was
+tagged with its notes still under `[Unreleased]` — the tag-to-entry direction catches it. No
+document cites an old version as current, today or at any audited tag: the rule is
+preventive.
+
+**Italian residue**: the payload has four real lines — the example slugs of
+`sessions/README.md` (`setup-iniziale`, `modulo-pagamenti`) and `plans/README.md`
+(`03-modulo-x.md`), a fixture path in `test-hooks-install.sh` (`/percorso/che/non/esiste`);
+two the vocabulary cannot see — the calque `<id-prompt>` (`INDEX.md`, `plans/README.md`;
+`docs/01` says `<prompt-id>`) and guillemets used as quotes (`docs/04`, `SETUP.md`). The
+memory is English since its translation, but for the approved glossary of
+[[2026-07-20-language-rule-phase1]], one frontmatter line the translation missed, verbatim
+quotes and ten Italian file names (one created after the rule). Commits since v1.1.0: none
+Italian. The memory stays as it is: what the check sees there is declared, not rewritten.
+
+## The check's design (declared choices, inside the user's decisions)
+- **Where, and in what.** `tools/docs-check.mjs`, Node.js with no dependency, and its
+  self-test `tools/test-docs-check.sh`. Node, not bash: paragraphs, Unicode, anchors and set
+  comparisons are where bash 3.2 and BSD awk are weakest, and v1.5.0 will run it on Linux
+  and Windows; Node is already a prerequisite (the guard). The self-test runs the real check
+  on a throwaway clone of this repository — its tags, and its working tree as it is — and
+  breaks one thing per case: a realistic fixture, not a toy one.
+- **Wiring.** `make test-scripts` runs both after the scripts' self-tests, in a line guarded
+  by the file's presence: in a project, where `tools/` does not exist, the line does
+  nothing. The upgrade check's own self-test stays outside it (v1.5.0's CI takes it).
+- **What it reads.** The working tree, new files included; its tags; its commits since
+  v1.1.0 (the release that brought the language rule). Three scopes: the PAYLOAD (from
+  `PAYLOAD_PATHS` in `tools/upgrade-check.sh`, plus the `SECURITY.md` scaffold; of
+  `LEARNINGS.md`, its header and format comment); the PRESENT documents (everything but
+  history); HISTORY (the CHANGELOG, the session notes, the IMP entries), never held to the
+  present.
+- **What it says.** `OK`, `FAIL`, `CHECK` lines as in `upgrade-check.sh`, a floor on what each
+  check scanned, exit 1 on any `FAIL`. What the rules cannot tell apart is declared in an
+  allow-list inside the script, each entry with its reason, bidirectional: an entry that
+  matches nothing fails.
+- **The checks.** Payload: no framework IMP number; no pointer outside unless labelled
+  ("the framework's …") or conditional; no slot in the short form. Inventories: the
+  commands, the process targets, the self-tests, the script and tool tables, the docs
+  list, the README tree, against the files. CHANGELOG and tags: format, order,
+  `[Unreleased]`, annotated tags, both directions with at most ONE pending entry (the
+  topmost, one SemVer step above the latest tag, no later than today), dates, the
+  *Upgrading from* chain; no tag at all = a clone without tags, a `FAIL`. Versions: no
+  framework version older than the current one next to a currency word, a heading, a
+  `version:` line. Links: Markdown links and anchors, wikilinks, `@`-imports, backticked
+  repository paths, section titles cited with their file. Complete lists: §2 against the
+  payload's markers both ways, plus the tripwire on slots added since the latest tag; the
+  class table against the payload of every tag, both ways, and `SETUP.md`'s class bullets;
+  the copy lists; the counts in prose (hooks, edge cases, guide READMEs, self-test cases);
+  the subcommands; the sections of the backlog; the commit types; the title and label
+  tables. Italian: a word list and the accented forms, legacy strings the method reads
+  stripped, quotes exempt outside the payload, the frozen memory declared; guillemets; file
+  names; commit messages.
+- **Declared limits.** The version rule sees explicit currency only; the vocabulary misses
+  calques and words outside its list; a list that enumerates without a structure the check
+  can extract is out of reach — such a list stops claiming completeness instead ("three
+  real upgrades", "the FOURTH species").
