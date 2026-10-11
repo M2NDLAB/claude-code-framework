@@ -342,6 +342,32 @@ with a case in a self-test.
   (IMP-078). It was still local: the two commits were written again from `29899f4`, the
   tree identical (`71c9b62` and `5ca1325` replaced by `4aa5bd2` and `7d51bde`).
 
+**Round 3** — run 38156691732, on `ded0fbb`, awaited and read with `gh` until all three
+jobs had concluded (the user's instruction from this round on): ubuntu-24.04 green (52 s),
+macos-26 green (155 s), windows-2025 red (194 s).
+- Confirmed on Windows: the fix of `hooks-install.sh` (its self-test passes past the SKIP —
+  the push boundary, the hooks' directory); the upgrade check's identity comparisons (its
+  `classes` and `preflight` cases pass); the guard classes every write and read of its
+  self-test right, through Bash and PowerShell, with `node.exe` started under `env -i`,
+  no `SystemRoot` — phase 1's worry, measured groundless; the documentation check on the
+  checkout, 0 FAIL.
+- Failed, and fixed:
+  1. The guard's self-test, "node missing": its PATH held a `cat` made with `ln -s`, which
+     Git Bash copies away from the DLL it loads ("error while loading shared
+     libraries"). Now a two-line wrapper that runs the real `cat`.
+  2. The documentation check's self-test, its CHANGELOG case: the edit pattern
+     `^## \[Unreleased\]\n\n` met a CHANGELOG with CRLF line ends. Its edits now read the
+     files as LF.
+  3. The upgrade check's self-test, `inventory`: the CHECK on `reset-task.sh`'s mode never
+     came. NTFS keeps no executable bit — `chmod` changes nothing, Git Bash takes any
+     script with a shebang for executable, git commits the index's mode (`core.fileMode`
+     false) —, and both sides were wrong: the fixture's v1.1.0 recorded 100644, the check
+     read every script as 100755. The check now reads the index where git does not trust
+     the filesystem (`mode_of`, probed on macOS on both branches), the fixture sets the bit
+     in the filesystem and in the index (`set_exec`), and `SETUP.md`, Step 3, gives the
+     Windows form, `git update-index --chmod=+x`.
+- The local suite green on macOS before the push.
+
 ## Resumption notes
 - The CI runs only on what the user pushes: the first push of this branch came after
   task 7 (round 1, below). The branch is public from then on: no commit is rewritten,
