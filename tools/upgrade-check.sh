@@ -88,13 +88,16 @@ mode_of() {
 }
 # within <dir> <top>: whether <dir> is <top> or lies below it, compared by identity (-ef),
 # never as strings — on Windows git prints C:/… where Git Bash names the same directory
-# /c/… (measured in the CI on Windows). <dir> is the shell's own path, walked up to /.
+# /c/… (measured in the CI on Windows). <dir> is the shell's own path, walked up to /, or
+# to a name dirname cannot shorten: under Cygwin's rules, Git Bash's, `//` is a root too.
 within() {
-  local d="$1"
+  local d="$1" up
   while :; do
     [ "${d}" -ef "$2" ] && return 0
     case "${d}" in /|.|'') return 1 ;; esac
-    d="$(dirname "${d}")"
+    up="$(dirname "${d}")"
+    [ "${up}" = "${d}" ] && return 1
+    d="${up}"
   done
 }
 
@@ -156,7 +159,7 @@ require_tag() {
 
 require_t() {
   [ -n "${T:-}" ] || die "T is not set: a scratch directory outside both repositories (SETUP.md, Precondition)"
-  case "${T}" in /*) ;; *) die "T=${T} must be an absolute path" ;; esac
+  case "${T}" in /* | [A-Za-z]:[/\\]*) ;; *) die "T=${T} must be an absolute path" ;; esac
   [ -d "${T}" ] || die "T=${T} does not exist: create it first (mkdir -p)"
   # The script writes only in T, so T must lie outside both repositories.
   local t_real top
@@ -514,7 +517,7 @@ cmd_inventory() {
     if [ -n "${by}" ] && [ -f "${path}" ]; then
       modey="$(mode_at "${vy}" "${path}")"
       modep="$(mode_of "${path}")"
-      [ "${modey}" = "${modep}" ] || check "${path}: ${vy}'s mode is ${modey}, the project's ${modep} (chmod after the copy, Step 3)"
+      [ "${modey}" = "${modep}" ] || check "${path}: ${vy}'s mode is ${modey}, the project's ${modep} (chmod after the copy, on Windows git update-index --chmod: Step 3)"
     fi
   done < "${d}/paths"
   local renames
@@ -843,7 +846,7 @@ cmd_post() {
     esac
     modey="$(mode_at "${vy}" "${path}")"
     modep="$(mode_of "${path}")"
-    [ "${modey}" = "${modep}" ] || fail "${path}: mode ${modep}, ${vy}'s is ${modey} (chmod, Step 3)"
+    [ "${modey}" = "${modep}" ] || fail "${path}: mode ${modep}, ${vy}'s is ${modey} (chmod, on Windows git update-index --chmod: Step 3)"
   done < "${d}/paths.vy"
   ok "${n_at} METHOD and TEMPLATE files identical to ${vy}'s"
   if grep -nE '^(<<<<<<<|>>>>>>>|\|\|\|\|\|\|\|) ' .claude/memory/LEARNINGS.md > "${d}/conflicts" 2>/dev/null; then
