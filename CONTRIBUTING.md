@@ -62,7 +62,9 @@ branch (`git push -u origin <branch>`) and wait until the CI is green on the thr
 platforms. Block 1 then checks that the tree it merges is the one the CI tested — the merge
 commit's tree equal to the pushed branch's —, and block 2 deletes the remote branch in the
 same atomic push that publishes `main` and the tag
-(`git push --atomic origin main vX.Y.Z :<branch>`), before the local `git branch -d`. A
+(`git push --atomic origin main vX.Y.Z :<branch>`), before the local `git branch -d`.
+Atomic means all or nothing: if the remote branch is already gone, git refuses the whole
+push and publishes nothing — drop `:<branch>` and run it again. A
 project's `/integrate` knows nothing of this: a project's CI is the project's own.
 
 **No required status checks on `main` — a motivated choice.** The ruleset of `main` does

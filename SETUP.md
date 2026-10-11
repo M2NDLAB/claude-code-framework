@@ -89,7 +89,11 @@ matters too: on an annotated tag the bare form returns the tag object's id. (Why
 `${FW:?}` and not `$FW`: see the *Precondition* of *Upgrading the framework*.)
 
 Then: `git init` (if it is not a repo already) and create the integration branch
-(`develop`).
+(`develop`). On Windows git records no executable bit (`core.fileMode` is false there):
+give the scripts theirs as you add them,
+`git add --chmod=+x -- scripts/*.sh scripts/*.mjs`, or they enter the history as `100644` —
+not executable in a teammate's checkout on macOS or Linux, and a mode failure in every
+check of a future upgrade.
 
 ## 2. Fill in the `[TO BE DEFINED AT SETUP]` slots
 
@@ -516,7 +520,7 @@ paths once, absolute, and check them (read-only, from the project root):
 FW=/absolute/path/to/the/framework/clone
 T=/absolute/path/to/a/scratch/dir
 mkdir -p "${T:?}"
-: "${FW:?}" && test "$(git rev-parse --show-toplevel)" = "$(pwd -P)" \
+: "${FW:?}" && test "$(git rev-parse --show-toplevel)" -ef "$(pwd -P)" \
   && test -z "$(git -C "${FW:?}" rev-parse --show-prefix)" \
   && test "$(git -C "${FW:?}" rev-parse --path-format=absolute --git-common-dir)" \
        != "$(git rev-parse --path-format=absolute --git-common-dir)" \
@@ -527,12 +531,14 @@ mkdir -p "${T:?}"
 
 The check stops when the current directory is not a repository root, when `FW` is not
 a repository root, when `FW` is the project itself (any of its worktrees), and when `vY`
-is missing in `FW`; `--path-format` needs git 2.31 or later. Why `${FW:?}` and never
-`$FW`: `git -C ""` runs in the CURRENT directory — the project — so an unset `FW`
-silently brings the collision back. A shell that does not keep state between commands
-(an agent's tool calls) restates `FW=`, `T=` and the `cd` to the project root in every
-command: `${FW:?}` turns a forgotten restatement into a loud failure, while a bare
-project-side command run from the wrong directory acts on that directory's repository.
+is missing in `FW` — the root compared by identity (`-ef`): on Windows git prints `C:/…`
+where Git Bash names the same directory `/c/…`; `--path-format` needs git 2.31 or later.
+Why `${FW:?}` and never `$FW`: `git -C ""` runs in the CURRENT directory — the project —
+so an unset `FW` silently brings the collision back. A shell that does not keep state
+between commands (an agent's tool calls) restates `FW=`, `T=` and the `cd` to the
+project root in every command: `${FW:?}` turns a forgotten restatement into a loud
+failure, while a bare project-side command run from the wrong directory acts on that
+directory's repository.
 Inside `$( … )`, `<( … )` or a pipe, a failed `${FW:?}` does not stop the outer
 command: start such a line with `: "${FW:?}" &&`. `vX`/`vY` stay placeholders to
 substitute, as everywhere in this guide: a forgotten one fails loudly
@@ -724,7 +730,8 @@ from a hand-written list; the memory's titles and field labels to rename; and th
   `git -C "${FW:?}" ls-tree vY -- <path>` (`100755` = executable) and `chmod` a new
   file, or one whose mode `vY` changed, accordingly. On Windows, where the filesystem
   keeps no executable bit and `chmod` changes nothing, the mode lives in the index:
-  `git update-index --chmod=+x -- <path>` once the file is tracked.
+  `git add --chmod=+x -- <path>` stages the file with it (`git update-index --chmod=+x`
+  for a file already staged).
 - **PROJECT-MEMORY** → do not touch: only the declared commits of edge case 3 enter the
   closed list of Step 5, and `STATE.md`, `TREE.md` and `INDEX.md` never go through a
   3-way.
@@ -863,10 +870,11 @@ check, and a re-run leaves it alone. Real verification:
   throwaway repository (a push from the session is refused by design: never attempt one).
 - A fake secret blocked by gitleaks, a non-conventional message rejected by commitlint.
 - `make test-scripts` green. It also checks `.claude/settings.json` against the guard:
-  the wiring of `scripts/agent-git-guard.mjs` and the two `ask` rules on the boundary's
-  own files. A failure there means the merged settings lost them — repair the settings,
-  never the test: the self-test (METHOD) and `settings.json` (HYBRID) arrive in the same
-  upgrade and check each other.
+  the wiring of `scripts/agent-git-guard.mjs` on Bash, PowerShell and Monitor, the
+  PowerShell tool kept off (`CLAUDE_CODE_USE_POWERSHELL_TOOL=0`) and the two `ask` rules on
+  the boundary's own files. A failure there means the merged settings lost them — repair
+  the settings, never the test: the self-test (METHOD) and `settings.json` (HYBRID) arrive
+  in the same upgrade and check each other.
 
 The slots `vY` added, removed or MOVED are in `inventory`'s *Markers* section, and a new
 or re-worded item of the §2 checklist in the next one: both derived from the tags. Then
