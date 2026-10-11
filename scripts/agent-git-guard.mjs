@@ -13,9 +13,10 @@
 // agent's ACCIDENTAL errors with ordinary commands. The command is read the way the
 // agent wrote it: split on shell operators, git found after leading assignments, shell
 // keywords, a few wrapper commands and git's own global options (-C, -c, --git-dir,
-// ...). The PowerShell tool's commands are read the same way, with PowerShell's escape
-// character, the backtick; the framework keeps that tool off (settings.json), and the
-// guard still reads it for a developer who turns it on. Whatever the spelling —
+// ...). The PowerShell tool's commands are read the same way, in PowerShell's syntax —
+// its backtick escape, script blocks, assignments, here-strings, block comments; the
+// framework keeps that tool off (settings.json), and the guard still reads it for a
+// developer who turns it on. Whatever the spelling —
 // `/usr/bin/git`, `C:\Program Files\Git\cmd\git.exe`, `Git` — git is git: Windows and macOS
 // find commands without regard to case. It does NOT look inside `sh -c`, `eval`, scripts
 // or interpreter code — that is deliberate evasion, outside this layer. Pushes are not
@@ -109,14 +110,26 @@ const REDIRECTION = /^[0-9&]*[<>]/; // `2>/dev/null`, `>out`, `2>&1`; a bare `>`
 // them: quotes, backslashes and line continuations are honoured; ; & | ( ) ` and
 // newlines separate commands, so `cd x && git switch y` and `v=$(git switch y)` both
 // surface `git switch y`, as does a `$(...)` inside double quotes; heredoc bodies are
-// skipped (they are data). Deliberately small: no expansion, and no look inside a string
-// handed to another shell (`sh -c`, `eval`). PowerShell's text (`powershell` true) differs
-// in one character: its escape is the backtick — a backtick before a line end continues
-// the line —, so a backslash is an ordinary character there, as in a Windows path.
+// skipped (they are data). Inside double quotes a backslash escapes only $ ` " \ and a
+// line end, as in bash: `"C:\Program Files\Git\cmd\git.exe"` keeps its backslashes.
+// Deliberately small: no expansion, and no look inside a string handed to another shell
+// (`sh -c`, `eval`). PowerShell's text (`powershell` true) differs: its escape is the
+// backtick — a backtick before a line end continues the line —, so a backslash is an
+// ordinary character there, as in a Windows path; braces separate commands too (script
+// blocks: `try { git … }`, `| ForEach-Object { git … }`), but `${name}` stays a variable;
+// `<#…#>` is a comment; and a here-string is data — `@'…'@` all of it, `@"…"@` but for its
+// `$(…)`, read as in double quotes.
 function splitCommands(text, powershell = false) {
   const escape = powershell ? '`' : '\\';
-  const separators = powershell ? ';&|()' : ';&|()`';
+  const separators = powershell ? ';&|(){}' : ';&|()`';
   const commands = [];
+  // The commands a `$(…)` runs inside a string body (up to its first closing parenthesis).
+  const substitutions = (body) => {
+    for (let k = body.indexOf('$('); k >= 0; k = body.indexOf('$(', k + 2)) {
+      const end = body.indexOf(')', k + 2);
+      commands.push(...splitCommands(body.slice(k + 2, end < 0 ? body.length : end), powershell));
+    }
+  };
   const heredocs = [];
   let words = [];
   let word = null;
@@ -127,6 +140,24 @@ function splitCommands(text, powershell = false) {
     const c = text[i];
     if (c === escape && text[i + 1] === '\n') { i += 2; continue; } // a line continuation
     if (c === escape) { word = (word ?? '') + (text[i + 1] ?? ''); i += 2; continue; }
+    if (powershell && text.startsWith('${', i)) { // ${name} is a variable, not a script block
+      const end = text.indexOf('}', i + 2);
+      const stop = end < 0 ? text.length : end + 1;
+      word = (word ?? '') + text.slice(i, stop); i = stop; continue;
+    }
+    if (powershell && text.startsWith('<#', i)) { // a block comment: a word break, nothing more
+      endWord();
+      const end = text.indexOf('#>', i + 2);
+      i = end < 0 ? text.length : end + 2; continue;
+    }
+    const here = powershell && c === '@' && /^@(['"])[ \t]*\n/.exec(text.slice(i, i + 80));
+    if (here) { // a here-string: its body runs from the next line to a line that starts with '@ or "@
+      const start = text.indexOf('\n', i) + 1;
+      const end = text.indexOf(`\n${here[1]}@`, start - 1); // start - 1: an empty body
+      const body = end < 0 ? text.slice(start) : text.slice(start, Math.max(start, end));
+      if (here[1] === '"') substitutions(body);
+      word = (word ?? '') + body; i = end < 0 ? text.length : end + 3; continue;
+    }
     if (c === "'") {
       const end = text.indexOf("'", i + 1);
       const stop = end < 0 ? text.length : end;
@@ -141,7 +172,9 @@ function splitCommands(text, powershell = false) {
           const stop = end < 0 ? text.length : end;
           commands.push(...splitCommands(text.slice(j + open, stop), powershell)); j = stop + 1; continue;
         }
-        if (text[j] === escape && j + 1 < text.length) { s += text[j + 1]; j += 2; } else { s += text[j]; j += 1; }
+        if (text[j] === escape && j + 1 < text.length && (powershell || '$`"\\\n'.includes(text[j + 1]))) {
+          s += text[j + 1]; j += 2;
+        } else { s += text[j]; j += 1; }
       }
       word = (word ?? '') + s; i = j + 1; continue;
     }
@@ -175,10 +208,30 @@ function splitCommands(text, powershell = false) {
 // `C:\Program Files\Git\cmd\git.exe` all run git.
 const commandName = (word) => (word ?? '').split(/[\\/]/).pop().toLowerCase().replace(/\.exe$/, '');
 
+// PowerShell runs the command that follows an assignment — `$out = git …`,
+// `[string]$s = git …`, `$log += git …`, glued as `$out=git …` — and a dot-sourced one,
+// `. git …`: those leading words go, the command stays.
+const PS_TARGET = /^(?:\[[^\]]*\])*\$/;
+const PS_ASSIGNED = /^(?:\[[^\]]*\])*\$[^=]*?(?:[-+*/%]|\?\?)?=(.*)$/s; // target and operator in one word
+const PS_OPERATOR = /^(?:[-+*/%]|\?\?)?=(.*)$/s; // the operator, maybe glued to what follows
+function skipPowerShellPrefix(words) {
+  let rest = words;
+  for (;;) {
+    if (rest[0] === '.') { rest = rest.slice(1); continue; }
+    if (!PS_TARGET.test(rest[0] ?? '')) return rest;
+    const glued = PS_ASSIGNED.exec(rest[0]);
+    if (glued) { rest = glued[1] ? [glued[1], ...rest.slice(1)] : rest.slice(1); continue; }
+    const operator = PS_OPERATOR.exec(rest[1] ?? '');
+    if (!operator) return rest;
+    rest = operator[1] ? [operator[1], ...rest.slice(2)] : rest.slice(2);
+  }
+}
+
 // The arguments of the git invocation in one simple command (after assignments,
 // keywords and wrappers), with the assignments that precede it; null when the command
 // is not git.
-function findGit(words) {
+function findGit(words, powershell = false) {
+  if (powershell) words = skipPowerShellPrefix(words);
   const assignments = {};
   let i = 0;
   for (;;) {
@@ -237,9 +290,12 @@ if (typeof command !== 'string') {
   process.stderr.write('agent-git-guard: no command in the hook input — blocking (fail-closed).\n');
   process.exit(BLOCKED);
 }
-// A Windows command can end its lines with CRLF: the \r would stick to the last word.
-const reasons = splitCommands(command.replace(/\r\n?/g, '\n'), input.tool_name === 'PowerShell')
-  .map(findGit).filter(Boolean).map(writeReason).filter(Boolean);
+// PowerShell ends a line at a CRLF. Bash does not: it keeps the \r as a character, and a
+// backslash before a CRLF escapes the \r, not the line end — so its text is read as it
+// is (a read with a stray \r then reads as a write: it fails safe).
+const powershell = input.tool_name === 'PowerShell';
+const reasons = splitCommands(powershell ? command.replace(/\r\n?/g, '\n') : command, powershell)
+  .map((words) => findGit(words, powershell)).filter(Boolean).map(writeReason).filter(Boolean);
 if (reasons.length) {
   process.stderr.write(
     `agent-git-guard: BLOCKED for a delegated agent (${input.agent_type ?? 'agent'}): ${[...new Set(reasons)].join('; ')}.\n`
