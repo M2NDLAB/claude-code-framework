@@ -62,12 +62,15 @@ if (missing.length) { console.error(missing.join(", ")); process.exit(3); }
 
 # The hook input for a command; "agent" as the second argument adds agent_id/agent_type;
 # the third names the tool (default Bash).
-# The command travels on stdin, as Claude Code hands the hook its input: on Windows, Git
-# Bash rewrites an ARGUMENT that looks like a POSIX path (/usr/bin/git becomes
-# C:/Program Files/Git/usr/bin/git) before node.exe sees it — measured in the CI.
+# The command travels on stdin, as Claude Code hands the hook its input, and as hex bytes
+# (od). Both measured in the CI on Windows: Git Bash rewrites an ARGUMENT that looks like a
+# POSIX path (/usr/bin/git becomes C:/Program Files/Git/usr/bin/git) before node.exe sees
+# it, and the \r of a command piped raw to node.exe did not reach it. Claude Code itself
+# sends JSON, where a \r is an escape, never a raw byte.
 hook_input() {
-  printf '%s' "$1" | "${NODE}" -e '
-const command = require("fs").readFileSync(0, "utf8");
+  printf '%s' "$1" | od -An -v -tx1 | "${NODE}" -e '
+const hex = require("fs").readFileSync(0, "utf8").replace(/\s+/g, "");
+const command = Buffer.from(hex, "hex").toString("utf8");
 const [who, tool] = process.argv.slice(1);
 const input = { session_id: "self-test", hook_event_name: "PreToolUse", tool_name: tool || "Bash",
   tool_input: { command }, cwd: process.cwd() };
@@ -258,7 +261,7 @@ for c in "${PS_READS[@]}"; do
 done
 # Not vacuous: the CRLF read above reaches the guard with its \r (JSON writes it as \r).
 [[ "$(hook_input $'git log\r\ngit --no-optional-locks status\r\n' agent PowerShell)" == *'status\r\n'* ]] \
-  || fail "a CRLF command reached the guard without its \\r: the CRLF cases prove nothing"
+  || fail "a CRLF command reached the guard without its \\r (bash holds x\\r as $(printf '%s' $'x\r' | od -An -tx1 | xargs)): the CRLF cases prove nothing"
 # Through Bash too (Git Bash on Windows), git may be spelled git.exe, Git or a Windows path —
 # double-quoted too, where bash keeps a backslash before an ordinary character. And bash
 # keeps a \r as a character: before CRLF, a backslash escapes the \r, and the line ends.
