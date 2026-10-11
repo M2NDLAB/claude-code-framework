@@ -290,6 +290,27 @@ with a case in a self-test.
   measuring git's own refusal. Without the first half, the self-test fails (the unstaged
   edit).
 
+## The CI's runs (task 9)
+**Round 1** — run 38154275640, on task 7's commit `c22c9b3`, pushed by the user:
+
+| Image | Result | Time | Measured versions |
+| --- | --- | --- | --- |
+| ubuntu-24.04 | green: `make test-scripts`, the upgrade check's self-test | 68 s | bash 5.2.21, git 2.55.0, Node.js 22.23.3, GNU make 4.3, GNU awk 5.2.1 |
+| macos-26 | green, the same two | 128 s | bash 3.2.57, git 2.55.0, Node.js 24.20.0, GNU make 3.81, BWK awk 20200816 |
+| windows-2025 | red at once: `test-hooks-install.sh`, case 1 — `ln: failed to create symbolic link '…/.git/hooks/pre-commit': No such file or directory` | 23 s | Git Bash 5.3.15, git 2.55.0.windows.5, Node.js 22.23.3, GNU make 4.4.1 (Chocolatey), GNU awk 5.4.1 |
+
+- Measured now, expected in phase 1: on the Windows runner `core.autocrlf` is `true`, from
+  `C:/Program Files/Git/etc/gitconfig`; and the scripts ran — no `\r` error —: task 3's
+  `.gitattributes` holds.
+- Not mawk: Ubuntu's runner resolves `awk` to GNU awk, so the BWK/mawk worry of phase 1 is
+  moot there.
+- Fixed: the case plants a dangling link with `ln -s`, which Git Bash cannot do. It is now
+  skipped there, said aloud (`SKIP (dangling symlink): …`), and the install still runs for
+  the cases after it; checked on macOS with an `ln` failing as Git Bash's does.
+- `make` stops at the first failing self-test: the rest of Windows stayed unseen. The
+  workflow now runs each self-test on its own after a failure (skipped when all pass), and
+  the upgrade check's self-test even after one — a single run shows every failure.
+
 ## Resumption notes
 - The CI runs only on what the user pushes: the first push of this branch came after
   task 7 (round 1, below). The branch is public from then on: no commit is rewritten,
