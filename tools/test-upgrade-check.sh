@@ -34,7 +34,9 @@
 #   7. the line-end step of SETUP.md, Step 3 — read from SETUP.md, run on the project as
 #      Git for Windows checks it out: on a clean tree it leaves no framework file with CRLF
 #      and the project's own files as they were; with a change not yet committed on a
-#      framework file — unstaged, staged, or staged only — it refuses and keeps the change.
+#      framework file — unstaged, staged, staged only, or hidden from git diff by an
+#      assume-unchanged or skip-worktree mark — it refuses and keeps the change and the
+#      index; before .gitattributes holds the framework's files to LF, it refuses too.
 #   8. read-only — the four subcommands run to their end and leave the project and the
 #      framework exactly as they were (scripts/repo-snapshot.sh, the tracked files, the
 #      index, the config, the hooks).
@@ -461,20 +463,21 @@ echo "PASS (upgrade-check line ends): with CRLF line ends the graft, the upgrade
 # --- Case 7: the line-end step of Step 3 ------------------------------------------------
 # SETUP.md, Step 3, "Line ends, first": on a working tree with CRLF line ends, it rewrites
 # the framework's paths with LF from the last commit — so it must refuse, rewriting
-# nothing, when those paths carry a change not yet committed. The block is READ from
-# SETUP.md, never retyped here.
+# nothing, when those paths carry a change not yet committed, and when no .gitattributes
+# holds them to LF yet. The block is READ from SETUP.md, never retyped here.
 step="${workdir}/line-end-step.sh"
 awk '/\*\*Line ends, first/ { f = 1 } f && /^  ```bash$/ { b = 1; next } b && /^  ```$/ { exit } b { sub(/^  /, ""); print }' \
   "${REPO_ROOT}/SETUP.md" > "${step}"
 [ -s "${step}" ] || fail "line-end step: no bash block under \"Line ends, first\" in SETUP.md"
-# windows_project <name>: the project as Git for Windows checks it out (a clone with
-# core.autocrlf=true), a file of its own outside the framework's paths, and the framework's
-# .gitattributes brought in, as the step's sentence says.
+# windows_project <name> [without-attributes]: the project as Git for Windows checks it out
+# (a clone with core.autocrlf=true), a file of its own outside the framework's paths, and —
+# unless told otherwise — the framework's .gitattributes brought in, as the step's sentence
+# says.
 windows_project() {
   g clone -q -c core.autocrlf=true "${PRJ}" "${workdir}/$1"
   printf 'notes of the project\r\n' > "${workdir}/$1/notes.txt"
   g -C "${workdir}/$1" add notes.txt && g -C "${workdir}/$1" commit -q -m "docs: the project's own notes"
-  cp "${REPO_ROOT}/.gitattributes" "${workdir}/$1/.gitattributes"
+  [ "${2:-}" = without-attributes ] || cp "${REPO_ROOT}/.gitattributes" "${workdir}/$1/.gitattributes"
 }
 # run_step <dir>: the step, from the project's root; its exit code in ${rc}.
 run_step() { set +e; ( cd "$1" && bash "${step}" ) > "${out}" 2>&1; rc=$?; set -e; }
@@ -486,24 +489,35 @@ run_step "${workdir}/win-clean"
 [ "$(eol_count "${workdir}/win-clean" crlf)" -eq 0 ] || fail "line-end step: framework files left with CRLF"
 cksum "${workdir}/win-clean/notes.txt" | diff "${workdir}/notes.before" - >/dev/null || fail "line-end step: the project's own file changed"
 # A change not yet committed on a framework file — unstaged; staged; staged only, the
-# working file back to the commit's text: refused every time, and kept.
-for kind in unstaged staged staged-only; do
+# working file back to the commit's text; under an assume-unchanged or a skip-worktree mark,
+# where git diff sees nothing: refused every time, the change and the index kept.
+for kind in unstaged staged staged-only assume-unchanged skip-worktree; do
   windows_project "win-${kind}"
   w="${workdir}/win-${kind}"
+  case "${kind}" in assume-unchanged | skip-worktree) g -C "${w}" update-index --"${kind}" CLAUDE.md ;; esac
   printf 'An answer of the project, not yet committed.\r\n' >> "${w}/CLAUDE.md"
   case "${kind}" in staged*) g -C "${w}" add CLAUDE.md ;; esac
   [ "${kind}" = staged-only ] && g -C "${w}" show HEAD:CLAUDE.md > "${w}/CLAUDE.md"
   cksum "${w}/CLAUDE.md" > "${workdir}/claude.before"
+  g -C "${w}" ls-files -s -v > "${workdir}/index.before"
   before="$(eol_count "${w}" crlf)"
   run_step "${w}"
-  [ "${rc}" -ne 0 ] || fail "line-end step with a ${kind} change: it ran instead of refusing"
-  cksum "${w}/CLAUDE.md" | diff "${workdir}/claude.before" - >/dev/null || fail "line-end step with a ${kind} change: the change was overwritten"
-  [ "$(eol_count "${w}" crlf)" -eq "${before}" ] || fail "line-end step with a ${kind} change: files were rewritten before the refusal"
+  [ "${rc}" -ne 0 ] || fail "line-end step, a change (${kind}): it ran instead of refusing"
+  cksum "${w}/CLAUDE.md" | diff "${workdir}/claude.before" - >/dev/null || fail "line-end step, a change (${kind}): the change was overwritten"
+  g -C "${w}" ls-files -s -v | diff "${workdir}/index.before" - >/dev/null || fail "line-end step, a change (${kind}): the index changed before the refusal"
+  [ "$(eol_count "${w}" crlf)" -eq "${before}" ] || fail "line-end step, a change (${kind}): files were rewritten before the refusal"
   case "${kind}" in
-    staged*) g -C "${w}" diff --cached --quiet -- CLAUDE.md && fail "line-end step with a ${kind} change: the staged change was dropped" ;;
+    staged*) g -C "${w}" diff --cached --quiet -- CLAUDE.md && fail "line-end step, a change (${kind}): the staged change was dropped" ;;
   esac
 done
-echo "PASS (upgrade-check line-end step): SETUP.md's step leaves no framework file with CRLF and the project's own files untouched; with a change not yet committed, staged or not, it refuses and keeps it."
+# Before .gitattributes is brought over, the step would write CRLF again and look done.
+windows_project win-no-attributes without-attributes
+w="${workdir}/win-no-attributes"
+g -C "${w}" ls-files -s -v > "${workdir}/index.before"
+run_step "${w}"
+[ "${rc}" -ne 0 ] || fail "line-end step without .gitattributes: it ran instead of refusing"
+g -C "${w}" ls-files -s -v | diff "${workdir}/index.before" - >/dev/null || fail "line-end step without .gitattributes: the index changed before the refusal"
+echo "PASS (upgrade-check line-end step): SETUP.md's step leaves no framework file with CRLF and the project's own files untouched; with a change not yet committed — staged or not, or hidden by an assume-unchanged or skip-worktree mark — it refuses and keeps it and the index; before .gitattributes holds the files to LF, it refuses."
 
 # --- Case 8: read-only ----------------------------------------------------------------
 snapshot() {

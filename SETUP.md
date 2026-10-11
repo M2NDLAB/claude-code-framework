@@ -671,29 +671,39 @@ from a hand-written list; the memory's titles and field labels to rename; and th
 
 ### Step 3 — Reconcile by class
 
-- **Line ends, first — a working tree with CRLF.** Where `git config core.autocrlf` prints
-  `true` — Git for Windows' default — and no `.gitattributes` holds the framework's paths
-  to LF yet, the framework's files carry CRLF in the working tree, and every 3-way below
-  would conflict on every line. Before any other change of this step, bring
-  `.gitattributes` over (copied, or integrated after the project's own lines, below), then
-  rewrite the framework's paths, and only them, from the last commit:
+- **Line ends, first — a working tree with CRLF.** Where the framework's files carry CRLF
+  in the working tree — `git ls-files --eol -- CLAUDE.md` reads them as w/crlf, as Git
+  for Windows writes them by default (`core.autocrlf` `true`) — every 3-way below would
+  conflict on every line. Before any other change of this step, bring `.gitattributes`
+  over (copied, or integrated after the project's own lines, below), then rewrite the
+  framework's paths, and only them, from the last commit:
 
   ```bash
-  if git diff --quiet HEAD -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts; then
-    git rm --cached -r -q -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts \
-      && git checkout HEAD -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts
-  else
+  if [ "$(git check-attr eol -- CLAUDE.md)" != "CLAUDE.md: eol: lf" ]; then
+    echo "refused: no .gitattributes holds the framework's files to LF yet; bring it over first" >&2
+    false
+  elif git ls-files -v -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts | grep -q '^[[:lower:]S] '; then
+    echo "refused: a framework file is marked assume-unchanged or skip-worktree; clear the mark first" >&2
+    false
+  elif ! git diff --quiet HEAD -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts; then
     echo "refused: the framework's paths carry changes not yet committed; commit them first" >&2
     false
+  else
+    git rm --cached -r -q -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts \
+      && git checkout HEAD -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts
   fi
   ```
 
   `git checkout HEAD` overwrites what those paths hold, so the step first refuses —
   rewriting nothing — when their files differ from the last commit, a change staged or
-  not; a change only staged, its file back to the commit's text, makes `git rm --cached`
-  refuse by itself. Commit the change, and run the step again. A plain
-  `git checkout -- <paths>` is not enough: git takes the files for up to date and rewrites
-  nothing.
+  not, and when a file carries a mark that hides its changes from `git diff`: with
+  `assume-unchanged` the step erased an edit, with `skip-worktree` `git rm --cached` stopped
+  halfway and left the rest of the framework staged as deleted (both measured). A change
+  only staged, its file back to the commit's text, makes `git rm --cached` refuse by
+  itself. Commit the change, or clear the mark (`git update-index --no-assume-unchanged`,
+  `--no-skip-worktree`), and run the step again. Before `.gitattributes` is in place the
+  step would write CRLF again and look done: it refuses. A plain `git checkout -- <paths>`
+  is not enough: git takes the files for up to date and rewrites nothing.
 - **The strategy, file by file, from the measure** (`inventory`, Step 2). Where a file's
   3-way leaves few lines in conflict, it stays surgical: take it. Where most of a file is
   in conflict — a translation release, a wide rewrite — rebuild it from `vY` and
