@@ -75,8 +75,8 @@ and push are the user's.
 - [x] 9. No Italian residue in the artifacts, the memory checked prospectively — the check and the fixes — commit: 603fa6b
 - [x] 10. `LEARNINGS.md`: the applied-entry convention in its format comment; IMP-049 and IMP-068 applied, in their final form — commit: 88513b3
 - [x] 11. ONE reviewer + fixes — commit: 38daa59
-- [ ] 12. `/checkpoint` — commit: —
-- [ ] 13. `/integrate`: the CHANGELOG 1.4.1 entry; the two blocks — commit: —
+- [x] 12. `/checkpoint` — commit: af1b223
+- [x] 13. `/integrate`: the CHANGELOG 1.4.1 entry; the two blocks — commit: the CHANGELOG commit (its own sha cannot be written in it)
 
 ## Assessment (task 2) — read-only, five analysts
 One workflow of five read-only analysts over `f1357c8` (payload impurities, lists that

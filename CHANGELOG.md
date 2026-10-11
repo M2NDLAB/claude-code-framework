@@ -7,6 +7,118 @@ SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [1.4.1] — 2026-10-11
+
+### Fixed
+- **The payload carries nothing that only holds in the framework's repository**
+  (IMP-049). A project received text it could not use and pruned it by hand at every
+  upgrade:
+  - the blocks that hold only here — the hybrid-regime box of `docs/01` and its
+    resumption patch, the plan block of `sessions/README.md`, the closing box of
+    `docs/06`, the moot clause of `/harvest-framework`, two sentences of the
+    `LEARNINGS.md` header — moved to `CONTRIBUTING.md`; `docs/01` keeps one conditional
+    line at its top, so an agent in the framework's repository still plans, records its
+    decisions and resumes from the session note;
+  - the numbers of the framework's IMP backlog — 23 at v1.4.0, in the docs, a command, a
+    guide README and the scripts' headers and self-test labels: orphans in a project, or
+    collisions with its own numbering — are gone; the why stays in prose, and the
+    self-tests print descriptive labels;
+  - of the 14 pointers to files a project does not have, 2 left with the moved blocks and
+    12 are rephrased, or labelled as the framework's (`SETUP.md`, `CONTRIBUTING.md`, the
+    README's *Philosophy*, `LICENSE`) — the SessionStart message of `settings.json` among
+    them;
+  - `docs/04`'s criterion for a method/tooling project no longer reads as the framework's
+    own ("as this framework is"); that one stays in `CONTRIBUTING.md`.
+- **Lists that claimed completeness and were not complete** (IMP-068):
+  - the production-artefact slot of `/new-component` was written `[TO BE DEFINED]`,
+    invisible to the setup's and the upgrade's greps since v0.1.0;
+  - `checkpoint.md`'s two placeholders, in §2 of `SETUP.md` with no marker, now carry
+    one, in a paragraph setup deletes once they are replaced;
+  - the brownfield `Makefile` row of `SETUP.md` names `test-scripts`; step 1 names
+    `tools/` among what is not copied; "Its subcommands:" names `classes`;
+  - the backlog's sections include Rejected (`/harvest-framework`, the `INDEX.md` and
+    `STATE.md` templates);
+  - the hooks self-test reads the generator's hook loop instead of a copy of it; the
+    snapshot self-test counts the traces it checks;
+  - two counts that no program can keep true stop counting: the provenance pin is no
+    longer "the FOURTH species", nor the upgrades "three".
+- **Italian residue** in the payload: the example names of the `plans/` and `sessions/`
+  guides, the hooks self-test's fixture path, the calque `<id-prompt>` (`<prompt-id>`
+  now, as `docs/01` has it), guillemets as quotation marks in `docs/04` and `SETUP.md`.
+- `/harvest-framework` counts only the marker lines: its grep is anchored at the start of
+  the line, and a hit counts only inside an entry — the format comment of `LEARNINGS.md`
+  shows the marker without being one.
+- `docs/06` and `SETUP.md` (§5) placed the IMP format "in the header" of `LEARNINGS.md`:
+  it is its format comment, in the body.
+
+### Added
+- **`tools/docs-check.mjs`, the framework repository's mechanical documentation check**,
+  and its self-test `tools/test-docs-check.sh`. `make test-scripts` runs both, behind a
+  presence guard: in a project, where `tools/` is never copied, the line does nothing. It
+  reads the working tree, the tags and the commits, writes nothing, and fails on:
+  - the payload's purity — a framework IMP number; a pointer to a file a project does not
+    have, by name or section, link, cited path, `@`-import or wikilink, each mention on
+    its own, neither labelled as the framework's nor conditional; a slot in a short form
+    or broken by a wrap;
+  - the inventories — commands, process targets, self-tests, the script and tool tables,
+    the docs index, the README tree — against the files;
+  - tags against the CHANGELOG, both ways, but the one release being prepared; the
+    entries' form, order and dates, and the chain of their *Upgrading* notes;
+  - an old version presented as the current one — next to a currency word or after a
+    marker, in a heading, a `version:` line, a checkout or a static badge;
+  - internal links — Markdown links and anchors, wikilinks, `@`-imports, cited paths, and
+    section titles cited with their file (a phrase in quotes right after a file name is
+    read as one), in the docs and in the scripts' comments and messages;
+  - the lists that declare themselves complete — §2 against the payload's markers, with a
+    tripwire on a slot added since the latest tag; the class table against every tag, and
+    the classes of `SETUP.md`; the copy lists and what is not copied, the counts in prose,
+    the subcommands, the commit types, the memory's titles and labels;
+  - Italian residue in the artifacts, the file names and the commits since v1.1.0.
+  What its rules cannot tell apart is declared in an allow-list, each entry with its
+  reason; an entry that matches nothing fails, and none hides another finding of its
+  line. Node.js, not bash: no GNU/BSD difference, CRLF line ends read alike; an error of
+  the check itself exits 2, never a verdict. Mutation-tested: each place where the check
+  reports, and each form of a pointer, a version, a section title or an Italian word it
+  names, disabled in turn, makes the self-test fail.
+- IMP-049 and IMP-068 applied.
+
+### Changed
+- The format comment of `LEARNINGS.md`, and step 2 of `docs/06` (*Applying approved
+  proposals*), say what becomes of an applied entry: moved under Applied, rewritten in
+  its final form, citing the session note of its evidence — what the framework's own
+  applied entries did, made explicit. Older entries are not backfilled.
+
+**Upgrading from 1.4.0** (from an earlier release, also follow the entries in between —
+Step 2 of the upgrade says how they combine):
+- METHOD files — bring them over from the tag, after the pre-flight of edge case 7:
+  `.claude/docs/01-task-planning.md`, `.claude/docs/03-security-gate.md`,
+  `.claude/docs/04-git-workflow.md`, `.claude/docs/06-self-improvement.md`,
+  `.claude/commands/harvest-framework.md`, `.claude/commands/lint-memory.md`,
+  `scripts/repo-snapshot.sh` and the three `scripts/test-*.sh`. Where edge case 7 flags
+  one as customised because the project pruned the framework-only text or the IMP
+  numbers by hand, and its diff against `vX` shows only that pruning, take `vY`'s copy;
+  any other customisation makes it a hybrid (3-way).
+- HYBRID files (3-way): `.claude/settings.json` (the SessionStart message), `Makefile` (one
+  guarded line in `test-scripts`), `scripts/hooks-install.sh` (a comment),
+  `.claude/commands/integrate.md` (a sentence of its header). `CLAUDE.md` changes only
+  the licence example of the technical rules, which every project replaced at setup:
+  keep the project's section. `.claude/commands/checkpoint.md` gains a paragraph whose
+  marker names its two placeholders: where the project already replaced them, delete the
+  paragraph — its answers stand. `.claude/commands/new-component.md`: the
+  production-artefact slot now carries the full marker; where the project answered it,
+  keep the answer.
+- MEMORY TEMPLATES (3-way): `sessions/README.md` loses its plan block and the IMP number,
+  and its example names change; `plans/README.md` changes its example name and
+  `<id-prompt>` to `<prompt-id>`; the header of `LEARNINGS.md` loses two sentences, its
+  format comment gains the lines on applied entries. A project that pruned the same text
+  merges clean; one that customised a moved block meets a conflict there — the text it
+  kept holds only in the framework's repository.
+- `STATE.md`, `TREE.md` and `INDEX.md` changed in the framework's templates only (wording,
+  the Rejected section, `<prompt-id>`): the project's own files are not reconciled, and
+  nothing migrates.
+- No hook changes (`hooks-install.sh` changed a comment): `make hooks-install` is not
+  needed from 1.4.0; `make test-scripts` as usual.
+
 ## [1.4.0] — 2026-10-10
 
 ### Added
