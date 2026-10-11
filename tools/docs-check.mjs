@@ -354,6 +354,27 @@ function checkPointers() {
 }
 
 
+// --- The payload: every slot in the full form --------------------------------------------
+// The setup and the upgrade find the slots with a grep for the full marker, in its English
+// and its legacy Italian form. A slot in the short form escapes both, and the upgrade
+// check's slot tracking.
+const MARKER_RE = /TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP/
+function checkShortSlots() {
+  section('Payload — every slot in the full, grep-visible form')
+  let slots = 0
+  for (const p of PAYLOAD) {
+    const mask = payloadMask(p)
+    lines(p).forEach((l, i) => {
+      if (!mask[i]) return
+      slots += (l.match(new RegExp(MARKER_RE.source, 'g')) ?? []).length
+      for (const m of l.matchAll(/\[(TO BE DEFINED|DA DEFINIRE)(?! A[TL] SETUP\])/g)) {
+        report('short-slot', p, i + 1, `"${l.slice(m.index, m.index + 24).trim()}…": a slot the setup and upgrade greps cannot see — write [TO BE DEFINED AT SETUP] on one line`)
+      }
+    })
+  }
+  settle('short-slot', `${plural(slots, 'marker')} in the full form, none in the short one`)
+}
+
 // --- Inventories: the documents' lists against the files they enumerate ------------------
 // The mechanical twin of /lint-memory's check 11, which projects run by hand.
 const childrenOf = (dir) => new Set(FILES.filter((p) => p.startsWith(`${dir}/`))
@@ -668,6 +689,213 @@ function titleIn(p, ref) {
   })
 }
 
+// --- Lists that declare themselves complete ----------------------------------------------
+// A list that claims completeness is believed, so its gap is silent: each one is compared,
+// both ways, with the set it enumerates. A list with no structure a program can extract
+// stops claiming completeness instead.
+const SLOT_RE = /TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP/g
+const slotCount = (s) => (s.match(SLOT_RE) ?? []).length
+// The header region of a LEARNINGS.md text: where its slots live (as in upgrade-check.sh).
+const headerOf = (s) => s.split('\n').slice(0, Math.max(0, s.split('\n').findIndex((l) => /^## /.test(l)))).join('\n')
+const slotsOf = (p, s = text(p)) => slotCount(p === LEARNINGS ? headerOf(s) : s)
+// shortNames(p): the names a document gives a payload file — its path, then without the
+// .claude/, docs/, commands/ and memory/ prefixes (a bare README.md is no name).
+function shortNames(p) {
+  const out = [p]
+  let q = p
+  for (const pre of ['.claude/', 'docs/', 'commands/', 'memory/']) if (q.startsWith(pre)) { q = q.slice(pre.length); out.push(q) }
+  return out.filter((n) => n !== 'README.md')
+}
+// The §2 checklist items of a SETUP.md text: each "- [ ]" line with its continuation lines.
+function checklistItems(s) {
+  const ls = s.split('\n')
+  const from = ls.findIndex((l) => /^## 2\./.test(l))
+  const out = []
+  for (let i = from + 1; from >= 0 && i < ls.length && !/^## 3\./.test(ls[i]); i++) {
+    if (/^- \[ \]/.test(ls[i])) out.push({ text: ls[i], line: i + 1 })
+    else if (/^\s+\S/.test(ls[i]) && out.length && !/^#/.test(ls[i])) out[out.length - 1].text += ` ${ls[i].trim()}`
+  }
+  return out
+}
+// The class table of tools/upgrade-check.sh, read as text — never run: each arm of the
+// case statement in classify(), its patterns and its class.
+function classArms() {
+  const body = /^classify\(\) \{\n([\s\S]*?)\n\}/m.exec(text(UPGRADE_CHECK))?.[1] ?? ''
+  const cases = /case "\$1" in\n([\s\S]*?)\n\s*esac/.exec(body)?.[1] ?? ''
+  return cases.replace(/\\\n/g, ' ').split(';;').map((a) => a.replace(/\s+/g, ' ').trim()).filter(Boolean)
+    .map((a) => /^(.*?)\)\s*echo ([A-Z-]+)$/.exec(a)).filter(Boolean)
+    .map((m) => ({ patterns: m[1].split('|').map((s) => s.trim()), cls: m[2] }))
+}
+const globRe = (g) => new RegExp(`^${g.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*')}$`)
+function checkLists() {
+  section('Lists — what the documents enumerate against what exists')
+  // §2 of SETUP.md, "the complete list" of the slots, against the payload's markers: every
+  // file with a slot is named, every payload file named has a slot.
+  const items = checklistItems(text(SETUP))
+  if (items.length < 15) report('list', SETUP, 1, `only ${items.length} items found in §2: the extraction is wrong`)
+  const s2 = items.map((i) => i.text).join('\n')
+  const slotted = PAYLOAD.filter((p) => slotsOf(p) > 0)
+  for (const p of slotted) {
+    if (!shortNames(p).some((n) => s2.includes(n))) {
+      report('list', p, lines(p).findIndex((l) => /TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP/.test(l)) + 1 || 1, `a slot SETUP.md §2 never names: add its item (the "complete list" of the slots)`)
+    }
+  }
+  for (const it of items) {
+    for (const t of backticked(it.text)) {
+      const named = PAYLOAD.filter((p) => shortNames(p).includes(t))
+      for (const p of named) if (!slotsOf(p)) report('list', SETUP, it.line, `§2 names ${p}, which carries no [TO BE DEFINED AT SETUP] marker: mark the slot, or the greps never find it`)
+    }
+  }
+  // The tripwire: a file that gained a slot since the latest release needs a changed §2 item.
+  const prevSetup = LATEST_TAG ? gitOr(['show', `${LATEST_TAG.name}:${SETUP}`]) : null
+  if (prevSetup) {
+    const prevItems = checklistItems(prevSetup)
+    for (const p of slotted) {
+      const before = gitOr(['show', `${LATEST_TAG.name}:${p}`]) ?? ''
+      if (slotsOf(p) <= slotsOf(p, before)) continue
+      const names = shortNames(p)
+      const pick = (list) => list.filter((i) => names.some((n) => i.text.includes(n))).map((i) => i.text).join('\n')
+      if (pick(items) === pick(prevItems)) report('list', p, 1, `${slotsOf(p, before)} → ${slotsOf(p)} slot markers since ${LATEST_TAG.name}, but its §2 item is unchanged: name the new slot there`)
+    }
+  }
+  // The class table against the payload of the working tree and of every release tag, both
+  // ways; then the classes of SETUP.md, *The mental model*, against it.
+  const arms = classArms()
+  const classOf = (p) => arms.find((a) => a.patterns.some((g) => globRe(g).test(p)))?.cls ?? 'NONE'
+  if (arms.length < 6) report('list', UPGRADE_CHECK, 1, `only ${arms.length} arms read from classify(): the extraction is wrong`)
+  const seen = new Set(FILES.filter(underPayload))
+  for (const p of seen) if (classOf(p) === 'NONE') report('list', UPGRADE_CHECK, 1, `${p} has no class in classify()`)
+  for (const t of TAGS) {
+    for (const p of (gitOr(['ls-tree', '-r', '--name-only', t.name, '--', ...PAYLOAD_PATHS]) ?? '').split('\n').filter(Boolean)) {
+      seen.add(p)
+      if (classOf(p) === 'NONE') report('list', UPGRADE_CHECK, 1, `${p} (at ${t.name}) has no class in classify()`)
+    }
+  }
+  for (const a of arms) for (const g of a.patterns) {
+    if (!g.includes('*') && !seen.has(g)) report('list', UPGRADE_CHECK, 1, `classify() names ${g}, a file no release and no working tree holds`)
+  }
+  const BULLETS = { METHOD: ['METHOD'], HYBRID: ['HYBRID'], 'MEMORY TEMPLATES': ['TEMPLATE', 'LEARNINGS'], 'PROJECT-MEMORY': ['PROJECT-MEMORY', 'LEARNINGS'] }
+  const model = region(SETUP, /^### The mental model/, /^> \*\*Why hybrids/)
+  const current = FILES.filter(underPayload)
+  for (const [name, classes] of Object.entries(BULLETS)) {
+    const b = item(SETUP, new RegExp(`^- \\*\\*${name}\\*\\*`))
+    if (!b || !model.some((l) => l.line === b.line)) { report('list', SETUP, model[0]?.line ?? 1, `no "- **${name}**" bullet in The mental model`); continue }
+    const named = new Set()
+    for (const t of backticked(b.text)) {
+      if (t.endsWith('/')) continue
+      const range = /^(.*\/)(\d\d)-(\d\d)$/.exec(t)
+      const files = range ? current.filter((p) => p.startsWith(range[1]) && posix.basename(p).slice(0, 2) >= range[2] && posix.basename(p).slice(0, 2) <= range[3])
+        : t.includes('*') ? current.filter((p) => globRe(t).test(p))
+          : current.filter((p) => p === t || shortNames(p).includes(t) || p.endsWith(`/${t}`))
+      if (files.length !== 1 && !range && !t.includes('*')) continue
+      for (const p of files) {
+        named.add(p)
+        if (!classes.includes(classOf(p))) report('list', SETUP, b.line, `the ${name} bullet names ${p}, which classify() puts in ${classOf(p)}`)
+      }
+    }
+    if (name === 'HYBRID') for (const p of current) if (classOf(p) === 'HYBRID' && !named.has(p)) report('list', SETUP, b.line, `the HYBRID bullet lacks ${p}, a HYBRID of classify()`)
+  }
+  // The copy lists of the payload, against PAYLOAD_PATHS.
+  const paths = new Set(PAYLOAD_PATHS)
+  const copies = [[SETUP, /^Copy into the root of the new repo/], ['README.md', /^1\. \*\*Copy\*\*/], ['CONTRIBUTING.md', /^- the PAYLOAD that setup copies/]]
+  for (const [p, re] of copies) {
+    const it = item(p, re)
+    if (!it) { report('list', p, 1, 'the copy list of the payload is gone (its first words changed?)'); continue }
+    compareSets('list', p, it.line, 'the copy list', paths, new Set(backticked(it.text).map((t) => t.replace(/\/$/, ''))), 'PAYLOAD_PATHS of tools/upgrade-check.sh')
+  }
+  // Step 2's diff pathspec covers exactly the files reconciled from the framework's diff.
+  const at = lines(SETUP).findIndex((l) => /diff vX vY -- \.claude\/docs/.test(l))
+  if (at < 0) report('list', SETUP, 1, 'Step 2\'s diff pathspec is gone')
+  else {
+    let spec = ''
+    for (let i = at; i < lines(SETUP).length; i++) { spec += ` ${lines(SETUP)[i].replace(/\\$/, '')}`; if (!/\\$/.test(lines(SETUP)[i])) break }
+    const tokens = spec.split(' -- ')[1].trim().split(/\s+/)
+    const covered = new Set(current.filter((p) => tokens.some((t) => p === t || p.startsWith(`${t}/`))))
+    const wanted = new Set(current.filter((p) => ['METHOD', 'HYBRID', 'TEMPLATE'].includes(classOf(p))))
+    compareSets('list', SETUP, at + 1, 'Step 2\'s diff pathspec', wanted, covered, 'the METHOD, HYBRID and TEMPLATE files')
+  }
+  // What setup does NOT copy is said where the payload is defined.
+  const outside = new Set(FILES.map((p) => p.split('/')[0]).filter((t) => !paths.has(t)))
+  const step1 = region(SETUP, /^## 1\./, /^## 2\./).map((l) => l.text).join('\n')
+  const box = item(SETUP, /^> \*\*Outside the upgrade payload/)
+  for (const t of outside) {
+    const name = FILESET.has(t) ? t : `${t}/`
+    if (!step1.includes(name)) report('list', SETUP, lines(SETUP).findIndex((l) => /^## 1\./.test(l)) + 1, `step 1 never says ${name} stays out of the copy`)
+    if (box && !box.text.includes(name)) report('list', SETUP, box.line, `the "Outside the upgrade payload" box lacks ${name}`)
+  }
+  // Counts written in prose, against what they count.
+  const hooks = (/^for hook in (.*); do$/m.exec(text('scripts/hooks-install.sh'))?.[1] ?? '').split(/\s+/).filter(Boolean)
+  const counted = (p, re, n, what) => {
+    lines(p).forEach((l, i) => {
+      for (const m of l.matchAll(re)) {
+        const w = m[1].toLowerCase()
+        const k = /^\d+$/.test(w) ? Number(w) : NUMBER_WORDS.indexOf(w)
+        if (k >= 0 && k !== n) report('list', p, i + 1, `"${m[0]}", but ${what} ${n}`)
+      }
+    })
+  }
+  counted(SETUP, /It installs (\w+) hooks/g, hooks.length, 'the hook loop of scripts/hooks-install.sh has')
+  const cases = region(SETUP, /^### Edge cases/, /^> \*\*Outside the upgrade payload/).filter((l) => /^\d+\. \*\*/.test(l.text))
+  cases.forEach((c, i) => { if (!c.text.startsWith(`${i + 1}. `)) report('list', SETUP, c.line, `edge case ${i + 1} is numbered "${c.text.split(' ')[0]}"`) })
+  counted(SETUP, /These (\w+) cases/g, cases.length, 'the numbered edge cases are')
+  const guides = FILES.filter((p) => /^\.claude\/memory\/[^/]+\/README\.md$/.test(p)).length
+  for (const p of PRESENT.filter(isMd)) counted(p, /\bthe (\w+) guide READMEs\b/g, guides, 'the guide READMEs under .claude/memory/ are')
+  counted('README.md', /\+ (\d+) subfolders/g, [...childrenOf('.claude/memory')].filter((c) => c.endsWith('/')).length, 'the subfolders of .claude/memory/ are')
+  for (const p of FILES.filter(isSelfTest)) {
+    const head = lines(p).slice(0, lines(p).findIndex((l) => !/^#/.test(l)))
+    const listed = head.filter((l) => /^#\s+\d+\.\s/.test(l)).length
+    const word = /\b(\w+) cases:/i.exec(head.join('\n'))?.[1]?.toLowerCase()
+    const markers = lines(p).filter((l) => /^# --- Case \d+/.test(l)).length
+    if (!listed && !word) continue
+    if (listed && listed !== markers) report('list', p, 1, `the header lists ${listed} cases, the file marks ${markers} ("# --- Case N")`)
+    if (word && NUMBER_WORDS.indexOf(word) !== markers) report('list', p, 1, `the header says "${word} cases", the file marks ${markers}`)
+  }
+  // The upgrade check's subcommands, wherever they are listed.
+  const main = /^main\(\) \{\n([\s\S]*?)\n\}/m.exec(text(UPGRADE_CHECK))?.[1] ?? ''
+  const subs = new Set([...main.matchAll(/^\s+([a-z]+)\) cmd_/gm)].map((m) => m[1]))
+  const header = region(UPGRADE_CHECK, /^# Subcommands:/, /^#\s*$|^[^#]/).map((l) => /^#\s{3}([a-z]+)\s/.exec(l.text)?.[1]).filter(Boolean)
+  compareSets('list', UPGRADE_CHECK, 1, 'the header\'s Subcommands', subs, new Set(header), 'the dispatcher of main()')
+  compareSets('list', UPGRADE_CHECK, 1, 'the usage line', subs, new Set((/usage: upgrade-check\.sh ([a-z|]+)/.exec(main)?.[1] ?? '').split('|')), 'the dispatcher of main()')
+  const toolRow = lines('tools/README.md').findIndex((l) => /^\| `upgrade-check\.sh` \|/.test(l))
+  compareSets('list', 'tools/README.md', toolRow + 1, 'its row', subs, new Set(backticked(lines('tools/README.md')[toolRow] ?? '').filter((t) => subs.has(t) || /^[a-z]+$/.test(t))), 'the dispatcher of tools/upgrade-check.sh')
+  const its = item(SETUP, /Its subcommands:/)
+  if (its) compareSets('list', SETUP, its.line, '"Its subcommands:"', subs, new Set(backticked(its.text.slice(its.text.indexOf('Its subcommands:'))).filter((t) => /^[a-z]+$/.test(t))), 'the dispatcher of tools/upgrade-check.sh')
+  // The sections of the backlog, wherever they are enumerated.
+  const sectionsOf = headings(LEARNINGS).filter((h) => h.level === 2).map((h) => h.title.split(' ')[0].toLowerCase())
+  for (const p of PAYLOAD.filter(isMd)) {
+    for (const u of units(p, payloadMask(p))) {
+      const m = /\bopen\s*\/\s*applied\b/i.exec(u.text)
+      if (!m) continue
+      const missing = sectionsOf.filter((s) => !new RegExp(`\\b${s}\\b`, 'i').test(u.text))
+      if (missing.length) report('list', p, u.at[m.index], `enumerates the backlog's sections without ${missing.join(', ')}`)
+    }
+  }
+  // The commit types: commitlint's, docs/04's, its bump table's, /integrate's.
+  const types = new Set((/"type-enum":\s*\[\s*\d+,\s*"always",\s*\[([^\]]*)\]/.exec(text('commitlint.config.cjs'))?.[1] ?? '').match(/[a-z]+/g))
+  const docs04 = '.claude/docs/04-git-workflow.md'
+  const typesLine = lines(docs04).findIndex((l) => /^Types: /.test(l))
+  compareSets('list', docs04, typesLine + 1, 'the Types line', types, new Set(backticked(lines(docs04)[typesLine] ?? '')), 'commitlint.config.cjs')
+  const bump = lines(docs04).filter((l) => /^\| `/.test(l)).flatMap((l) => backticked(l.split('|')[1]).flatMap((t) => t.split('/'))).filter((t) => /^[a-z]+$/.test(t))
+  compareSets('list', docs04, lines(docs04).findIndex((l) => /^\| Commit /.test(l)) + 1, 'the bump table', types, new Set(bump), 'commitlint.config.cjs')
+  const integrate = '.claude/commands/integrate.md'
+  const step2 = region(integrate, /^## 2\./, /^## 3\./).flatMap((l) => backticked(l.text)).flatMap((t) => t.split('/')).filter((t) => /^[a-z]+$/.test(t))
+  compareSets('list', integrate, lines(integrate).findIndex((l) => /^## 2\./.test(l)) + 1, 'the bump rules', types, new Set(step2), 'commitlint.config.cjs')
+  // The memory's titles and field labels: the tables of SETUP.md and upgrade-check.sh, the
+  // templates' own headings and format comment.
+  const titles = new Set([...headings('.claude/memory/STATE.md'), ...headings(LEARNINGS)].filter((h) => h.level === 2).map((h) => `## ${h.title}`))
+  const setupTitles = lines(SETUP).filter((l) => /^\s*\| `(STATE|LEARNINGS)\.md` \|/.test(l)).map((l) => backticked(l.split('|')[3] ?? '')[0])
+  compareSets('list', SETUP, lines(SETUP).findIndex((l) => /\| Title since 1\.1\.0 \|/.test(l)) + 1, 'the title table', titles, new Set(setupTitles), 'the "## " titles of STATE.md and LEARNINGS.md')
+  const table = (name) => (new RegExp(`^${name}='([\\s\\S]*?)'$`, 'm').exec(text(UPGRADE_CHECK).replace(/'"'"'/g, "'"))?.[1] ?? '').split('\n').map((r) => r.split('\t')[1]).filter(Boolean)
+  compareSets('list', UPGRADE_CHECK, 1, 'TITLE_TABLE', titles, new Set(table('TITLE_TABLE')), 'the "## " titles of STATE.md and LEARNINGS.md')
+  const labelsIn = (s) => new Set([...s.matchAll(/(?:^|\s)[-|] ([A-Z][a-z]+(?: [a-z]+)*(?: \/ [a-z]+)?):/g)].map((m) => m[1]))
+  const format = lines(LEARNINGS).filter((_, i) => learningsTemplate()[i] && i > lines(LEARNINGS).findIndex((l) => /^## /.test(l))).join('\n')
+  const labels = labelsIn(format)
+  const labelRows = lines(SETUP).slice(lines(SETUP).findIndex((l) => /\| Field label until 1\.0\.0 \|/.test(l))).filter((l) => /^\s*\| `- /.test(l))
+  compareSets('list', SETUP, lines(SETUP).findIndex((l) => /\| Field label until 1\.0\.0 \|/.test(l)) + 1, 'the label table', labels, labelsIn(labelRows.map((l) => l.replace(/\\\|/g, '\u0000').split('|')[2].replace(/\u0000/g, '|').replace(/`/g, '')).join('\n')), 'the labels of LEARNINGS.md\'s format comment')
+  compareSets('list', UPGRADE_CHECK, 1, 'LABEL_TABLE', labels, labelsIn(table('LABEL_TABLE').join('\n')), 'the labels of LEARNINGS.md\'s format comment')
+  settle('list', `§2 and the slots, the class table at ${plural(TAGS.length, 'tag')}, the copy lists, the counts, the subcommands, the sections, the commit types and the memory's titles and labels`)
+}
+
 // --- The declared exceptions -------------------------------------------------------------
 // What the rules above cannot tell apart, each with its reason. Bidirectional: an entry that
 // covers nothing fails below, so it is removed with its cause.
@@ -683,6 +911,18 @@ const ALLOW = [
   { check: 'link', file: '.claude/docs/04-git-workflow.md', text: '`.claude/worktrees/`', reason: 'where Claude Code puts an isolated agent\'s worktree, ignored by .gitignore' },
   { check: 'link', file: '.claude/docs/04-git-workflow.md', text: '`secrets/`', reason: 'a generic example of where secrets live' },
   { check: 'link', file: SETUP, text: '`adr/`', reason: 'an example of where a project keeps its ADRs' },
+  // Lists.
+  { check: 'list', file: '.claude/commands/lint-memory.md', text: 'a slot SETUP.md §2 never names', reason: 'its markers are prose: check 10 names the marker it hunts, no slot' },
+  { check: 'list', file: SETUP, text: '§2 names .claude/memory/LEARNINGS.md', reason: 'an action at setup (empty the live memory), not a slot' },
+  { check: 'list', file: SETUP, text: '§2 names .claude/memory/STATE.md', reason: 'a template the first command populates, not a slot' },
+  { check: 'list', file: SETUP, text: '§2 names .claude/memory/INDEX.md', reason: 'a template the first command populates, not a slot' },
+  { check: 'list', file: SETUP, text: '§2 names scripts/agent-git-guard.mjs', reason: 'named as boundary wiring to leave in place, not a slot' },
+  { check: 'list', file: UPGRADE_CHECK, text: 'classify() names .claude/framework-version', reason: 'GRAFT-STATE: the pin exists only in a project' },
+  { check: 'list', file: UPGRADE_CHECK, text: 'classify() names .claude/settings.local.json', reason: 'LOCAL: never versioned' },
+  { check: 'list', file: 'README.md', text: 'the copy list names .claude/framework-version', reason: 'the pin step 1 creates, not a copied path' },
+  { check: 'list', file: 'README.md', text: 'the copy list names SETUP.md', reason: 'a pointer to the full guide, not a copied path' },
+  { check: 'list', file: 'CONTRIBUTING.md', text: 'the copy list names SETUP.md', reason: 'a pointer to step 1, not a copied path' },
+  { check: 'list', file: 'CONTRIBUTING.md', text: 'the copy list names SECURITY.md', reason: 'the scaffold setup offers next to the payload' },
 ]
 
 // --- The allow-list itself ---------------------------------------------------------------
@@ -697,10 +937,12 @@ function checkAllowList() {
 
 checkImpNumbers()
 checkPointers()
+checkShortSlots()
 checkInventories()
 checkChangelog()
 checkCurrentVersion()
 checkLinks()
+checkLists()
 checkAllowList()
 console.log(`\ndocs-check: ${nFail} FAIL, ${nCheck} CHECK`)
 process.exit(nFail ? 1 : 0)

@@ -56,7 +56,9 @@ g status >/dev/null
 
 # --- 2-3. Each trace changes the fingerprint; undoing it restores the fingerprint ------------
 # detects <label> <change command> <undo command>
+kinds=0
 detects() {
+  kinds=$((kinds + 1))
   eval "$2"
   [[ "$(snap)" != "${base}" ]] || fail "not detected: $1"
   eval "$3"
@@ -78,4 +80,4 @@ rc=$?
 set -e
 [[ ${rc} -ne 0 && -z "${out}" ]] || fail "outside a repository it must fail and print nothing (rc=${rc})"
 
-echo "PASS (repo snapshot): read-only (control: plain status rewrites the index), 7 kinds of trace detected and restored, loud outside a repository."
+echo "PASS (repo snapshot): read-only (control: plain status rewrites the index), ${kinds} kinds of trace detected and restored, loud outside a repository."

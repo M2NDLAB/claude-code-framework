@@ -12,7 +12,7 @@
 #   2. the payload — a framework IMP number in its text fails; the same number outside the
 #      payload (CONTRIBUTING.md, a session note of the framework) does not; a bare pointer
 #      to a file a project lacks fails, labelled as the framework's or conditional it
-#      does not;
+#      does not; a slot in the short form fails;
 #   3. inventories — a command no list names, a row missing from a script table, a process
 #      target the lists do not name: each fails;
 #   4. tags and the CHANGELOG — a tag without its entry, a lightweight tag, an entry dated
@@ -22,8 +22,11 @@
 #      does not;
 #   6. links — a Markdown link or anchor, a wikilink, a cited path and a cited section
 #      title that resolve to nothing: each fails;
-#   7. the allow-list — an exception whose cause is gone fails;
-#   8. read-only — a run leaves the copy exactly as it was.
+#   7. lists — a slot SETUP.md §2 never names, a slot added since the latest tag with its
+#      §2 item unchanged, a payload file without a class, a count in prose, the sections of
+#      the backlog, the subcommands and the copy list out of step: each fails;
+#   8. the allow-list — an exception whose cause is gone fails;
+#   9. read-only — a run leaves the copy exactly as it was.
 # Run it from anywhere: bash tools/test-docs-check.sh
 set -euo pipefail
 
@@ -59,15 +62,18 @@ run() {
 }
 has()   { grep -qF -- "$1" "${out}" || fail "expected a line with: $1"; }
 hasnt() { ! grep -qF -- "$1" "${out}" || fail "unexpected line with: $1"; }
+# nfails <n>: exactly n FAIL lines.
+nfails() { [ "$(grep -c '^FAIL ' "${out}")" -eq "$1" ] || fail "expected exactly $1 FAIL line(s)"; }
 # fails <n> <text>: exactly n FAIL lines, each carrying text.
 fails() {
   [ "$(grep -c '^FAIL ' "${out}")" -eq "$1" ] || fail "expected exactly $1 FAIL line(s), carrying: $2"
   [ "$(grep '^FAIL ' "${out}" | grep -cF -- "$2")" -eq "$1" ] || fail "not every FAIL line carries: $2"
 }
-# floor <regex> <n>: the first number the OK line matching regex reports is at least n.
+# floor <pattern> <n>: on the OK line the pattern matches, the number in place of its first
+# N is at least n — so an empty or broken extraction cannot pass.
 floor() {
-  local got
-  got="$(grep -E "^OK .*$1" "${out}" | head -1 | grep -oE '[0-9]+' | head -1)"
+  local re="${1//N/([0-9]+)}" got
+  got="$(grep -E '^OK ' "${out}" | grep -oE "${re}" | head -1 | grep -oE '[0-9]+' | head -1)"
   [ -n "${got}" ] && [ "${got}" -ge "$2" ] || fail "the OK line for \"$1\" reports ${got:-nothing}, expected at least $2"
 }
 # edit <file> <regex> <replacement>: change one file of a copy in place, with Node.js (which
@@ -93,12 +99,15 @@ copy() { cp -R "${base}" "${workdir}/$1" && printf '%s\n' "${workdir}/$1"; }
 # --- Case 1: the repository passes ---------------------------------------------------------
 run 0 "${base}"
 has "docs-check: 0 FAIL"
-floor 'commands, .* process targets' 8
-floor 'no framework IMP number in' 30
-floor 'pointers? out of the payload' 10
-floor 'tags and .* entries match' 19
-floor 'Markdown links, ' 5
-has "wikilinks, 1"
+floor 'N commands, N process targets' 8
+floor 'no framework IMP number in N payload files' 30
+floor 'N pointers? out of the payload' 10
+floor 'N tags and N entries match' 19
+floor 'N Markdown links' 5
+floor 'N wikilinks' 100
+floor 'N cited paths' 300
+floor 'N markers in the full form' 30
+floor 'the class table at N tags' 19
 hostile="${workdir}/hostile.gitconfig"
 printf '[color]\n\tui = always\n[core]\n\tquotePath = true\n[log]\n\tshowSignature = true\n[i18n]\n\tlogOutputEncoding = ISO-8859-1\n' > "${hostile}"
 cp "${out}" "${workdir}/plain.log"
@@ -124,13 +133,18 @@ c="$(copy pointer-labelled)"
 printf '\nThe slots are listed in the framework'"'"'s `SETUP.md`, step 2.\n' >> "${c}/.claude/docs/00-overview.md"
 printf '\nRecord it in the CHANGELOG, if the project keeps one.\n' >> "${c}/.claude/docs/02-code-quality.md"
 run 0 "${c}"
-echo "PASS (docs-check, payload): an IMP number fails in the payload and only there; a pointer out of it fails unless labelled or conditional."
+c="$(copy short-slot)"
+printf '\n- the release channel: [TO BE DEFINED].\n' >> "${c}/.claude/docs/02-code-quality.md"
+run 1 "${c}"
+fails 1 "a slot the setup and upgrade greps cannot see"
+echo "PASS (docs-check, payload): an IMP number fails in the payload and only there; a pointer out of it fails unless labelled or conditional; so does a short slot."
 
 # --- Case 3: inventories --------------------------------------------------------------------
 c="$(copy inv-command)"
 printf -- '---\ndescription: a command no list names\n---\nNothing.\n' > "${c}/.claude/commands/extra.md"
 run 1 "${c}"
-fails 2 "lacks /extra"
+has "the Slash commands of Quick commands lacks /extra"
+has "the Structure tree's commands/ line lacks /extra"
 c="$(copy inv-table)"
 edit "${c}/scripts/README.md" '^\| `reset-task\.sh` \|.*\n' ''
 run 1 "${c}"
@@ -213,14 +227,45 @@ has "\`scripts/no-such.sh\` names no file"
 has 'has no section "No such section"'
 echo "PASS (docs-check, links): a link, an anchor, a wikilink, a cited path and a section title that resolve to nothing fail."
 
-# --- Case 7: the allow-list -----------------------------------------------------------------
+# --- Case 7: lists --------------------------------------------------------------------------
+c="$(copy list-unnamed)"
+printf '\nThe retro cadence is [TO BE DEFINED AT SETUP].\n' >> "${c}/.claude/commands/retro.md"
+run 1 "${c}"
+fails 2 ".claude/commands/retro.md:"
+has "a slot SETUP.md §2 never names"
+has "but its §2 item is unchanged"
+c="$(copy list-tripwire)"
+printf '# [TO BE DEFINED AT SETUP] — one more slot of the stack.\n' >> "${c}/.gitignore"
+run 1 "${c}"
+fails 1 ".gitignore:1: 1 → 2 slot markers since"
+c="$(copy list-class)"
+mkdir -p "${c}/.claude/agents"
+printf 'An agent definition.\n' > "${c}/.claude/agents/reviewer.md"
+run 1 "${c}"
+has ".claude/agents/reviewer.md has no class in classify()"
+c="$(copy list-count)"
+edit "${c}/SETUP.md" 'These eight cases' 'These seven cases'
+run 1 "${c}"
+fails 1 '"These seven cases", but the numbered edge cases are 8'
+c="$(copy list-various)"
+edit "${c}/.claude/memory/INDEX.md" 'open / applied / deferred / rejected' 'open / applied / deferred'
+edit "${c}/SETUP.md" 'Its subcommands: `classes` \(the class table, file by file\), ' 'Its subcommands: '
+edit "${c}/SETUP.md" '`commitlint.config.cjs`, `.gitignore`, `scripts/`\.' '`commitlint.config.cjs`, `.gitignore`.'
+run 1 "${c}"
+nfails 3
+has "the backlog's sections without rejected"
+has '"Its subcommands:" lacks classes'
+has "the copy list lacks scripts"
+echo "PASS (docs-check, lists): §2 and the slots, the class table, the counts, the sections, the subcommands and the copy list fail when out of step."
+
+# --- Case 8: the allow-list -----------------------------------------------------------------
 c="$(copy allow-stale)"
 edit "${c}/SETUP.md" '`/tmp`' '`/var/tmp`'
 run 1 "${c}"
 fails 1 '"`/tmp`" matches nothing'
 echo "PASS (docs-check, allow-list): an exception whose cause is gone fails."
 
-# --- Case 8: read-only ----------------------------------------------------------------------
+# --- Case 9: read-only ----------------------------------------------------------------------
 c="$(copy read-only)"
 fingerprint() {
   ( cd "$1" && bash "${REPO_ROOT}/scripts/repo-snapshot.sh" && git --no-optional-locks status --porcelain=v1 -uall \

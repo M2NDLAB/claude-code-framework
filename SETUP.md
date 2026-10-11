@@ -29,9 +29,10 @@ Copy into the root of the new repo: the `.claude/` directory, `CLAUDE.md`, `Make
 `commitlint.config.cjs`, `.gitignore`, `scripts/`. (README.md and this SETUP.md you
 may leave out of the final project, or keep them for reference.)
 
-> **`LICENSE`, `CONTRIBUTING.md` and `CHANGELOG.md` are NOT copied.** They are files of
-> the framework repo (its licence, its contribution flow, its history): the licence of
-> YOUR project is your own choice ([TO BE DEFINED AT SETUP], Root checklist below).
+> **`LICENSE`, `CONTRIBUTING.md`, `CHANGELOG.md` and `tools/` are NOT copied.** They are
+> files of the framework repo (its licence, its contribution flow, its history, its own
+> checks): the licence of YOUR project is your own choice ([TO BE DEFINED AT SETUP], Root
+> checklist below).
 > `SECURITY.md`, on the other hand, is a reusable scaffold: you can copy it and fill in
 > its `[TO BE DEFINED AT SETUP]` slots.
 
@@ -108,11 +109,13 @@ Here is the complete list, grouped by file:
       (*Versioning*).
 
 ### `.claude/commands/`
-- [ ] `checkpoint.md`: patterns to ignore for `tree`, name of the integration branch.
+- [ ] `checkpoint.md`: patterns to ignore for `tree`, name of the integration branch (its
+      placeholders `<pattern-to-ignore-for-the-stack>` and `<integration>`).
 - [ ] `integrate.md`: real names of the integration and stable branches (the ROLES of
       `docs/04`) used in the integration block.
-- [ ] `new-component.md`: standard structure of a component in this project (until
-      CLAUDE.md and this file are filled in, `/new-component` is inert).
+- [ ] `new-component.md`: standard structure of a component in this project, and its
+      production artefact (until CLAUDE.md and this file are filled in,
+      `/new-component` is inert).
 
 ### `.claude/memory/`
 - [ ] `TREE.md`: the `-I '...'` pattern for `tree` suited to your stack.
@@ -383,7 +386,7 @@ version's new `[TO BE DEFINED AT SETUP]` slots reach already-started projects.
 > read-only script, `tools/upgrade-check.sh`, which this procedure calls at fixed points
 > (*Precondition*); it decides nothing and writes nothing in either repository. A command
 > that would orchestrate the steps stays deferred until the first upgrade of a SECOND
-> project: the three real upgrades behind this procedure were all one project's — the
+> project: the real upgrades behind this procedure were all one project's — the
 > same anti-hype filter with which the framework defers the automated graft. (The
 > *provenance pin* `.claude/framework-version`, born deferred too, was promoted after the
 > first real upgrade: the baseline established by hand proved to be the most fragile
@@ -429,8 +432,8 @@ makes the framework's own self-test fail:
 > robust mechanism for reconciling them is the **3-way merge** with the template at the
 > STARTING version — read at the tag `vX` (see the *Precondition*) — as the common base.
 
-Apart from these stands the **provenance pin** `.claude/framework-version` — the FOURTH
-species, the **graft state**, which falls into none of these classes: it is not
+Apart from these stands the **provenance pin** `.claude/framework-version` — a species of
+its own, the **graft state**, which falls into none of these classes: it is not
 METHOD (it does not exist in the framework repo: it is created at every graft, step 1),
 it is not PROJECT-MEMORY (the procedure writes it, not the project), and it is not
 reconciled 3-way — it is REWRITTEN. Setup creates it, Step 0 reads it as the baseline,
@@ -518,8 +521,8 @@ working tree: the checks belong to the release you upgrade to, and `preflight` s
 when they do not. It reads the framework only by tag and the project read-only, and
 writes only under `"$T/upgrade-check/"`. Each of its lines reads `OK`, `FAIL` (a rule of
 this procedure is broken; the exit code is then 1) or `CHECK` (a human looks); it decides
-nothing. Its subcommands: `preflight` (this Precondition and the pin of Step 0),
-`inventory` (Step 2), `invariant` and `post` (Step 5). `tools/` is not copied into the
+nothing. Its subcommands: `classes` (the class table, file by file), `preflight` (this
+Precondition and the pin of Step 0), `inventory` (Step 2), `invariant` and `post` (Step 5). `tools/` is not copied into the
 project (step 1). For a `vY` before v1.4.0 there is no script: the steps are done by
 hand.
 

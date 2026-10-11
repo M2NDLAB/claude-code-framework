@@ -27,7 +27,7 @@ project's backlog and only SOME IMPs are framework-bound: those are the ones it 
    the English marker keep being raked up.
 2. Define the perimeter:
    - default (`$ARGUMENTS` empty): ALL marked IMPs, in any section
-     (OPEN / Applied / Deferred) — the whole backlog;
+     (OPEN / Applied / Deferred / Rejected) — the whole backlog;
    - with `$ARGUMENTS`: narrow to the given criterion (a specific IMP `IMP-nnn`, a
      date/session, a section). Interpret `$ARGUMENTS` as a filter on the entries found.
 3. For each entry in the perimeter, read the body of the IMP in `LEARNINGS.md` and collect:

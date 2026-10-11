@@ -54,7 +54,7 @@ in, is in **[SETUP.md](SETUP.md)**):
 3. **Install the hooks**: `make hooks-install` (requires `gitleaks` and Node.js for
    commitlint). Enable automatic formatting in the hook for your language.
 4. **First command to Claude Code** — have it read `CLAUDE.md` and the docs in
-   `.claude/docs/`, then initialise the memory (`STATE.md`, `TREE.md`). The exact
+   `.claude/docs/`, then initialise the memory (`STATE.md`, `TREE.md`, `INDEX.md`). The exact
    suggested command is in `SETUP.md`.
 
 From there on you work with the cycle described in `.claude/docs/00-overview.md`:
