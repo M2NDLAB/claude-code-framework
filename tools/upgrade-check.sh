@@ -71,6 +71,17 @@ pg() { git --no-optional-locks "${GIT_FIXED[@]}" "$@"; }
 # every pattern anchored at a line's end, would see the \r: the project's text is read
 # through here. (git's own reads — hash-object, diff — already convert line ends.)
 lf() { tr -d '\r' < "$1"; }
+# within <dir> <top>: whether <dir> is <top> or lies below it, compared by identity (-ef),
+# never as strings — on Windows git prints C:/… where Git Bash names the same directory
+# /c/… (measured in the CI on Windows). <dir> is the shell's own path, walked up to /.
+within() {
+  local d="$1"
+  while :; do
+    [ "${d}" -ef "$2" ] && return 0
+    case "${d}" in /|.|'') return 1 ;; esac
+    d="$(dirname "${d}")"
+  done
+}
 
 # classify <path>: the class of a payload file, named one by one outside the memory, so
 # that a file added to the payload has NO class until someone decides it (the self-test
@@ -137,7 +148,7 @@ require_t() {
   t_real="$(cd "${T}" && pwd -P)"
   for top in "$(pwd -P)" "$(fw rev-parse --show-toplevel 2>/dev/null)"; do
     [ -n "${top}" ] || continue
-    case "${t_real}/" in "${top}/"*) die "T=${T} is inside a repository (${top}): choose a directory outside both" ;; esac
+    within "${t_real}" "${top}" && die "T=${T} is inside a repository (${top}): choose a directory outside both"
   done
   WORK="${T}/upgrade-check"
   mkdir -p "${WORK}" || die "cannot create ${WORK}"
@@ -147,14 +158,14 @@ require_t() {
 require_project_root() {
   local top common_project common_fw
   top="$(git rev-parse --show-toplevel 2>/dev/null)" || die "not inside a git repository: run it from the project's root"
-  [ "${top}" = "$(pwd -P)" ] || die "run it from the project's root (${top}), not from $(pwd -P)"
+  [ "${top}" -ef "$(pwd -P)" ] || die "run it from the project's root (${top}), not from $(pwd -P)"
   common_project="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"
   case "${common_project}" in
-    /*) ;;
+    /* | [A-Za-z]:[/\\]*) ;;
     *) die "git 2.31 or later is required (rev-parse --path-format)" ;;
   esac
   common_fw="$(fw rev-parse --path-format=absolute --git-common-dir)"
-  [ "${common_project}" != "${common_fw}" ] || die "FW is the project itself: FW must be the framework's clone"
+  if [ "${common_project}" -ef "${common_fw}" ]; then die "FW is the project itself: FW must be the framework's clone"; fi
 }
 
 # payload_files <rev>: the payload at a revision of the framework, one path per line.
@@ -204,10 +215,8 @@ check_own_copy() {
   self="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/$(basename "${BASH_SOURCE[0]}")"
   # A bare FW has no working tree, hence nothing to run from by mistake.
   top="$(fw rev-parse --show-toplevel 2>/dev/null)"
-  if [ -n "${top}" ]; then
-    case "${self}" in
-      "${top}"/*) fail "this copy runs from the framework's working tree (${self}): run the one extracted at ${vy} (SETUP.md, Precondition)" ;;
-    esac
+  if [ -n "${top}" ] && within "$(dirname "${self}")" "${top}"; then
+    fail "this copy runs from the framework's working tree (${self}): run the one extracted at ${vy} (SETUP.md, Precondition)"
   fi
   if fw cat-file -e "${vy}:tools/upgrade-check.sh" 2>/dev/null; then
     fw show "${vy}:tools/upgrade-check.sh" > "${WORK}/own-copy.vy"
