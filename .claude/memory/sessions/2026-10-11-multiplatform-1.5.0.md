@@ -311,6 +311,37 @@ with a case in a self-test.
   workflow now runs each self-test on its own after a failure (skipped when all pass), and
   the upgrade check's self-test even after one — a single run shows every failure.
 
+**Round 2** — run 38155280825, on `5d50879`: ubuntu-24.04 green (64 s), macos-26 green
+(148 s), windows-2025 red (61 s) — four failures, all shown in one run by the new step:
+1. `test-hooks-install.sh`: past the SKIP, `hooks-install.sh` itself refused the
+   repository ("… is not inside a git repository, or git is older than 2.31"). git prints
+   its paths as `C:/…`, Git Bash names the same directory `/c/…`: the script took git's
+   answer for a relative path and compared the top level as a string. A product defect —
+   `make hooks-install` failed in every project on Windows. Fixed: both forms of an
+   absolute path accepted, the top level compared by identity (`-ef`).
+2. `test-agent-git-guard.sh`: `/usr/bin/git rebase main` went unblocked. Not the guard:
+   the self-test passed the command to `node.exe` as an argument, and Git Bash rewrites an
+   argument that looks like a POSIX path (`C:/Program Files/Git/usr/bin/git …`, which the
+   guard reads as the command `C:/Program`); Claude Code hands the hook its input on
+   stdin. Fixed in the self-test: the command travels on stdin.
+3. `test-docs-check.sh`, its CRLF case: on Windows the files outside `.gitattributes`
+   are already CRLF, and the case added a second `\r`. Fixed: an idempotent conversion.
+   The check itself, run on the Windows checkout by the new step: 0 FAIL, 0 CHECK.
+4. `test-upgrade-check.sh`: "run it from the project's root (C:/Users/…), not from
+   /c/Users/…" — the same two forms, a product defect of the check taken at the tag. Fixed:
+   wherever a directory git names meets one the shell names — the project's root, the
+   framework's clone against the project, T outside both, the running copy outside the
+   framework's working tree — by identity, walking up for containment; the git-version
+   test of the same function accepts `C:/…`, its next failure otherwise.
+- Passed on Windows: `test-repo-snapshot.sh`, the upgrade self-test's classes case.
+- Checked on macOS before the push: `within` and `-ef` across `/var/…` and `/private/var/…`,
+  two names of one directory, positive and negative; the whole suite green.
+- macOS ends about two minutes after the other two in both rounds: a run is concluded
+  when its last job is.
+- One commit of this round opened its body with "was:" — commitlint read it as the footer
+  (IMP-078). It was still local: the two commits were written again from `29899f4`, the
+  tree identical (`71c9b62` and `5ca1325` replaced by `4aa5bd2` and `7d51bde`).
+
 ## Resumption notes
 - The CI runs only on what the user pushes: the first push of this branch came after
   task 7 (round 1, below). The branch is public from then on: no commit is rewritten,

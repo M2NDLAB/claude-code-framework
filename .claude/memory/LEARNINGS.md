@@ -731,6 +731,36 @@ tags: [improvement]
 - Expected benefit / risk: the hook does not depend on a hidden command. Risk: an older
   gitleaks (before 8.19.0) stops working with the hook — the prerequisite check catches it.
 
+### IMP-078 — commitlint reads a body line that starts with "word:" as the footer
+- Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — observed three times
+- Priority: LOW (user decision, 2026-10-11).
+- Observed problem: twice a commit's body had a line that began with a single word and a
+  colon — "repository:" in the CHANGELOG commit of v1.4.1, amended while it was still
+  local ([[2026-10-11-payload-purity-1.4.1]]), and "measured:" in `e6597f1` of v1.5.0,
+  left as it is because the branch was public — and a third time on the same day, while
+  this entry was being written: "was:" in a commit of the CI's second round, written
+  again while it was still local. Each time the commit-msg hook warned "footer must have
+  leading blank line". How commitlint recognises a footer, checked:
+  its documentation and its parser's (the README and the API page of
+  conventional-commits-parser) list `noteKeywords`, `referenceActions`, `issuePrefixes`
+  and `fieldPattern` without saying when a line opens the footer; the parser's source
+  does — conventional-commits-parser 7.1.3, the version the hook's npx fetched,
+  `dist/regex.js`, `getFooterTokenRegex`: "Footers follow the git trailer convention: the
+  token starts at the beginning of the line, indented `key: value` lines are not
+  footers", the pattern `^(?:BREAKING CHANGE|[\w-]+)(?::\s+|\s+#).+`, case-insensitive;
+  from that line on, everything is footer. Measured with that parser: "measured: …" and
+  "repository: …" open the footer and cut the body there; "the step: …" (two words), an
+  indented line and "measured:" without a space do not. `@commitlint/config-conventional`
+  21.2.3 sets `footer-leading-blank` to a warning, which `commitlint.config.cjs` does not
+  override.
+- Proposal: NOT decided — two options: (a) one line in `docs/04`, *Commit format*: in the
+  body, no line begins with a single word and a colon; (b) `commitlint.config.cjs`:
+  `footer-leading-blank` raised to an error, so the hook refuses such a commit while it
+  is still local and its message can still be written again.
+- Expected benefit / risk: the body stays whole in the parsed history, and no published
+  commit carries the warning. Risk of (b): an error in every project's commit-msg hook
+  where a warning was — for a footer typed without its blank line too.
+
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
 - Date: YYYY-MM-DD | Origin: [[<session note>]] — <problem>
