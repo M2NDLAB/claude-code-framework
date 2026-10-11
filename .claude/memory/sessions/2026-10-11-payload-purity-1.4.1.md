@@ -65,10 +65,10 @@ and push are the user's.
 
 ## Plan (one commit per task)
 - [x] 1. This note and its plan; the notes received for later blocks — commit: f1357c8
-- [ ] 2. Assessment, read-only: the payload's impurities measured (IMP numbers, pointers, framework-only blocks), the lists that claim completeness, the links, the version mentions, the Italian residue; the check's design — commit: —
+- [x] 2. Assessment, read-only: the payload's impurities measured (IMP numbers, pointers, framework-only blocks), the lists that claim completeness, the links, the version mentions, the Italian residue; the check's design — commit: 6444ac6
 - [ ] 3. `tools/`: the check's frame and self-test (the payload's model, the OK/FAIL/CHECK lines, the bidirectional allow-list); the first check, the inventories of commands, targets and scripts against the files; wired into `make test-scripts`, moot where `tools/` is absent; `tools/README.md`, `CONTRIBUTING.md` — commit: —
-- [ ] 4. Framework IMP numbers out of the payload's text, the why in prose, and the check that keeps them out — commit: —
-- [ ] 5. The framework-repo-only blocks moved to `CONTRIBUTING.md`, one conditional line left in `docs/01` — commit: —
+- [ ] 4. The framework-repo-only blocks moved to `CONTRIBUTING.md`, one conditional line left in `docs/01` — commit: —
+- [ ] 5. Framework IMP numbers out of the payload's text, the why in prose, and the check that keeps them out — commit: —
 - [ ] 6. The payload's pointers to files outside it rewritten (a local assumption rephrased, a cross-repo pointer labelled), and the check — commit: —
 - [ ] 7. Internal links resolve; tags and CHANGELOG entries match; no old version cited as current — the checks and the fixes — commit: —
 - [ ] 8. The lists that declare themselves complete (the §2 checklist, the class table, the inventories, the counts in prose) against what exists — the checks and the fixes — commit: —
@@ -190,3 +190,11 @@ Italian. The memory stays as it is: what the check sees there is declared, not r
   calques and words outside its list; a list that enumerates without a structure the check
   can extract is out of reach — such a list stops claiming completeness instead ("three
   real upgrades", "the FOURTH species").
+
+## Resumption notes
+- Tasks 4 and 5 swapped before either started: the blocks move first, so no IMP number is
+  rewritten in text that leaves the payload a task later.
+- The check is written whole in the scratchpad first (its rules tuned against this
+  repository: 161 findings on the first run, 64 once the rules were right — every one of
+  them real), then brought in one family per task, each with the fixes it needs, so
+  `make test-scripts` stays green at every commit.

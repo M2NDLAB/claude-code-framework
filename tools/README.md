@@ -8,6 +8,8 @@ framework's clone, at the tag it upgrades to — never from the framework's work
 | --- | --- |
 | `upgrade-check.sh` | The read-only checks of an upgrade (`SETUP.md`, *Upgrading the framework*): `classes`, `preflight`, `inventory`, `invariant`, `post`. It reads the framework only by tag and the project read-only, writes only under `"$T/upgrade-check/"`, and decides nothing: each finding is an `OK`, `FAIL` or `CHECK` line, and the exit code is 1 on any `FAIL`. Its header says how an upgrade runs it. Its class table is the authority, file by file, for the classes of `SETUP.md`. |
 | `test-upgrade-check.sh` | Its hermetic self-test, `bash tools/test-upgrade-check.sh`: throwaway repositories under a temporary directory, the real script run end to end. Among its cases, the one that fails when a payload file has no class: run it before every release. |
+| `docs-check.mjs` | The mechanical documentation check of this repository, `node tools/docs-check.mjs`: the payload's purity, and the documents' lists, links, versions and language against what exists. It reads the working tree, the tags and the commits, and writes nothing; each finding is an `OK`, `FAIL` or `CHECK` line, the exit code 1 on any `FAIL`. What its rules cannot tell apart is declared in its allow-list, each entry with its reason; an entry that matches nothing fails. `make test-scripts` runs it, here only. |
+| `test-docs-check.sh` | Its hermetic self-test, `bash tools/test-docs-check.sh`: a throwaway clone of this repository, its tags and its working tree, checked as it is and with one defect per case. `make test-scripts` runs it before the check. |
 
-Prerequisites: git 2.31 or later, bash 3.2 or later (the script avoids what bash 3.2,
-macOS's `/bin/bash`, lacks).
+Prerequisites: git 2.31 or later, bash 3.2 or later (the scripts avoid what bash 3.2,
+macOS's `/bin/bash`, lacks); Node.js 18 or later for the documentation check.

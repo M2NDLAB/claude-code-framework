@@ -279,7 +279,7 @@ them:
 |---|---|
 | The host's `README.md` | It is PRESERVED: it is the project's public documentation (the framework's README is not copied anyway, step 1). |
 | `.gitignore` | It is INTEGRATED: add the template's entries (secrets, `settings.local.json`, etc.) to the host's file, do not overwrite it. |
-| `Makefile` | It is INTEGRATED: add the process targets (`hooks-install`, `reset-task` with its `PROTECTED_BRANCHES` variable) to the host's one. |
+| `Makefile` | It is INTEGRATED: add the process targets (`hooks-install`, `reset-task` with its `PROTECTED_BRANCHES` variable, `test-scripts`) to the host's one. |
 | `SECURITY.md` | If the host already has one, it is preserved/integrated; the template's scaffold is only needed if it is missing. |
 | `LICENSE` | The host's stays (the framework's LICENSE is never copied, step 1). |
 | Existing git hooks | See step 3: `hooks-install.sh` stops by itself in front of hooks that are not its own or an active `core.hooksPath`, and tells you how to proceed. |

@@ -27,9 +27,10 @@ This repo applies to itself the method it describes (`.claude/docs/`):
   instances (stack, names, concrete values); where concreteness is needed, use
   `[TO BE DEFINED AT SETUP]`.
 - **`tools/` holds this repository's own tools**, outside the payload: the upgrade's
-  verification script and its self-test (`tools/README.md`). Run
-  `bash tools/test-upgrade-check.sh` before every release, next to `make test-scripts`:
-  it fails when a payload file has no class.
+  verification script, the documentation check and their self-tests (`tools/README.md`).
+  `make test-scripts` runs the documentation check here, after its self-test: what it
+  finds is fixed in the release that brings it. Run `bash tools/test-upgrade-check.sh`
+  before every release too: it fails when a payload file has no class.
 
 ## This repo's git model (a declared exception)
 
