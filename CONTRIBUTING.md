@@ -33,8 +33,9 @@ This repo applies to itself the method it describes (`.claude/docs/`):
   comment above it and the conditional line at the top of `docs/01` are the only text of
   the payload that holds only here: in a project, where `tools/` is absent, the line does
   nothing.
-  Run `bash tools/test-upgrade-check.sh` before every release too: it fails when a payload
-  file has no class.
+  The CI runs `bash tools/test-upgrade-check.sh` on every push too, after
+  `make test-scripts` (*The CI, before the merge*, below): it fails when a payload file has
+  no class.
 
 ## This repo's git model (a declared exception)
 
@@ -52,6 +53,23 @@ foresees). Concretely:
 - in the shared history (commits, merges, tags) no specific project or client
   names — see the rule in docs/04, *Commit format*: for a template, agnosticism
   applies to the messages too, because pushed history is not rewritten.
+
+**The CI, before the merge — block 0.** The CI (`.github/workflows/test.yml`) runs
+`make test-scripts` and the upgrade check's self-test on macOS, Linux and Windows, on what
+is pushed — and a deliverable's branch otherwise stays local until `/integrate`. So, in
+this repository, the human runs a block 0 before `/integrate`'s block 1: push the feature
+branch (`git push -u origin <branch>`) and wait until the CI is green on the three
+platforms. Block 1 then checks that the tree it merges is the one the CI tested — the merge
+commit's tree equal to the pushed branch's —, and block 2 deletes the remote branch in the
+same atomic push that publishes `main` and the tag
+(`git push --atomic origin main vX.Y.Z :<branch>`), before the local `git branch -d`. A
+project's `/integrate` knows nothing of this: a project's CI is the project's own.
+
+**No required status checks on `main` — a motivated choice.** The ruleset of `main` does
+not require the CI's checks. `/integrate`'s merge commit is new — block 1 creates it
+locally, with `--no-ff` — and the CI has no result for it when block 2 pushes it: a
+required check would refuse that push. The gate is block 0 instead, with block 1's check
+that the merged tree is the tested one.
 
 **What counts as a breaking change for this framework** (what, post-1.0, triggers
 a MAJOR): removing or renaming a command, an incompatible change to the memory
@@ -76,7 +94,7 @@ what projects receive:
 The bump is at least a PATCH; a MINOR or a MAJOR by the criteria of `docs/04`,
 *Versioning*. A change confined to the framework's own memory (`LEARNINGS.md`'s entries,
 `sessions/`) or to files that serve this repo only (`README.md`, this file, `LICENSE`,
-the checks that run only here) is no tag.
+the checks and the CI that run only here) is no tag.
 
 ## This repo's memory: the "declared hybrid" regime
 

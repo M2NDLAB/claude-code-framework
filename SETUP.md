@@ -29,10 +29,10 @@ Copy into the root of the new repo: the `.claude/` directory, `CLAUDE.md`, `Make
 `commitlint.config.cjs`, `.gitignore`, `scripts/`. (README.md and this SETUP.md you
 may leave out of the final project, or keep them for reference.)
 
-> **`LICENSE`, `CONTRIBUTING.md`, `CHANGELOG.md` and `tools/` are NOT copied.** They are
-> files of the framework repo (its licence, its contribution flow, its history, its own
-> checks): the licence of YOUR project is your own choice ([TO BE DEFINED AT SETUP], Root
-> checklist below).
+> **`LICENSE`, `CONTRIBUTING.md`, `CHANGELOG.md`, `tools/` and `.github/` are NOT copied.**
+> They are files of the framework repo (its licence, its contribution flow, its history,
+> its own checks, its CI): the licence of YOUR project is your own choice
+> ([TO BE DEFINED AT SETUP], Root checklist below).
 > `SECURITY.md`, on the other hand, is a reusable scaffold: you can copy it and fill in
 > its `[TO BE DEFINED AT SETUP]` slots.
 
@@ -1015,8 +1015,9 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
 > **Outside the upgrade payload.** `LICENSE`, `CONTRIBUTING.md`, `CHANGELOG.md` are
 > files of the FRAMEWORK REPO (not copied into the project, step 1): do not push them
 > into the project and do not read them from the project — the CHANGELOG is read from
-> the framework, by tag (Step 2). So is `tools/`: the upgrade runs its script from the
-> framework, at `vY` (*Precondition*). `SECURITY.md`, `README.md` and this `SETUP.md` inside
+> the framework, by tag (Step 2). So are `tools/` — the upgrade runs its script from the
+> framework, at `vY` (*Precondition*) — and `.github/`, the framework's own CI.
+> `SECURITY.md`, `README.md` and this `SETUP.md` inside
 > the project are optional/for reference — and be careful **not to overwrite the
 > project's `README.md`** with the framework's. `settings.local.json`
 > (unversioned) stays intact by construction.

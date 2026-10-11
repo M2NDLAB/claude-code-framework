@@ -84,6 +84,7 @@ plan → execute task by task → [if sensitive] `/security-review` → `/retro`
 ├── CHANGELOG.md               Keep a Changelog, wired to the versioning of docs/04
 ├── Makefile                   process targets only (hooks-install, reset-task, test-scripts)
 ├── tools/                     the repo's own checks (upgrade, documentation) — NOT copied into projects
+├── .github/                   the repo's own CI (macOS, Linux, Windows) — NOT copied into projects
 ├── commitlint.config.cjs      Conventional Commits types
 ├── .gitignore                 baseline (secrets + IDE/OS) + [TO BE DEFINED] section
 ├── scripts/
