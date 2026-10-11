@@ -32,8 +32,8 @@ tags: [structure]
 | Path | What it contains |
 |---|---|
 | .claude/docs/ | process documentation (the "method") — load only the relevant files |
-| .claude/commands/ | slash commands of the method — the authoritative list is in `CLAUDE.md`, "Quick commands" |
-| .claude/memory/ | this memory: [[STATE]], [[TREE]], [[INDEX]], sessions/, decisions/, components/, plans/ |
+| .claude/commands/ | slash commands of the method — listed in `CLAUDE.md`, "Quick commands" |
+| .claude/memory/ | this memory: [[STATE]], [[TREE]], [[INDEX]], [[LEARNINGS]], sessions/, decisions/, components/, plans/ |
 | <path> | <what it contains> |
 
 ## Notes

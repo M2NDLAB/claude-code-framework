@@ -42,14 +42,14 @@ a rule: then it is a process bug, not a memory bug, and it goes to escalation/IM
    explicit TRIGGER, it is not generic.
 10. **Grep-visible `[TO BE DEFINED AT SETUP]` markers.** No *slot* to be filled in
     is broken by word-wrap across two physical lines: it would escape the
-    `grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" .` of the setup
-    (`SETUP.md`, §2) and of Step 4 of the upgrade, silently staying unfilled.
+    `grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" .` with which the
+    framework's setup and upgrade find the slots, silently staying unfilled.
     Sentinel: `grep -rnE "TO BE DEFINED AT$|DA DEFINIRE AL$" .` — every hit is a
     candidate. The Italian form is recognised as LEGACY: projects grafted
     before the release that introduced the English marker do not break. KNOWN false positives to ignore (prose that *discusses* the
-    marker, not a slot): the guidance box of `SETUP.md` and the IMP records of
-    `LEARNINGS.md`. A hit elsewhere, or one that really is a fillable slot, must be recompacted
-    onto a single physical line (convention in `SETUP.md`, §2).
+    marker, not a slot): the guidance box of the framework's `SETUP.md`, where a copy is
+    kept, and the IMP records of `LEARNINGS.md`. A hit elsewhere, or one that really is a
+    fillable slot, must be recompacted onto a single physical line.
 11. **Inventories vs reality.** Do the inventory-lists ENUMERATED below correspond
     to the filesystem? Set comparison in BOTH directions: an entry that EXISTS but is missing
     from the inventory; an entry LISTED but non-existent. ONLY the enumerated
@@ -67,10 +67,10 @@ a rule: then it is a process bug, not a memory bug, and it goes to escalation/IM
     An entry counts also in an equivalent form (`make reset-task` ≡
     `./scripts/reset-task.sh`). A mismatch = BUG (lint semantics): the doc is aligned
     to reality. Excluded by declaration, as in check 10 (they record PAST
-    states, not inventories of the current state): the append-only documents
-    (`CHANGELOG.md`) and the IMP records of `LEARNINGS.md`. In client projects
-    only the files copied from the template count (the `README.md` of the framework is not
-    among them).
+    states, not inventories of the current state): the append-only documents (a
+    `CHANGELOG.md`, if the project keeps one) and the IMP records of `LEARNINGS.md`.
+    In client projects only the files copied from the template count (the `README.md`
+    of the framework is not among them).
 
 ## Output and resolution
 A table: **Area | Problem found | Type** (misalignment / contradiction /

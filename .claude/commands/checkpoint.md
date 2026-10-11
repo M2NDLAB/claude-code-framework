@@ -2,6 +2,9 @@
 description: Full checkpoint - memory + documentation + Git commit
 ---
 Run the checkpoint procedure for the current work: $ARGUMENTS
+Setup replaces the placeholders below — `<integration>`, the integration branch, and
+`<pattern-to-ignore-for-the-stack>`, the pattern `tree` ignores — with the project's
+values, then deletes this paragraph: [TO BE DEFINED AT SETUP].
 
 1. Read @.claude/docs/04-git-workflow.md for the commit rules.
 2. `git status` and `git diff --stat`: list what has changed and check that there

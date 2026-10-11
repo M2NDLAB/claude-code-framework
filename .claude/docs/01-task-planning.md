@@ -4,6 +4,11 @@ PERMANENT protocol for running heavy prompts in a way that survives interruption
 (usage limits, crashes, deliberate stops). The goal: NEVER lose more than a single
 task of work, and resume without reconstructing anything by hand.
 
+> Where `plans/` and `decisions/` stay clean templates — the framework's own
+> repository — a heavy deliverable keeps its plan and its structural decision in its
+> session note instead, and resumption looks for the plan in the most recent note: the
+> framework's `CONTRIBUTING.md` says how.
+
 ## Principle
 
 A prompt is not run "in one breath" hoping to reach the end. It is judged, and if it
@@ -77,25 +82,6 @@ Rules for the tasks:
 - Once the plan is written, COMMIT IT immediately (`chore: plan for <prompt>`) before
   starting the tasks: that way the plan survives even an immediate crash.
 
-> **Hybrid regime of the framework repo (IMP-024/IMP-034).** In the *framework* repo
-> itself — where `plans/`, `decisions/`, `STATE`/`TREE`/`INDEX` stay CLEAN TEMPLATES
-> (only `LEARNINGS.md` and `sessions/` are live; see `CONTRIBUTING.md`) — a heavy
-> deliverable does NOT create a file in `plans/` and does not record the structural
-> decision in `decisions/`: it would dirty the template. The "plan" and the assessment
-> live elsewhere, with the SAME resumption checkpoints:
-> - WHAT/WHY (plan + decision) → an entry in `LEARNINGS.md` (IMP-nnn) and/or the
->   session note;
-> - PHASES and resumption context → the session note, in a **standardised plan block**
->   (`## Plan (one commit per task)` with a checklist + shas — see
->   `sessions/README.md`): the note is plan-pointer and journal at once;
-> - resumption GRANULARITY → the `[task N/T]` commits (PHASE 3, unchanged);
-> - COMPLETION (PHASE 4) → `status: completed` in the frontmatter of the session NOTE,
->   not of a plan file.
->
-> It is the SPECIFIC rule (IMP-024, the hybrid regime) that prevails over the general
-> one (`plans/`) within its DECLARED scope only; in CLIENT projects (full memory)
-> `plans/` and `decisions/` remain fully valid.
-
 ## PHASE 3 — Task-by-task execution
 
 For each task in order:
@@ -141,7 +127,7 @@ plan), and apply this additional discipline:
   **The shared contract can be TEXTUAL, not only code**: section titles cited BY NAME
   from other files are an API as well. If the work renames them (a translation, a wide
   documentation restructuring), grep the OLD and the NEW wording before the merge —
-  having flagged the risk while planning is not a check (IMP-043: it was flagged, and
+  having flagged the risk while planning is not a check (it happened: it was flagged, and
   the broken cross-reference passed anyway).
 
 > The "wiring" between modules is exactly what isolated unit tests do not see: for a
@@ -152,10 +138,6 @@ plan), and apply this additional discipline:
 
 The `SessionStart` hook injects `STATE.md`. In addition, at startup:
 1. Check whether a plan with `status: in-progress` exists in `.claude/memory/plans/`.
-   (In the hybrid regime of the framework repo, where `plans/` stays empty, the
-   in-progress plan lives in the **plan block of the most recent session note** — see
-   the box in PHASE 2: check it there, or you would wrongly conclude "nothing in
-   progress".)
 2. If there is one AND it concerns the prompt the user is asking for (or the user
    says "resume"): read the plan, run `git log --oneline` on the branch to confirm
    which tasks are already committed, and RESUME from the first unticked task. Do NOT

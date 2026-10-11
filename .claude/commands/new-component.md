@@ -13,7 +13,7 @@ The specific structure and tools are [TO BE DEFINED AT SETUP]: document them in 
    concern — [TO BE DEFINED AT SETUP]).
 4. Include the basic elements expected of a "complete" component:
    - per-environment configuration (dev/prod);
-   - production artefact (e.g. multi-stage non-root container — [TO BE DEFINED]);
+   - production artefact (e.g. multi-stage non-root container — [TO BE DEFINED AT SETUP]);
    - first schema migration, if the component persists data;
    - health check / liveness endpoint, if it is a service;
    - API documentation (if it exposes an API);

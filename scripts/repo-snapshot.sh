@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # repo-snapshot.sh — a fingerprint of a repository's shared state, compared BEFORE and
 # AFTER delegating work to agents (docs/04, "Delegated agents and the shared working
-# tree"; IMP-055).
+# tree").
 #
 # It prints HEAD, the checked-out branch, every ref, the stash, the worktrees and the
 # untracked files. HEAD and branch alone are not enough: an agent that created or moved

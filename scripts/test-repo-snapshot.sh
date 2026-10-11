@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Self-test of scripts/repo-snapshot.sh (IMP-055; docs/04, "Delegated agents and the shared
+# Self-test of scripts/repo-snapshot.sh (docs/04, "Delegated agents and the shared
 # working tree").
 #
 # Contract under test: (1) taking the snapshot is READ-ONLY — it never rewrites
@@ -24,7 +24,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SNAPSHOT="${SCRIPT_DIR}/repo-snapshot.sh"
 
 fail() {
-  echo "FAIL (IMP-055 snapshot): $*" >&2
+  echo "FAIL (repo snapshot): $*" >&2
   exit 1
 }
 
@@ -56,7 +56,9 @@ g status >/dev/null
 
 # --- 2-3. Each trace changes the fingerprint; undoing it restores the fingerprint ------------
 # detects <label> <change command> <undo command>
+kinds=0
 detects() {
+  kinds=$((kinds + 1))
   eval "$2"
   [[ "$(snap)" != "${base}" ]] || fail "not detected: $1"
   eval "$3"
@@ -78,4 +80,4 @@ rc=$?
 set -e
 [[ ${rc} -ne 0 && -z "${out}" ]] || fail "outside a repository it must fail and print nothing (rc=${rc})"
 
-echo "PASS (IMP-055 snapshot): read-only (control: plain status rewrites the index), 7 kinds of trace detected and restored, loud outside a repository."
+echo "PASS (repo snapshot): read-only (control: plain status rewrites the index), ${kinds} kinds of trace detected and restored, loud outside a repository."

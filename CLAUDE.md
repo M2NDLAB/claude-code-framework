@@ -114,5 +114,5 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
 >   English; only this axis is yours.
 > - **Deployment**: production artifact format, target environment.
 > - **Project licence**: which licence THIS project adopts and who holds the
->   copyright. The framework does not impose one: its own `LICENSE` (MIT) covers the
->   framework itself, NOT the projects that use it — see `SETUP.md`.
+>   copyright. The framework does not impose one: the framework's own `LICENSE` (MIT)
+>   covers the framework itself, NOT the projects that use it.

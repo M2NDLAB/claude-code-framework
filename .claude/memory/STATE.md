@@ -52,7 +52,7 @@ tags: [state]
      resurfaces at the right moment, a generic one drowns in the noise. The entries must
      SURVIVE the rewrites of this file (a /checkpoint check). -->
 - <open issue / accepted debt> — <reason> → <trigger: when it blocks/resumes>
-- [[LEARNINGS]]: state of the IMP proposals (open / applied / deferred).
+- [[LEARNINGS]]: state of the IMP proposals (open / applied / deferred / rejected).
 
 ## Active branches
 <!-- Which branches exist and what they are for. /checkpoint reconciles this section

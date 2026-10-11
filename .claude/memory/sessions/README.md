@@ -16,8 +16,8 @@ review, decisions taken on the fly): the chat context is lost, the note is not �
 and the next prompt will be able to POINT at the note instead of rebuilding it.
 
 ## Naming
-`YYYY-MM-DD-<short-slug>.md` — e.g. `2026-06-14-setup-iniziale.md`,
-`2026-06-15-modulo-pagamenti.md`. The leading date keeps the chronological order.
+`YYYY-MM-DD-<short-slug>.md` — e.g. `2026-06-14-initial-setup.md`,
+`2026-06-15-payments-module.md`. The leading date keeps the chronological order.
 
 ## Format
 ```markdown
@@ -50,7 +50,7 @@ tags: [session, <area>]
 
 ## The `model` and `turns` fields
 
-Two OPTIONAL frontmatter fields (IMP-044), written by the agent that writes the note:
+Two OPTIONAL frontmatter fields, written by the agent that writes the note:
 which model produced it — so its reliability can be weighed after the fact — and how
 many exchanges the recorded work took — an objective proxy of its friction.
 
@@ -95,25 +95,5 @@ many exchanges the recorded work took — an objective proxy of its friction.
   values the main session passes to it — never its own prompts or its own model.
 - **Recorded data only**: no command consumes these fields; a threshold rule on `turns`
   is a separate, deferred proposal.
-
-## Plan block — the framework repo's hybrid regime
-
-In the *framework* repo heavy deliverables do NOT use `plans/` (clean template,
-IMP-024): the session note acts as a **plan-pointer**, hosting the plan in a
-STANDARDISED block — so plan and journal live in a single artefact and resumption
-always finds it in the same place (see the "Hybrid regime" box in
-`docs/01-task-planning.md`). In client projects `plans/` is used instead.
-
-Same structure as the `plans/` checklist: checkbox + atomic task + sha, one per task.
-
-```markdown
-## Plan (one commit per task)
-- [x] 1. <atomic task> — commit: <sha>
-- [ ] 2. <atomic task> — commit: —
-```
-
-Commit the note (with the block's skeleton) as the FIRST task: it is the
-plan-pointer resilient to an immediate crash — the equivalent of `plans/`'s
-`chore: plan for …`. On completion: `status: completed` in the note's frontmatter.
 
 > This README stays as a guide; the session notes live alongside it.

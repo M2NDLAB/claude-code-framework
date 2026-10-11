@@ -7,7 +7,8 @@ Security has two levels in this framework:
    It holds for everything, always, without exceptions. The hook protects commits
    from the moment it is installed: on a repo with PRE-EXISTING history (grafting the
    framework onto an existing project) the baseline is COMPLETED by a one-off scan of
-   the whole history — `gitleaks detect` — as a setup step (see `SETUP.md`, step 3).
+   the whole history — `gitleaks detect` — as a setup step (step 3 of the framework's
+   `SETUP.md`).
    Findings on the history are the user's decisions: a secret that has already been
    pushed must be rotated/revoked anyway; rewriting history is a different matter and
    is not done lightly.

@@ -4,7 +4,7 @@
 # Why it exists: an upgrade mixes judgement (how to resolve a conflict, which
 # customisation to keep) with mechanics that are the same every time — which files
 # changed and how much they collide with the project's, which slots moved, whether the
-# project's memory was touched only where allowed. Three real upgrades rebuilt those
+# project's memory was touched only where allowed. Real upgrades rebuilt those
 # mechanics by hand or with throwaway scripts. This script holds them; SETUP.md,
 # *Upgrading the framework*, stays the procedure and calls it at fixed points.
 #

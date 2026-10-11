@@ -25,9 +25,9 @@ than a doc that is missing.
 
 > **Scope of LEVEL 1.** It concerns the documentation of the METHOD and of the
 > project MANAGED with this framework. During a GRAFT onto an existing project
-> (brownfield — see `SETUP.md`, dedicated section), the host's pre-existing
-> documentation that disagrees with reality is NOT corrected as a matter of course:
-> it is recorded in `STATE.md` ("Documentation debt") and corrected only as a task
+> (brownfield — the dedicated section of the framework's `SETUP.md`), the host's
+> pre-existing documentation that disagrees with reality is NOT corrected as a matter of
+> course: it is recorded in `STATE.md` ("Documentation debt") and corrected only as a task
 > decided by the user — the scope hygiene of `00-overview.md` prevails (one change at
 > a time). Once the graft is COMPLETE the host's documentation IS the documentation
 > of the managed project and falls under LEVEL 1; only the debts already recorded in
@@ -65,7 +65,8 @@ configuration is in force, or why. **The agent proposes, the human disposes.**
 
 When the user approves an IMP (directly or through an escalation answer):
 1. Apply the change in the right file (`CLAUDE.md` / doc / command / config).
-2. Move the IMP into "Applied" with the date and the commit sha.
+2. Move the IMP into "Applied" with the date and the commit sha, rewritten in its final
+   form (the format comment of `LEARNINGS.md` says how).
 3. A dedicated commit: `chore(claude): apply IMP-nnn — <title>`.
 4. If the change alters a numbered rule of `CLAUDE.md`: check that the other rules
    and the docs stay coherent (no orphan references).
@@ -77,13 +78,13 @@ the framework (rather than IS the framework), some of the lessons are not about 
 project: they are about the METHOD — an ambiguous rule, a missing command, a process
 step that creates friction everywhere, not only here. Those lessons have a second
 destination, the framework repo, so that they improve the NEXT project too: it is the
-"loop" of the README's Philosophy, formalised in `SETUP.md` §5 *"Evolving the
-framework"*.
+"loop" the framework's README calls its *Philosophy*, formalised in §5 of the
+framework's `SETUP.md`, *"Evolving the framework"*.
 
 **How it is marked.** An IMP that concerns the framework carries, in its body in
-`LEARNINGS.md`, the line `- Destination: framework` (see the IMP format in the header
-of `LEARNINGS.md`). It is a DESTINATION attribute, not a third level: the lesson stays
-a Level 2 one (it is PROPOSED, not applied autonomously) and follows its normal cycle
+`LEARNINGS.md`, the line `- Destination: framework` (see the IMP format in the format
+comment of `LEARNINGS.md`). It is a DESTINATION attribute, not a third level: the lesson
+stays a Level 2 one (it is PROPOSED, not applied autonomously) and follows its normal cycle
 IN the project; the marker only adds "this one, besides here, must be sent upstream".
 The criterion for marking it: it is useful to ANY project using the framework, not
 only to this one. A single physical line, so that `/harvest-framework` collects it via
@@ -97,7 +98,7 @@ repos, does not run git/push towards the framework. The transfer is **human
 curation**: whoever runs it pastes the block, **anonymises** it (no name of this
 project/client/environment in the framework's shared history —
 `04-git-workflow.md`) and records it as a new proposal in the framework, where it will
-be assessed like any other contribution (`CONTRIBUTING.md`).
+be assessed like any other contribution (the framework's `CONTRIBUTING.md`).
 
 **Why this boundary.** A command that actually wrote into the framework repo would
 violate two rules at once: the execution boundary — shared history is moved by the
@@ -106,10 +107,6 @@ nothing, and must know nothing, about the concrete instance using it (it does no
 where the framework repo lives relative to the project). The copyable block is
 deliberately the only output: it makes the transfer explicit, reviewable and under
 human control.
-
-> In the FRAMEWORK REPO itself the attribute is moot: here every IMP is already a
-> lesson about the framework (declared hybrid regime), so nothing is marked and
-> `/harvest-framework` has no material to rake in. The command is for client projects.
 
 ## What this protocol is NOT
 

@@ -54,7 +54,7 @@ in, is in **[SETUP.md](SETUP.md)**):
 3. **Install the hooks**: `make hooks-install` (requires `gitleaks` and Node.js for
    commitlint). Enable automatic formatting in the hook for your language.
 4. **First command to Claude Code** — have it read `CLAUDE.md` and the docs in
-   `.claude/docs/`, then initialise the memory (`STATE.md`, `TREE.md`). The exact
+   `.claude/docs/`, then initialise the memory (`STATE.md`, `TREE.md`, `INDEX.md`). The exact
    suggested command is in `SETUP.md`.
 
 From there on you work with the cycle described in `.claude/docs/00-overview.md`:
@@ -83,7 +83,7 @@ plan → execute task by task → [if sensitive] `/security-review` → `/retro`
 ├── SECURITY.md                security policy (real for the repo + scaffold [TO BE DEFINED])
 ├── CHANGELOG.md               Keep a Changelog, wired to the versioning of docs/04
 ├── Makefile                   process targets only (hooks-install, reset-task, test-scripts)
-├── tools/                     the upgrade's read-only checks — NOT copied into projects
+├── tools/                     the repo's own checks (upgrade, documentation) — NOT copied into projects
 ├── commitlint.config.cjs      Conventional Commits types
 ├── .gitignore                 baseline (secrets + IDE/OS) + [TO BE DEFINED] section
 ├── scripts/

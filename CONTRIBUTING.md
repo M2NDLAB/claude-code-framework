@@ -27,9 +27,14 @@ This repo applies to itself the method it describes (`.claude/docs/`):
   instances (stack, names, concrete values); where concreteness is needed, use
   `[TO BE DEFINED AT SETUP]`.
 - **`tools/` holds this repository's own tools**, outside the payload: the upgrade's
-  verification script and its self-test (`tools/README.md`). Run
-  `bash tools/test-upgrade-check.sh` before every release, next to `make test-scripts`:
-  it fails when a payload file has no class.
+  verification script, the documentation check and their self-tests (`tools/README.md`).
+  `make test-scripts` runs the documentation check here, after its self-test: what it
+  finds is fixed in the release that brings it. Its guarded line in the `Makefile`, the
+  comment above it and the conditional line at the top of `docs/01` are the only text of
+  the payload that holds only here: in a project, where `tools/` is absent, the line does
+  nothing.
+  Run `bash tools/test-upgrade-check.sh` before every release too: it fails when a payload
+  file has no class.
 
 ## This repo's git model (a declared exception)
 
@@ -87,10 +92,42 @@ This is not an oversight: it is the choice that keeps the template copyable
 without giving up the self-improvement loop. Whoever copies the template into
 their own project EMPTIES the live part (instructions in `SETUP.md`, step 2).
 
-Operational consequence of the regime: a heavy deliverable here does NOT create a
-file in `plans/` — the plan lives in the session note as a standardised plan
-block, one commit per task (see `.claude/docs/01-task-planning.md`, the box on the
-hybrid regime, and `.claude/memory/sessions/README.md`).
+### A heavy deliverable here: the plan lives in the session note
+
+`.claude/docs/01-task-planning.md` keeps the plan of a heavy deliverable in `plans/` and
+its structural decision in `decisions/`; here both would dirty the templates, and the doc
+says so in one line. The plan and the assessment live elsewhere, with the SAME resumption
+checkpoints:
+
+- WHAT/WHY (plan + decision) → an IMP entry in `LEARNINGS.md` and/or the session note;
+- PHASES and resumption context → the session note, in a **standardised plan block**
+  (below): the note is plan-pointer and journal at once;
+- resumption GRANULARITY → the `[task N/T]` commits (`docs/01`, PHASE 3, unchanged);
+- COMPLETION (`docs/01`, PHASE 4) → `status: completed` in the frontmatter of the session
+  NOTE, not of a plan file.
+
+This specific rule prevails over the general one (`plans/`) in this repository only; in a
+project the framework is grafted onto, `plans/` and `decisions/` remain fully valid. At
+the start of a session the in-progress plan is the **plan block of the most recent
+session note**: `plans/` stays empty here, and looking only there would wrongly conclude
+"nothing in progress".
+
+**The plan block** has the structure of the `plans/` checklist — a checkbox, an atomic
+task and its sha, one per task:
+
+```markdown
+## Plan (one commit per task)
+- [x] 1. <atomic task> — commit: <sha>
+- [ ] 2. <atomic task> — commit: —
+```
+
+Commit the note, with the block's skeleton, as the FIRST task: it is the plan-pointer
+resilient to an immediate crash — the equivalent of `plans/`'s `chore: plan for …`. On
+completion: `status: completed` in the note's frontmatter.
+
+**The `Destination: framework` attribute is moot here**: every IMP of this backlog is
+already a lesson about the framework, so no entry carries it, and `/harvest-framework` —
+a command for the projects that use the framework — has nothing to collect.
 
 ## In practice, for a proposed change
 

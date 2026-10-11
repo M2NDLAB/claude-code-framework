@@ -10,26 +10,26 @@ Complementary to `/retro`: `/retro` RECORDS the IMPs (and puts the marker
 `/harvest-framework` HARVESTS them to carry them upstream.
 
 This command **only reads and prints**: it does NOT clone, it does NOT copy files between
-repos, it does NOT run git/push towards the framework (the boundary of IMP-009 and
-agnosticity — the project does not know, and must not know, where the framework repo
-lives). The transfer and the re-registration as an IMP in the framework remain HUMAN
-curation.
+repos, it does NOT run git/push towards the framework (the execution boundary of
+`docs/04`: shared history is moved by the human, never by the agent; and agnosticism —
+the project does not know, and must not know, where the framework repo lives). The
+transfer and the re-registration as an IMP in the framework remain HUMAN curation.
 
-## 1. Context (the command is moot in the framework repo)
-If you are running IN the framework repo itself (hybrid regime: every IMP is already a
-lesson about the framework), there is nothing to tell apart nor to rake up: say so and
-stop. The command serves the CLIENT projects, where `LEARNINGS.md` is the project backlog
-and only SOME IMPs are framework-bound.
+## 1. Context
+The command serves a project that USES the framework, where `LEARNINGS.md` is the
+project's backlog and only SOME IMPs are framework-bound: those are the ones it harvests.
 
 ## 2. Harvest (read-only)
 1. Find the marked entries:
-   `grep -nE "Destination: framework|Destinazione: framework" .claude/memory/LEARNINGS.md`
-   (by convention the marker is a single physical line). The Italian form is
-   recognised as LEGACY: backlogs written before the release that introduced
-   the English marker keep being raked up.
+   `grep -nE "^- Destination: framework|^- Destinazione: framework" .claude/memory/LEARNINGS.md`
+   (by convention the marker is a single physical line, so a mention in prose is not
+   a hit). The Italian form is recognised as LEGACY: backlogs written before the
+   release that introduced the English marker keep being raked up. Only a hit inside
+   an entry (`### IMP-…`) counts: the format comment of `LEARNINGS.md` shows the
+   marker without being an entry.
 2. Define the perimeter:
    - default (`$ARGUMENTS` empty): ALL marked IMPs, in any section
-     (OPEN / Applied / Deferred) — the whole backlog;
+     (OPEN / Applied / Deferred / Rejected) — the whole backlog;
    - with `$ARGUMENTS`: narrow to the given criterion (a specific IMP `IMP-nnn`, a
      date/session, a section). Interpret `$ARGUMENTS` as a filter on the entries found.
 3. For each entry in the perimeter, read the body of the IMP in `LEARNINGS.md` and collect:
@@ -70,8 +70,8 @@ project.
 
 ## 5. Close
 - Recall that the next step is HUMAN: open the framework repo and register the
-  entries as IMP proposals (`CONTRIBUTING.md`), one by one, after re-checking the
-  anonymisation.
+  entries as IMP proposals (the framework's `CONTRIBUTING.md`), one by one, after
+  re-checking the anonymisation.
 - Do NOT mark anything as "already carried upstream" and do NOT modify `LEARNINGS.md`: the
   command does not mutate state. De-duplication between successive harvests is human
   curation — to avoid raking up again the lessons already carried upstream, narrow with

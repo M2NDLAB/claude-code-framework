@@ -17,7 +17,7 @@ tags: [moc]
 ## State
 - [[STATE]] — current state: progress, decisions, documentation debt, open issues
 - [[TREE]] — repository structure (regenerated, never edited by hand)
-- [[LEARNINGS]] — backlog of process improvements (IMP): open / applied / deferred
+- [[LEARNINGS]] — backlog of process improvements (IMP): open / applied / deferred / rejected
 
 ## By component
 <!-- One pointer for every note in components/. A stub until the component exists. -->
@@ -33,4 +33,4 @@ tags: [moc]
 
 ## Plans
 <!-- Task plans for heavy prompts (see docs/01-task-planning.md). -->
-- [[plans/<id-prompt>]] — <objective> (status: in-progress | completed)
+- [[plans/<prompt-id>]] — <objective> (status: in-progress | completed)
