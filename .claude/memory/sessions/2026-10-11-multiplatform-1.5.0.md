@@ -4,7 +4,7 @@ task: v1.5.0 — macOS, Linux and Windows (IMP-070, points 1-6) — a CI on the 
 branch: feat/multiplatform-1.5.0
 status: in-progress
 model: 'claude-opus-5-5'
-turns: 2
+turns: 7
 tags: [session, platforms, ci, tools, imp, plan]
 ---
 # Session 2026-10-11 — v1.5.0: macOS, Linux and Windows
@@ -16,9 +16,10 @@ tags: [session, platforms, ci, tools, imp, plan]
 
 ## The fields of this very note
 - `model: 'claude-opus-5-5'` — the main session.
-- `turns: 2` — the user's brief for phase 1, with v1.4.1 integrated and pushed (`db87686`,
+- `turns: 7` — the user's brief for phase 1, with v1.4.1 integrated and pushed (`db87686`,
   tag v1.4.1 signed; the bump stays a PATCH: the tag is published), and the user's
-  decisions on phase 1, which open phase 2.
+  decisions on phase 1, which open phase 2; then one message per round of the CI, the
+  first five, each after the user's push (their instructions are below, in the brief).
 
 ## The brief — persisted so a /clear does not lose it
 
@@ -74,6 +75,30 @@ Phase 2: a dedicated branch from `main`, probes only under `/tmp`, ONE reviewer.
 end `/checkpoint` and the `/integrate` blocks — for this release with a block 0 (push the
 branch, wait for the CI), since the CI is born here. Merge, tag and push are the user's.
 
+### During the CI's rounds (2026-10-11)
+- **Round 1.** Fix only what fails, with NEW commits: the branch is public, nothing is
+  rewritten. The line-end step overwrites what the framework's paths hold: it must refuse
+  a change not yet committed there, by an explicit check before the step, with a case in
+  a self-test (task 8).
+- **Round 2.** An OPEN IMP, LOW: commitlint reads a body line that starts with "word:" as
+  the footer — its documentation checked first (IMP-078).
+- **Round 3.** The agent no longer waits for the user's word: it checks with `gh`,
+  read-only, that the run of the push has concluded on all three jobs before reading it,
+  and waits if not. Then it stops at the next block 0, or — everything green — goes on
+  with the plan up to the `/integrate` block.
+- **Round 4, the closing rule.** Every commit added after the last green run — the
+  platform matrix, the review's fixes, `/checkpoint`, the CHANGELOG — passes the CI
+  before the merge. So the final `/integrate` has a block 0 that pushes the branch's
+  FINAL state, and the agent checks that the run on that commit is green on all three
+  jobs BEFORE it gives block 1. Block 1 checks that the local tip of the branch is the
+  one on `origin` that got the green (`git rev-parse` of both), with a fixed OK line like
+  the other checks.
+- **Round 5.** The plan B threshold corrected (below). And if the round shows that the
+  red case was grep not seeing a `\r` on Git Bash: search ALL the product's code, not only
+  the tests, for other places that detect a `\r` with grep or a like expression — the
+  upgrade check's CRLF tolerance first — and verify that they work on Windows; if it was
+  a clone without CRLF instead, write so and go on.
+
 ## The principle for `tools/` (the user's, 2026-10-11)
 `tools/` holds more than 3000 lines (`upgrade-check.sh` 894, `docs-check.mjs` 1155, their
 self-tests 407 and 575): from here on, a new rule in `upgrade-check.sh` or `docs-check.mjs`
@@ -81,11 +106,13 @@ answers an OBSERVED defect, never a hypothetical one. `tools/README.md` says so 
 this release the upgrade check's tolerance of CRLF line ends answers a defect measured in
 phase 1's simulated CRLF checkout (below); no new rule is added on prediction alone.
 
-## Plan B threshold (the user's decision, 2026-10-11)
+## Plan B threshold (the user's decision, 2026-10-11, corrected the same day)
 IMP-070 keeps a rewrite of the scripts in Node.js as a plan B, if the tests on Windows
 cost too much. The threshold, decided before the first run so the call is mechanical:
-the Windows job runs over 30 minutes, or over 5 times the Linux job, steadily for 3
-consecutive runs.
+the Windows job runs over 30 minutes, steadily for 3 consecutive runs. Its first version
+also counted "over 5 times the Linux job"; the user removed it after the fourth round:
+with Linux near a minute, it would fire for a 5-minute Windows job and ask for a rewrite
+with no real cost behind it.
 
 ## Plan (one commit per task)
 - [x] 1. This note and its plan, phase 1's analysis and the decisions; the registrations — IMP-071 to IMP-077, IMP-070 annotated with the decisions and the plan B threshold — and the principle for `tools/` — commit: a787c9a
@@ -95,8 +122,8 @@ consecutive runs.
 - [x] 5. PowerShell, option C: the tool off in `settings.json`, the guard reading `PowerShell` too (`git.exe`, case, backtick continuations), its self-test, `docs/04`, `SETUP.md` *Hardening* — commit: db1fc77
 - [x] 6. The prerequisites by tool name (`SETUP.md` §0, `hooks-install.sh`'s message, the READMEs): git, bash and a POSIX userland (Git for Windows), GNU make, gitleaks, Node.js 22.12 — commit: ecd2b8d
 - [x] 7. The upgrade 1.4.1 → 1.5.0 rehearsed, LF and CRLF, the renormalisation step measured; the Upgrading note drafted — commit: c22c9b3
-- [ ] 8. The line-end step of Step 3 in `SETUP.md`, refusing a change not yet committed on the framework's paths (the user's request after task 7): the case first (RED), then the guard (GREEN) — commit: —
-- [ ] 9. The CI's runs (block 0, the user's pushes): what fails, fixed, until green on the three platforms — commit: —
+- [x] 8. The line-end step of Step 3 in `SETUP.md`, refusing a change not yet committed on the framework's paths (the user's request after task 7): the case first (RED), then the guard (GREEN) — commit: e6597f1
+- [x] 9. The CI's runs (block 0, the user's pushes): what fails, fixed, until green on the three platforms — commit: 6382884 to 766365a, five rounds
 - [ ] 10. The platform matrix (`README.md`, `SETUP.md`): only what the CI verified — commit: —
 - [ ] 11. ONE reviewer + fixes — commit: —
 - [ ] 12. `/checkpoint` (the rehearsal re-run on the final payload) — commit: —
@@ -383,10 +410,46 @@ macos-26 green (155 s), windows-2025 red (194 s).
 - Plan B's threshold: Windows took 290 s, 4.2 times Linux's 69 s — below 5 times and far
   below 30 minutes.
 
+**Round 5** — run 38160047368, on `f41780d`: green on all three jobs, the first time.
+ubuntu-24.04 74 s, 23 PASS; macos-26 173 s, 23 PASS; windows-2025 453 s, 22 PASS and 1
+SKIP (the dangling-symlink case), no FAIL. Images: ubuntu-24.04 20261002.596,
+macos-26-arm64 20260828.587, windows-2025-vs2026 20260901.588; the tools' versions are
+round 1's.
+- The fourth round's red was grep, not the clone. In the same kind of clone, git counted
+  CRLF framework files where `grep $'\r$'` had counted none: Git Bash's grep does not see
+  a line-ending `\r` there. The line-end step passes on Windows.
+- The user's point 2, the product's code searched for every place that handles a `\r`:
+  five, and each one STRIPS it, none detects it. `upgrade-check.sh`: `lf()`
+  (`tr -d '\r'`, behind task 4's nine reads), the project's pin (`pin_field`, awk
+  `gsub(/\r/, "")`), the restore point's pin (the same awk expression on `git show`).
+  `docs-check.mjs`: two `replace(/\r\n/g, "\n")` in Node.js. The guard:
+  `replace(/\r\n?/g, "\n")`. The check's patterns anchored at a line's end read text that
+  `lf()` has already converted, or end in `[[:space:]]*`, which takes a `\r` too. No
+  verdict of the product depends on grep seeing a `\r`.
+- Where Windows proves the stripping: the upgrade check's line-end case (the nine reads,
+  and the pin through `post`), the guard's CRLF cases, the documentation check's CRLF case
+  (its copy written by Node.js, byte for byte). The first two never showed that their
+  input carried a `\r` — one writes its CRLF copy with awk, the other hands Node.js the
+  command through a pipe. Now they do (`766365a`): git confirms each copy's line ends,
+  CRLF only and LF only; `post`'s CRLF output must show the pin; the guard's CRLF input
+  must reach Node.js with its `\r`. Mutants on macOS, each run once: the CRLF copy
+  written in LF fails at `inventory`; with the check removed too, `inventory` compares LF
+  with LF and passes, and only git's own warnings trip `invariant`; the LF copy written in
+  CRLF fails at `inventory`; the `\r` dropped before Node.js fails the guard's test, which
+  passes without the check. The next run proves the checks on Windows.
+- The restore point's pin is a committed blob: a `\r` reaches it only from a project that
+  committed CRLF. Its awk expression is the one `pin_field` runs, proved through `post`;
+  and a runtime that dropped the `\r` before awk would give the same value.
+- Plan B: Windows 453 s, against the 30 minutes of the corrected threshold. Its time grew
+  with the tests that ran there: 23, 61, 194, 290, 453 s.
+
 ## Resumption notes
 - The CI runs only on what the user pushes: the first push of this branch came after
   task 7 (round 1, below). The branch is public from then on: no commit is rewritten,
   every fix is a new commit.
+- The last green run is round 5's, on `f41780d`. Every commit after it — `766365a`, this
+  note's update, tasks 10 to 13 — reaches the CI through the final block 0 (the closing
+  rule, in the brief); block 1 waits for that run's green on all three jobs.
 
 ## Received for later blocks
 - **v1.6.0** (prerequisites and versions): point 7 of IMP-070, the prerequisite check;

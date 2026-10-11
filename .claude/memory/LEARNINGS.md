@@ -607,8 +607,9 @@ tags: [improvement]
   Windows runner at a fixed version. Node.js: 22.12 declared, majors 22 and 24 verified by
   the CI.
 - Plan B threshold (user decision, 2026-10-11): the rewrite in Node.js is weighed again
-  when the Windows job runs over 30 minutes, or over 5 times the Linux job, steadily for 3
-  consecutive runs.
+  when the Windows job runs over 30 minutes, steadily for 3 consecutive runs. A ratio to
+  the Linux job ("over 5 times") was dropped the same day: with Linux near a minute it
+  would fire for a 5-minute Windows job, with no real cost behind it.
 
 ### IMP-071 — A claim of coverage is a list that declares itself complete
 - Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at
