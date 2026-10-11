@@ -45,7 +45,7 @@ in, is in **[SETUP.md](SETUP.md)**):
 
 1. **Copy** the framework contents into the root of your new project (the
    `.claude/` folder, plus `CLAUDE.md`, `Makefile`, `commitlint.config.cjs`,
-   `.gitignore`, `scripts/`), then create the provenance pin
+   `.gitignore`, `.gitattributes`, `scripts/`), then create the provenance pin
    `.claude/framework-version` with the version you just copied (`SETUP.md`, step 1).
 2. **Fill in the `[TO BE DEFINED AT SETUP]`** — above all in `CLAUDE.md` (project
    name, stack, technical rules, sensitive components) and in the spots listed in
@@ -87,6 +87,7 @@ plan → execute task by task → [if sensitive] `/security-review` → `/retro`
 ├── .github/                   the repo's own CI (macOS, Linux, Windows) — NOT copied into projects
 ├── commitlint.config.cjs      Conventional Commits types
 ├── .gitignore                 baseline (secrets + IDE/OS) + [TO BE DEFINED] section
+├── .gitattributes             LF line ends for the framework's files, on every platform
 ├── scripts/
 │   ├── hooks-install.sh       gitleaks + commitlint + pre-push push boundary (always) + formatting (example)
 │   ├── agent-git-guard.mjs    PreToolUse guard: delegated agents read-only on git

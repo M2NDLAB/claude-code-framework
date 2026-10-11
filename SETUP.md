@@ -26,8 +26,8 @@ Code". Estimated time: 15-30 minutes, most of it spent filling in the technical 
 > present (plus the criterion for a pre-existing `.claude/`).
 
 Copy into the root of the new repo: the `.claude/` directory, `CLAUDE.md`, `Makefile`,
-`commitlint.config.cjs`, `.gitignore`, `scripts/`. (README.md and this SETUP.md you
-may leave out of the final project, or keep them for reference.)
+`commitlint.config.cjs`, `.gitignore`, `.gitattributes`, `scripts/`. (README.md and this
+SETUP.md you may leave out of the final project, or keep them for reference.)
 
 > **`LICENSE`, `CONTRIBUTING.md`, `CHANGELOG.md`, `tools/` and `.github/` are NOT copied.**
 > They are files of the framework repo (its licence, its contribution flow, its history,
@@ -283,6 +283,7 @@ them:
 |---|---|
 | The host's `README.md` | It is PRESERVED: it is the project's public documentation (the framework's README is not copied anyway, step 1). |
 | `.gitignore` | It is INTEGRATED: add the template's entries (secrets, `settings.local.json`, etc.) to the host's file, do not overwrite it. |
+| `.gitattributes` | It is INTEGRATED: add the template's lines (LF line ends for the framework's paths) AFTER the host's — for the same path a later line wins —, do not overwrite it. |
 | `Makefile` | It is INTEGRATED: add the process targets (`hooks-install`, `reset-task` with its `PROTECTED_BRANCHES` variable, `test-scripts`) to the host's one. |
 | `SECURITY.md` | If the host already has one, it is preserved/integrated; the template's scaffold is only needed if it is missing. |
 | `LICENSE` | The host's stays (the framework's LICENSE is never copied, step 1). |
@@ -406,7 +407,7 @@ makes the framework's own self-test fail:
   `scripts/test-*.sh`, `scripts/README.md`, `commitlint.config.cjs`.
 - **HYBRID** (a framework part that evolves + a project part to preserve, reconciled):
   `CLAUDE.md`, `.claude/settings.json`, `scripts/hooks-install.sh`, `.gitignore`,
-  `Makefile`, and the commands customised at setup (`checkpoint.md`, `integrate.md`,
+  `.gitattributes`, `Makefile`, and the commands customised at setup (`checkpoint.md`, `integrate.md`,
   `new-component.md`).
 - **MEMORY TEMPLATES** (the method's own files inside `.claude/memory/`, reconciled 3-way
   like the hybrids): the four guide READMEs — the `README.md` of `components/`,
@@ -597,7 +598,7 @@ complementary sources:
 
   ```bash
   git -C "${FW:?}" diff vX vY -- .claude/docs .claude/commands .claude/settings.json \
-    CLAUDE.md scripts Makefile commitlint.config.cjs .gitignore \
+    CLAUDE.md scripts Makefile commitlint.config.cjs .gitignore .gitattributes \
     .claude/memory/components/README.md .claude/memory/decisions/README.md \
     .claude/memory/plans/README.md .claude/memory/sessions/README.md
   ```
@@ -675,7 +676,9 @@ from a hand-written list; the memory's titles and field labels to rename; and th
   stack's allow-list, the whole "Technical rules" section of `CLAUDE.md`) — and if `vY`
   MOVED a slot to another file, see edge case 8 before merging either file. `.gitignore`
   is INTEGRATED (additive union: make sure the lines of the `vY` base —
-  `git -C "${FW:?}" show vY:<path>` — are present without removing the project's). The
+  `git -C "${FW:?}" show vY:<path>` — are present without removing the project's), and
+  so is `.gitattributes`, with `vY`'s lines after the project's: for the same path, a
+  later line wins. The
   `Makefile` is NOT: it goes through the 3-way like the other hybrids. A union keeps the
   old and the new recipe of the same target, and `make` then runs both, or warns
   "overriding commands" and runs only the last — measured on v1.3.2's `reset-task`.

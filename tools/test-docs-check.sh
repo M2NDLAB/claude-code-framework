@@ -448,8 +448,8 @@ has 'the header says "four cases"'
 c="$(copy list-setup)"
 edit "${c}/SETUP.md" '`CLAUDE\.md`, `\.claude/settings\.json`, `scripts/hooks-install\.sh`' '`.claude/settings.json`, `scripts/hooks-install.sh`'
 edit "${c}/SETUP.md" 'CLAUDE\.md scripts Makefile commitlint' 'CLAUDE.md scripts commitlint'
-edit "${c}/SETUP.md" '`CHANGELOG\.md` and `tools/` are NOT copied' '`CHANGELOG.md` and the checks are NOT copied'
-edit "${c}/SETUP.md" 'So is `tools/`:' 'So are the checks:'
+edit "${c}/SETUP.md" '`CHANGELOG\.md`, `tools/` and `\.github/` are NOT copied' '`CHANGELOG.md`, the checks and `.github/` are NOT copied'
+edit "${c}/SETUP.md" 'So are `tools/` —' 'So are the checks —'
 edit "${c}/SETUP.md" '\| `## Progress` \|' '| `## Progression` |'
 edit "${c}/SETUP.md" '\| `- Proposal:` \|' '| `- Proposals:` |'
 edit "${c}/.claude/docs/04-git-workflow.md" '`perf`, ' ''
@@ -509,7 +509,7 @@ has "LABEL_TABLE lacks Proposal"
 c="$(copy list-various)"
 edit "${c}/.claude/memory/INDEX.md" 'open / applied / deferred / rejected' 'open / applied / deferred'
 edit "${c}/SETUP.md" 'Its subcommands: `classes` \(the class table, file by file\), ' 'Its subcommands: '
-edit "${c}/SETUP.md" '`commitlint.config.cjs`, `.gitignore`, `scripts/`\.' '`commitlint.config.cjs`, `.gitignore`.'
+edit "${c}/SETUP.md" '`\.gitignore`, `\.gitattributes`, `scripts/`\.' '`.gitignore`, `.gitattributes`.'
 run 1 "${c}"
 nfails 3
 has "the backlog's sections without rejected"

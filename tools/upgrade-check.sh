@@ -35,7 +35,7 @@
 set -u -o pipefail
 
 # What setup copies into a project (SETUP.md, step 1): the payload.
-readonly PAYLOAD_PATHS=(.claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts)
+readonly PAYLOAD_PATHS=(.claude CLAUDE.md Makefile commitlint.config.cjs .gitignore .gitattributes scripts)
 # The slot marker, in both forms: a project grafted before v1.1.0 carries the Italian one.
 readonly MARKER_RE='TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP'
 # A marker broken by a line wrap: what is left at the end of the line.
@@ -86,7 +86,7 @@ classify() {
     .claude/memory/*) echo PROJECT-MEMORY ;;
     .claude/framework-version) echo GRAFT-STATE ;;
     .claude/settings.local.json | .claude/worktrees/*) echo LOCAL ;;
-    CLAUDE.md | .claude/settings.json | .gitignore | Makefile | scripts/hooks-install.sh | \
+    CLAUDE.md | .claude/settings.json | .gitignore | .gitattributes | Makefile | scripts/hooks-install.sh | \
     .claude/commands/checkpoint.md | .claude/commands/integrate.md | \
     .claude/commands/new-component.md)
       echo HYBRID ;;
