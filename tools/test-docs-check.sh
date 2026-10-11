@@ -101,7 +101,8 @@ floor() {
 # the check needs anyway); a regex that matches nothing stops the test, never passes it.
 edit() {
   node -e 'const fs = require("fs"); const [f, re, to] = process.argv.slice(1);
-    const s = fs.readFileSync(f, "utf8"); const t = s.replace(new RegExp(re, "gm"), to);
+    // A Windows checkout writes the documents with CRLF: the edit reads them as LF.
+    const s = fs.readFileSync(f, "utf8").replace(/\r\n/g, "\n"); const t = s.replace(new RegExp(re, "gm"), to);
     if (t === s) { console.error(`edit: nothing matches ${re} in ${f}`); process.exit(1) }
     fs.writeFileSync(f, t)' "$1" "$2" "$3" || fail "the test's own edit of $1 matched nothing"
 }

@@ -243,7 +243,10 @@ done
 # --- 4. A broken guard: fail-CLOSED for a delegated agent, open for the main session ------
 mkdir -p "${workdir}/empty" "${workdir}/broken/scripts" "${workdir}/no-node" "${workdir}/no-cat"
 echo 'throw new Error("simulated crash");' > "${workdir}/broken/scripts/agent-git-guard.mjs"
-ln -s "$(command -v cat)" "${workdir}/no-node/cat" # a PATH with the wiring's `cat` and no `node`
+# A PATH with the wiring's `cat` and no `node`: `cat` is a wrapper, not a link — Git Bash's
+# `ln -s` copies the binary away from the DLL it loads (measured in the CI on Windows).
+printf '#!/bin/sh\nexec "%s" "$@"\n' "$(command -v cat)" > "${workdir}/no-node/cat"
+chmod +x "${workdir}/no-node/cat"
 ln -s "${NODE}" "${workdir}/no-cat/node"           # a PATH with `node` and no `cat`
 for who in agent main; do
   if [[ "${who}" == agent ]]; then want=2; mark=agent; else want=1; mark=""; fi

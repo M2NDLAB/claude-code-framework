@@ -100,6 +100,10 @@ T_DIR="${workdir}/T"
 mkdir -p "${T_DIR}"
 # put <root> <path> <content>: write a file, creating its directory.
 put() { mkdir -p "$(dirname "$1/$2")"; printf '%b' "$3" > "$1/$2"; }
+# set_exec <repo> <path> <+x|-x>: a tracked file's executable bit, where git keeps it — the
+# filesystem's, and the index's, which is the only one on Windows: there chmod changes
+# nothing (measured in the CI). Both, so the fixture means the same on every platform.
+set_exec() { chmod "$3" "$1/$2" && g -C "$1" update-index --chmod="$3" -- "$2"; }
 
 g init -q -b main "${FWD}"
 put "${FWD}" CLAUDE.md '# Index\nStack: [TO BE DEFINED AT SETUP]\nRule A: the framework first wording.\nRule B: unchanged text.\n'
@@ -133,7 +137,7 @@ g -C "${FWD}" commit -q -am "fix: 1.0.1" && g -C "${FWD}" tag -a v1.0.1 -m v1.0.
 put "${FWD}" CLAUDE.md '# Index\nStack: [TO BE DEFINED AT SETUP]\nRule A: the framework second wording.\nRule B: fixed in 1.0.1.\n'
 put "${FWD}" Makefile '# [TO BE DEFINED AT SETUP] the branches reset-task must never touch\nPROTECTED_BRANCHES = main develop\nreset-task:\n\tPROTECTED_BRANCHES="$(PROTECTED_BRANCHES)" bash scripts/reset-task.sh\n'
 put "${FWD}" scripts/reset-task.sh '#!/usr/bin/env bash\nPROTECTED_BRANCHES="${PROTECTED_BRANCHES:-main develop}"\necho reset\n'
-chmod +x "${FWD}/scripts/reset-task.sh"
+set_exec "${FWD}" scripts/reset-task.sh +x
 put "${FWD}" .claude/docs/00-overview.md '# 00\nThe method, revised.\n'
 put "${FWD}" .claude/memory/sessions/README.md 'sessions, second version\nThe plan block of the framework repo.\n'
 put "${FWD}" .claude/memory/STATE.md '# STATE\n\n## Progress\n- template\n\n## Active branches\n- template\n'
@@ -345,7 +349,7 @@ reconciled_state() {
     g -C "${FWD}" show "v1.1.0:${f}" > "${PRJ}/${f}"
   done
   g -C "${FWD}" show v1.1.0:scripts/reset-task.sh > "${PRJ}/scripts/reset-task.sh"
-  chmod +x "${PRJ}/scripts/reset-task.sh"
+  set_exec "${PRJ}" scripts/reset-task.sh +x
   put "${PRJ}" .claude/docs/00-overview.md '# 00\nThe method, revised, our way.\n'
   put "${PRJ}" Makefile '# [TO BE DEFINED AT SETUP] the branches reset-task must never touch\nPROTECTED_BRANCHES = main dev\nreset-task:\n\tPROTECTED_BRANCHES="$(PROTECTED_BRANCHES)" bash scripts/reset-task.sh\n'
   put "${PRJ}" CLAUDE.md '# Index\nStack: bash\nRule A: the project own wording, kept.\nRule B: fixed in 1.0.1.\n'
@@ -378,7 +382,7 @@ has "CHECK  the pin reads 'v1.0.0': Step 6 writes 'version: v1.1.0'"
 break_post "an orphan" "scripts/test-repo-snapshot.sh is an orphan" \
   put "${PRJ}" scripts/test-repo-snapshot.sh 'echo removed in 1.1.0\n'
 break_post "a mode" "scripts/reset-task.sh: mode 100644, v1.1.0's is 100755" \
-  chmod -x "${PRJ}/scripts/reset-task.sh"
+  set_exec "${PRJ}" scripts/reset-task.sh -x
 break_post "a missing hook" "pre-push missing or foreign" \
   rm "${hooks_dir}/pre-push"
 break_post "a missing METHOD file" ".claude/commands/sos.md (METHOD) is missing" \
