@@ -10,9 +10,9 @@ Complementary to `/retro`: `/retro` RECORDS the IMPs (and puts the marker
 `/harvest-framework` HARVESTS them to carry them upstream.
 
 This command **only reads and prints**: it does NOT clone, it does NOT copy files between
-repos, it does NOT run git/push towards the framework (the boundary of IMP-009 and
-agnosticity — the project does not know, and must not know, where the framework repo
-lives). The transfer and the re-registration as an IMP in the framework remain HUMAN
+repos, it does NOT run git/push towards the framework (the execution boundary of
+`docs/04`: shared history is moved by the human, never by the agent; and agnosticism —
+the project does not know, and must not know, where the framework repo lives). The transfer and the re-registration as an IMP in the framework remain HUMAN
 curation.
 
 ## 1. Context

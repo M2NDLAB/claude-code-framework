@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Self-test of scripts/agent-git-guard.mjs AND of its wiring in .claude/settings.json
-# (IMP-055; docs/04, "Delegated agents and the shared working tree").
+# (docs/04, "Delegated agents and the shared working tree").
 #
 # Contract under test: a delegated agent (hook input carrying agent_id) is read-only on
 # git; the main session is never restricted. When the guard itself FAILS — a crash, a
@@ -26,7 +26,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 fail() {
-  echo "FAIL (IMP-055 guard): $*" >&2
+  echo "FAIL (agent git guard): $*" >&2
   exit 1
 }
 
@@ -233,4 +233,4 @@ expect 2 "a healthy guard's block stands (escaped agent_id key)" "${REPO_ROOT}" 
 expect 1 "a main session with agent_type only (broken guard)" "${workdir}/empty" \
   '{"tool_name":"Bash","tool_input":{"command":"git log -1"},"cwd":"/tmp","agent_type":"reviewer"}'
 
-echo "PASS (IMP-055 guard): ${#AGENT_WRITES[@]} agent writes blocked, ${#AGENT_READS[@]} reads allowed, main session free; a broken guard (node missing / file missing / crash / bad input) blocks agents and shows a non-blocking error to the main session."
+echo "PASS (agent git guard): ${#AGENT_WRITES[@]} agent writes blocked, ${#AGENT_READS[@]} reads allowed, main session free; a broken guard (node missing / file missing / crash / bad input) blocks agents and shows a non-blocking error to the main session."

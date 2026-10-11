@@ -50,7 +50,7 @@ tags: [session, <area>]
 
 ## The `model` and `turns` fields
 
-Two OPTIONAL frontmatter fields (IMP-044), written by the agent that writes the note:
+Two OPTIONAL frontmatter fields, written by the agent that writes the note:
 which model produced it — so its reliability can be weighed after the fact — and how
 many exchanges the recorded work took — an objective proxy of its friction.
 

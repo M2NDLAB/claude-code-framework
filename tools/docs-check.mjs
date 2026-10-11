@@ -295,6 +295,25 @@ function compareSets(id, file, line, label, truth, listed, source) {
   for (const x of listed) if (!truth.has(x)) report(id, file, line, `${label} names ${x}, which is not in ${source}`)
 }
 
+// --- The payload: no framework IMP number ------------------------------------------------
+// A project numbers its own IMPs from 001: a number of this repository's backlog is an
+// orphan there, or collides with an unrelated lesson of the project's. The why stays in
+// prose; the provenance in the CHANGELOG, LEARNINGS.md and the commits.
+function checkImpNumbers() {
+  section('Payload — no IMP number of the framework\'s backlog')
+  let scanned = 0
+  for (const p of PAYLOAD) {
+    const mask = payloadMask(p)
+    lines(p).forEach((l, i) => {
+      if (!mask[i]) return
+      scanned++
+      for (const m of l.matchAll(/\bIMP-\d+\b/g)) report('imp-number', p, i + 1, `${m[0]}: a number of the framework's backlog in the payload — keep the why in prose`)
+    })
+  }
+  settle('imp-number', `no framework IMP number in ${plural(PAYLOAD.length, 'payload file')} (${scanned} lines)`)
+}
+
+
 // --- Inventories: the documents' lists against the files they enumerate ------------------
 // The mechanical twin of /lint-memory's check 11, which projects run by hand.
 const childrenOf = (dir) => new Set(FILES.filter((p) => p.startsWith(`${dir}/`))
@@ -403,6 +422,8 @@ function checkInventories() {
 // What the rules above cannot tell apart, each with its reason. Bidirectional: an entry that
 // covers nothing fails below, so it is removed with its cause.
 const ALLOW = [
+  // The payload.
+  { check: 'imp-number', file: LEARNINGS, text: '### IMP-001 — <short title>', reason: 'the format example of the template: a project numbers its own IMPs from 001' },
   // Inventories.
   { check: 'inventory', file: '*', text: '`/clear`', reason: 'a command of Claude Code itself, not one of the method' },
   { check: 'inventory', file: SETUP, text: '`/tmp`', reason: 'a directory, not a command' },
@@ -418,6 +439,7 @@ function checkAllowList() {
   if (ALLOW.every((a) => a.used && a.reason)) ok(`${plural(ALLOW.length, 'declared exception')}, each with its reason, each still needed`)
 }
 
+checkImpNumbers()
 checkInventories()
 checkAllowList()
 console.log(`\ndocs-check: ${nFail} FAIL, ${nCheck} CHECK`)

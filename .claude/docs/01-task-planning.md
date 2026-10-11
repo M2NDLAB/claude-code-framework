@@ -126,7 +126,7 @@ plan), and apply this additional discipline:
   **The shared contract can be TEXTUAL, not only code**: section titles cited BY NAME
   from other files are an API as well. If the work renames them (a translation, a wide
   documentation restructuring), grep the OLD and the NEW wording before the merge —
-  having flagged the risk while planning is not a check (IMP-043: it was flagged, and
+  having flagged the risk while planning is not a check (it happened: it was flagged, and
   the broken cross-reference passed anyway).
 
 > The "wiring" between modules is exactly what isolated unit tests do not see: for a

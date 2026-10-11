@@ -9,10 +9,12 @@
 #   1. the repository passes — with a floor on what the check read, so an empty or broken
 #      extraction cannot pass — and gives the same verdict under a hostile git
 #      configuration;
-#   2. inventories — a command no list names, a row missing from a script table, a process
+#   2. the payload — a framework IMP number in its text fails; the same number outside the
+#      payload (CONTRIBUTING.md, a session note of the framework) does not;
+#   3. inventories — a command no list names, a row missing from a script table, a process
 #      target the lists do not name: each fails;
-#   3. the allow-list — an exception whose cause is gone fails;
-#   4. read-only — a run leaves the copy exactly as it was.
+#   4. the allow-list — an exception whose cause is gone fails;
+#   5. read-only — a run leaves the copy exactly as it was.
 # Run it from anywhere: bash tools/test-docs-check.sh
 set -euo pipefail
 
@@ -83,6 +85,7 @@ copy() { cp -R "${base}" "${workdir}/$1" && printf '%s\n' "${workdir}/$1"; }
 run 0 "${base}"
 has "docs-check: 0 FAIL"
 floor 'commands, .* process targets' 8
+floor 'no framework IMP number in' 30
 hostile="${workdir}/hostile.gitconfig"
 printf '[color]\n\tui = always\n[core]\n\tquotePath = true\n[log]\n\tshowSignature = true\n[i18n]\n\tlogOutputEncoding = ISO-8859-1\n' > "${hostile}"
 cp "${out}" "${workdir}/plain.log"
@@ -90,7 +93,19 @@ cp "${out}" "${workdir}/plain.log"
 diff "${workdir}/plain.log" "${out}" >/dev/null || fail "a hostile git configuration changes the verdict"
 echo "PASS (docs-check, the repository): every check passes, above its floor, under any git configuration."
 
-# --- Case 2: inventories --------------------------------------------------------------------
+# --- Case 2: the payload --------------------------------------------------------------------
+c="$(copy imp-number)"
+printf '\nAs IMP-123 found, a rule needs its why.\n' >> "${c}/.claude/docs/02-code-quality.md"
+run 1 "${c}"
+fails 1 ".claude/docs/02-code-quality.md:"
+has "IMP-123: a number of the framework's backlog in the payload"
+c="$(copy imp-outside)"
+printf '\nAs IMP-123 found.\n' >> "${c}/CONTRIBUTING.md"
+printf -- '---\ndate: 2099-01-01\n---\n# A session note\n\nAs IMP-123 found.\n' > "${c}/.claude/memory/sessions/2099-01-01-a-note.md"
+run 0 "${c}"
+echo "PASS (docs-check, payload): a framework IMP number fails in the payload, and only there."
+
+# --- Case 3: inventories --------------------------------------------------------------------
 c="$(copy inv-command)"
 printf -- '---\ndescription: a command no list names\n---\nNothing.\n' > "${c}/.claude/commands/extra.md"
 run 1 "${c}"
@@ -107,14 +122,14 @@ has "the Structure tree's Makefile line lacks lint-docs"
 has "the brownfield Makefile row lacks lint-docs"
 echo "PASS (docs-check, inventories): a command, a table row and a process target missing from their lists fail."
 
-# --- Case 3: the allow-list -----------------------------------------------------------------
+# --- Case 4: the allow-list -----------------------------------------------------------------
 c="$(copy allow-stale)"
 edit "${c}/SETUP.md" '`/tmp`' '`/var/tmp`'
 run 1 "${c}"
 fails 1 '"`/tmp`" matches nothing'
 echo "PASS (docs-check, allow-list): an exception whose cause is gone fails."
 
-# --- Case 4: read-only ----------------------------------------------------------------------
+# --- Case 5: read-only ----------------------------------------------------------------------
 c="$(copy read-only)"
 fingerprint() {
   ( cd "$1" && bash "${REPO_ROOT}/scripts/repo-snapshot.sh" && git --no-optional-locks status --porcelain=v1 -uall \
