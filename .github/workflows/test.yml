@@ -49,5 +49,20 @@ jobs:
           git config --show-origin --get core.autocrlf || echo "core.autocrlf: unset"
       - name: make test-scripts
         run: make test-scripts
+      # make stops at the first self-test that fails, which hides the others: after a
+      # failure each one runs on its own, so a single run shows every failure. Skipped
+      # when everything passes.
+      - name: Each self-test on its own (after a failure)
+        if: failure()
+        run: |
+          status=0
+          for t in scripts/test-*.sh tools/test-docs-check.sh; do
+            echo "::group::${t}"
+            bash "${t}" || { status=1; echo "::error::${t} failed"; }
+            echo "::endgroup::"
+          done
+          node tools/docs-check.mjs || status=1
+          exit "${status}"
       - name: The upgrade check's self-test
+        if: ${{ !cancelled() }}
         run: bash tools/test-upgrade-check.sh
