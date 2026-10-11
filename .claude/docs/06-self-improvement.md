@@ -107,10 +107,6 @@ where the framework repo lives relative to the project). The copyable block is
 deliberately the only output: it makes the transfer explicit, reviewable and under
 human control.
 
-> In the FRAMEWORK REPO itself the attribute is moot: here every IMP is already a
-> lesson about the framework (declared hybrid regime), so nothing is marked and
-> `/harvest-framework` has no material to rake in. The command is for client projects.
-
 ## What this protocol is NOT
 
 - It is not continuous refactoring of the application code (that follows

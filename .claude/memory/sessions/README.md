@@ -96,24 +96,4 @@ many exchanges the recorded work took — an objective proxy of its friction.
 - **Recorded data only**: no command consumes these fields; a threshold rule on `turns`
   is a separate, deferred proposal.
 
-## Plan block — the framework repo's hybrid regime
-
-In the *framework* repo heavy deliverables do NOT use `plans/` (clean template,
-IMP-024): the session note acts as a **plan-pointer**, hosting the plan in a
-STANDARDISED block — so plan and journal live in a single artefact and resumption
-always finds it in the same place (see the "Hybrid regime" box in
-`docs/01-task-planning.md`). In client projects `plans/` is used instead.
-
-Same structure as the `plans/` checklist: checkbox + atomic task + sha, one per task.
-
-```markdown
-## Plan (one commit per task)
-- [x] 1. <atomic task> — commit: <sha>
-- [ ] 2. <atomic task> — commit: —
-```
-
-Commit the note (with the block's skeleton) as the FIRST task: it is the
-plan-pointer resilient to an immediate crash — the equivalent of `plans/`'s
-`chore: plan for …`. On completion: `status: completed` in the note's frontmatter.
-
 > This README stays as a guide; the session notes live alongside it.

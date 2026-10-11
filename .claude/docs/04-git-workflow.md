@@ -132,11 +132,10 @@ to adapt in order to adopt the new version is breaking. WHAT that contract is de
 on the project — [TO BE DEFINED AT SETUP] — but the criterion is one and the same:
 - a **code** project: the public signature of an API/CLI, a data or message format, a
   persistence schema, a configuration contract — breaking them is MAJOR;
-- a **method/tooling** project (as this framework is): removing or renaming a
-  command, an incompatible change to the memory format or to the markers, or a change
-  in the structure that breaks the grafts or the upgrades already in place on a
-  project — it is the same promise, applied to the contract of a method instead of an
-  API.
+- a **method/tooling** project: removing or renaming a command, an incompatible change
+  to a format its consumers read (files, markers, a memory), or a change in the
+  structure that breaks what its consumers have already built on it — it is the same
+  promise, applied to the contract of a method instead of an API.
 
 Backward-compatible additions (one more command, a new rule, an optional field) are
 MINOR; fixes that do not touch the contract are PATCH. Below `1.0.0` the promise is

@@ -15,11 +15,9 @@ agnosticity — the project does not know, and must not know, where the framewor
 lives). The transfer and the re-registration as an IMP in the framework remain HUMAN
 curation.
 
-## 1. Context (the command is moot in the framework repo)
-If you are running IN the framework repo itself (hybrid regime: every IMP is already a
-lesson about the framework), there is nothing to tell apart nor to rake up: say so and
-stop. The command serves the CLIENT projects, where `LEARNINGS.md` is the project backlog
-and only SOME IMPs are framework-bound.
+## 1. Context
+The command serves a project that USES the framework, where `LEARNINGS.md` is the
+project's backlog and only SOME IMPs are framework-bound: those are the ones it harvests.
 
 ## 2. Harvest (read-only)
 1. Find the marked entries:

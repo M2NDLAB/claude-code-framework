@@ -12,18 +12,14 @@ tags: [improvement]
 > FACTUAL corrections to the docs (Level 1) do not go through here, they are
 > applied immediately.
 >
-> IMP numbering starts at **001**. This file is born EMPTY in a new project. IN THE
-> FRAMEWORK REPO, by contrast, it is LIVE (declared hybrid regime — see
-> `CONTRIBUTING.md`): whoever copies the template EMPTIES it at setup (`SETUP.md`).
+> IMP numbering starts at **001**. This file is born EMPTY in a new project.
 >
 > **The `Destination: framework` attribute.** In a CLIENT project an IMP may concern
 > the FRAMEWORK rather than this project: it is marked with the line
 > `- Destination: framework` (a single physical line, so `/harvest-framework` picks
 > it up via grep). Omitted = a lesson about this project, which stays in the client.
 > It is a DESTINATION attribute, not a level: the lesson stays a Level 2 one — see
-> `docs/06-self-improvement.md`, *"The bridge to the framework"*. IN THE FRAMEWORK
-> REPO the attribute is moot (every IMP is already about the framework) and is not
-> used on the entries.
+> `docs/06-self-improvement.md`, *"The bridge to the framework"*.
 
 ## OPEN proposals (awaiting the user's decision)
 
