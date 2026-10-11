@@ -739,7 +739,7 @@ tags: [improvement]
   gitleaks (before 8.19.0) stops working with the hook — the prerequisite check catches it.
 
 ### IMP-078 — commitlint reads a body line that starts with "word:" as the footer
-- Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — observed three times
+- Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — observed four times
 - Priority: LOW (user decision, 2026-10-11).
 - Observed problem: twice a commit's body had a line that began with a single word and a
   colon — "repository:" in the CHANGELOG commit of v1.4.1, amended while it was still
@@ -767,6 +767,8 @@ tags: [improvement]
 - Expected benefit / risk: the body stays whole in the parsed history, and no published
   commit carries the warning. Risk of (b): an error in every project's commit-msg hook
   where a warning was — for a footer typed without its blank line too.
+- A fourth time, at v1.5.0's checkpoint: "projects:" opened a wrapped body line; the
+  commit was written again while still local.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>

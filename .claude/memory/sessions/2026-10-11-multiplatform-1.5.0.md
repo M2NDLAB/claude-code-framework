@@ -126,8 +126,8 @@ with no real cost behind it.
 - [x] 9. The CI's runs (block 0, the user's pushes): what fails, fixed, until green on the three platforms — commit: 6382884 to 766365a, five rounds
 - [x] 10. The platform matrix (`README.md`, `SETUP.md`): only what the CI verified — commit: 9aae8e7
 - [x] 11. ONE reviewer + fixes — commit: 452f7df to 66ca847
-- [x] 12. `/checkpoint` (the rehearsal re-run on the final payload) — commit: this checkpoint (its own sha cannot be written in it)
-- [x] 13. `/integrate`: the CHANGELOG 1.5.0 entry; blocks 0, 1 and 2 — commit: the CHANGELOG commit (likewise)
+- [x] 12. `/checkpoint` (the rehearsal re-run on the final payload) — commit: 631e388
+- [x] 13. `/integrate`: the CHANGELOG 1.5.0 entry; blocks 0, 1 and 2 — commit: the CHANGELOG commit (its own sha cannot be written in it)
 
 The plan was amended after task 7, by the user's request of 2026-10-11: task 8 is new,
 the tasks after it move by one, and the commits from task 8 on count 13 (those before,
