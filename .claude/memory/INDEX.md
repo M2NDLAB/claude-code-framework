@@ -33,4 +33,4 @@ tags: [moc]
 
 ## Plans
 <!-- Task plans for heavy prompts (see docs/01-task-planning.md). -->
-- [[plans/<id-prompt>]] — <objective> (status: in-progress | completed)
+- [[plans/<prompt-id>]] — <objective> (status: in-progress | completed)

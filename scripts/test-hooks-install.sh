@@ -55,7 +55,7 @@ cp "${HOOKS_INSTALL}" "${repo}/scripts/hooks-install.sh"
 
 # --- Case 1 — a dangling symlink and FORCE_OVERWRITE=1 -------------------------------------
 # Plant a DANGLING symlink as the pre-existing pre-commit hook.
-ln -s "/percorso/che/non/esiste/xyz" "${repo}/.git/hooks/pre-commit"
+ln -s "/path/that/does/not/exist/xyz" "${repo}/.git/hooks/pre-commit"
 if [[ ! -L "${repo}/.git/hooks/pre-commit" || -e "${repo}/.git/hooks/pre-commit" ]]; then
   echo "SETUP FAILED: the dangling symlink was not created as expected" >&2
   exit 1

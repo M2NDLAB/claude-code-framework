@@ -16,8 +16,8 @@ review, decisions taken on the fly): the chat context is lost, the note is not �
 and the next prompt will be able to POINT at the note instead of rebuilding it.
 
 ## Naming
-`YYYY-MM-DD-<short-slug>.md` — e.g. `2026-06-14-setup-iniziale.md`,
-`2026-06-15-modulo-pagamenti.md`. The leading date keeps the chronological order.
+`YYYY-MM-DD-<short-slug>.md` — e.g. `2026-06-14-initial-setup.md`,
+`2026-06-15-payments-module.md`. The leading date keeps the chronological order.
 
 ## Format
 ```markdown

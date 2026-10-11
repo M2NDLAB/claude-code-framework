@@ -263,7 +263,7 @@ The existence of the directory alone is NOT enough to decide: look at what it co
   root and `.claude/` contains the framework's `docs/` and `memory/`): do NOT copy the
   template over it — that is the project's memory. Resume from `STATE.md`; if you want
   to update the framework to a more recent version, **follow the dedicated procedure
-  *«Upgrading the framework on an already-grafted project»*** at the end of this guide
+  *"Upgrading the framework on an already-grafted project"*** at the end of this guide
   — file-by-file reconciliation by class (method, hybrids, memory templates, project
   memory), with the
   differences declared to the user. (If the provenance pin

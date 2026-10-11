@@ -126,7 +126,7 @@ a PATCH, a MINOR or a MAJOR by the criteria of this section. A change that stays
 the project — its own memory, files it does not ship — is no tag, whatever its type.
 Which files are shipped is part of the public contract below.
 
-**What a «breaking change» is — the MAJOR criterion.** SemVer is about the
+**What a "breaking change" is — the MAJOR criterion.** SemVer is about the
 compatibility of the project's *public contract*: any change that forces a consumer
 to adapt in order to adopt the new version is breaking. WHAT that contract is depends
 on the project — [TO BE DEFINED AT SETUP] — but the criterion is one and the same:

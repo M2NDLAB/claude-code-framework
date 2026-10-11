@@ -896,9 +896,112 @@ function checkLists() {
   settle('list', `§2 and the slots, the class table at ${plural(TAGS.length, 'tag')}, the copy lists, the counts, the subcommands, the sections, the commit types and the memory's titles and labels`)
 }
 
+// --- No Italian residue in the artifacts -------------------------------------------------
+// Rule 9 of CLAUDE.md: what lands in the repository is English, from the release that
+// brought the rule on. What a program or a procedure reads on purpose in its legacy Italian
+// form stays (LEGACY); the memory written before the rule is not rewritten — what this
+// check sees there is declared in ALLOW, never translated. A word list cannot see a calque.
+const IT_WORDS = new Set(`definire origine innesto innestare rimandate rifiutate applicate proposta proposte
+  destinazione stato problema problemi osservato allineamento ripresa riprendi riprendono avanzamento pubblica
+  integrazione attivi aperte aperti progetto consolidamento debito documentazione esiste beneficio atteso attesa
+  rischio decisione decisioni utente motivo riproporle registrazione mirata ponte promozione cosa adesso prese
+  attenzione raccolta respinte momento giusto ibrido sessione ovvie codice blocco blocchi nota metodo procedura
+  periodica inventari igiene formato titolo questo questa quello sono bloccati sempre lavoro mergiato eliminato
+  italiano dichiarato umano umana ciclo oneroso atomico resiliente cruscotto diario storia condivisa esecuzione
+  marcatore curatela ereditata filtro attrito correzione fattuale livello componenti sensibili classi
+  miglioramento senza aggiornata finito comandi rapidi risposta altrimenti firma valida iniziale pagamenti
+  generato percorso modulo della delle degli dello nella nelle alla alle anche quando ogni essere deve viene tutto
+  tutti dopo ancora perche gli una uno dalla sul sulla nel il che del dei lingua memoria regola regole pronto
+  stabile`.split(/\s+/).filter(Boolean))
+const ACCENTED = /[àèéìòù]/i
+// The legacy forms a program or a procedure reads on purpose: the old marker and hook
+// marker, the old titles, labels and block delimiters. Each must still occur where it is
+// declared, or it fails as stale.
+const LEGACY = [
+  { text: 'DA DEFINIRE AL SETUP', where: /./ },
+  { text: 'DA DEFINIRE AL', where: /./ },
+  { text: 'DA DEFINIRE', where: /./ },
+  { text: 'DEFINIRE⏎AL', where: /^\.claude\/memory\/(LEARNINGS\.md|sessions\/)/ },
+  { text: 'DA⏎DEFINIRE', where: /^\.claude\/memory\/(LEARNINGS\.md|sessions\/)/ },
+  { text: 'Hook generato da scripts/hooks-install.sh', where: /^scripts\/hooks-install\.sh$|^CHANGELOG\.md$|^\.claude\/memory\/(LEARNINGS\.md|sessions\/)/ },
+  { text: 'Destinazione: framework', where: /./ },
+  { text: 'Destinazione', where: /^(SETUP\.md|CHANGELOG\.md|tools\/|\.claude\/memory\/(LEARNINGS\.md|sessions\/))/ },
+  ...['Stato avanzamento', 'Cosa esiste adesso', 'Decisioni prese (non ovvie dal codice)', 'Debito documentazione',
+    'Attenzione / problemi aperti', 'Branch attivi', 'Proposte APERTE (in attesa di decisione utente)', 'Proposte APERTE',
+    'Rimandate (non respinte — si riprendono al momento giusto)', 'Rifiutate (con motivo — per non riproporle)',
+    'Applicate', 'Rimandate', 'Rifiutate', 'Problema osservato', 'Beneficio atteso \\/ rischio', 'Beneficio atteso / rischio',
+    'Trigger di ripresa', 'Origine', 'Proposta', 'Formato di una proposta', '<titolo>', '<sessione>', 'Lingua/e del progetto',
+    'PRONTO PER INTEGRAZIONE', 'RACCOLTA PER IL FRAMEWORK', 'FINE REPORT', 'FINE RESPONSE', 'FINE RISPOSTA', 'FINE RACCOLTA',
+    '<branch-integrazione>']
+    .map((t) => ({ text: t, where: /^(SETUP\.md|CHANGELOG\.md|tools\/|\.claude\/memory\/(LEARNINGS\.md|sessions\/))/ })),
+]
+// The identifiers of history inside code spans — a branch, a commit subject — are names,
+// not prose; so are the frontmatter's branch: and tags: values.
+const HISTORY_ID = /`(?:feat|fix|docs|chore|refactor|perf|test|build|ci|hotfix|release)(?:\/[\w.+-]+|\([^)`]*\)!?: [^`]*)`/g
+// italianIn(s): the Italian words of a text.
+const italianIn = (s) => [...s.matchAll(/\p{L}+/gu)].map((m) => m[0]).filter((w) => IT_WORDS.has(w.toLowerCase()) || ACCENTED.test(w))
+function checkItalian() {
+  section('Language — no Italian residue in the artifacts (rule 9)')
+  const legacyUsed = new Set()
+  let scanned = 0
+  const lineUnit = (l, i) => ({ text: l, at: Array.from({ length: l.length + 1 }, () => i + 1) })
+  // This check's own files carry Italian as data — its word list, the legacy forms, the
+  // residue its self-test plants — and are left out.
+  const own = ['tools/docs-check.mjs', 'tools/test-docs-check.sh']
+  for (const p of FILES.filter((f) => f !== 'LICENSE' && !own.includes(f))) {
+    const strict = payloadMask(p)
+    const legacy = LEGACY.filter((l) => l.where.test(p))
+    const ls = lines(p)
+    let blocks = ls.map(lineUnit)
+    if (isMd(p)) {
+      // The frontmatter line by line, the prose by paragraph (a quote can wrap), the fenced
+      // code line by line.
+      const fm = ls[0] === '---' ? ls.indexOf('---', 1) : -1
+      const fenced = fencedMask(ls)
+      blocks = [...ls.slice(0, fm + 1).map(lineUnit), ...units(p, ls.map((_, i) => i > fm)),
+        ...ls.map(lineUnit).filter((_, i) => i > fm && fenced[i])]
+    }
+    for (const u of blocks) {
+      let s = u.text
+      for (const l of legacy) if (s.includes(l.text)) { legacyUsed.add(l); s = s.split(l.text).join(' '.repeat(l.text.length)) }
+      if (isMd(p)) {
+        s = s.replace(/\[\[[^\]\n]*\]\]/g, (m) => ' '.repeat(m.length)).replace(HISTORY_ID, (m) => ' '.repeat(m.length))
+        // The frontmatter's branch: and tags: hold names (branches, tags), not prose.
+        s = s.replace(/^(?:branch|tags):(.*)$/, (m, v) => m.replace(v, v.replace(/[\w./+-]*\/[\w./+-]*|\[[^\]]*\]|^\s*[\w./+-]+/g, (x) => ' '.repeat(x.length))))
+        // Outside the payload, verbatim quotes are the speaker's words; in history, a code
+        // span quotes literal text too.
+        if (!strict[u.at[0] - 1]) {
+          if (isHistory(p) || p === LEARNINGS) s = blankOut(s, CODE_SPAN)
+          s = blankOut(s.replace(CODE_SPAN, (m) => m.replace(/["“”«»]/g, ' ')), /"[^"]*"|“[^”]*”/g)
+        }
+      }
+      scanned++
+      const found = italianIn(s)
+      if (found.length) report('italian', p, u.at[s.search(new RegExp(`(?<!\\p{L})${found[0]}(?!\\p{L})`, 'u'))] ?? u.at[0], `Italian in an artifact: ${[...new Set(found)].slice(0, 5).join(', ')}`)
+    }
+    if (!isHistory(p) && !(p === LEARNINGS)) ls.forEach((l, i) => { if (/[«»]/.test(l)) report('italian', p, i + 1, 'guillemets « » as quotation marks: English uses " "') })
+    const named = [...new Set(italianIn(p.replace(/\.[a-z]+$/, '').replace(/[-_/.]/g, ' ')))]
+    if (named.length) report('italian', p, 0, `an Italian file name (${named.join(', ')})`, p)
+  }
+  for (const l of LEGACY) if (!legacyUsed.has(l)) report('italian', null, 0, `the legacy string "${l.text}" occurs nowhere it is declared: remove it from LEGACY`)
+  // The commit messages since the release that brought the rule: history, where a quote
+  // and a code span cite literal text.
+  const log = gitOr(['log', '--format=%h%x1f%B%x1e', 'v1.1.0..HEAD'])
+  if (log === null) check('no tag v1.1.0 in this clone: the commit messages are not checked')
+  else {
+    for (const c of log.split('\x1e').map((x) => x.trim()).filter(Boolean)) {
+      const [sha, body] = c.split('\x1f')
+      const found = italianIn(blankOut(blankOut(body, CODE_SPAN), /"[^"]*"|“[^”]*”/g))
+      if (found.length) report('italian', null, 0, `commit ${sha}: Italian in its message (${[...new Set(found)].slice(0, 5).join(', ')})`, sha)
+    }
+  }
+  settle('italian', `${scanned} text units, the file names and the commits since v1.1.0 are English but for the declared legacy forms`)
+}
+
 // --- The declared exceptions -------------------------------------------------------------
 // What the rules above cannot tell apart, each with its reason. Bidirectional: an entry that
 // covers nothing fails below, so it is removed with its cause.
+const NOTES = '.claude/memory/sessions/'
 const ALLOW = [
   // The payload.
   { check: 'imp-number', file: LEARNINGS, text: '### IMP-001 — <short title>', reason: 'the format example of the template: a project numbers its own IMPs from 001' },
@@ -923,6 +1026,15 @@ const ALLOW = [
   { check: 'list', file: 'README.md', text: 'the copy list names SETUP.md', reason: 'a pointer to the full guide, not a copied path' },
   { check: 'list', file: 'CONTRIBUTING.md', text: 'the copy list names SETUP.md', reason: 'a pointer to step 1, not a copied path' },
   { check: 'list', file: 'CONTRIBUTING.md', text: 'the copy list names SECURITY.md', reason: 'the scaffold setup offers next to the payload' },
+  // The memory written before the language rule, or before this check: never rewritten.
+  ...['2026-07-11-consolidamento-assessment', '2026-07-14-registrazione-imp-innesto-brownfield', '2026-07-17-harvest-framework-ponte',
+    '2026-07-17-retro-periodica-backlog-lint', '2026-07-17-upgrade-in-place-procedura', '2026-07-18-allineamento-doc-pubblica',
+    '2026-07-18-retro-mirata-imp-036-037', '2026-07-19-promozione-v1.0.0', '2026-07-19-retro-mirata-imp-038']
+    .map((n) => ({ check: 'italian', file: `${NOTES}${n}.md`, text: 'an Italian file name', reason: 'a note named before the language rule: notes are never renamed' })),
+  { check: 'italian', file: `${NOTES}2026-07-21-retro-mirata-imp-043.md`, text: 'an Italian file name', reason: 'named after the rule, before this check: notes are never renamed' },
+  { check: 'italian', file: `${NOTES}2026-07-20-language-rule-phase1.md`, section: 'Glossary (APPROVED', reason: 'the approved glossary of the translation: its Italian column is the point' },
+  { check: 'italian', file: `${NOTES}2026-07-20-language-rule-phase1.md`, text: 'Confirmed key terms: innesto', reason: 'the glossary\'s key terms, quoted' },
+  { check: 'italian', file: `${NOTES}2026-07-17-audit-preintegrate-closeout-v0.3.0.md`, text: '(nota); lavoro su', reason: 'a frontmatter value the translation of the memory missed; the memory is not rewritten' },
 ]
 
 // --- The allow-list itself ---------------------------------------------------------------
@@ -943,6 +1055,7 @@ checkChangelog()
 checkCurrentVersion()
 checkLinks()
 checkLists()
+checkItalian()
 checkAllowList()
 console.log(`\ndocs-check: ${nFail} FAIL, ${nCheck} CHECK`)
 process.exit(nFail ? 1 : 0)

@@ -25,8 +25,10 @@
 #   7. lists — a slot SETUP.md §2 never names, a slot added since the latest tag with its
 #      §2 item unchanged, a payload file without a class, a count in prose, the sections of
 #      the backlog, the subcommands and the copy list out of step: each fails;
-#   8. the allow-list — an exception whose cause is gone fails;
-#   9. read-only — a run leaves the copy exactly as it was.
+#   8. language — Italian prose in a doc, an Italian file name and guillemets fail; the
+#      user's words quoted in a session note, and a legacy form a program reads, do not;
+#   9. the allow-list — an exception whose cause is gone fails;
+#  10. read-only — a run leaves the copy exactly as it was.
 # Run it from anywhere: bash tools/test-docs-check.sh
 set -euo pipefail
 
@@ -108,6 +110,7 @@ floor 'N wikilinks' 100
 floor 'N cited paths' 300
 floor 'N markers in the full form' 30
 floor 'the class table at N tags' 19
+floor 'N text units' 3000
 hostile="${workdir}/hostile.gitconfig"
 printf '[color]\n\tui = always\n[core]\n\tquotePath = true\n[log]\n\tshowSignature = true\n[i18n]\n\tlogOutputEncoding = ISO-8859-1\n' > "${hostile}"
 cp "${out}" "${workdir}/plain.log"
@@ -258,14 +261,33 @@ has '"Its subcommands:" lacks classes'
 has "the copy list lacks scripts"
 echo "PASS (docs-check, lists): §2 and the slots, the class table, the counts, the sections, the subcommands and the copy list fail when out of step."
 
-# --- Case 8: the allow-list -----------------------------------------------------------------
+# --- Case 8: language -----------------------------------------------------------------------
+c="$(copy lang-prose)"
+printf '\nQuesto passo resta sempre manuale.\n' >> "${c}/.claude/docs/02-code-quality.md"
+run 1 "${c}"
+fails 1 "Italian in an artifact: Questo"
+c="$(copy lang-name)"
+printf '# A note\n' > "${c}/.claude/memory/sessions/2099-01-01-nota-di-lavoro.md"
+run 1 "${c}"
+fails 1 "an Italian file name (nota, lavoro)"
+c="$(copy lang-guillemets)"
+printf '\nThe «hybrid» class.\n' >> "${c}/SETUP.md"
+run 1 "${c}"
+fails 1 "guillemets"
+c="$(copy lang-allowed)"
+printf -- '---\ndate: 2099-01-01\n---\n# A note\n\nThe user said "questo blocco resta com'"'"'è" and we kept it.\n' > "${c}/.claude/memory/sessions/2099-01-01-a-note.md"
+printf '\nA backlog older than the English labels marks it `Destinazione: framework`.\n' >> "${c}/.claude/docs/02-code-quality.md"
+run 0 "${c}"
+echo "PASS (docs-check, language): Italian prose, an Italian file name and guillemets fail; a quote and a legacy form do not."
+
+# --- Case 9: the allow-list -----------------------------------------------------------------
 c="$(copy allow-stale)"
 edit "${c}/SETUP.md" '`/tmp`' '`/var/tmp`'
 run 1 "${c}"
 fails 1 '"`/tmp`" matches nothing'
 echo "PASS (docs-check, allow-list): an exception whose cause is gone fails."
 
-# --- Case 9: read-only ----------------------------------------------------------------------
+# --- Case 10: read-only ----------------------------------------------------------------------
 c="$(copy read-only)"
 fingerprint() {
   ( cd "$1" && bash "${REPO_ROOT}/scripts/repo-snapshot.sh" && git --no-optional-locks status --porcelain=v1 -uall \
