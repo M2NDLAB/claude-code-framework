@@ -93,7 +93,7 @@ consecutive runs.
 - [x] 3. `.gitattributes` in the payload (HYBRID, the framework's paths only) and `tools/.gitattributes`; the upgrade check's payload and classes; `SETUP.md` (the copy list, the classes, Step 2) — commit: 40d6075
 - [x] 4. `upgrade-check.sh` reads the project's files whatever their line ends: the CRLF case first, failing (RED), then the fix (GREEN) — commit: cc16df0
 - [x] 5. PowerShell, option C: the tool off in `settings.json`, the guard reading `PowerShell` too (`git.exe`, case, backtick continuations), its self-test, `docs/04`, `SETUP.md` *Hardening* — commit: db1fc77
-- [ ] 6. The prerequisites by tool name (`SETUP.md` §0, `hooks-install.sh`'s message, the READMEs): git, bash and a POSIX userland (Git for Windows), GNU make, gitleaks, Node.js 22.12 — commit: —
+- [x] 6. The prerequisites by tool name (`SETUP.md` §0, `hooks-install.sh`'s message, the READMEs): git, bash and a POSIX userland (Git for Windows), GNU make, gitleaks, Node.js 22.12 — commit: ecd2b8d
 - [ ] 7. The upgrade 1.4.1 → 1.5.0 rehearsed, LF and CRLF, the renormalisation step measured; the Upgrading note drafted — commit: —
 - [ ] 8. The CI's first runs (block 0, the user's pushes): what fails, fixed, until green on the three platforms — commit: —
 - [ ] 9. The platform matrix (`README.md`, `SETUP.md`): only what the CI verified — commit: —
@@ -238,6 +238,31 @@ the full history and the tags.
 - Documented, not measured: that Claude Code honours the `env` key and calls the hook
   with `tool_name: "PowerShell"` — the CI does not run Claude Code; the guard's reading of
   PowerShell's text is measured, on every platform.
+
+## The upgrade 1.4.1 → 1.5.0 rehearsed, LF and CRLF (task 7)
+A clone of this branch's tip, tagged v1.5.0 in the clone only (a draft CHANGELOG entry
+inserted); a project grafted at v1.4.1 — its memory emptied, `checkpoint.md` answered, a
+pin, files of its own outside the framework's paths (a `.bat` kept CRLF by its own
+attribute, notes) —, cloned as it is (LF) and with `core.autocrlf=true` (a Windows
+checkout: every text file CRLF), with and without a `.gitattributes` of its own.
+- **The renormalisation step, measured** on fresh CRLF clones: after `vY`'s
+  `.gitattributes` is brought in, `git rm --cached -r -q -- <the framework's paths>` then
+  `git checkout HEAD -- <the same paths>` leaves 0 of 37 framework files with CRLF, the
+  project's own files byte for byte as they were, `.gitattributes` untracked or staged
+  alike. A plain `git checkout -- <paths>` rewrites NOTHING (37 of 37 still CRLF, staged or
+  committed attributes alike): git takes the files for up to date. Touching them first does
+  not help either. A first measure had shown the plain checkout working — an artefact: the
+  copy made with `cp -R` had stat data unknown to the index, so git rewrote every file;
+  only fresh clones measure what a project meets.
+- **The whole upgrade**, both projects: `preflight` 0/0; `inventory` 0 FAIL — with a
+  `.gitattributes` of its own, 1 CHECK, "new in v1.5.0, but the project already has a file
+  there"; the line-end step (CRLF only); METHOD files copied; the 3-way of `settings.json`
+  and `hooks-install.sh` with 0 conflicts; a commit; `invariant` 0/0; `post` the 3 hooks a
+  rehearsal does not install and the pin. The four checks' outputs are the same, line for
+  line, on the LF and the CRLF project — `inventory` run there BEFORE the renormalisation,
+  on CRLF files.
+- The Upgrading note is drafted on these measures (the scratchpad's draft, inserted at
+  `/integrate`).
 
 ## Resumption notes
 - The CI runs only on what the user pushes: the first push of this branch comes after
