@@ -27,7 +27,10 @@
 #      slot shown to a human; an orphan, a wrong mode, a missing hook, a missing METHOD
 #      file, a METHOD file left at vX, conflict markers and a marker broken by a wrap
 #      fail.
-#   6. read-only — the four subcommands run to their end and leave the project and the
+#   6. line ends — the graft, the upgraded memory and the reconciled project, rebuilt in a
+#      copy whose files all have CRLF line ends (core.autocrlf=true: a Windows checkout),
+#      print the very lines they print with LF, for inventory, invariant and post.
+#   7. read-only — the four subcommands run to their end and leave the project and the
 #      framework exactly as they were (scripts/repo-snapshot.sh, the tracked files, the
 #      index, the config, the hooks).
 # Run it from anywhere: bash tools/test-upgrade-check.sh
@@ -385,7 +388,55 @@ break_post "a broken marker" "a marker broken by a line wrap" \
 reconciled_state
 echo "PASS (upgrade-check post): a reconciled project passes; an orphan, a mode, a hook, a missing file and a broken marker fail."
 
-# --- Case 6: read-only ----------------------------------------------------------------
+# --- Case 6: line ends ----------------------------------------------------------------
+# Git for Windows checks text out with CRLF by default (core.autocrlf=true): a project
+# grafted there has every file of the framework with CRLF line ends, and the verdicts must
+# not depend on it.
+# crlf <dir>: every file of a working tree with CRLF line ends, as such a checkout writes
+# them; written in place, so each file keeps its mode.
+crlf() {
+  find "$1" -path "$1/.git" -prune -o -type f -print | while IFS= read -r f; do
+    awk '{ sub(/\r$/, ""); printf "%s\r\n", $0 }' "${f}" > "${workdir}/crlf.tmp"
+    cat "${workdir}/crlf.tmp" > "${f}"
+  done
+}
+# The three states, each from the graft as committed.
+graft_state() { g -C "${PRJ}" checkout -q -- . && g -C "${PRJ}" clean -q -f -d; }
+# The upgraded memory with a guide README of its own, so a template's diff is printed too.
+upgraded_from_graft() {
+  graft_state && upgraded_state \
+    && put "${PRJ}" .claude/memory/sessions/README.md 'sessions, second version, kept our way\nThe plan block of the framework repo.\n'
+}
+reconciled_from_graft() { graft_state && reconciled_state; }
+# same_lines <state> <expected rc> <subcommand...>: the state built in a copy of the project
+# with LF line ends and in one with CRLF; the two runs must print the same lines.
+same_lines() {
+  local state="$1" want="$2" lf_project="${PRJ}" v
+  shift 2
+  for v in lf crlf; do
+    rm -rf "${workdir}/project-${v}"
+    cp -R "${lf_project}" "${workdir}/project-${v}"
+    PRJ="${workdir}/project-${v}"
+    "${state}"
+    if [ "${v}" = crlf ]; then g -C "${PRJ}" config core.autocrlf true && crlf "${PRJ}"; fi
+    FW="${FWD}" T="${T_DIR}" run "${want}" "${PRJ}" "$@"
+    sed "s#${PRJ}#<project>#g" "${out}" > "${workdir}/out.${v}"
+  done
+  PRJ="${lf_project}"
+  diff "${workdir}/out.lf" "${workdir}/out.crlf" > "${workdir}/out.diff" || {
+    cat "${workdir}/out.diff" >&2
+    fail "$1: with CRLF line ends the verdict differs from the one with LF (the diff above)"
+  }
+}
+same_lines graft_state 0 inventory v1.0.0 v1.1.0
+grep -q "3-way: 1 conflict(s)" "${workdir}/out.crlf" || fail "line ends: the inventory measured no 3-way"
+same_lines upgraded_from_graft 0 invariant v1.0.0 v1.1.0 "${RESTORE}"
+grep -q "a memory template that differs from v1.1.0's" "${workdir}/out.crlf" || fail "line ends: invariant printed no template's diff"
+same_lines reconciled_from_graft 0 post v1.0.0 v1.1.0
+grep -q "OK     pre-push installed" "${workdir}/out.crlf" || fail "line ends: post read no hook list"
+echo "PASS (upgrade-check line ends): with CRLF line ends the graft, the upgraded memory and the reconciled project get the verdicts they get with LF."
+
+# --- Case 7: read-only ----------------------------------------------------------------
 snapshot() {
   bash "${REPO_ROOT}/scripts/repo-snapshot.sh" "$1"
   g -C "$1" --no-optional-locks diff HEAD

@@ -90,7 +90,7 @@ consecutive runs.
 ## Plan (one commit per task)
 - [x] 1. This note and its plan, phase 1's analysis and the decisions; the registrations — IMP-071 to IMP-077, IMP-070 annotated with the decisions and the plan B threshold — and the principle for `tools/` — commit: a787c9a
 - [x] 2. The CI: `.github/workflows/test.yml` on ubuntu-24.04, macos-26 and windows-2025 — read-only token, checkout pinned by full SHA, GNU make on Windows at a fixed version; the documents that list what setup does not copy; `CONTRIBUTING.md`: block 0, the remote branch deleted in block 2, no required checks on `main` — commit: f1147f5
-- [ ] 3. `.gitattributes` in the payload (HYBRID, the framework's paths only) and `tools/.gitattributes`; the upgrade check's payload and classes; `SETUP.md` (the copy list, the classes, Step 2) — commit: —
+- [x] 3. `.gitattributes` in the payload (HYBRID, the framework's paths only) and `tools/.gitattributes`; the upgrade check's payload and classes; `SETUP.md` (the copy list, the classes, Step 2) — commit: 40d6075
 - [ ] 4. `upgrade-check.sh` reads the project's files whatever their line ends: the CRLF case first, failing (RED), then the fix (GREEN) — commit: —
 - [ ] 5. PowerShell, option C: the tool off in `settings.json`, the guard reading `PowerShell` too (`git.exe`, case, backtick continuations), its self-test, `docs/04`, `SETUP.md` *Hardening* — commit: —
 - [ ] 6. The prerequisites by tool name (`SETUP.md` §0, `hooks-install.sh`'s message, the READMEs): git, bash and a POSIX userland (Git for Windows), GNU make, gitleaks, Node.js 22.12 — commit: —
@@ -200,6 +200,25 @@ NO make, Chocolatey 2.7.4). Pins: `actions/checkout` v7.0.1 =
 expected on the runners: Linux 4-6 min, macOS 5-8 min, Windows 15-30 min. No cache: there
 is nothing to install (gitleaks and npx are stubs in the self-tests); the checkout needs
 the full history and the tags.
+
+## Line ends in the upgrade check (task 4) — RED, then GREEN
+- The case first: `tools/test-upgrade-check.sh`, case 6, rebuilds the graft, the upgraded
+  memory (with a guide README of its own, so a template's diff is printed) and the
+  reconciled project in two copies — one with LF, one with every file in CRLF and
+  `core.autocrlf=true` — and demands the very same output. Against the unchanged check it
+  failed at once: every 3-way of `inventory` at 100% of its lines, the `LEARNINGS.md`
+  header "diverged" instead of `=vX` (RED).
+- The fix: one function, `lf`, reads the project's text without `\r`, at the nine places
+  where a `\r` changed a verdict or a printed line — the titles, the `LEARNINGS.md`
+  regions, the 3-way's own side, a note normalised, a template's diff, the markers shown,
+  the hook list. git's own reads (`hash-object`, `diff`) already convert line ends and
+  stay as they are. All seven cases pass (GREEN).
+- Each of the nine sites, put back to its raw read in turn, fails the self-test (9 of 9;
+  the control passes). The first campaign found the template's diff unexercised — no
+  template differed from `vY`'s in the case's state —, hence the guide README of its own.
+- `old_labels`, the marker counts and the conflict and broken-marker greps were left as
+  they are: anchored at a line's start or counting inside a line, a `\r` does not reach
+  them.
 
 ## Resumption notes
 - The CI runs only on what the user pushes: the first push of this branch comes after

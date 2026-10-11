@@ -66,6 +66,11 @@ readonly GIT_FIXED=(-c color.ui=false -c core.quotePath=false -c diff.external= 
 fw() { git -C "${FW}" "${GIT_FIXED[@]}" "$@"; }
 # Project side: read-only, never refreshing the index.
 pg() { git --no-optional-locks "${GIT_FIXED[@]}" "$@"; }
+# lf <file>: a file of the project, its line ends LF. Git for Windows checks text out with
+# CRLF by default (core.autocrlf=true), and every comparison with the framework's own text,
+# every pattern anchored at a line's end, would see the \r: the project's text is read
+# through here. (git's own reads — hash-object, diff — already convert line ends.)
+lf() { tr -d '\r' < "$1"; }
 
 # classify <path>: the class of a payload file, named one by one outside the memory, so
 # that a file added to the payload has NO class until someone decides it (the self-test
@@ -410,7 +415,7 @@ old_labels() {
 # missing_titles <tag> <memory file>: vY's "## " titles the project's file lacks.
 missing_titles() {
   local own="${WORK}/titles.own"
-  grep '^## ' "$2" > "${own}" 2>/dev/null || : > "${own}"
+  { lf "$2" | grep '^## '; } > "${own}" 2>/dev/null || : > "${own}"
   fw show "$1:$2" 2>/dev/null | grep '^## ' | grep -vxF -f "${own}" || true
 }
 
@@ -441,7 +446,7 @@ cmd_inventory() {
     if [ -z "${bx}" ]; then fwst=A; elif [ -z "${by}" ]; then fwst=D; elif [ "${bx}" = "${by}" ]; then fwst="="; else fwst=M; fi
     # LEARNINGS.md: only its header region is the framework's.
     if [ "${class}" = LEARNINGS ]; then
-      header_region "${path}" > "${d}/lrn.mine" 2>/dev/null
+      lf "${path}" 2>/dev/null | header_region /dev/stdin > "${d}/lrn.mine"
       fw show "${vx}:${path}" | header_region /dev/stdin > "${d}/lrn.base"
       fw show "${vy}:${path}" | header_region /dev/stdin > "${d}/lrn.theirs"
       if cmp -s "${d}/lrn.base" "${d}/lrn.theirs"; then fwst="="; else fwst=M; fi
@@ -451,10 +456,11 @@ cmd_inventory() {
       if [ -f "${path}" ]; then
         bp="$(pg hash-object -- "${path}")"
         if [ "${bp}" = "${by}" ]; then prj="=vY"; elif [ "${bp}" = "${bx}" ]; then prj="=vX"; else prj=diverged; fi
+        lf "${path}" > "${d}/mine"
       else
         prj=absent
       fi
-      mine="${path}"; base="${d}/base"; theirs="${d}/theirs"
+      mine="${d}/mine"; base="${d}/base"; theirs="${d}/theirs"
       [ "${fwst}" = M ] && { fw show "${vx}:${path}" > "${base}"; fw show "${vy}:${path}" > "${theirs}"; }
     fi
     measure=""
@@ -675,7 +681,8 @@ cmd_invariant() {
         else
           check "${path}: a memory template that differs from ${vy}'s — fine only for the project's own customisation, kept through the 3-way:"
           fw show "${vy}:${path}" > "${d}/template"
-          show_diff "${d}/template" "${path}"
+          lf "${path}" > "${d}/template.now"
+          show_diff "${d}/template" "${d}/template.now"
         fi
         # A slot answered at the restore point must not be open again: no more markers
         # than vY itself added (none, when vY removed or moved one).
@@ -700,7 +707,7 @@ cmd_invariant() {
             # and the titles and labels renamed by (b). Before the checkpoint, that is all.
             pg show "${restore}:${path}" > "${d}/before.raw" 2>/dev/null
             normalise_format "${d}/before.raw" > "${d}/before"
-            normalise_format "${path}" > "${d}/after"
+            lf "${path}" | normalise_format /dev/stdin > "${d}/after"
             bad="$(pointer_repairs_only "${d}/before" "${d}/after")"
             if [ -z "${bad}" ]; then
               ok "${path}: unchanged but for pointer repairs (edge case 3 (a)) and renamed titles or labels"
@@ -718,7 +725,7 @@ cmd_invariant() {
   if [ ! -f "${f}" ]; then
     info "${f}: absent"
   else
-    header_region "${f}" > "${d}/h.now"
+    lf "${f}" | header_region /dev/stdin > "${d}/h.now"
     fw show "${vy}:${f}" > "${d}/vy.learnings"
     header_region "${d}/vy.learnings" > "${d}/h.vy"
     if cmp -s "${d}/h.now" "${d}/h.vy"; then
@@ -727,7 +734,7 @@ cmd_invariant() {
       check "the header differs from ${vy}'s — fine only for the project's own text, kept through the 3-way:"
       show_diff "${d}/h.vy" "${d}/h.now"
     fi
-    body_region "${f}" > "${d}/b.now"
+    lf "${f}" | body_region /dev/stdin > "${d}/b.now"
     body_region "${d}/vy.learnings" > "${d}/b.vy"
     pg show "${restore}:${f}" 2>/dev/null | body_region /dev/stdin > "${d}/b.before"
     comments_of "${d}/b.now" > "${d}/c.now"
@@ -845,14 +852,14 @@ cmd_post() {
     mx="$(marker_count "${vx}" "${path}")"; my="$(marker_count "${vy}" "${path}")"
     if [ "${my}" -gt "${mx}" ]; then
       check "${vy} added $((my - mx)) slot(s) to ${path}: confirm the project's answer is in place, not the framework's default:"
-      grep -nE -A1 "${MARKER_RE}" "${path}" | sed 's/^/       | /'
+      lf "${path}" | grep -nE -A1 "${MARKER_RE}" | sed 's/^/       | /'
     fi
   done < "${d}/paths.vy"
 
   section "Hooks — every hook of the project's scripts/hooks-install.sh is installed (Step 4)"
   local hooks h n_h=0
   hooks="$(git rev-parse --path-format=absolute --git-common-dir)/hooks"
-  for h in $(sed -n 's/^for hook in \(.*\); do$/\1/p' scripts/hooks-install.sh 2>/dev/null); do
+  for h in $(lf scripts/hooks-install.sh 2>/dev/null | sed -n 's/^for hook in \(.*\); do$/\1/p'); do
     n_h=$((n_h + 1))
     if grep -qF "${HOOK_MARKER}" "${hooks}/${h}" 2>/dev/null; then
       ok "${h} installed, with the generator's marker"
