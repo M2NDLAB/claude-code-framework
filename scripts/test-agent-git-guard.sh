@@ -97,6 +97,12 @@ first_line() { # first_line <prefix> <label>: the transcript shows only stderr's
   [[ "$(head -n 1 "${workdir}/stderr")" == "$1"* ]] \
     || fail "$2 — stderr's first line is not '$1…': $(head -n 1 "${workdir}/stderr")"
 }
+# blocked <label> <hook input>: exit 2 from the guard's own verdict. A crash also ends in
+# exit 2 for an agent, through the wiring, but under another first line.
+blocked() {
+  expect 2 "$1" "${REPO_ROOT}" "$2"
+  first_line "agent-git-guard: BLOCKED" "$1"
+}
 
 # --- 1. Delegated agent: every write is refused (exit 2) -------------------------------------
 AGENT_WRITES=(
@@ -152,7 +158,7 @@ AGENT_WRITES=(
   'git symbolic-ref HEAD refs/heads/other'
 )
 for c in "${AGENT_WRITES[@]}"; do
-  expect 2 "agent write not blocked: ${c}" "${REPO_ROOT}" "$(hook_input "${c}" agent)"
+  blocked "agent write not blocked: ${c}" "$(hook_input "${c}" agent)"
 done
 
 # --- 2. Delegated agent: reads go through (exit 0) — a guard that blocks reads gets disabled --
@@ -198,7 +204,7 @@ for c in "${AGENT_READS[@]}"; do
 done
 
 # --- 2b. The Monitor tool runs shell commands too: same rule --------------------------------
-expect 2 "agent Monitor write not blocked" "${REPO_ROOT}" "$(hook_input 'while true; do git pull; sleep 30; done' agent Monitor)"
+blocked "agent Monitor write not blocked" "$(hook_input 'while true; do git pull; sleep 30; done' agent Monitor)"
 expect 0 "agent Monitor read blocked" "${REPO_ROOT}" "$(hook_input 'tail -f app.log | grep --line-buffered ERROR' agent Monitor)"
 
 # --- 2c. The PowerShell tool, if a developer turns it on: same rule, PowerShell's syntax ----
@@ -213,9 +219,24 @@ PS_WRITES=(
   $'git log -1\r\ngit merge feature'
   'if ($ready) { git reset --hard HEAD~1 }'
   '$out = $(git switch main)'
+  # the review's forms (2026-10-11): an assignment, script blocks, dot-sourcing, a
+  # here-string and a block comment whose apostrophe opens no quote
+  '$out = git checkout main'
+  '$out=git checkout main'
+  '[string]$s = git checkout main'
+  '$log += git stash'
+  'try { git checkout main } catch { Write-Error $_ }'
+  $'\'main\' | ForEach-Object { git checkout $_ }'
+  'if($x){git checkout dev}'
+  '& {git checkout main}'
+  '. git checkout main'
+  $'$m = @\'\ndon\'t\n\'@\ngit commit -m $m'
+  $'$m = @"\nFix "x\n"@\ngit commit -m $m'
+  $'Write-Output @"\n$(git checkout main)\n"@'
+  $'<# don\'t touch the index #>\ngit checkout main'
 )
 for c in "${PS_WRITES[@]}"; do
-  expect 2 "agent PowerShell write not blocked: ${c}" "${REPO_ROOT}" "$(hook_input "${c}" agent PowerShell)"
+  blocked "agent PowerShell write not blocked: ${c}" "$(hook_input "${c}" agent PowerShell)"
 done
 PS_READS=(
   'git log -1'
@@ -225,6 +246,10 @@ PS_READS=(
   $'git log\r\ngit --no-optional-locks status\r\n'
   'Get-ChildItem -Recurse | Select-String "git checkout"'
   "Write-Output 'git switch main'"
+  '$sha = git rev-parse HEAD'
+  'git rev-parse HEAD@{1}'
+  $'$m = @\'\ngit checkout main\n\'@\nWrite-Output $m'
+  $'<#\ngit checkout main is forbidden here\n#>\ngit log -1'
 )
 for c in "${PS_READS[@]}"; do
   expect 0 "agent PowerShell read blocked: ${c}" "${REPO_ROOT}" "$(hook_input "${c}" agent PowerShell)"
@@ -232,9 +257,12 @@ done
 # Not vacuous: the CRLF read above reaches the guard with its \r (JSON writes it as \r).
 [[ "$(hook_input $'git log\r\ngit --no-optional-locks status\r\n' agent PowerShell)" == *'status\r\n'* ]] \
   || fail "a CRLF command reached the guard without its \\r: the CRLF cases prove nothing"
-# Through Bash too (Git Bash on Windows), git may be spelled git.exe, Git or a Windows path.
-for c in 'git.exe checkout main' 'GIT checkout main' '/c/Program\ Files/Git/cmd/git.exe switch main'; do
-  expect 2 "agent write not blocked: ${c}" "${REPO_ROOT}" "$(hook_input "${c}" agent)"
+# Through Bash too (Git Bash on Windows), git may be spelled git.exe, Git or a Windows path —
+# double-quoted too, where bash keeps a backslash before an ordinary character. And bash
+# keeps a \r as a character: before CRLF, a backslash escapes the \r, and the line ends.
+for c in 'git.exe checkout main' 'GIT checkout main' '/c/Program\ Files/Git/cmd/git.exe switch main' \
+  '"C:\Program Files\Git\cmd\git.exe" checkout main' $'git log -1 \\\r\ngit checkout main'; do
+  blocked "agent write not blocked: ${c}" "$(hook_input "${c}" agent)"
 done
 
 # --- 3. Main session: never restricted (pushes are the pre-push hook's job, not this one) --

@@ -124,7 +124,7 @@ with no real cost behind it.
 - [x] 7. The upgrade 1.4.1 → 1.5.0 rehearsed, LF and CRLF, the renormalisation step measured; the Upgrading note drafted — commit: c22c9b3
 - [x] 8. The line-end step of Step 3 in `SETUP.md`, refusing a change not yet committed on the framework's paths (the user's request after task 7): the case first (RED), then the guard (GREEN) — commit: e6597f1
 - [x] 9. The CI's runs (block 0, the user's pushes): what fails, fixed, until green on the three platforms — commit: 6382884 to 766365a, five rounds
-- [ ] 10. The platform matrix (`README.md`, `SETUP.md`): only what the CI verified — commit: —
+- [x] 10. The platform matrix (`README.md`, `SETUP.md`): only what the CI verified — commit: 9aae8e7
 - [ ] 11. ONE reviewer + fixes — commit: —
 - [ ] 12. `/checkpoint` (the rehearsal re-run on the final payload) — commit: —
 - [ ] 13. `/integrate`: the CHANGELOG 1.5.0 entry; blocks 0, 1 and 2 — commit: —
@@ -443,6 +443,49 @@ round 1's.
 - Plan B: Windows 453 s, against the 30 minutes of the corrected threshold. Its time grew
   with the tests that ran there: 23, 61, 194, 290, 453 s.
 
+## The review (task 11) — one reviewer, read-only on git
+The snapshot and the tracked files identical before and after. 3 MEDIUM, 7 LOW, 6 INFO;
+each fix below is decided, the measured ones measured by the main session.
+- **MEDIUM, the guard's PowerShell mode** (measured: 15 of the 19 new cases slip through
+  `9aae8e7`'s guard). Fix: separators `;&|(){}`; `findGit` skips a PowerShell assignment —
+  `[type]$x` then `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `??=`, glued too (`$out=git`) — and a
+  leading `.` (dot-sourcing); `<#…#>` skipped; `@'…'@` read as data; `@"…"@` scanned for
+  `$(`, as a double-quoted string is.
+- **LOW, two Bash regressions of the same file.** The CRLF conversion applies to
+  PowerShell only (bash keeps a `\r`: `\` before CRLF escapes the `\r`, and the line
+  ends); in double quotes a backslash escapes only `$`, a backtick, `"`, `\` and a newline,
+  so `"C:\Program Files\Git\cmd\git.exe"` is git.
+- **Done in the self-test (the commit with this note), red until the fix:** those 19
+  cases, and every write's block checked by its first line — the guard's verdict, not a
+  crash the wiring turns into exit 2.
+- **MEDIUM, `SETUP.md`'s Precondition** compares `git rev-parse --show-toplevel` with
+  `pwd -P` as strings: STOP on every Windows project. Fix: `-ef` (measured: zsh, bash, sh
+  and dash support it; an empty side fails). LOW, the same: `require_t` accepts `C:/…`.
+- **MEDIUM and LOW, the CHANGELOG draft** (the scratchpad's `changelog-1.5.0.md`;
+  rewritten from the commits if lost): Fixed gains `hooks-install.sh` on Windows (it
+  refused every repository) and the upgrade check on Windows (the root and T by identity,
+  the modes from the index); the HYBRID line reads "(Windows paths; the gitleaks
+  message)"; `make hooks-install` IS needed on Windows; the METHOD list gains
+  `scripts/test-hooks-install.sh`; "a verdict or a printed line".
+- **LOW, `within`** stops when `dirname` returns its own input (a UNC `//` under a
+  Cygwin-derived `dirname`, by gnulib's source; not run).
+- **LOW, modes, measured** with `core.fileMode=false` on macOS: `git add` records the
+  seven scripts 100644. Fix: `SETUP.md` step 1 gains the Windows line
+  `git add --chmod=+x -- scripts/*.sh scripts/*.mjs`; the check's two mode messages name
+  `git update-index --chmod=+x`; the Upgrading note warns of the seven FAILs.
+- **LOW, the line-end step, measured.** `assume-unchanged`: exit 0, the local line LOST.
+  `skip-worktree`: exit 1 after `git rm --cached` dropped every other entry — the whole
+  framework staged as deleted. Without `.gitattributes`: exit 0, 57 CRLF files before and
+  after. Fix: refuse unless `git check-attr eol -- CLAUDE.md` prints `CLAUDE.md: eol: lf`;
+  refuse when `git ls-files -v -- <paths>` has a line matching `^[[:lower:]S] `; the
+  trigger reads `git ls-files --eol` (`w/crlf`), not `core.autocrlf`; case 7 gains the
+  three cases, red first.
+- **INFO, to apply:** `SETUP.md`, Step 4, names the env key and the three-tool matcher
+  the self-test checks; `CONTRIBUTING.md`: an atomic push fails whole when the remote
+  branch is already gone. **Follow-ups, not this release:** `git ls-remote`, a read, is
+  refused by the guard's allow-list; a `$(…)` with parentheses of its own inside a
+  double-quoted string is not read (Bash and PowerShell alike).
+
 ## Resumption notes
 - The CI runs only on what the user pushes: the first push of this branch came after
   task 7 (round 1, below). The branch is public from then on: no commit is rewritten,
@@ -450,6 +493,11 @@ round 1's.
 - The last green run is round 5's, on `f41780d`. Every commit after it — `766365a`, this
   note's update, tasks 10 to 13 — reaches the CI through the final block 0 (the closing
   rule, in the brief); block 1 waits for that run's green on all three jobs.
+- Next, task 11's fixes, in this order: the guard (an edit of `scripts/agent-git-guard.mjs`:
+  the ask rule prompts the user), green on its self-test, on the review's probes and on
+  the Bash cases unchanged against `9aae8e7`'s guard; the check (`within`, T, the mode
+  messages); `SETUP.md` (the line-end step with case 7 red first, the Precondition, step
+  1's modes, Step 4); the CHANGELOG draft. Then tasks 12 and 13.
 
 ## Received for later blocks
 - **v1.6.0** (prerequisites and versions): point 7 of IMP-070, the prerequisite check;
