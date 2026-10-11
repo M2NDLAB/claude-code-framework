@@ -11,5 +11,9 @@ framework's clone, at the tag it upgrades to — never from the framework's work
 | `docs-check.mjs` | The mechanical documentation check of this repository, `node tools/docs-check.mjs`: the payload's purity, and the documents' lists, links, versions and language against what exists. It reads the working tree, the tags and the commits, and writes nothing; each finding is an `OK`, `FAIL` or `CHECK` line, the exit code 1 on any `FAIL`. What its rules cannot tell apart is declared in its allow-list, each entry with its reason; an entry that matches nothing fails. A phrase in quotes right after a file name is read as one of that file's section titles, never as a quotation. `make test-scripts` runs it, here only. |
 | `test-docs-check.sh` | Its hermetic self-test, `bash tools/test-docs-check.sh`: a throwaway clone of this repository, its tags and its working tree, checked as it is and with one defect per case. `make test-scripts` runs it before the check. |
 
+**A new rule answers an observed defect.** Together these tools exceed 3000 lines. A new
+rule in `upgrade-check.sh` or `docs-check.mjs` answers a defect that was OBSERVED — in an
+upgrade, a review, a CI run, a measured simulation —, never a hypothetical one.
+
 Prerequisites: git 2.31 or later, bash 3.2 or later (the scripts avoid what bash 3.2,
 macOS's `/bin/bash`, lacks); Node.js 18 or later for the documentation check.

@@ -597,6 +597,139 @@ tags: [improvement]
 - Expected benefit / risk: the method holds where its users work, and its boundaries are
   stated where they do not. Risk: a matrix promising more than the CI proves — point 5
   guards it.
+- Phase 1, read-only (2026-10-11, [[2026-10-11-multiplatform-1.5.0]]): each point measured
+  and decided. Points 1-6 and the upgrade check's tolerance of CRLF line ends go in
+  v1.5.0, point 7 in v1.6.0; the `Makefile` stays (point 8: short names for three scripts,
+  one setup slot and the project's own targets — dropping make would touch 42 lines of 15
+  documents). Point 4: the documentation says a PreToolUse hook can match the PowerShell
+  tool (`Bash|PowerShell`); option C — the tool off by `CLAUDE_CODE_USE_POWERSHELL_TOOL=0`,
+  the guard reading `PowerShell` too. make: a declared prerequisite, installed on the
+  Windows runner at a fixed version. Node.js: 22.12 declared, majors 22 and 24 verified by
+  the CI.
+- Plan B threshold (user decision, 2026-10-11): the rewrite in Node.js is weighed again
+  when the Windows job runs over 30 minutes, or over 5 times the Linux job, steadily for 3
+  consecutive runs.
+
+### IMP-071 — A claim of coverage is a list that declares itself complete
+- Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at
+  the user's request in [[2026-10-11-multiplatform-1.5.0]]
+- Observed problem: "Every rule the check advertises has its defect here", the header of
+  the documentation check's self-test, had IMP-068's own shape — a list (the rules)
+  declaring itself complete against a source (the forms the check names) —, inside the
+  tool built to catch that shape. It was false twice, both times found by the reviewer,
+  never by the author.
+- Proposal: NOT decided. A claim of coverage — a self-test's header, a CHANGELOG line, an
+  applied entry's Verified part — is either held against its source, as IMP-068 does, or
+  narrowed to what was measured. Where to write it (`docs/02`, *Tests that demonstrate*,
+  is the candidate) is to be decided.
+- Expected benefit / risk: the records stop claiming more than was measured. Risk: none
+  beyond one more sentence in the rules.
+
+### IMP-072 — Mutate the paths, not only the sites
+- Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at
+  the user's request in [[2026-10-11-multiplatform-1.5.0]]
+- Observed problem: a mutation campaign that disabled each of the 75 report sites of the
+  documentation check read as exhaustive and was not: a detection path that feeds a site
+  another planted defect already reaches survives unseen. Eight did, found by the
+  reviewer's second pass; an inventory of the forms the check's comments name then found
+  nineteen more that no case planted.
+- Proposal: NOT decided. Where a test claims to cover a rule's forms, each form is mutated
+  — each alternative of a detection pattern, each branch —, not only each report site; the
+  inventory of the forms the code advertises is the campaign's input. The candidate place:
+  `docs/02`, *Tests that demonstrate*.
+- Expected benefit / risk: a green campaign means what it says. Risk: campaigns cost more
+  runs.
+
+### IMP-073 — Write the record after the last measurement
+- Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at
+  the user's request in [[2026-10-11-multiplatform-1.5.0]]
+- Observed problem: a commit message and IMP-049's Verified part claimed a mutation
+  coverage not yet measured; with a wrong release in another message, they cost the replay
+  of four commits and two rewrites. The reviewer found them both times — as it found the
+  failure paths of v1.4.0, which the author's rehearsal had missed.
+- Proposal: NOT decided. A record that claims a result — a Verified part, a commit
+  message, a CHANGELOG line — is written after the last measurement it cites, never ahead
+  of it; a commit made before a measurement ends claims nothing about it. The candidate
+  place: the Definition of Done of `docs/02`.
+- Expected benefit / risk: no rewrite of history to correct a claim. Risk: none.
+
+### IMP-074 — The bump is fixed by the brief before the content
+- Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — the user's brief; the
+  reviewer's L1 in [[2026-10-10-upgrade-safety-1.3.3]] and L14 in
+  [[2026-10-11-payload-purity-1.4.1]]
+- Priority: MEDIUM (user decision, 2026-10-11) — the process block.
+- Observed problem: v1.3.3 and v1.4.1 brought new rules into the payload — MINORs by the
+  criteria of `docs/04`, *Versioning* — and shipped as PATCHes, because the user's brief
+  had fixed the bump before the content existed. The reviewer flagged it both times; both
+  times the brief prevailed, and the version undersold what the release did.
+- Proposal (the user's): the brief states the EXPECTED bump; `/integrate` computes it again
+  from the commits with the criteria of `docs/04`; where the two diverge, the criteria of
+  `docs/04` win, and `/integrate` says so before the tag and asks the user to confirm.
+- Expected benefit / risk: the version says what the release does. Risk: a brief's
+  expectation overridden — by design, and never without the user's confirmation.
+
+### IMP-075 — Auto mode and the framework's boundaries
+- Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — the user ran
+  `/auto-mode-setup` on 2026-10-11
+- Priority: MEDIUM (user decision, 2026-10-11).
+- Observed problem: from Claude Code's documentation (https://code.claude.com/docs/en/auto-mode-config,
+  read on 2026-10-11): auto mode allows pushes to any branch of the working repository,
+  the default branch included; content-scoped `permissions.ask` rules are evaluated before
+  the classifier and always prompt, but a push written another way (`git -C <dir> push`,
+  `git -c <key>=<value> push`) does not match them; the classifier reads `autoMode` only
+  from the user's and the managed settings (and `--settings`), never from a project's
+  `.claude/settings.json` or `settings.local.json`. So `/auto-mode-setup`, run in a
+  repository, drafts entries from that repository and writes them into
+  `~/.claude/settings.json`, which holds for every project. Observed: the trusted
+  repository and the framework's visibility applied to all projects, and a false
+  statement about the classic protection of `main`; the user corrected the file.
+- Proposal (the user's): in `docs/04` and in *Hardening* of the framework's `SETUP.md` —
+  (1) the `pre-push` stays the boundary on the push in auto mode too; (2) a recipe of ask
+  rules as a net for the common case, with its limit; (3) a warning: auto mode's
+  environment is per user, to be written in a form true for every repository.
+- Weighed against IMP-067: kept apart. IMP-067 measures which of the framework's
+  mechanisms LOAD in non-interactive modes (`claude -p`, `--bare`, CI, the Agent SDK);
+  this one states what HOLDS in an interactive permission mode, from the documentation,
+  with a text ready. They meet in one place — the Agent SDK and `--settings` carry
+  `autoMode` inline —, which IMP-067's probes should cover.
+- Expected benefit / risk: a user of auto mode knows which boundary stops a push, and
+  writes an environment that does not leak one repository's facts into the others. Risk:
+  none.
+
+### IMP-076 — commitlint is not pinned
+- Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — phase 1's inventory of
+  the prerequisites
+- Observed problem: the commit-msg hook runs `npx --yes --package @commitlint/cli
+  --package @commitlint/config-conventional commitlint`: npx fetches the latest release at
+  the first commit — 21.2.3 on 2026-10-11, whose `engines` require Node.js `>=22.12.0`
+  (npm registry). The framework's Node.js minimum rose to 22.12 without a decision of
+  ours, and a future major can raise it again, or change behaviour, under every project at
+  once.
+- Proposal: NOT decided — weigh in v1.6.0 pinning both packages' versions in the hook,
+  raised by a deliberate release; against it, a fix in commitlint then reaches the
+  projects only through a framework release.
+- Resumption trigger: v1.6.0 (prerequisites and versions).
+- Expected benefit / risk: a prerequisite moves only by our decision. Risk: pinned
+  versions age, and someone must raise them.
+
+### IMP-077 — gitleaks `protect` is deprecated
+- Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — phase 1's inventory of
+  the prerequisites
+- Observed problem: the pre-commit hook runs `gitleaks protect --staged --redact -v`.
+  gitleaks' README: "v8.19.0 introduced a change that deprecated `detect` and `protect`.
+  Those commands are still available but are hidden in the `--help` menu." 8.30.1, the
+  latest release (2026-03-21), still runs it and hides it from `--help` (both measured).
+  A later release may drop it, and every project's commits would stop with it.
+- Proposal: NOT decided — weigh in v1.6.0 the replacement form, verified on gitleaks'
+  current documentation: its own pre-commit hook definition (`.pre-commit-hooks.yaml`)
+  runs `gitleaks git --pre-commit --redact --staged --verbose`, and 8.30.1's
+  `gitleaks git --help` documents `--pre-commit` ("scan using git diff") and `--staged`
+  ("scan staged commits (good for pre-commit)"). The `git` command exists from 8.19.0: the
+  switch makes 8.19.0 gitleaks' minimum, for the prerequisites to state and v1.6.0's
+  prerequisite check to verify.
+- Resumption trigger: v1.6.0 (prerequisites and versions).
+- Expected benefit / risk: the hook does not depend on a hidden command. Risk: an older
+  gitleaks (before 8.19.0) stops working with the hook — the prerequisite check catches it.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
