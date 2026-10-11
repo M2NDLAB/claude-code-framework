@@ -368,6 +368,21 @@ macos-26 green (155 s), windows-2025 red (194 s).
      Windows form, `git update-index --chmod=+x`.
 - The local suite green on macOS before the push.
 
+**Round 4** — run 38157635041, on `39a142e`: ubuntu-24.04 green (69 s), macos-26 green
+(229 s), windows-2025 red (290 s).
+- On Windows `make test-scripts` passes for the first time: the three script self-tests
+  (the dangling-symlink case skipped), the documentation check's self-test and the check.
+  Six of the upgrade check's eight cases pass there: classes, preflight, inventory,
+  invariant, post, line ends.
+- The seventh, the line-end step, stopped at its own precondition: "the clone has no CRLF
+  framework file to rewrite". It counted with `grep $'\r$'`, which on Windows read none in
+  a clone made with `core.autocrlf=true`. Whether that clone had no CRLF, or grep did not
+  see them, that run does not settle. The count now asks git — `git ls-files --eol`,
+  `w/crlf`, read from the bytes; on macOS 37 of 37 in such a clone —, and the next round
+  settles it.
+- Plan B's threshold: Windows took 290 s, 4.2 times Linux's 69 s — below 5 times and far
+  below 30 minutes.
+
 ## Resumption notes
 - The CI runs only on what the user pushes: the first push of this branch came after
   task 7 (round 1, below). The branch is public from then on: no commit is rewritten,
