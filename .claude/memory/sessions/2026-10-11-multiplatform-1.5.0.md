@@ -125,7 +125,7 @@ with no real cost behind it.
 - [x] 8. The line-end step of Step 3 in `SETUP.md`, refusing a change not yet committed on the framework's paths (the user's request after task 7): the case first (RED), then the guard (GREEN) — commit: e6597f1
 - [x] 9. The CI's runs (block 0, the user's pushes): what fails, fixed, until green on the three platforms — commit: 6382884 to 766365a, five rounds
 - [x] 10. The platform matrix (`README.md`, `SETUP.md`): only what the CI verified — commit: 9aae8e7
-- [ ] 11. ONE reviewer + fixes — commit: —
+- [x] 11. ONE reviewer + fixes — commit: 452f7df to 66ca847
 - [ ] 12. `/checkpoint` (the rehearsal re-run on the final payload) — commit: —
 - [ ] 13. `/integrate`: the CHANGELOG 1.5.0 entry; blocks 0, 1 and 2 — commit: —
 
@@ -486,6 +486,29 @@ each fix below is decided, the measured ones measured by the main session.
   refused by the guard's allow-list; a `$(…)` with parentheses of its own inside a
   double-quoted string is not read (Bash and PowerShell alike).
 
+**The outcome**, one commit per area, each suite green before it:
+- `ceac061`, the guard. Red on 15 of the review's 19 cases first; green after, the 81 Bash
+  cases of the self-test unchanged against `9aae8e7`'s guard. Built in a scratch copy and
+  written once through the file tools (one `ask` approval), equal to the tested copy but
+  for a comment line. My own probes of the new paths (26 cases, all as wanted) found one
+  more: braces as separators split `${out} = git …` — `${name}` now stays a variable. Ten
+  mutants of the fix: nine caught by the self-test; the tenth, an empty here-string's body
+  alone, changes no verdict — and the one that matters there, the end of an empty body,
+  is caught by a case of its own.
+- `b549b3e`, the check: `within` with a `dirname` that keeps `//` — the old function hung,
+  the new one answers, containment still found; `T` as `C:/…`; the mode messages.
+- `4f9f9ef`, the line-end step: each of the three cases red first, then green; with each
+  refusal removed in turn, the self-test fails (3 of 3). Amended once while still local:
+  `w/crlf` between backticks read as a missing path by the documentation check, which I
+  had not run before that commit.
+- `66ca847`, the documents: the Precondition run from the root and from a subdirectory,
+  in bash and zsh; an atomic push with the remote branch gone refused whole (two scratch
+  repositories).
+- The CHANGELOG draft corrected in the scratchpad, every finding of the review applied.
+- The security gate: the guard is the enforcement edge, and the review's pass on it was
+  adversarial — the author not the judge. No HIGH or CRITICAL; the MEDIUM ones fixed;
+  the LOW ones fixed or recorded as follow-ups above.
+
 ## Resumption notes
 - The CI runs only on what the user pushes: the first push of this branch came after
   task 7 (round 1, below). The branch is public from then on: no commit is rewritten,
@@ -493,11 +516,8 @@ each fix below is decided, the measured ones measured by the main session.
 - The last green run is round 5's, on `f41780d`. Every commit after it — `766365a`, this
   note's update, tasks 10 to 13 — reaches the CI through the final block 0 (the closing
   rule, in the brief); block 1 waits for that run's green on all three jobs.
-- Next, task 11's fixes, in this order: the guard (an edit of `scripts/agent-git-guard.mjs`:
-  the ask rule prompts the user), green on its self-test, on the review's probes and on
-  the Bash cases unchanged against `9aae8e7`'s guard; the check (`within`, T, the mode
-  messages); `SETUP.md` (the line-end step with case 7 red first, the Precondition, step
-  1's modes, Step 4); the CHANGELOG draft. Then tasks 12 and 13.
+- Next: task 12 (`/checkpoint`, the rehearsal re-run on the final payload) and task 13
+  (the CHANGELOG entry from the scratchpad's draft, then the final block 0).
 
 ## Received for later blocks
 - **v1.6.0** (prerequisites and versions): point 7 of IMP-070, the prerequisite check;
