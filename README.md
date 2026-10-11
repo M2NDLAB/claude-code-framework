@@ -40,6 +40,10 @@ by each project at setup, in the spots marked `[TO BE DEFINED]`.
 
 ## How to use it
 
+It runs on macOS, Linux and Windows (Git Bash, from Git for Windows): the framework's
+own CI verifies the three at every push — the prerequisites and what exactly is
+verified are in `SETUP.md`, §0.
+
 In short (the full guide, with the list of every `[TO BE DEFINED AT SETUP]` to fill
 in, is in **[SETUP.md](SETUP.md)**):
 

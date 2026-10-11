@@ -28,6 +28,26 @@ The tools, by name; how to install each one depends on your platform.
   wikilinks become a navigable graph. It is not required: the links work as pointers
   in any editor.
 
+**The platforms verified.** The framework's repository runs `make test-scripts` and the
+upgrade check's self-test at every push, on three GitHub-hosted images — its own
+`.github/workflows/test.yml`, which setup does not copy:
+
+| Platform | Image | bash | Node.js |
+| --- | --- | --- | --- |
+| macOS, arm64 | `macos-26` | 3.2, the system's `/bin/bash` | 24 |
+| Linux, x64 | `ubuntu-24.04` | 5.2 | 22 |
+| Windows, x64 | `windows-2025` | 5.3, Git Bash | 22 |
+
+- The images bring their own tools: the CI installs only GNU make on Windows. The
+  Node.js column is what they carried when v1.5.0 was released; each run's log names
+  every version (its *Versions* step). The minimums in the list above are the tools'
+  own requirements, not runs.
+- On Windows, `core.autocrlf` is `true`, as Git for Windows sets it, and `.gitattributes`
+  keeps the framework's files LF; the hooks' self-test skips its dangling-symlink case,
+  which Git Bash cannot plant.
+- Not verified: WSL, Linux or Windows on arm64, macOS on Intel, other Linux
+  distributions.
+
 ## 1. Copy the template into the new project
 
 > **An EXISTING project?** Read the *Grafting onto an EXISTING project (brownfield)*
