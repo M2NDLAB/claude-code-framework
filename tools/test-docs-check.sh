@@ -15,8 +15,15 @@
 #      does not;
 #   3. inventories — a command no list names, a row missing from a script table, a process
 #      target the lists do not name: each fails;
-#   4. the allow-list — an exception whose cause is gone fails;
-#   5. read-only — a run leaves the copy exactly as it was.
+#   4. tags and the CHANGELOG — a tag without its entry, a lightweight tag, an entry dated
+#      after its tag, an untagged entry that is no release in preparation: each fails; the
+#      entry of the release being prepared is a CHECK, not a FAIL;
+#   5. versions — an old version presented as the current one fails; a historical mention
+#      does not;
+#   6. links — a Markdown link or anchor, a wikilink, a cited path and a cited section
+#      title that resolve to nothing: each fails;
+#   7. the allow-list — an exception whose cause is gone fails;
+#   8. read-only — a run leaves the copy exactly as it was.
 # Run it from anywhere: bash tools/test-docs-check.sh
 set -euo pipefail
 
@@ -89,6 +96,9 @@ has "docs-check: 0 FAIL"
 floor 'commands, .* process targets' 8
 floor 'no framework IMP number in' 30
 floor 'pointers? out of the payload' 10
+floor 'tags and .* entries match' 19
+floor 'Markdown links, ' 5
+has "wikilinks, 1"
 hostile="${workdir}/hostile.gitconfig"
 printf '[color]\n\tui = always\n[core]\n\tquotePath = true\n[log]\n\tshowSignature = true\n[i18n]\n\tlogOutputEncoding = ISO-8859-1\n' > "${hostile}"
 cp "${out}" "${workdir}/plain.log"
@@ -133,14 +143,84 @@ has "the Structure tree's Makefile line lacks lint-docs"
 has "the brownfield Makefile row lacks lint-docs"
 echo "PASS (docs-check, inventories): a command, a table row and a process target missing from their lists fail."
 
-# --- Case 4: the allow-list -----------------------------------------------------------------
+# --- Case 4: tags and the CHANGELOG ---------------------------------------------------------
+# settle <dir>: the copy's topmost entry tagged, if the release it records is still being
+# prepared — so every case starts from a CHANGELOG whose entries all have their tags.
+top_entry() { sed -n 's/^## \[\([0-9]*\.[0-9]*\.[0-9]*\)\] — .*$/\1/p' "$1/CHANGELOG.md" | head -1; }
+settle() {
+  local v
+  v="$(top_entry "$1")"
+  g -C "$1" rev-parse -q --verify "refs/tags/v${v}" >/dev/null || g -C "$1" tag -a "v${v}" -m "v${v}"
+}
+# entry <dir> <version> <date>: a new topmost entry, right under [Unreleased].
+entry() {
+  local block
+  block=$'## [Unreleased]\n\n## ['"$2"$'] — '"$3"$'\n\n### Fixed\n- A fix.\n\n'
+  edit "$1/CHANGELOG.md" '^## \[Unreleased\]\n\n' "${block}"
+}
+today="$(date +%Y-%m-%d)"
+c="$(copy cl-tag)"
+settle "${c}"
+g -C "${c}" tag -a v9.0.0 -m v9.0.0
+run 1 "${c}"
+fails 1 "v9.0.0 has no entry"
+c="$(copy cl-lightweight)"
+settle "${c}"
+g -C "${c}" tag v9.0.0
+run 1 "${c}"
+has "v9.0.0 is a lightweight tag"
+has "v9.0.0 has no entry"
+c="$(copy cl-date)"
+settle "${c}"
+v="$(top_entry "${c}")"
+edit "${c}/CHANGELOG.md" "^## \\[${v//./\\.}\\] — [0-9-]*$" "## [${v}] — 2099-01-01"
+run 1 "${c}"
+fails 1 "${v} is dated 2099-01-01, after its tag"
+c="$(copy cl-pending)"
+settle "${c}"
+v="$(top_entry "${c}")"
+next="${v%%.*}.$(( $(echo "${v}" | cut -d. -f2) + 1 )).0"
+entry "${c}" "${next}" "${today}"
+run 0 "${c}"
+has "CHECK  ${next}: the release being prepared"
+c="$(copy cl-untagged)"
+settle "${c}"
+entry "${c}" "9.9.9" "${today}"
+run 1 "${c}"
+fails 1 "9.9.9 has no tag v9.9.9"
+echo "PASS (docs-check, CHANGELOG): every tag has its entry and every entry its tag, but the one release being prepared."
+
+# --- Case 5: versions -----------------------------------------------------------------------
+c="$(copy version-current)"
+printf '\nThe current version is v1.0.0.\n' >> "${c}/CONTRIBUTING.md"
+run 1 "${c}"
+fails 1 "v1.0.0 reads as the current version"
+c="$(copy version-history)"
+printf '\nThe tags live on main from v1.0.0 on.\n' >> "${c}/CONTRIBUTING.md"
+run 0 "${c}"
+echo "PASS (docs-check, versions): an old version presented as current fails, a historical one does not."
+
+# --- Case 6: links --------------------------------------------------------------------------
+c="$(copy links)"
+printf '\nSee [the guide](NO-SUCH.md), [the box](SETUP.md#no-such-anchor), [[no-such-note]],\n`scripts/no-such.sh` and `.claude/docs/04-git-workflow.md`, *No such section*.\n' >> "${c}/CONTRIBUTING.md"
+printf '\nSee [Hardening](SETUP.md#hardening).\n' >> "${c}/README.md"
+run 1 "${c}"
+fails 5 "CONTRIBUTING.md:"
+has "NO-SUCH.md does not exist"
+has "has the anchor #no-such-anchor"
+has "[[no-such-note]] names no note"
+has "\`scripts/no-such.sh\` names no file"
+has 'has no section "No such section"'
+echo "PASS (docs-check, links): a link, an anchor, a wikilink, a cited path and a section title that resolve to nothing fail."
+
+# --- Case 7: the allow-list -----------------------------------------------------------------
 c="$(copy allow-stale)"
 edit "${c}/SETUP.md" '`/tmp`' '`/var/tmp`'
 run 1 "${c}"
 fails 1 '"`/tmp`" matches nothing'
 echo "PASS (docs-check, allow-list): an exception whose cause is gone fails."
 
-# --- Case 5: read-only ----------------------------------------------------------------------
+# --- Case 8: read-only ----------------------------------------------------------------------
 c="$(copy read-only)"
 fingerprint() {
   ( cd "$1" && bash "${REPO_ROOT}/scripts/repo-snapshot.sh" && git --no-optional-locks status --porcelain=v1 -uall \

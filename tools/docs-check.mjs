@@ -458,6 +458,216 @@ function checkInventories() {
   settle('inventory', `${commands.size} commands, ${targets.size} process targets, ${recipe.length} self-tests, the script and tool tables, the docs index and the README tree match the files`)
 }
 
+// --- Tags and the CHANGELOG --------------------------------------------------------------
+// Every release tag has its entry and every entry its tag — but one: the release being
+// prepared, whose entry is written before the merge and tagged after it. A tag created
+// with its entry still unwritten (it happened once) fails on the next run.
+function checkChangelog() {
+  section('Tags and the CHANGELOG — every tag has its entry, every entry its tag')
+  const ls = lines(CHANGELOG)
+  const heads = ls.map((l, i) => ({ l, line: i + 1 })).filter((h) => /^## /.test(h.l))
+  const unreleased = heads.filter((h) => h.l === '## [Unreleased]')
+  if (unreleased.length !== 1 || heads[0]?.l !== '## [Unreleased]') {
+    report('changelog', CHANGELOG, heads[0]?.line ?? 1, 'the first "## " heading must be the one "## [Unreleased]"')
+  }
+  for (const h of heads) {
+    if (h.l !== '## [Unreleased]' && !ENTRY_RE.test(h.l)) report('changelog', CHANGELOG, h.line, `"${h.l}": a release heading reads "## [X.Y.Z] — YYYY-MM-DD"`)
+  }
+  ENTRIES.forEach((e, i) => {
+    const next = ENTRIES[i + 1]
+    if (next && cmpVer(e.version, next.version) <= 0) report('changelog', CHANGELOG, e.line, `${e.version} is not above ${next.version}, the entry below it: newest first, no duplicate`)
+    if (next && e.date < next.date) report('changelog', CHANGELOG, e.line, `${e.version} is dated ${e.date}, before ${next.version} (${next.date})`)
+  })
+  if (!TAGS.length) {
+    report('changelog', null, 0, 'no vX.Y.Z tag in this clone: fetch the tags (a CI checkout needs its full history)')
+    settle('changelog', 'no tag to compare')
+    return
+  }
+  for (const t of TAGS) {
+    if (t.type !== 'tag') report('changelog', CHANGELOG, 1, `${t.name} is a lightweight tag: a release tag is annotated (docs/04, Versioning)`)
+    const e = ENTRIES.find((x) => x.version === t.version)
+    if (!e) report('changelog', CHANGELOG, 1, `${t.name} has no entry "## [${t.version}] — …"`)
+    else if (t.date && e.date > t.date) report('changelog', CHANGELOG, e.line, `${t.version} is dated ${e.date}, after its tag (${t.date})`)
+  }
+  for (const e of ENTRIES) {
+    if (TAGS.some((t) => t.version === e.version)) continue
+    if (PENDING && e === PENDING && e.date <= TODAY) check(`${e.version}: the release being prepared — its entry is written, its tag comes after the merge`)
+    else report('changelog', CHANGELOG, e.line, `${e.version} has no tag v${e.version}${e === ENTRIES[0] ? ` (a pending entry is one SemVer step above v${LATEST_TAG.version}, dated no later than today)` : ''}`)
+  }
+  // The "Upgrading from X" notes, which an upgrade collects in order, name the release just
+  // below their own — or its X.Y.x line.
+  ENTRIES.forEach((e, i) => {
+    const below = ENTRIES[i + 1]
+    if (!below) return
+    for (let n = e.line; n < (below.line ?? ls.length); n++) {
+      const m = /^\*\*Upgrading from (\d+\.\d+)\.(\d+|x)\b/.exec(ls[n - 1])
+      if (!m) continue
+      const named = `${m[1]}.${m[2]}`
+      if (named !== below.version && !(m[2] === 'x' && below.version.startsWith(`${m[1]}.`))) {
+        report('changelog', CHANGELOG, n, `the Upgrading note of ${e.version} starts from ${named}, but the entry below is ${below.version}`)
+      }
+    }
+  })
+  settle('changelog', `${plural(TAGS.length, 'tag')} and ${plural(ENTRIES.length, 'entry', 'entries')} match, newest first, annotated, dated no later than their tags`)
+}
+
+// --- No old version cited as the current one ---------------------------------------------
+// A framework version older than the current one, next to a word that makes it current —
+// or in a heading, a `version:` line, a checkout. History is exempt by nature; so are the
+// self-tests, whose fixtures reuse real version names.
+const TOOL_BEFORE = /(?:git|node|Node\.js|bash|npx|Claude Code|commitlint|gitleaks|Keep a Changelog|Node)\s*`?$/i
+const HISTORICAL = /(?:\b(?:from|since|until|up to|before|after|in|crossed|crossing|introduced|added|moved|translated|required|measured on|of|to|by|than|at|between|and|or)|→|->|,)\s*`?v?$/i
+const MARKER_BEFORE = /(?:as of|(?:is|now|currently) at|we are (?:on|at)|latest(?: release)?:?|current(?: version| release)?(?: is)?:?|supported:?(?: the)?)\s*`?v?$/i
+const CURRENCY = /\b(?:current|currently|latest|newest|now|today|this release|this version|at present|presently|as of|at the time of writing)\b/i
+function checkCurrentVersion() {
+  section('Versions — no document cites an old version as the current one')
+  if (!CURRENT) { settle('current-version', 'no release yet'); return }
+  const releases = new Set([...TAGS.map((t) => t.version), ...ENTRIES.map((e) => e.version)])
+  let mentions = 0
+  for (const p of PRESENT.filter((f) => !isSelfTest(f))) {
+    for (const u of units(p, presentMask(p))) {
+      const s = u.text
+      const urls = [...s.matchAll(/https?:\/\/\S+/g)].map((m) => [m.index, m.index + m[0].length])
+      for (const m of s.matchAll(/(?<![\w./-])v?(\d+)\.(\d+)(?:\.(\d+))?(?![\w-]|\.\d)/g)) {
+        const v = m[3] === undefined ? `${m[1]}.${m[2]}` : `${m[1]}.${m[2]}.${m[3]}`
+        const named = m[3] === undefined ? [...releases].some((r) => r.startsWith(`${v}.`)) : releases.has(v)
+        if (!named || urls.some(([a, b]) => m.index >= a && m.index < b)) continue
+        const before = s.slice(Math.max(0, m.index - 30), m.index)
+        if (TOOL_BEFORE.test(before)) continue
+        // 1.0.0 and 0.x, where a text speaks of the two regimes, are SemVer's milestones.
+        if (/^1\.0(?:\.0)?$/.test(v) && /\b(?:pre|post)-1\.0\b|\bregime|\b0\.x\b/i.test(s)) continue
+        mentions++
+        const old = cmpVer(m[3] === undefined ? `${v}.999` : v, CURRENT) < 0
+        if (!old) continue
+        const near = s.slice(Math.max(0, m.index - 40), m.index + m[0].length + 40)
+        const self = (isMd(p) && /^#{1,6}\s/.test(s)) || /\bversion\s*[:=]\s*`?v?$/.test(before)
+          || /(?:--branch|checkout|switch)\s+$/.test(before) || /shields\.io\/badge\//.test(s)
+        const claim = MARKER_BEFORE.test(before) || ((CURRENCY.test(near) || self) && !HISTORICAL.test(before))
+        if (claim) report('current-version', p, u.at[m.index], `${m[0]} reads as the current version, which is ${CURRENT}`)
+      }
+    }
+  }
+  settle('current-version', `${plural(mentions, 'mention')} of a framework release outside history, none presented as current but ${CURRENT}`)
+}
+
+// --- Internal links resolve --------------------------------------------------------------
+// Markdown links and their anchors, wikilinks, Claude Code's @-imports — everywhere, history
+// included; the repository paths and the section titles the present documents cite.
+const MD_FILES = FILES.filter(isMd)
+// The vault of the wikilinks is .claude/: a link names a note by its path or its basename.
+const VAULT = MD_FILES.filter((p) => p.startsWith('.claude/')).map((p) => p.slice('.claude/'.length, -3))
+function resolveWikilink(target) {
+  const t = target.trim().replace(/\.md$/, '')
+  const hits = VAULT.filter((v) => v === t || v.endsWith(`/${t}`))
+  return hits.length === 1 ? `.claude/${hits[0]}.md` : hits.length ? 'ambiguous' : null
+}
+// resolvePath(token, from): the tracked file or directory a cited path names, tried from
+// the root, the citing file's directory, .claude/, .claude/memory/ and .claude/docs/; a
+// bare file name by its unique basename; docs/NN (and docs/NN-MM, docs/NN/NN) as the
+// numbered docs. Returns the paths named, or null.
+function resolvePath(token, from) {
+  const t = token.replace(/:\d+(?:-\d+)?$/, '').replace(/\/$/, '')
+  const nums = /^(?:\.claude\/)?docs\/(\d\d)(?:-(\d\d)|((?:\/\d\d)+))?$/.exec(t)
+  if (nums) {
+    const wanted = nums[2] ? Array.from({ length: Number(nums[2]) - Number(nums[1]) + 1 }, (_, k) => String(Number(nums[1]) + k).padStart(2, '0'))
+      : [nums[1], ...(nums[3] ?? '').split('/').filter(Boolean)]
+    const docs = wanted.map((n) => FILES.find((p) => p.startsWith(`.claude/docs/${n}-`)))
+    return docs.every(Boolean) ? docs : null
+  }
+  const dir = posix.dirname(from)
+  for (const base of ['', `${dir}/`, '.claude/', '.claude/memory/', '.claude/docs/', '.claude/commands/']) {
+    const c = posix.normalize(base + t)
+    if (FILESET.has(c) || isDir(c)) return [c]
+  }
+  if (!t.includes('/')) {
+    const named = FILES.filter((p) => posix.basename(p) === t)
+    if (named.length) return named
+  }
+  return null
+}
+const PATHLIKE = /^[.\w@-]*(?:\/[\w.@-]*)*\/?(?::\d+(?:-\d+)?)?$/
+// A cited path that is a placeholder, a git ref, a git internal, a command or a system path
+// names nothing to resolve.
+const NOT_A_PATH = /[<>*…$]|YYYY|NNN|\bv[XY]\b|^(?:origin|refs|feat|fix|hotfix|chore|docs|release|worktree-agent)\/|(?:^|\/)\.git\/|^\/|^\.\.?\//
+function checkLinks() {
+  section('Links — Markdown links, wikilinks, @-imports, cited paths and section titles resolve')
+  const n = { md: 0, wiki: 0, at: 0, path: 0, title: 0 }
+  for (const p of MD_FILES) {
+    for (const u of units(p, allMask(p))) {
+      const s = blankOut(u.text, CODE_SPAN)
+      for (const m of s.matchAll(/\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)) {
+        if (/^(?:[a-z]+:|#$)/i.test(m[1])) continue
+        n.md++
+        const [path, anchor] = m[1].split('#')
+        const target = path ? posix.normalize(posix.join(posix.dirname(p), decodeURI(path))) : p
+        if (!FILESET.has(target) && !isDir(target)) report('link', p, u.at[m.index], `[…](${m[1]}): ${target} does not exist`)
+        else if (anchor !== undefined && isMd(target) && !anchors(target).has(anchor.toLowerCase())) report('link', p, u.at[m.index], `[…](${m[1]}): no heading of ${target} has the anchor #${anchor}`)
+      }
+      for (const m of s.matchAll(/\[\[([^\]|#\n]+)(#[^\]|\n]*)?(?:\|[^\]\n]*)?\]\]/g)) {
+        if (/[<>]|YYYY|\.\.\.|^:|^\s/.test(m[1])) continue
+        n.wiki++
+        const r = resolveWikilink(m[1])
+        if (!r) report('link', p, u.at[m.index], `[[${m[1]}]] names no note of the vault (.claude/)`)
+        else if (r === 'ambiguous') report('link', p, u.at[m.index], `[[${m[1]}]] names more than one note`)
+        else if (m[2] && !headings(r).some((h) => h.title === m[2].slice(1).trim())) report('link', p, u.at[m.index], `[[${m[1]}${m[2]}]]: no such heading in ${r}`)
+      }
+    }
+  }
+  for (const p of FILES.filter((f) => f === 'CLAUDE.md' || /^\.claude\/commands\/[^/]+\.md$/.test(f))) {
+    lines(p).forEach((l, i) => {
+      for (const m of l.matchAll(/(?:^|\s)@(\.claude\/[\w./-]+\.md)/g)) {
+        n.at++
+        if (!FILESET.has(m[1])) report('link', p, i + 1, `@${m[1]}: the import names no file`)
+      }
+    })
+  }
+  // In the present documents: the repository paths they cite between backticks, and the
+  // section titles they cite with their file.
+  for (const p of PRESENT.filter(isMd)) {
+    for (const u of units(p, presentMask(p))) {
+      for (const m of u.text.matchAll(/`([^`\n]+)`/g)) {
+        const t = m[1]
+        if (!PATHLIKE.test(t) || NOT_A_PATH.test(t) || !(/\//.test(t) || /\.(?:md|sh|mjs|cjs|json)$/.test(t))) continue
+        const [a, b] = sentenceAround(u.text, m.index)
+        if (/\be\.g\.|\bfor example\b|\bsuch as\b/i.test(u.text.slice(a, b))) continue
+        n.path++
+        if (!resolvePath(t, p)) report('link', p, u.at[m.index], `\`${t}\` names no file or directory of the repository`)
+      }
+      for (const r of sectionRefs(u.text)) {
+        const files = resolvePath(r.file, p)
+        if (!files || files.length !== 1 || !isMd(files[0])) continue
+        n.title++
+        if (!titleIn(files[0], r)) report('link', p, u.at[r.index], `${r.file} has no section ${r.kind === 'number' ? `§${r.title}` : `"${r.title}"`}`)
+      }
+    }
+  }
+  settle('link', `${n.md} Markdown links, ${n.wiki} wikilinks, ${n.at} @-imports, ${n.path} cited paths and ${n.title} section titles resolve`)
+}
+// sectionRefs(s): the sections a unit cites WITH their file — `file`, *Title*;
+// `file` (*Title*); `file` ("Title"); `file` §N — and docs/NN, *Title* without backticks.
+function sectionRefs(s) {
+  const out = []
+  const file = String.raw`(?:\`([^\`\n]+\.md|docs\/\d\d)\`|\b(docs\/\d\d)\b)(?:'s)?`
+  for (const m of s.matchAll(new RegExp(`${file}\\s*(?:,\\s*|\\(\\s*)\\*"?([^*"\\n]+?)"?\\*`, 'g'))) out.push({ file: m[1] ?? m[2], title: m[3], kind: 'title', index: m.index })
+  for (const m of s.matchAll(new RegExp(`${file}\\s*,?\\s*\\(\\s*"([^"\\n]+)"\\s*\\)`, 'g'))) out.push({ file: m[1] ?? m[2], title: m[3], kind: 'title', index: m.index })
+  for (const m of s.matchAll(new RegExp(`${file},?\\s*§\\s*(\\d+)`, 'g'))) out.push({ file: m[1] ?? m[2], title: m[3], kind: 'number', index: m.index })
+  return out
+}
+const normTitle = (t) => t.replace(/[`*"“”]/g, '').replace(/\s+/g, ' ').trim().toLowerCase()
+  .replace(/^(?:\d+\.|step \d+ —)\s*/, '')
+// titleIn(p, ref): whether a cited title is a heading or a bold lead-in of p — exactly, cut
+// at its first " — ", ":" or " (", or as a whole-word prefix; a §N, a "## N." heading.
+function titleIn(p, ref) {
+  if (ref.kind === 'number') return headings(p).some((h) => new RegExp(`^${ref.title}\\.\\s`).test(h.title))
+  const want = normTitle(ref.title)
+  const leads = lines(p).flatMap((l) => [...l.matchAll(/^\s*(?:>\s*)*(?:[-*+]\s+|\d+\.\s+)?\*\*([^*]+?)\*\*/g)].map((m) => m[1]))
+  return [...headings(p).map((h) => h.title), ...leads].some((h) => {
+    const t = normTitle(h)
+    const cut = t.split(/ — |:| \(/)[0].trim()
+    return t === want || cut === want || t.startsWith(`${want} `) || t.startsWith(`${want}:`) || cut.startsWith(`${want} `)
+  })
+}
+
 // --- The declared exceptions -------------------------------------------------------------
 // What the rules above cannot tell apart, each with its reason. Bidirectional: an entry that
 // covers nothing fails below, so it is removed with its cause.
@@ -467,6 +677,12 @@ const ALLOW = [
   // Inventories.
   { check: 'inventory', file: '*', text: '`/clear`', reason: 'a command of Claude Code itself, not one of the method' },
   { check: 'inventory', file: SETUP, text: '`/tmp`', reason: 'a directory, not a command' },
+  // Links: names that are not meant to exist in this repository.
+  { check: 'link', file: '*', text: '`.claude/framework-version`', reason: 'the provenance pin: created in a project at its graft, never here' },
+  { check: 'link', file: '*', text: '`settings.local.json`', reason: 'personal permissions: local and unversioned by design (.gitignore)' },
+  { check: 'link', file: '.claude/docs/04-git-workflow.md', text: '`.claude/worktrees/`', reason: 'where Claude Code puts an isolated agent\'s worktree, ignored by .gitignore' },
+  { check: 'link', file: '.claude/docs/04-git-workflow.md', text: '`secrets/`', reason: 'a generic example of where secrets live' },
+  { check: 'link', file: SETUP, text: '`adr/`', reason: 'an example of where a project keeps its ADRs' },
 ]
 
 // --- The allow-list itself ---------------------------------------------------------------
@@ -482,6 +698,9 @@ function checkAllowList() {
 checkImpNumbers()
 checkPointers()
 checkInventories()
+checkChangelog()
+checkCurrentVersion()
+checkLinks()
 checkAllowList()
 console.log(`\ndocs-check: ${nFail} FAIL, ${nCheck} CHECK`)
 process.exit(nFail ? 1 : 0)

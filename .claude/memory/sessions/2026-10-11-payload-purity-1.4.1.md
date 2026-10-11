@@ -69,7 +69,7 @@ and push are the user's.
 - [x] 3. `tools/`: the check's frame and self-test (the payload's model, the OK/FAIL/CHECK lines, the bidirectional allow-list); the first check, the inventories of commands, targets and scripts against the files; wired into `make test-scripts`, moot where `tools/` is absent; `tools/README.md`, `CONTRIBUTING.md` — commit: b2248cf
 - [x] 4. The framework-repo-only blocks moved to `CONTRIBUTING.md`, one conditional line left in `docs/01` — commit: a1779d5
 - [x] 5. Framework IMP numbers out of the payload's text, the why in prose, and the check that keeps them out — commit: 33f7263
-- [ ] 6. The payload's pointers to files outside it rewritten (a local assumption rephrased, a cross-repo pointer labelled), and the check — commit: —
+- [x] 6. The payload's pointers to files outside it rewritten (a local assumption rephrased, a cross-repo pointer labelled), and the check — commit: 18873cf
 - [ ] 7. Internal links resolve; tags and CHANGELOG entries match; no old version cited as current — the checks and the fixes — commit: —
 - [ ] 8. The lists that declare themselves complete (the §2 checklist, the class table, the inventories, the counts in prose) against what exists — the checks and the fixes — commit: —
 - [ ] 9. No Italian residue in the artifacts, the memory checked prospectively — the check and the fixes — commit: —
