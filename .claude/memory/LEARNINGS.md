@@ -610,6 +610,12 @@ tags: [improvement]
   when the Windows job runs over 30 minutes, steadily for 3 consecutive runs. A ratio to
   the Linux job ("over 5 times") was dropped the same day: with Linux near a minute it
   would fire for a 5-minute Windows job, with no real cost behind it.
+- Applied in v1.5.0 (2026-10-11, [[2026-10-11-multiplatform-1.5.0]]): points 1-6 — the CI
+  green on the three images (Windows in 453 s, far below the plan B threshold),
+  `.gitattributes` in the payload, the upgrade check's CRLF tolerance and its Windows
+  forms, the PowerShell tool off and read by the guard, the prerequisites by tool name,
+  the platform matrix. The entry stays OPEN for point 7, the prerequisite check, in
+  v1.6.0.
 
 ### IMP-071 — A claim of coverage is a list that declares itself complete
 - Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at

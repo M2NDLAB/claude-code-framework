@@ -1,8 +1,8 @@
 ---
 date: 2026-10-11
-task: v1.5.0 — macOS, Linux and Windows (IMP-070, points 1-6) — a CI on the three platforms outside the payload; line ends (`.gitattributes`, the upgrade check's CRLF tolerance); the PowerShell tool (option C); the prerequisites by tool name; the platform matrix; seven IMPs recorded
+task: v1.5.0 — macOS, Linux and Windows (IMP-070, points 1-6) — a CI on the three platforms outside the payload; line ends (`.gitattributes`, the upgrade check's CRLF tolerance); the PowerShell tool (option C); the prerequisites by tool name; the platform matrix; eight IMPs recorded
 branch: feat/multiplatform-1.5.0
-status: in-progress
+status: completed
 model: 'claude-opus-5-5'
 turns: 7
 tags: [session, platforms, ci, tools, imp, plan]
@@ -126,8 +126,8 @@ with no real cost behind it.
 - [x] 9. The CI's runs (block 0, the user's pushes): what fails, fixed, until green on the three platforms — commit: 6382884 to 766365a, five rounds
 - [x] 10. The platform matrix (`README.md`, `SETUP.md`): only what the CI verified — commit: 9aae8e7
 - [x] 11. ONE reviewer + fixes — commit: 452f7df to 66ca847
-- [ ] 12. `/checkpoint` (the rehearsal re-run on the final payload) — commit: —
-- [ ] 13. `/integrate`: the CHANGELOG 1.5.0 entry; blocks 0, 1 and 2 — commit: —
+- [x] 12. `/checkpoint` (the rehearsal re-run on the final payload) — commit: this checkpoint (its own sha cannot be written in it)
+- [x] 13. `/integrate`: the CHANGELOG 1.5.0 entry; blocks 0, 1 and 2 — commit: the CHANGELOG commit (likewise)
 
 The plan was amended after task 7, by the user's request of 2026-10-11: task 8 is new,
 the tasks after it move by one, and the commits from task 8 on count 13 (those before,
@@ -516,8 +516,73 @@ each fix below is decided, the measured ones measured by the main session.
 - The last green run is round 5's, on `f41780d`. Every commit after it — `766365a`, this
   note's update, tasks 10 to 13 — reaches the CI through the final block 0 (the closing
   rule, in the brief); block 1 waits for that run's green on all three jobs.
-- Next: task 12 (`/checkpoint`, the rehearsal re-run on the final payload) and task 13
-  (the CHANGELOG entry from the scratchpad's draft, then the final block 0).
+- Next: task 13 — the CHANGELOG entry from the scratchpad's draft, then the final block
+  0; blocks 1 and 2 only after that run's green on all three jobs.
+
+## Rehearsing the upgrade at the checkpoint (task 12)
+On the final payload — the branch at `2b39969`, the CHANGELOG draft inserted and tagged
+v1.5.0 in a clone only — a project grafted at v1.4.1 in five forms: with a
+`.gitattributes` of its own and without, each checked out with LF and with CRLF
+(`core.autocrlf=true`), and one grafted as on Windows, its scripts committed at `100644`
+(`core.fileMode=false`), checked out so. The upgrade as the Upgrading note says it, the
+line-end step read from `SETUP.md`:
+- `preflight` 0 FAIL, 0 CHECK everywhere. `inventory` 0 FAIL: a CHECK on `.gitattributes`
+  where the project has one; on the Windows graft, a CHECK for each of the seven modes.
+- The line-end step, on the three CRLF projects: 37 framework files with CRLF before, 0
+  after; the project's own files as they were.
+- The 3-way of `settings.json` and `hooks-install.sh`: 0 conflicts, all five. `invariant`
+  0 FAIL, 0 CHECK, all five.
+- `post`: the three hooks a rehearsal does not install and the pin, all five — and on the
+  Windows graft its seven modes; after the note's
+  `git update-index --chmod=+x -- scripts/*.sh scripts/*.mjs` and a commit, none of them,
+  `invariant` still clean.
+
+## Done
+- `a787c9a` the plan, phase 1's analysis and seven IMPs; `f1147f5` the CI; `40d6075`
+  `.gitattributes`; `cc16df0` the check's CRLF tolerance; `db1fc77` PowerShell, option C;
+  `ecd2b8d` the prerequisites by tool name; `c22c9b3` the upgrade rehearsed; `e6597f1` the
+  line-end step guarded; `6382884` to `3d7d16a` the CI's five rounds; `9aae8e7` the
+  platform matrix; `452f7df` to `2b39969` the review and its fixes; this checkpoint; the
+  CHANGELOG 1.5.0 entry at `/integrate`.
+- LEARNINGS: IMP-071 to IMP-078 recorded, IMP-078 at the user's request; IMP-070
+  annotated — applied for points 1-6, OPEN for point 7.
+- Verification: `make test-scripts` and the upgrade check's self-test green on macOS at
+  `2b39969` (23 PASS); the CI green on the three images at `f41780d`, and every commit
+  after it goes through the final block 0's run (the closing rule); the upgrade from 1.4.1
+  rehearsed at task 7 and again here, on the final payload.
+- Edits to `.claude/` through shell one-offs (Python); the two boundary files through the
+  file tools, one `ask` approval each time (tasks 5 and 11).
+
+## Retro
+Candidate lessons — offered, not recorded: the user decides which become IMPs.
+- **A parser of another shell's syntax covers the forms it was held against, not the
+  language.** Task 5's mutants proved each piece of the PowerShell reading (8 of 8); none
+  could prove its coverage, and the reviewer got 15 of 19 ordinary forms through — an
+  assignment, a script block, a here-string. The coverage's source is the language's own
+  list of constructs, held against the cases before "ordinary forms" is claimed:
+  IMP-071's shape, a new occurrence.
+- **A guard against uncommitted changes must see what git hides from its diff.** The user
+  asked the line-end step to refuse, never erase; `git diff --quiet HEAD` cannot see an
+  edit behind `assume-unchanged`, nor stop `git rm --cached` halfway on a `skip-worktree`
+  entry. The review found both; the probes measured them.
+- **On Git Bash, git counts line ends, not grep.** grep did not see a line-ending `\r`
+  there: the fourth round's red was the test's, not the product's.
+- **The whole suite before each commit, the documentation check included.** A prose edit
+  in `SETUP.md` passed the self-test that reads its block, and failed the documentation
+  check: caught after the commit, amended while it was still local.
+- Held, not a lesson: the usage limit cut the session right after the review; its
+  findings were already in this note, and the next session resumed without the chat.
+
+## Follow-up
+- `/integrate`: v1.5.0, a MINOR (`feat` commits; the payload reaches the projects at the
+  tag). The final block 0 pushes the branch's last state; block 1 only after that run is
+  green on all three jobs, and it checks that the local tip is the one the CI tested.
+- Next: v1.6.0 — IMP-070's point 7, the prerequisite check; IMP-076, commitlint pinned or
+  not; IMP-077, `gitleaks git` in place of `protect`. IMP-078 awaits a decision.
+- The guard, from the review: `git ls-remote`, a read, refused by the allow-list; a `$(…)`
+  with parentheses of its own inside a double-quoted string, not read.
+- The client project's upgrade at the end of the cycle: the pin's `v` by hand first, as
+  [[2026-10-11-payload-purity-1.4.1]] records.
 
 ## Received for later blocks
 - **v1.6.0** (prerequisites and versions): point 7 of IMP-070, the prerequisite check;
