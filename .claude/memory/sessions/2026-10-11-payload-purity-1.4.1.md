@@ -2,7 +2,7 @@
 date: 2026-10-11
 task: v1.4.1 — the payload's purity (IMP-049) and the mechanical documentation check (IMP-068), outside the payload, with its self-test, in make test-scripts; the convention for applied IMP entries
 branch: fix/payload-purity-1.4.1
-status: in-progress
+status: completed
 model: 'claude-opus-5-5'
 turns: 1
 tags: [session, payload, tools, docs, imp, plan]
@@ -74,7 +74,7 @@ and push are the user's.
 - [x] 8. The lists that declare themselves complete (the §2 checklist, the class table, the inventories, the counts in prose) against what exists — the checks and the fixes — commit: 66f3e50
 - [x] 9. No Italian residue in the artifacts, the memory checked prospectively — the check and the fixes — commit: 603fa6b
 - [x] 10. `LEARNINGS.md`: the applied-entry convention in its format comment; IMP-049 and IMP-068 applied, in their final form — commit: 88513b3
-- [ ] 11. ONE reviewer + fixes — commit: —
+- [x] 11. ONE reviewer + fixes — commit: 38daa59
 - [ ] 12. `/checkpoint` — commit: —
 - [ ] 13. `/integrate`: the CHANGELOG 1.4.1 entry; the two blocks — commit: —
 
@@ -205,7 +205,7 @@ Italian. The memory stays as it is: what the check sees there is declared, not r
   commits untouched. Old tips: task 7 `d8e0113`, 8 `bddd64a`, 9 `dbefeff`, 10 `bca957a`;
   now `1c6093d`, `66f3e50`, `603fa6b`, `88513b3`.
 
-## Rehearsing the Upgrading note (before the review)
+## Rehearsing the Upgrading note (before the review, and at the checkpoint)
 A project grafted at v1.4.0 was simulated in a throwaway clone — the framework's live
 memory emptied, `checkpoint.md`'s placeholders answered, the hybrid box of `docs/01` and the
 plan block of `sessions/README.md` pruned by hand, a pin — and upgraded to this branch,
@@ -216,6 +216,13 @@ re-worded. Every 3-way merged with 0 conflicts — the answered `checkpoint.md`,
 Step 3's recipes. `invariant`: 0 FAIL, 0 CHECK — the new line inside the format comment
 crosses the upgrade's machinery. `post`: the hooks not reinstalled in the rehearsal
 (Step 4) and the new slots to confirm, as expected.
+
+Rehearsed again at the checkpoint, on the final payload — task 11's commit, the
+CHANGELOG draft inserted and tagged v1.4.1 in the clone only, where the check gave 0 FAIL,
+0 CHECK: `preflight` clean; `inventory` the same flags; every 3-way, the two `LEARNINGS.md`
+recipes included, merged with 0 conflicts; `invariant` 0 FAIL, 0 CHECK; `post` as before,
+plus the pin Step 6 rewrites. Task 11 touched payload files the first rehearsal had
+merged (`checkpoint.md`, `docs/01`): this run is the one that holds for the tag.
 
 ## Review (task 11) — one reviewer, dispositions
 One independent reviewer over `2bb8f08..HEAD`, the uncommitted CRLF hardening and the
@@ -317,3 +324,47 @@ task 7 on carry exactly the trees of the old tips.
   of its first version. A Node
   that is installed but does not START (the dyld failure above) is the case the
   prerequisite check of IMP-070 (point 7) must catch: run it, do not only find it.
+
+## Done
+- `f1357c8` this note and its plan; `6444ac6` the assessment and the check's design;
+  `b2248cf` the check's frame, its self-test and the inventories, in `make test-scripts`;
+  `a1779d5` the framework-only blocks moved to `CONTRIBUTING.md`; `33f7263` the IMP
+  numbers out of the payload; `18873cf` the pointers rewritten; `1c6093d` links, tags
+  against the CHANGELOG, versions cited as current; `66f3e50` the lists that declare
+  themselves complete; `603fa6b` the Italian residue; `88513b3` the applied-entry
+  convention, IMP-049 and IMP-068 applied; `38daa59` the single reviewer's findings,
+  both passes; this checkpoint; the CHANGELOG 1.4.1 entry at `/integrate`.
+- LEARNINGS: IMP-049 and IMP-068 Applied, in the final form their format comment now
+  asks for; IMP-057 annotated. The format comment and step 2 of `docs/06` carry the
+  convention for applied entries.
+- Verification: `make test-scripts` (five script self-tests, the check's ten cases, the
+  check itself 0 FAIL) and `bash tools/test-upgrade-check.sh` (six of six) green at
+  task 11's commit; mutation as recorded above; the upgrade from 1.4.0 rehearsed twice.
+- Edits to `.claude/` went through shell one-offs (Python), as in the earlier releases.
+
+## Retro
+Candidate lessons — offered, not recorded (the user's brief listed this block's IMPs):
+- **A claim of coverage is a list that declares itself complete.** "Every rule the check
+  advertises has its defect here" was IMP-068's very shape, inside the tool built to
+  catch it — and it was false twice, each time found by the reviewer. What made it true
+  was IMP-068's own remedy: hold the claim against its source (the forms the check's
+  comments name, against the cases), or narrow it to what was measured.
+- **Mutate the paths, not only the sites.** A campaign that disables each report site
+  reads as exhaustive and is not: a detection path that feeds a site another planted
+  defect reaches survives unseen. Eight did; an inventory then found nineteen more forms
+  that no case planted.
+- **Write the record after the last measurement.** A commit message and IMP-049's
+  Verified part claimed a mutation coverage not yet measured; with a wrong release in
+  another message, they cost the replay of four commits and two rewrites — found by the
+  reviewer both times, as v1.4.0's failure paths were.
+
+## Follow-up
+- `/integrate`: v1.4.1, a PATCH as the brief decided (`fix`, `test` and `docs` commits;
+  the payload and `tools/` reach the projects at the tag). The reviewer's L14 stands for
+  the user: the convention for applied entries is a new rule in a shipped file, which
+  `docs/04`'s criteria would read as a MINOR; it is filed under Changed, as making
+  explicit what the applied entries already did. Merge, tag and push are the user's.
+- Next: v1.5.0, multi-platform (IMP-070) — with the notes received above, for the CI and
+  for the documentation check.
+- The client project's upgrade at the end of the cycle: the pin's `v` by hand first, as
+  recorded above.

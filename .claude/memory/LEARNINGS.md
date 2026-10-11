@@ -1553,7 +1553,7 @@ line on; older entries are not backfilled.
   checklist's changes derived from the tags, with no hand-written field (user decision 3).
   The pin's format checked, an explicit error, a tag only suggested (decision 6).
 
-### IMP-049 — Payload purity: method files that only make sense in the framework repo → applied on 2026-10-11, commits b2248cf, a1779d5, 33f7263, 18873cf, 1c6093d, 603fa6b
+### IMP-049 — Payload purity: method files that only make sense in the framework repo → applied on 2026-10-11, commits b2248cf, a1779d5, 33f7263, 18873cf, 1c6093d, 603fa6b, 38daa59
 - Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — the third real upgrade
   of a client project pruned by hand, once more, text that points at the framework repo
 - Observed problem (condensed): the files a project receives carried three couplings to
@@ -1597,7 +1597,7 @@ line on; older entries are not backfilled.
   meaning; a project that customised a moved block, rather than pruning it, meets a 3-way
   conflict at its upgrade (the *Upgrading* note of 1.4.1 says so).
 
-### IMP-068 — A list that declares itself complete deserves a mechanical check → applied on 2026-10-11, commits b2248cf, 66f3e50
+### IMP-068 — A list that declares itself complete deserves a mechanical check → applied on 2026-10-11, commits b2248cf, 66f3e50, 38daa59
 - Date: 2026-10-10 | Origin: [[2026-10-09-quick-fixes-1.3.2]] (its retro) — recorded in
   [[2026-10-10-upgrade-safety-1.3.3]]
 - Observed problem (condensed): `SETUP.md` §2, "the complete list" of the setup slots,
