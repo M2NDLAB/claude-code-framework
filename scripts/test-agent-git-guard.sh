@@ -229,6 +229,9 @@ PS_READS=(
 for c in "${PS_READS[@]}"; do
   expect 0 "agent PowerShell read blocked: ${c}" "${REPO_ROOT}" "$(hook_input "${c}" agent PowerShell)"
 done
+# Not vacuous: the CRLF read above reaches the guard with its \r (JSON writes it as \r).
+[[ "$(hook_input $'git log\r\ngit --no-optional-locks status\r\n' agent PowerShell)" == *'status\r\n'* ]] \
+  || fail "a CRLF command reached the guard without its \\r: the CRLF cases prove nothing"
 # Through Bash too (Git Bash on Windows), git may be spelled git.exe, Git or a Windows path.
 for c in 'git.exe checkout main' 'GIT checkout main' '/c/Program\ Files/Git/cmd/git.exe switch main'; do
   expect 2 "agent write not blocked: ${c}" "${REPO_ROOT}" "$(hook_input "${c}" agent)"

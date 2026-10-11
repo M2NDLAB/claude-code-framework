@@ -29,7 +29,8 @@
 #      fail.
 #   6. line ends — the graft, the upgraded memory and the reconciled project, rebuilt in a
 #      copy whose files all have CRLF line ends (core.autocrlf=true: a Windows checkout),
-#      print the very lines they print with LF, for inventory, invariant and post.
+#      print the very lines they print with LF, for inventory, invariant and post; git
+#      itself confirms each copy's line ends, so the comparison cannot be LF against LF.
 #   7. the line-end step of SETUP.md, Step 3 — read from SETUP.md, run on the project as
 #      Git for Windows checks it out: on a clean tree it leaves no framework file with CRLF
 #      and the project's own files as they were; with a change not yet committed on a
@@ -416,10 +417,18 @@ upgraded_from_graft() {
     && put "${PRJ}" .claude/memory/sessions/README.md 'sessions, second version, kept our way\nThe plan block of the framework repo.\n'
 }
 reconciled_from_graft() { graft_state && reconciled_state; }
+# eol_count <dir> <eol>: how many of the framework's files have <eol> line ends (lf, crlf)
+# in the working tree, as git reads them (ls-files --eol: w/<eol>). On Windows a grep for
+# $'\r$' counted none in a clone made with core.autocrlf=true (measured in the CI); git
+# reads the bytes themselves.
+eol_count() {
+  ( cd "$1" && g ls-files --eol -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts ) \
+    | awk -v w="w/$2" '$2 == w { n++ } END { print n + 0 }'
+}
 # same_lines <state> <expected rc> <subcommand...>: the state built in a copy of the project
 # with LF line ends and in one with CRLF; the two runs must print the same lines.
 same_lines() {
-  local state="$1" want="$2" lf_project="${PRJ}" v
+  local state="$1" want="$2" lf_project="${PRJ}" v other
   shift 2
   for v in lf crlf; do
     rm -rf "${workdir}/project-${v}"
@@ -427,6 +436,10 @@ same_lines() {
     PRJ="${workdir}/project-${v}"
     "${state}"
     if [ "${v}" = crlf ]; then g -C "${PRJ}" config core.autocrlf true && crlf "${PRJ}"; fi
+    # Not vacuous: each copy has the line ends it is named after, and only those.
+    other=crlf; [ "${v}" = lf ] || other=lf
+    [ "$(eol_count "${PRJ}" "${v}")" -gt 0 ] && [ "$(eol_count "${PRJ}" "${other}")" -eq 0 ] \
+      || fail "$1: the ${v} copy does not have ${v} line ends only, as git reads them"
     FW="${FWD}" T="${T_DIR}" run "${want}" "${PRJ}" "$@"
     sed "s#${PRJ}#<project>#g" "${out}" > "${workdir}/out.${v}"
   done
@@ -442,6 +455,7 @@ same_lines upgraded_from_graft 0 invariant v1.0.0 v1.1.0 "${RESTORE}"
 grep -q "a memory template that differs from v1.1.0's" "${workdir}/out.crlf" || fail "line ends: invariant printed no template's diff"
 same_lines reconciled_from_graft 0 post v1.0.0 v1.1.0
 grep -q "OK     pre-push installed" "${workdir}/out.crlf" || fail "line ends: post read no hook list"
+grep -q "the pin reads 'v1.0.0'" "${workdir}/out.crlf" || fail "line ends: post read no pin"
 echo "PASS (upgrade-check line ends): with CRLF line ends the graft, the upgraded memory and the reconciled project get the verdicts they get with LF."
 
 # --- Case 7: the line-end step of Step 3 ------------------------------------------------
@@ -453,13 +467,6 @@ step="${workdir}/line-end-step.sh"
 awk '/\*\*Line ends, first/ { f = 1 } f && /^  ```bash$/ { b = 1; next } b && /^  ```$/ { exit } b { sub(/^  /, ""); print }' \
   "${REPO_ROOT}/SETUP.md" > "${step}"
 [ -s "${step}" ] || fail "line-end step: no bash block under \"Line ends, first\" in SETUP.md"
-# crlf_left <dir>: how many of the framework's files still carry CRLF line ends, as git
-# reads them (ls-files --eol: w/crlf). On Windows a grep for $'\r$' counted none in a clone
-# made with core.autocrlf=true (measured in the CI); git reads the bytes themselves.
-crlf_left() {
-  ( cd "$1" && g ls-files --eol -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts \
-      | grep -c 'w/crlf' || true )
-}
 # windows_project <name>: the project as Git for Windows checks it out (a clone with
 # core.autocrlf=true), a file of its own outside the framework's paths, and the framework's
 # .gitattributes brought in, as the step's sentence says.
@@ -472,11 +479,11 @@ windows_project() {
 # run_step <dir>: the step, from the project's root; its exit code in ${rc}.
 run_step() { set +e; ( cd "$1" && bash "${step}" ) > "${out}" 2>&1; rc=$?; set -e; }
 windows_project win-clean
-[ "$(crlf_left "${workdir}/win-clean")" -gt 0 ] || fail "line-end step: the clone has no CRLF framework file to rewrite"
+[ "$(eol_count "${workdir}/win-clean" crlf)" -gt 0 ] || fail "line-end step: the clone has no CRLF framework file to rewrite"
 cksum "${workdir}/win-clean/notes.txt" > "${workdir}/notes.before"
 run_step "${workdir}/win-clean"
 [ "${rc}" -eq 0 ] || fail "line-end step on a clean tree: exit ${rc}"
-[ "$(crlf_left "${workdir}/win-clean")" -eq 0 ] || fail "line-end step: framework files left with CRLF"
+[ "$(eol_count "${workdir}/win-clean" crlf)" -eq 0 ] || fail "line-end step: framework files left with CRLF"
 cksum "${workdir}/win-clean/notes.txt" | diff "${workdir}/notes.before" - >/dev/null || fail "line-end step: the project's own file changed"
 # A change not yet committed on a framework file — unstaged; staged; staged only, the
 # working file back to the commit's text: refused every time, and kept.
@@ -487,11 +494,11 @@ for kind in unstaged staged staged-only; do
   case "${kind}" in staged*) g -C "${w}" add CLAUDE.md ;; esac
   [ "${kind}" = staged-only ] && g -C "${w}" show HEAD:CLAUDE.md > "${w}/CLAUDE.md"
   cksum "${w}/CLAUDE.md" > "${workdir}/claude.before"
-  before="$(crlf_left "${w}")"
+  before="$(eol_count "${w}" crlf)"
   run_step "${w}"
   [ "${rc}" -ne 0 ] || fail "line-end step with a ${kind} change: it ran instead of refusing"
   cksum "${w}/CLAUDE.md" | diff "${workdir}/claude.before" - >/dev/null || fail "line-end step with a ${kind} change: the change was overwritten"
-  [ "$(crlf_left "${w}")" -eq "${before}" ] || fail "line-end step with a ${kind} change: files were rewritten before the refusal"
+  [ "$(eol_count "${w}" crlf)" -eq "${before}" ] || fail "line-end step with a ${kind} change: files were rewritten before the refusal"
   case "${kind}" in
     staged*) g -C "${w}" diff --cached --quiet -- CLAUDE.md && fail "line-end step with a ${kind} change: the staged change was dropped" ;;
   esac
