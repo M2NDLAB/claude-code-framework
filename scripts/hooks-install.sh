@@ -31,14 +31,17 @@ if ! command -v git >/dev/null 2>&1; then
   exit 1
 fi
 git_common_dir="$(git -C "${REPO_ROOT}" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)"
-if [[ "${git_common_dir}" != /* || ! -d "${git_common_dir}" ]]; then
+# An absolute path in either form: on Windows git prints C:/… where Git Bash names the same
+# directory /c/… (measured in the CI on Windows). An older git echoes the option instead.
+if [[ ( "${git_common_dir}" != /* && "${git_common_dir}" != [A-Za-z]:[/\\]* ) || ! -d "${git_common_dir}" ]]; then
   echo "ERROR: ${REPO_ROOT} is not inside a git repository, or git is older than 2.31." >&2
   echo "  The hooks are installed into the repository that contains this script: run it" >&2
   echo "  from the project's copy (make hooks-install), with git 2.31 or later." >&2
   exit 1
 fi
 top_level="$(git -C "${REPO_ROOT}" rev-parse --show-toplevel)"
-if [[ "${top_level}" != "$(cd "${REPO_ROOT}" && pwd -P)" ]]; then
+# Compared by identity (-ef), never as strings: the two forms above name one directory.
+if [[ ! "${top_level}" -ef "${REPO_ROOT}" ]]; then
   echo "ERROR: ${REPO_ROOT} is not the top level of its git repository (${top_level})." >&2
   echo "  The framework's scripts/ belongs at the repository's root: the hooks would be" >&2
   echo "  installed into ${top_level}, for every project in it." >&2
