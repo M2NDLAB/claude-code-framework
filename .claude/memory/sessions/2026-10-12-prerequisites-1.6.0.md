@@ -4,7 +4,7 @@ task: v1.6.0 — prerequisites and versions (IMP-070 point 7, IMP-076, IMP-077) 
 branch: feat/prerequisites-1.6.0
 status: in-progress
 model: 'claude-opus-5-5'
-turns: 2
+turns: 3
 tags: [session, prerequisites, ci, tools, imp, plan]
 ---
 # Session 2026-10-12 — v1.6.0: prerequisites and versions
@@ -17,8 +17,8 @@ tags: [session, prerequisites, ci, tools, imp, plan]
 
 ## The fields of this very note
 - `model: 'claude-opus-5-5'` — the main session.
-- `turns: 2` — the user's brief for v1.6.0, with v1.5.0 integrated and published; the
-  user's decisions on the plan.
+- `turns: 3` — the user's brief for v1.6.0, with v1.5.0 integrated and published; the
+  user's decisions on the plan; the user's decisions on the review.
 
 ## The brief — persisted so a /clear does not lose it
 v1.6.0, the EXPECTED bump a MINOR: `/integrate` computes it again from the commits and, if
@@ -361,12 +361,100 @@ agent's report file; its findings, 1 HIGH, 2 MEDIUM, 2 LOW, 7 INFO:
 - gitleaks' root `--version`: from v8.19.0 (the agent's table over the 107 tags);
   `gitleaks --version` here prints "gitleaks version 8.30.1".
 
-**Pending: the user's decisions** on H1 (its fix in this release) and on M1 (the floor and
-how it is enforced), asked on 2026-10-12 with the gate's verdict to follow.
+## The user's decisions on the review (2026-10-12)
+- **D4 → A, in this release.** H1 is fixed with git's DOCUMENTED environment configuration,
+  `GIT_CONFIG_COUNT` with `GIT_CONFIG_KEY_n` and `GIT_CONFIG_VALUE_n` (git 2.31, already the
+  minimum) — not `GIT_CONFIG_PARAMETERS`, internal to git, its format not guaranteed —, in
+  the generated hook and in `SETUP.md`'s gitleaks commands; the fifth real case,
+  `color.ui=always`. The same family measured, one real case each: `diff.noprefix`,
+  `diff.mnemonicPrefix`, `diff.relative` and a textconv in `.gitattributes`; fixed only
+  where a secret gets through, the rest recorded as measured and harmless.
+- **D5 → A.** gitleaks' minimum 8.18.2, a security minimum: below it a FAIL, for gitleaks
+  only. The check at every commit (option B) stays for IMP-077's switch. The bump computed
+  again by `docs/04`: if refusing a gitleaks below 8.18.2 breaks compatibility, the release
+  is v2.0.0, its Upgrading note opening with it, declared before the tag.
+- M2 and the LOWs fixed as proposed, the rest recorded. This repository's own hooks: the
+  user regenerates them after the integration.
+- The user checked their own machines: `color.ui`, `color.diff` and `diff.external` set at
+  no level of configuration and in none of their repositories; gitleaks 8.30.1. No past
+  exposure to H1, no history scan needed.
+
+## The family of H1, measured (task 9)
+Real commits in throwaway repositories, a staged AWS key built at run time; the hook
+`4b3abb9` generates, then the fixed one:
+
+| The user's configuration | `4b3abb9`'s hook | The fixed hook |
+| --- | --- | --- |
+| `color.ui` or `color.diff` "always", or `git -c color.ui=always` | committed, 0 bytes scanned | refused |
+| `git -c color.diff=always` on the command line | committed | committed — the residual: an explicit `-c` beats git's environment configuration, as git documents |
+| a `GIT_CONFIG_COUNT` of the caller's, plus `color.ui=always` | committed | refused, the caller's entry kept |
+| `diff.noprefix`, `diff.mnemonicPrefix`, `diff.relative` (committed from a subdirectory) | refused | refused — harmless |
+| a textconv that keeps the text (`*.conf diff=show`) | refused | refused |
+| a textconv that masks the values (`*.conf diff=mask`) | committed, the mask scanned | refused; a clean change still passes |
+
+The history scan of `SETUP.md`'s step 3, measured the same way: a forced colour scans 0
+commits, mended by the prefix; a masking textconv misses the committed key, mended by
+`diff.<driver>.textconv=cat` — the box says both.
+
+**Found while measuring, outside the user's list — N1, the user's decision.** A file git
+shows as binary is not scanned: the attribute `binary` or `-diff`, or a diff driver with
+`binary = true`. Measured with the FIXED hook: a private key staged in `server.key` is
+refused as it is, and committed with `*.key binary` or `*.key -diff` in `.gitattributes`
+("Bin 0 -> 1281 bytes", 0 bytes scanned); a driver with `binary = true` lets an AWS key
+through the same way. Marking key and certificate files binary is a guard against line-end
+conversion. git's environment configuration cannot unset an attribute; the hook would have
+to scan those files apart.
+
+## The review's fixes (task 9)
+Each red first; the whole suite green before each commit.
+- `050b2f5` — H1 and the masking textconv: the hook's environment block, the colour off and
+  each configured textconv read as `cat`, after the caller's entries. Real cases 5 and 6,
+  and the shipped self-test's case 5, red on the previous hook; six mutants caught (no
+  increment, an overwrite, the driver regexp, `cat` turned `true`, no validation, no
+  colour). The validation of `GIT_CONFIG_COUNT` is there because bash 3.2 goes on past an
+  arithmetic error in an `export` (measured: exit 0 with a malformed count).
+- `c3190c2` — M2: `--version` first, then `version`; only a version line read. Stubs model
+  7.x, 8.0 to 8.18 and 8.19 on; the 7.x case red ("OK gitleaks 2026"); four mutants caught.
+- `5f05004` — D5, breaking (`feat(scripts)!` and a BREAKING CHANGE footer): the security
+  minimum, a FAIL below 8.18.2 or when the version cannot be read; three mutants caught.
+  Amended once while local: a body line starting "source:" was read by commitlint as the
+  footer (IMP-078's trap); the tree unchanged.
+- `f430e1f` — I1 and L1: the pin x.y.z in the installer and in the documentation check,
+  each red first; the comment says what the pin fixes.
+- `c99525a` — I2: `core.autocrlf` as git reads it; 2 and the bare key red first; `input`
+  stays not true.
+- `1ee5e20` — L2 and I4, text only.
+
+**Behind D5, measured or read at the source:** v8.0.0's and v8.18.1's diff run without
+`--no-ext-diff`, v8.18.2's with it; v8.18.1's `protect` logs a scan error and exits 0
+("don't exit on error, just log it"), v8.18.2's exits 1. Debian 13 ships 8.16.0-1 and
+Ubuntu 24.04 8.16.0, its security pocket included (the archives' APIs, 2026-10-12);
+Debian's rules set no version (dh-golang, no ldflags), so its binary names none. An
+unreadable version is a FAIL too — my reading of D5, a security minimum that cannot be
+confirmed: without it apt's 8.16.0 would pass with a warning.
+
+**The bump, computed again (`docs/04`, *Versioning*): MAJOR.** A consumer whose gitleaks is
+8.0.0 to 8.18.1 — accepted by v1.5.0, Debian's and Ubuntu's packages among them — must
+install another to adopt this release: `make hooks-install` refuses. The release is
+**v2.0.0**, not the expected MINOR: declared here, before the tag (IMP-074).
+
+**The gate's verdict (`docs/03`)** — final once N1 is decided:
+- HIGH H1: resolved, `050b2f5`; its residual, an explicit `git -c color.diff=always`,
+  recorded above.
+- MEDIUM M1: resolved by D5, `5f05004`. MEDIUM M2: resolved, `c3190c2`.
+- LOW L1, `f430e1f`, and L2, `1ee5e20`: resolved. INFO I1, `f430e1f`; I2, `c99525a`; I4,
+  `1ee5e20`: resolved.
+- Recorded: I3 — a FAIL for any tool the hooks need leaves a fresh project without the
+  pre-push too, loudly; D5 adds an old gitleaks to those FAILs, the line saying why. I5 —
+  the real-hook PASS line names the pin; nothing asserts the version npx ran (21.2.3,
+  measured by the review). I6 — this repository's hooks are v1.5.0's: the user regenerates
+  them after the integration. I7 — gitleaks' releases are unsigned: the CI's SHA-256 pin is
+  trust on first use.
+- N1: the user's decision.
 
 ## Resumption notes
 - The branch is public since round 1 (`3b0edca`): no commit is rewritten, every fix is a
   new commit. Every commit after `3b0edca` reaches the CI through the next block 0; block 1
   waits for the final run's green on the three jobs.
-- Next: the user's decisions on H1 and M1; then the review's fixes, each red first, one
-  commit per area; then block 0 for the new state.
+- Next: block 0 for `050b2f5` to this note's commit; the user's decision on N1. The
+  CHANGELOG draft in the scratchpad is v2.0.0's, BREAKING first.
