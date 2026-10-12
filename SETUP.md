@@ -588,6 +588,19 @@ Precondition and the pin of Step 0), `inventory` (Step 2), `invariant` and `post
 (Step 5). `tools/` is not copied into the project (step 1). For a `vY` before v1.4.0
 there is no script: the steps are done by hand.
 
+**The prerequisites.** From `vY` = v1.6.0 on, run `vY`'s prerequisite check too, before
+Step 1: extracted into `T` the same way, run from the project root, whose line ends it
+reads.
+
+```bash
+git -C "${FW:?}" show vY:scripts/check-prerequisites.sh > "${T:?}/check-prerequisites.sh" \
+  && bash "${T:?}/check-prerequisites.sh"
+```
+
+A FAIL is a tool to install or repair before Step 4, whose `make hooks-install` runs the
+same check — the project's copy, brought over in Step 3 — and stops on it; a WARN, a
+version below its minimum, stops nothing.
+
 ### Step 0 — Determine the `vX` baseline
 
 Determine `vX` like this, in order of preference:

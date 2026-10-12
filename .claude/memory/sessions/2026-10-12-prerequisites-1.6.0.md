@@ -122,7 +122,7 @@ after). Kept from their findings:
 - [x] 3. commitlint at the pin, read from the one place by `hooks-install.sh`; `SETUP.md` §0 no longer says "latest"; a documentation-check rule holds every written minimum and the pin against the one place — commit: 1e1129f
 - [x] 4. `hooks-install.sh` runs the check, after its own repository checks and for what the hooks need; its self-test copies the check into its throwaway places, its stubs answer a version — commit: 77525a0
 - [x] 5. gitleaks per D1 (B): `protect` stays, 8.0.0 declared; IMP-077 decided, OPEN on its trigger — commit: efd4ca4
-- [ ] 6. The CI per D3: gitleaks at a fixed version and checksum, verified before it runs; the four real-hook cases in `tools/`; the *Versions* step names gitleaks and npx; the real check on each runner; the prose on what the CI installs and runs — commit: —
+- [x] 6. The CI per D3: gitleaks at a fixed version and checksum, verified before it runs; the four real-hook cases in `tools/`; the *Versions* step names gitleaks and npx; the real check on each runner; the prose on what the CI installs and runs — commit: 6212081
 - [ ] 7. The upgrade 1.5.0 → 1.6.0 rehearsed in throwaway clones, LF and CRLF: the check from `T` before Step 4, the hooks regenerated; the Upgrading note drafted — commit: —
 - [ ] 8. The CI's rounds (block 0, the user's pushes): what fails, fixed with new commits, until green on the three — commit: —
 - [ ] 9. ONE reviewer, read-only on git, snapshot before and after, with the security mandate on the hooks; the gate's verdict written; fixes — commit: —
@@ -227,6 +227,51 @@ too.
   tools, and its *Versions* step names gitleaks and npx. `SETUP.md` §0, `CONTRIBUTING.md`,
   `tools/README.md`, the README's tree and the workflow's header say what the CI now runs
   and installs.
+
+## The upgrade 1.5.0 → 1.6.0 rehearsed, LF and CRLF (task 7)
+A clone of this branch at `6212081`, the draft CHANGELOG entry committed and tagged v1.6.0
+there only; a project grafted at v1.5.0 from that tag's payload — the live memory emptied
+as setup's step 2 says, `checkpoint.md`'s paragraph answered, `CLAUDE.md`'s stack and the
+formatting slot of `hooks-install.sh` answered, a pin, a file of its own, v1.5.0's hooks
+installed —, as it is (LF) and cloned with `core.autocrlf=true`. The upgrade as `SETUP.md`
+says it, with the new *Precondition* paragraph:
+- the prerequisite check, `vY`'s copy run from `T`: 0 FAIL, 0 WARN on both — on the CRLF
+  project, "core.autocrlf is true, and .gitattributes holds the framework's files to LF";
+  `preflight` 0/0;
+- `inventory` 0 FAIL, 0 CHECK, the same line for line on both: `CLAUDE.md` and
+  `hooks-install.sh` diverged with 0 conflicts, `Makefile`, `scripts/README.md` and
+  `test-hooks-install.sh` at `vX` in the project, the two new files absent; no slot moved;
+- Step 3: the METHOD files with the tag's modes (100755 for the scripts), the three 3-way
+  merges clean, the project's answers kept;
+- Step 4: `make hooks-install` exit 0 — "commit-msg contained local changes", its `.bak`
+  identical to v1.5.0's hook; pre-commit and pre-push unchanged; the three hooks carry the
+  marker; the new commit-msg names 21.2.3; a fake secret refused (one finding), a message
+  without a type refused (`type-empty`); the project's `make test-scripts` green (7 PASS);
+- Step 5: `invariant` 0/0; `post` 0 FAIL and one CHECK, the pin still at v1.5.0 — 0/0 after
+  Step 6 rewrote it.
+
+The Upgrading note, drafted on these measures (the scratchpad holds the whole entry, for
+`/integrate`):
+
+```markdown
+**Upgrading from 1.5.0** (from an earlier release, also follow the entries in between —
+Step 2 of the upgrade says how they combine):
+- **The prerequisites, first.** Before Step 1, run `vY`'s prerequisite check from `T`, as
+  the *Precondition* says. A FAIL is a tool to install or repair before Step 4, whose
+  `make hooks-install` now runs the same check and stops on it.
+- METHOD files — bring them over from the tag: `scripts/README.md`,
+  `scripts/test-hooks-install.sh`; and two new ones, executable: `scripts/check-prerequisites.sh`,
+  `scripts/test-check-prerequisites.sh`.
+- HYBRID files (3-way): `scripts/hooks-install.sh` (the check first, commitlint's pin),
+  `Makefile` (the new self-test in `test-scripts`), `CLAUDE.md` (the `test-scripts` line of
+  *Quick commands*).
+- **`make hooks-install` is needed this time** — 1.5.0's note said the hooks did not
+  change: the commit-msg hook now names commitlint's pin. The re-run says the old hook
+  "contained local changes" and saves it as `commit-msg.bak`: unless the project edited
+  that hook, it is 1.5.0's own, byte for byte (the rehearsal compared them) — compare, then
+  remove the `.bak`. The pre-commit and pre-push hooks do not change.
+- The memory templates and the `LEARNINGS.md` header do not change; nothing migrates.
+```
 
 ## Resumption notes
 - The branch is local until task 8's first block 0; from then on it is public, and no
