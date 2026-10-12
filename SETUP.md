@@ -58,7 +58,9 @@ gitleaks and commitlint at every push, on three GitHub-hosted images — its own
 
 - The images bring their own tools; the CI installs GNU make on Windows and gitleaks on
   the three, each at a fixed version — gitleaks' archive checked against a fixed SHA-256
-  before it runs. The Node.js column is what the images carried when v1.5.0 was released;
+  before it runs. The real hooks' commit-msg makes npx fetch commitlint from the npm
+  registry, as it does in a project: its two packages at their pin, their dependencies by
+  the ranges they declare, no hash checked. The Node.js column is what the images carried when v1.5.0 was released;
   each run's log names every version (its *Versions* step). The minimums in the list above
   are the tools' own requirements, not runs.
 - On Windows, `core.autocrlf` is `true`, as Git for Windows sets it, and `.gitattributes`

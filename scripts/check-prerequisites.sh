@@ -38,7 +38,9 @@ npx|-|commitlint, which the commit-msg hook runs|https://nodejs.org/en/download'
 # here. Their own dependencies follow the ranges they declare. This version's `engines`
 # require Node.js 22.12.0 or later (the npm registry): the minimum above.
 COMMITLINT=21.2.3
-# The POSIX userland the scripts and the hooks run, beyond bash's builtins.
+# The POSIX tools the check probes, beyond bash's builtins: part of the userland the scripts
+# and the hooks run, not all of it — tr, cut, head, mktemp, cp, mv, chmod and dirname go
+# unprobed.
 USERLAND='awk sed grep find xargs sort diff cmp'
 # The tools the hooks never run: --hooks, which hooks-install.sh passes, leaves them out, so
 # `bash scripts/hooks-install.sh` needs no make.
