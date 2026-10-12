@@ -61,22 +61,23 @@ if (missing.length) { console.error(missing.join(", ")); process.exit(3); }
 ' "${REPO_ROOT}/.claude/settings.json" || fail "settings.json lacks the ask rule(s) above on the boundary's own files"
 
 # The hook input for a command; "agent" as the second argument adds agent_id/agent_type;
-# the third names the tool (default Bash).
-# The command travels on stdin, as Claude Code hands the hook its input, and as hex bytes
-# (od). Both measured in the CI on Windows: Git Bash rewrites an ARGUMENT that looks like a
-# POSIX path (/usr/bin/git becomes C:/Program Files/Git/usr/bin/git) before node.exe sees
-# it, and the \r of a command piped raw to node.exe did not reach it. Claude Code itself
-# sends JSON, where a \r is an escape, never a raw byte.
-hook_input() {
-  printf '%s' "$1" | od -An -v -tx1 | "${NODE}" -e '
-const hex = require("fs").readFileSync(0, "utf8").replace(/\s+/g, "");
-const command = Buffer.from(hex, "hex").toString("utf8");
-const [who, tool] = process.argv.slice(1);
+# the third names the tool (default Bash). hook_input_json takes the command as the body of
+# a JSON string, escapes included (section 2d).
+# The command travels on stdin, as Claude Code hands the hook its input: on Windows, Git
+# Bash rewrites an ARGUMENT that looks like a POSIX path (/usr/bin/git becomes
+# C:/Program Files/Git/usr/bin/git) before node.exe sees it — measured in the CI.
+hook_input() { make_input text "$@"; }
+hook_input_json() { make_input json "$@"; }
+make_input() {
+  printf '%s' "$2" | "${NODE}" -e '
+const [form, who, tool] = process.argv.slice(1);
+const text = require("fs").readFileSync(0, "utf8");
+const command = form === "json" ? JSON.parse(`"${text}"`) : text;
 const input = { session_id: "self-test", hook_event_name: "PreToolUse", tool_name: tool || "Bash",
   tool_input: { command }, cwd: process.cwd() };
 if (who === "agent") Object.assign(input, { agent_id: "a-self-test", agent_type: "general-purpose" });
 process.stdout.write(JSON.stringify(input));
-' "${2:-}" "${3:-}"
+' "$1" "${3:-}" "${4:-}"
 }
 
 # Runs the wired command as Claude Code would (sh -c, CLAUDE_PROJECT_DIR set) and prints
@@ -219,7 +220,6 @@ PS_WRITES=(
   "& 'C:\\Program Files\\Git\\cmd\\git.exe' commit -m x"
   'cd C:\repo; git stash'
   $'git `\n  checkout main'
-  $'git log -1\r\ngit merge feature'
   'if ($ready) { git reset --hard HEAD~1 }'
   '$out = $(git switch main)'
   # the review's forms (2026-10-11): an assignment, script blocks, dot-sourcing, a
@@ -248,7 +248,6 @@ PS_READS=(
   'git --no-optional-locks status'
   'git.exe diff HEAD~1'
   $'git log `\n  -1'
-  $'git log\r\ngit --no-optional-locks status\r\n'
   'Get-ChildItem -Recurse | Select-String "git checkout"'
   "Write-Output 'git switch main'"
   '$sha = git rev-parse HEAD'
@@ -259,16 +258,42 @@ PS_READS=(
 for c in "${PS_READS[@]}"; do
   expect 0 "agent PowerShell read blocked: ${c}" "${REPO_ROOT}" "$(hook_input "${c}" agent PowerShell)"
 done
-# Not vacuous: the CRLF read above reaches the guard with its \r (JSON writes it as \r).
-[[ "$(hook_input $'git log\r\ngit --no-optional-locks status\r\n' agent PowerShell)" == *'status\r\n'* ]] \
-  || fail "a CRLF command reached the guard without its \\r (bash holds x\\r as $(printf '%s' $'x\r' | od -An -tx1 | xargs)): the CRLF cases prove nothing"
 # Through Bash too (Git Bash on Windows), git may be spelled git.exe, Git or a Windows path —
-# double-quoted too, where bash keeps a backslash before an ordinary character. And bash
-# keeps a \r as a character: before CRLF, a backslash escapes the \r, and the line ends.
+# double-quoted too, where bash keeps a backslash before an ordinary character.
 for c in 'git.exe checkout main' 'GIT checkout main' '/c/Program\ Files/Git/cmd/git.exe switch main' \
-  '"C:\Program Files\Git\cmd\git.exe" checkout main' $'git log -1 \\\r\ngit checkout main'; do
+  '"C:\Program Files\Git\cmd\git.exe" checkout main'; do
   blocked "agent write not blocked: ${c}" "$(hook_input "${c}" agent)"
 done
+
+# --- 2d. CRLF line ends, written as Claude Code sends them: JSON escapes --------------------
+# The hook input is JSON, where a \r is the escape \r: Node rebuilds it, and it never exists
+# as a byte in bash or in a pipe. So these commands are written as the body of a JSON
+# string, the same way on every platform (in the CI on Windows, a \r the test wrote with
+# bash's $'…' did not reach node). Not vacuous: each case first goes, through the same
+# wiring, to a probe in the guard's place, which fails unless node finds the \r.
+mkdir -p "${workdir}/probe/scripts"
+printf '%s\n' 'import { readFileSync } from "node:fs";' \
+  'const { command } = JSON.parse(readFileSync(0, "utf8")).tool_input;' \
+  'if (!command.includes("\r\n")) {' \
+  '  console.error("node received the command without its \\r");' \
+  '  process.exit(2);' \
+  '}' > "${workdir}/probe/scripts/agent-git-guard.mjs"
+crlf_cases=0
+crlf_case() { # crlf_case <blocked|allowed> <tool> <command, JSON-escaped>
+  local input
+  input="$(hook_input_json "$3" agent "$2")"
+  expect 0 "a CRLF case reached node without its \\r, so it proves nothing: $3" "${workdir}/probe" "${input}"
+  if [[ "$1" == blocked ]]; then
+    blocked "agent $2 CRLF write not blocked: $3" "${input}"
+  else
+    expect 0 "agent $2 CRLF read blocked: $3" "${REPO_ROOT}" "${input}"
+  fi
+  crlf_cases=$((crlf_cases + 1))
+}
+crlf_case blocked PowerShell 'git log -1\r\ngit merge feature'
+crlf_case allowed PowerShell 'git log\r\ngit --no-optional-locks status\r\n'
+# Bash keeps a \r as a character: before CRLF, a backslash escapes the \r, and the line ends.
+crlf_case blocked Bash 'git log -1 \\\r\ngit checkout main'
 
 # --- 3. Main session: never restricted (pushes are the pre-push hook's job, not this one) --
 for c in 'git switch -c feat/x' 'git commit -m "x"' 'git push origin main'; do
@@ -315,4 +340,4 @@ expect 2 "a healthy guard's block stands (escaped agent_id key)" "${REPO_ROOT}" 
 expect 1 "a main session with agent_type only (broken guard)" "${workdir}/empty" \
   '{"tool_name":"Bash","tool_input":{"command":"git log -1"},"cwd":"/tmp","agent_type":"reviewer"}'
 
-echo "PASS (agent git guard): ${#AGENT_WRITES[@]} agent writes blocked, ${#AGENT_READS[@]} reads allowed, through PowerShell ${#PS_WRITES[@]} and ${#PS_READS[@]}, main session free; a broken guard (node missing / file missing / crash / bad input) blocks agents and shows a non-blocking error to the main session."
+echo "PASS (agent git guard): ${#AGENT_WRITES[@]} agent writes blocked, ${#AGENT_READS[@]} reads allowed, through PowerShell ${#PS_WRITES[@]} and ${#PS_READS[@]}, ${crlf_cases} CRLF cases whose CR node received, main session free; a broken guard (node missing / file missing / crash / bad input) blocks agents and shows a non-blocking error to the main session."
