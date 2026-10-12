@@ -740,9 +740,18 @@ tags: [improvement]
   ("scan staged commits (good for pre-commit)"). The switch's minimum, for the
   prerequisites to state and v1.6.0's prerequisite check to verify, is 8.20.0 (corrected
   below; first recorded as 8.19.0).
-- Resumption trigger: v1.6.0 (prerequisites and versions).
+- Decided (the user, 2026-10-12, v1.6.0's D1 — [[2026-10-12-prerequisites-1.6.0]]): the
+  hook keeps `protect`, and gitleaks' declared minimum is 8.0.0, where `protect --staged`,
+  `--redact` and `-v` exist; `detect` stays with it. The entry stays OPEN on its trigger.
+- Resumption trigger (the deadline): gitleaks announces the removal of `protect`. Then the
+  hook moves to `gitleaks git --pre-commit --redact --staged --verbose`, with 8.20.0 as the
+  minimum — 8.19.x's `--staged` defect —, and `detect` to `gitleaks git` wherever the
+  history scan is written (`SETUP.md`'s step 3 and brownfield checklist, `docs/03`,
+  `SECURITY.md`).
 - Expected benefit / risk: the hook does not depend on a hidden command. Risk: an older
-  gitleaks (before 8.20.0) stops working with the hook — the prerequisite check catches it.
+  gitleaks stops working with the switched hook, and the prerequisite check only warns
+  below a minimum — while 8.19.x would scan the history in silence, missing the staged
+  changes: the switched hook must refuse a gitleaks below 8.20.0 by itself.
 - Corrected on 2026-10-12 ([[2026-10-12-prerequisites-1.6.0]]), from gitleaks' source at
   each tag: `gitleaks git` exists from 8.19.0, but in 8.19.0 to 8.19.3 it ignores
   `--pre-commit` and `--staged` — it scans the history and misses the staged changes

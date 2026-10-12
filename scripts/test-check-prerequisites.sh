@@ -81,12 +81,12 @@ gitleaks_stub() {
     "'$2'" > "$1/gitleaks"
   chmod +x "$1/gitleaks"
 }
-# good <dir>: every tool present; git and node exactly at their minimums.
+# good <dir>: every tool present; git, gitleaks and node exactly at their minimums.
 good() {
   git_stub "$1" 'git version 2.31.0'
   stub "$1" bash 'GNU bash, version 3.2.57(1)-release (arm64-apple-darwin26)'
   stub "$1" make 'GNU Make 3.81'
-  gitleaks_stub "$1" '8.30.1'
+  gitleaks_stub "$1" '8.0.0'
   stub "$1" node 'v22.12.0'
   stub "$1" npx '10.9.2'
 }
@@ -117,7 +117,7 @@ has '^OK +git 2\.31\.0 \(2\.31 or later\)$' "git exactly at its minimum is not O
 has '^OK +node 22\.12\.0 \(22\.12 or later\)$' "node exactly at its minimum is not OK"
 has '^OK +bash 3\.2\.57 \(3\.2 or later\)$' "bash above its minimum is not OK"
 has '^OK +make 3\.81$' "make, which has no minimum, is not a plain OK line"
-has '^OK +gitleaks 8\.30\.1$' "gitleaks, through its version subcommand, is not a plain OK line"
+has '^OK +gitleaks 8\.0\.0 \(8\.0\.0 or later\)$' "gitleaks exactly at its minimum, through its version subcommand, is not OK"
 has '^OK +npx 10\.9\.2$' "npx, which has no minimum, is not a plain OK line"
 has '^OK +the POSIX userland: ' "the userland present is not OK"
 lacks '^(WARN|FAIL) ' "every tool present: a WARN or a FAIL line"
@@ -161,6 +161,7 @@ good "${workdir}/case3"
 git_stub "${workdir}/case3" 'git version unknown'
 stub "${workdir}/case3" bash 'GNU bash, version 3.1.17(1)-release (x86_64-pc-linux-gnu)'
 stub "${workdir}/case3" node 'v22.9.0'
+gitleaks_stub "${workdir}/case3" '7.6.1'
 run "${workdir}/case3" "${lf_repo}"
 [[ ${rc} -eq 0 ]] || fail "below a minimum: expected exit 0 (a warning, never a failure), got ${rc}"
 has '^WARN +bash 3\.1\.17 is below 3\.2, needed by .*https://www\.gnu\.org/software/bash/$' \
@@ -168,8 +169,10 @@ has '^WARN +bash 3\.1\.17 is below 3\.2, needed by .*https://www\.gnu\.org/softw
 has '^WARN +node 22\.9\.0 is below 22\.12, needed by ' "node 22.9.0 is not below 22.12: the comparison is not number by number"
 has '^WARN +git: its version cannot be read \("git version unknown"\); 2\.31 or later is needed' \
   "git's version unread: no WARN line"
+has '^WARN +gitleaks 7\.6\.1 is below 8\.0\.0, needed by .*https://github\.com/gitleaks/gitleaks#installing$' \
+  "gitleaks below its minimum: no WARN line with where to install it"
 lacks '^FAIL ' "below a minimum: a FAIL line"
-has '^check-prerequisites: 0 FAIL, 3 WARN$' "below a minimum: the summary is not 0 FAIL, 3 WARN"
+has '^check-prerequisites: 0 FAIL, 4 WARN$' "below a minimum: the summary is not 0 FAIL, 4 WARN"
 
 # --- Case 4 — the platform, read from uname ------------------------------------------------------
 # platform_is <uname -s> <uname -m> <uname -r> <what the first line must say>

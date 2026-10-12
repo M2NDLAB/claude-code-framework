@@ -16,8 +16,9 @@ The tools, by name; how to install each one depends on your platform.
 - **GNU make** — the process targets (`make hooks-install`, `make test-scripts`,
   `make reset-task`). macOS has it with Xcode's command-line tools, Linux distributions
   with their build tools; on Windows install it apart: Git for Windows ships none.
-- **gitleaks** (https://github.com/gitleaks/gitleaks) — secret scanning in the
-  pre-commit hook.
+- **gitleaks 8.0.0 or later** (https://github.com/gitleaks/gitleaks) — secret scanning in
+  the pre-commit hook, `gitleaks protect --staged`, which every release from 8.0.0 runs
+  (8.19.0 hid it from `--help`, for `gitleaks git`).
 - **Node.js 22.12 or later, with npx.** commitlint (Conventional Commits) runs through npx
   at the version `scripts/check-prerequisites.sh` pins — its two packages; their own
   dependencies follow the ranges they declare —, and that version's `engines` set the

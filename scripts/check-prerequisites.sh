@@ -16,14 +16,16 @@ set -euo pipefail
 
 # --- The prerequisites, in one place ---------------------------------------------------------
 # One line per tool: its name | its minimum ("-": none) | what needs it | where to install it.
-#   git 2.31    `git rev-parse --path-format`, which hooks-install.sh and the upgrade use
-#   bash 3.2    the oldest bash the framework's scripts are written for (macOS's /bin/bash)
-#   node 22.12  the `engines` of commitlint at COMMITLINT, below; the agent git guard needs
-#               less
+#   git 2.31        `git rev-parse --path-format`, which hooks-install.sh and the upgrade use
+#   bash 3.2        the oldest bash the framework's scripts are written for (macOS's bash)
+#   gitleaks 8.0.0  `gitleaks protect --staged --redact -v`, the pre-commit's scan, exists
+#                   from 8.0.0 (read from gitleaks' source)
+#   node 22.12      the `engines` of commitlint at COMMITLINT, below; the agent git guard
+#                   needs less
 PREREQUISITES='git|2.31|the hooks and the upgrade (git rev-parse --path-format)|https://git-scm.com/downloads
 bash|3.2|the scripts and the hooks|https://www.gnu.org/software/bash/
 make|-|the process targets (make hooks-install, make test-scripts, make reset-task)|https://www.gnu.org/software/make/
-gitleaks|-|the secret scan of the pre-commit hook|https://github.com/gitleaks/gitleaks#installing
+gitleaks|8.0.0|the secret scan of the pre-commit hook|https://github.com/gitleaks/gitleaks#installing
 node|22.12|commitlint at its pin (the commit-msg hook) and the agent git guard|https://nodejs.org/en/download
 npx|-|commitlint, which the commit-msg hook runs|https://nodejs.org/en/download'
 # commitlint, which the commit-msg hook runs through npx: its two packages, @commitlint/cli

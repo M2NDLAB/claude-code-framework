@@ -120,7 +120,7 @@ after). Kept from their findings:
 - [x] 1. The registrations — IMP-079 to IMP-084, IMP-073's occurrence (`7d2052b`), IMP-077 corrected (8.20.0) —, the CI's rounds 6 to 8 at the end of v1.5.0's note, and this note with its plan; then the agent's persistent memory emptied — commit: 598cab8
 - [x] 2. `scripts/check-prerequisites.sh` and its stub-based self-test, with the lists and documents that name them: the minimums and commitlint's pin at its head, the one place; each tool run (the POSIX userland too), a tool found that does not start fails, below a minimum a warning (a version comparison bash 3.2 runs, no `sort -V`); the platform named; the line-end warning by `git check-attr eol`; D2's hints. Each case red first, a mutant for each detection branch (IMP-072) — commit: da54b98 (the pin moved to task 3, see below)
 - [x] 3. commitlint at the pin, read from the one place by `hooks-install.sh`; `SETUP.md` §0 no longer says "latest"; a documentation-check rule holds every written minimum and the pin against the one place — commit: 1e1129f
-- [ ] 4. `hooks-install.sh` runs the check, after its own repository checks and for what the hooks need; its self-test copies the check into its throwaway places, its stubs answer a version — commit: —
+- [x] 4. `hooks-install.sh` runs the check, after its own repository checks and for what the hooks need; its self-test copies the check into its throwaway places, its stubs answer a version — commit: 77525a0
 - [ ] 5. gitleaks per D1 (B): `protect` stays, 8.0.0 declared; IMP-077 decided, OPEN on its trigger — commit: —
 - [ ] 6. The CI per D3: gitleaks at a fixed version and checksum, verified before it runs; the four real-hook cases in `tools/`; the *Versions* step names gitleaks and npx; the real check on each runner; the prose on what the CI installs and runs — commit: —
 - [ ] 7. The upgrade 1.5.0 → 1.6.0 rehearsed in throwaway clones, LF and CRLF: the check from `T` before Step 4, the hooks regenerated; the Upgrading note drafted — commit: —
@@ -196,6 +196,17 @@ too.
 - `test-hooks-install.sh` counts four cases now, so `tools/test-docs-check.sh`'s fixtures
   that plant a wrong count move with it ("Four cases:" to "Five cases:"; "the header lists
   4 cases, the file marks 3"). Its stubs answer their version command.
+
+## gitleaks per D1, B (task 5)
+- The table declares gitleaks 8.0.0, and `SETUP.md` §0 writes it, held against the table by
+  the documentation check. The generated pre-commit hook is unchanged — `protect --staged`
+  — so a project's pre-commit is not rewritten by this release; the reason lives in a
+  comment of `hooks-install.sh`, outside the hook.
+- IMP-077 decided and kept OPEN on its deadline: gitleaks' announcement that `protect` goes.
+  Its risk line was wrong for the switch it describes — the check only warns below a
+  minimum, and 8.19.x would scan the history in silence —, so it now says the switched hook
+  must refuse a gitleaks below 8.20.0 by itself.
+- The check's self-test: gitleaks exactly at 8.0.0 is OK, 7.6.1 is a warning.
 
 ## Resumption notes
 - The branch is local until task 8's first block 0; from then on it is public, and no
