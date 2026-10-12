@@ -123,8 +123,8 @@ after). Kept from their findings:
 - [x] 4. `hooks-install.sh` runs the check, after its own repository checks and for what the hooks need; its self-test copies the check into its throwaway places, its stubs answer a version — commit: 77525a0
 - [x] 5. gitleaks per D1 (B): `protect` stays, 8.0.0 declared; IMP-077 decided, OPEN on its trigger — commit: efd4ca4
 - [x] 6. The CI per D3: gitleaks at a fixed version and checksum, verified before it runs; the four real-hook cases in `tools/`; the *Versions* step names gitleaks and npx; the real check on each runner; the prose on what the CI installs and runs — commit: 6212081
-- [ ] 7. The upgrade 1.5.0 → 1.6.0 rehearsed in throwaway clones, LF and CRLF: the check from `T` before Step 4, the hooks regenerated; the Upgrading note drafted — commit: —
-- [ ] 8. The CI's rounds (block 0, the user's pushes): what fails, fixed with new commits, until green on the three — commit: —
+- [x] 7. The upgrade 1.5.0 → 1.6.0 rehearsed in throwaway clones, LF and CRLF: the check from `T` before Step 4, the hooks regenerated; the Upgrading note drafted — commit: 3b0edca
+- [x] 8. The CI's rounds (block 0, the user's pushes): what fails, fixed with new commits, until green on the three — commit: the record of round 1 — green on `3b0edca` (run 38299497518), nothing to fix (its own sha cannot be written in it)
 - [ ] 9. ONE reviewer, read-only on git, snapshot before and after, with the security mandate on the hooks; the gate's verdict written; fixes — commit: —
 - [ ] 10. `/retro` and `/checkpoint`: the upgrade rehearsed again on the final payload; IMP-070 and IMP-076 applied, each in its `chore(claude): apply IMP-nnn` commit (`docs/06`); IMP-077 stays OPEN on its trigger (D1) — commit: —
 - [ ] 11. `/integrate`: the CHANGELOG 1.6.0 entry, claiming only what was measured (IMP-073); the bump computed again against the expected MINOR; the final block 0 green on the three, then blocks 1 and 2 — commit: the CHANGELOG commit (its own sha cannot be written in it)
@@ -273,6 +273,26 @@ Step 2 of the upgrade says how they combine):
 - The memory templates and the `LEARNINGS.md` header do not change; nothing migrates.
 ```
 
+## The CI's rounds (task 8)
+Round 1, the branch's first push: `3b0edca`, run 38299497518, green on the three jobs —
+Ubuntu in 88 s, macOS in 194 s, Windows in 574 s. Nothing to fix. Read in the log, not
+taken from the green (IMP-084):
+- the gitleaks step prints nothing when the hash matches; it passes only when the hash it
+  computes equals the fixed one, both non-empty. The next step's `gitleaks version` printed
+  8.30.1 on the three — Windows' branch, 7-Zip and `cygpath`, included;
+- the prerequisite check against each runner's real tools: 0 FAIL, 0 WARN on the three.
+  macOS ran it with bash 3.2.57, the declared minimum, and make 3.81. Windows took the
+  line "core.autocrlf is true, and .gitattributes holds the framework's files to LF": the
+  image sets `core.autocrlf` in `C:/Program Files/Git/etc/gitconfig`;
+- the real hooks: the PASS line, printed only after the four cases, on the three — with
+  gitleaks 8.30.1 and commitlint 21.2.3;
+- `make test-scripts`: 17 PASS on Ubuntu and macOS; on Windows 16 PASS and the
+  dangling-symlink SKIP, as in v1.5.0. docs-check 0 FAIL, 0 CHECK; the upgrade check's
+  self-test 8 PASS; the guard's "3 CRLF cases whose CR node received" — on the three;
+- Node.js 22.23.3 on Ubuntu and Windows, 24.20.0 on macOS; npx 10.9.9 and 11.19.0.
+
 ## Resumption notes
-- The branch is local until task 8's first block 0; from then on it is public, and no
-  commit is rewritten.
+- The branch is public since round 1 (`3b0edca`): no commit is rewritten, every fix is a
+  new commit. Every commit after `3b0edca` reaches the CI through the next block 0; block 1
+  waits for the final run's green on the three jobs.
+- Next: task 9 — ONE reviewer, read-only on git, the snapshot before and after.
