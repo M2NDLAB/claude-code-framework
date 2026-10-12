@@ -757,6 +757,15 @@ tags: [improvement]
   `--pre-commit` and `--staged` — it scans the history and misses the staged changes
   (issue #1522, fixed by #1533 in 8.20.0). `protect --staged` reads the staged diff
   through its own code in every release from 8.0.0 to 8.30.1, hidden from 8.19.0.
+- Added on 2026-10-12 (v1.6.0's review, its HIGH — [[2026-10-12-prerequisites-1.6.0]]):
+  gitleaks runs its `git diff` and `git log -p` without `--no-color` in every release up to
+  8.30.1, so a colour the user's git configuration forces to "always" leaves it nothing to
+  scan, and a textconv driver shows it a conversion instead of what is committed — both
+  measured through real commits. Upstream: gitleaks#2281 (open, filed against
+  `gitleaks git --pre-commit --staged` too) and PR #2284 (open). The switch does not cure
+  it: the hook's environment block — the colour off and each textconv read as `cat`, by
+  `GIT_CONFIG_COUNT` — and the prefix of `SETUP.md`'s history scan move with it, until a
+  gitleaks release passes `--no-color` itself.
 
 ### IMP-078 — commitlint reads a body line that starts with "word:" as the footer
 - Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — observed four times

@@ -219,8 +219,19 @@ the command forms. A pre-push of your own (git-lfs's, for one): see Step 4 of th
 
 > **Does the repo already have a history?** (a graft onto an existing project) The hook
 > only protects commits from now on: complete the baseline with a one-off scan of the
-> ENTIRE history, `gitleaks detect` (from the repo root). Assess every finding BEFORE
-> going on: a secret in pushed history stays exposed even if you remove it from the
+> ENTIRE history, from the repo root:
+>
+> ```bash
+> GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=color.diff GIT_CONFIG_VALUE_0=never gitleaks detect
+> ```
+>
+> The three variables, git's documented environment configuration, turn its colour off for
+> the scan: a colour your git configuration forces to "always" leaves gitleaks nothing to
+> read, and it reports a clean history. If `git config --get-regexp '^diff\..*\.textconv$'`
+> lists a textconv driver, gitleaks reads that driver's conversion instead of what was
+> committed: add one pair per driver, `GIT_CONFIG_COUNT=2` with
+> `GIT_CONFIG_KEY_1=diff.<driver>.textconv GIT_CONFIG_VALUE_1=cat`. Assess every finding
+> BEFORE going on: a secret in pushed history stays exposed even if you remove it from the
 > current files — rotate/revoke it immediately; rewriting the history is a separate
 > operation, to be decided with judgement (`docs/03`, baseline).
 

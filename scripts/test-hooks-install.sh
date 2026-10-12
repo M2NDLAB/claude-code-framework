@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Self-test of scripts/hooks-install.sh. Four cases:
+# Self-test of scripts/hooks-install.sh. Five cases:
 #   1. "dangling symlink + FORCE_OVERWRITE=1": a leftover link never aborts the install —
 #      below; skipped, said aloud, where `ln -s` cannot make a dangling link (Git Bash);
 #      the commit-msg hook it installs runs commitlint at the version
@@ -12,7 +12,11 @@
 #      the repository it sits in, a refusal — see "Case 3";
 #   4. the prerequisites: the install runs the prerequisite check first — a gitleaks that
 #      does not start stops it before any hook is written; a make that does not start does
-#      not, the hooks never run make — see "Case 4" at the end.
+#      not, the hooks never run make — see "Case 4";
+#   5. the git gitleaks reads through the generated pre-commit: the colour off and each
+#      textconv driver turned into `cat`, after the caller's own environment configuration,
+#      which stays; a GIT_CONFIG_COUNT that is not a number stops the hook before gitleaks —
+#      see "Case 5" at the end.
 #
 # Case 1.
 # Defect (RED, before the fix): in the FORCE_OVERWRITE=1 branch, a pre-existing hook that is a
@@ -287,3 +291,51 @@ set -e
 [[ ${rc} -eq 0 ]] || fail4 "a make that does not start stopped the install, which needs no make: exit ${rc}"
 
 echo "PASS (prerequisites): the install runs the prerequisite check first — a gitleaks that does not start stops it before any hook is written; a broken make does not, the hooks never run it."
+
+# --- Case 5 — the git gitleaks reads through the generated pre-commit ----------------------
+# gitleaks scans what `git diff` prints, which the user's git configuration can empty (a
+# forced colour) or replace (a textconv driver). The pre-commit adds git's documented
+# environment configuration after the caller's: a stub gitleaks reports what git then reads.
+fail5() {
+  echo "FAIL (pre-commit environment): $1" >&2
+  [[ -f "${workdir}/out5.log" ]] && { echo "--- hook output ---" >&2; cat "${workdir}/out5.log" >&2; }
+  exit 1
+}
+probe="${workdir}/probe-bin"
+mkdir -p "${probe}"
+cat > "${probe}/gitleaks" <<'STUB'
+#!/usr/bin/env bash
+case "${1:-}" in
+  version) echo 8.30.1 ;;
+  protect)
+    echo "color.diff=$(git config --get color.diff || true)"
+    echo "textconv=$(git config --get diff.mask.textconv || true)"
+    echo "quotepath=$(git config --get core.quotepath || true)"
+    echo "count=${GIT_CONFIG_COUNT:-}" ;;
+esac
+exit 0
+STUB
+chmod +x "${probe}/gitleaks"
+git -C "${repo}" config diff.mask.textconv "sed -e 's/=.*/= ***/'"
+set +e
+(cd "${repo}" && PATH="${probe}:${PATH}" GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.quotepath \
+  GIT_CONFIG_VALUE_0=false bash .git/hooks/pre-commit) >"${workdir}/out5.log" 2>&1
+rc=$?
+set -e
+[[ ${rc} -eq 0 ]] || fail5 "the hook failed: exit ${rc}"
+grep -qx 'color.diff=never' "${workdir}/out5.log" || fail5 "gitleaks' git does not have the colour off"
+grep -qx 'textconv=cat' "${workdir}/out5.log" || fail5 "gitleaks' git still runs the project's textconv"
+grep -qx 'quotepath=false' "${workdir}/out5.log" || fail5 "the caller's own environment configuration was lost"
+grep -qx 'count=3' "${workdir}/out5.log" || fail5 "the entries are not added after the caller's one"
+set +e
+(cd "${repo}" && PATH="${probe}:${PATH}" GIT_CONFIG_COUNT='1; x' bash .git/hooks/pre-commit) \
+  >"${workdir}/out5.log" 2>&1
+rc=$?
+set -e
+[[ ${rc} -ne 0 ]] || fail5 "a GIT_CONFIG_COUNT that is not a number: the hook went on"
+grep -q 'GIT_CONFIG_COUNT is not a number' "${workdir}/out5.log" \
+  || fail5 "a GIT_CONFIG_COUNT that is not a number: the refusal does not say so"
+! grep -q '^color.diff=' "${workdir}/out5.log" \
+  || fail5 "a GIT_CONFIG_COUNT that is not a number: gitleaks ran anyway"
+
+echo "PASS (pre-commit environment): gitleaks' git reads the colour off and each textconv as cat, after the caller's own environment configuration, which stays; a GIT_CONFIG_COUNT that is not a number stops the hook before gitleaks."

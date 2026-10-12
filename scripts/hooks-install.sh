@@ -161,6 +161,27 @@ cat > "${HOOKS_DIR}/pre-commit.new" <<'HOOK'
 set -euo pipefail
 
 # 1. Secret scanning on the staged files (rule 1: no secret committed). ALWAYS.
+#    gitleaks scans what a `git diff` it runs prints, and the user's git configuration can
+#    change that: a colour forced to "always" (color.ui, color.diff) leaves it nothing to read
+#    (gitleaks#2281), and a textconv driver shows it a conversion instead of the staged text.
+#    Either lets a secret through. git's documented environment configuration, after any the
+#    caller set, turns the colour off and each configured textconv into `cat` for the hook's
+#    git commands, so the scan reads what is committed. Only a `git -c` naming one of these
+#    settings on the command line still wins.
+case "${GIT_CONFIG_COUNT:-0}" in
+  *[!0-9]*)
+    echo "pre-commit: GIT_CONFIG_COUNT is not a number (${GIT_CONFIG_COUNT})." >&2
+    exit 1 ;;
+esac
+export GIT_CONFIG_COUNT="$((10#${GIT_CONFIG_COUNT:-0}))"
+add_config() {
+  export "GIT_CONFIG_KEY_${GIT_CONFIG_COUNT}=$1" "GIT_CONFIG_VALUE_${GIT_CONFIG_COUNT}=$2" \
+    "GIT_CONFIG_COUNT=$((GIT_CONFIG_COUNT + 1))"
+}
+add_config color.diff never
+while IFS= read -r -d '' key; do
+  add_config "${key}" cat
+done < <(git config -z --name-only --get-regexp '^diff\..*\.textconv$' || true)
 gitleaks protect --staged --redact -v
 
 # 2. AUTOMATIC FORMATTING — [TO BE DEFINED AT SETUP].

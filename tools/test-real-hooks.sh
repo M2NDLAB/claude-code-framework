@@ -1,13 +1,19 @@
 #!/usr/bin/env bash
 # The generated hooks, run with the REAL tools — this repository's own test, outside the
-# payload: the self-tests that ship with scripts/ stub gitleaks and npx. Four cases, the
-# user's, and none more without an observed defect (tools/README.md):
+# payload: the self-tests that ship with scripts/ stub gitleaks and npx. Six cases: the
+# user's four, and one for each defect observed since, none more without one
+# (tools/README.md):
 #   1. the pre-commit hook refuses a staged secret — one built at run time, so that no file
 #      of this repository holds it (its own pre-commit would refuse the file) — see "Case 1";
 #   2. it lets a staged change with nothing secret through;
 #   3. the commit-msg hook — commitlint at the version scripts/check-prerequisites.sh pins —
 #      accepts a conforming message;
-#   4. it refuses a message without a type.
+#   4. it refuses a message without a type;
+#   5. the pre-commit hook refuses the secret when the user's git config forces colour, which
+#      left gitleaks an empty diff to scan;
+#   6. it refuses the secret when a textconv driver, assigned in .gitattributes, masks the
+#      values in what `git diff` shows gitleaks.
+# The git configuration is emptied below; cases 5 and 6 set theirs, each checked to take hold.
 # Each hook runs as git runs it, from the repository's root, so a case fails for its own hook
 # only. It needs gitleaks, Node.js with npx, and the network the first time npx fetches
 # commitlint. The CI installs gitleaks at a fixed version, its archive checked against a
@@ -48,6 +54,8 @@ bash "${repo}/scripts/hooks-install.sh" >"${out}" 2>&1 || fail "hooks-install.sh
 # Not vacuous: the hooks are the generated ones, at the pin, and gitleaks is a real one.
 grep -q 'gitleaks protect --staged' "${repo}/.git/hooks/pre-commit" \
   || fail "the pre-commit hook does not run gitleaks protect --staged"
+grep -q '^add_config color.diff never$' "${repo}/.git/hooks/pre-commit" \
+  || fail "the pre-commit hook does not turn git's colour off for gitleaks"
 pin="$(bash "${repo}/scripts/check-prerequisites.sh" --commitlint-version)"
 grep -qF "@commitlint/cli@${pin}" "${repo}/.git/hooks/commit-msg" \
   || fail "the commit-msg hook does not run commitlint at the pin, ${pin}"
@@ -90,4 +98,30 @@ run_hook commit-msg .git/COMMIT_EDITMSG
 [[ ${rc} -ne 0 ]] || fail "a message without a type: the commit-msg hook accepted it"
 grep -q 'type-empty' "${out}" || fail "a message without a type: the refusal is not commitlint's type-empty rule"
 
-echo "PASS (real hooks): with gitleaks ${version} and commitlint ${pin}, the pre-commit hook refuses a staged secret and lets a clean change through; the commit-msg hook accepts a conforming message and refuses one without a type."
+# --- Case 5 — the secret, with a colour the user's git config forces -------------------------
+# color.ui "always" colours `git diff` even into a pipe: gitleaks found no file in the output,
+# printed "no leaks found" and let the commit through.
+printf '[color]\n\tui = always\n' > "${workdir}/colour.gitconfig"
+git -C "${repo}" add leak.txt
+export GIT_CONFIG_GLOBAL="${workdir}/colour.gitconfig"
+git -C "${repo}" diff --staged | grep -q "$(printf '\033')\[" \
+  || fail "a forced colour: git diff is not coloured, so the case would prove nothing"
+run_hook pre-commit
+export GIT_CONFIG_GLOBAL=/dev/null
+[[ ${rc} -ne 0 ]] || fail "a forced colour: the pre-commit hook let the staged secret through"
+grep -q 'leaks found: [1-9]' "${out}" || fail "a forced colour: the refusal is not gitleaks' finding"
+git -C "${repo}" rm -q --cached leak.txt
+
+# --- Case 6 — the secret, behind a textconv driver that masks the values ----------------------
+# `git diff` shows a textconv's conversion instead of the staged text: a driver that masks the
+# values hid the key from gitleaks.
+git -C "${repo}" config diff.mask.textconv "sed -e 's/=.*/= ***/'"
+printf 'leak.txt diff=mask\n' > "${repo}/.gitattributes"
+git -C "${repo}" add .gitattributes leak.txt
+git -C "${repo}" diff --staged -- leak.txt | grep -q '^+aws_access_key_id = \*\*\*$' \
+  || fail "a masking textconv: git diff does not show the masked line, so the case would prove nothing"
+run_hook pre-commit
+[[ ${rc} -ne 0 ]] || fail "a masking textconv: the pre-commit hook let the staged secret through"
+grep -q 'leaks found: [1-9]' "${out}" || fail "a masking textconv: the refusal is not gitleaks' finding"
+
+echo "PASS (real hooks): with gitleaks ${version} and commitlint ${pin}, the pre-commit hook refuses a staged secret — also with a colour the user's git config forces and behind a textconv that masks it — and lets a clean change through; the commit-msg hook accepts a conforming message and refuses one without a type."
