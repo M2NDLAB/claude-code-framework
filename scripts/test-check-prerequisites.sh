@@ -4,13 +4,15 @@
 #      check lists, a version equal to its minimum included; asked for commitlint's pin, it
 #      prints the version it defines — see "Case 1";
 #   2. a tool missing, one installed that does not start, a userland tool missing: exit 1, a
-#      FAIL line for each with where to install it, and the other tools still checked;
+#      FAIL line for each with where to install it, and the other tools still checked; with
+#      --hooks, a make that does not start is left out — the hooks never run make;
 #   3. a version below its minimum — compared number by number: 22.9 is below 22.12 — and one
 #      that cannot be read: a WARN line each, exit 0;
 #   4. the platform, read from uname: the three the framework's CI verifies said to be so;
 #      another architecture, WSL, Cygwin and another system said not to be;
 #   5. line ends: core.autocrlf true with nothing holding the framework's files to LF warns;
-#      held to LF, or core.autocrlf not true, it does not; outside a repository, not checked.
+#      held to LF — read from a subdirectory too —, or core.autocrlf not true, it does not;
+#      outside a repository, not checked.
 #
 # HERMETIC: the tools are stubs in a PATH of the test's own, beside wrappers for the real
 # tools the check itself runs — wrappers, not links: Git Bash's `ln -s` copies a binary away
@@ -143,6 +145,16 @@ has '^FAIL +node is installed but does not start: dyld\[4242\]: Library not load
 has '^FAIL +the POSIX userland lacks cmp,' "a missing cmp: no FAIL line naming it"
 has '^OK +npx 10\.9\.2$' "after a failure, the tools listed after it were not checked"
 has '^check-prerequisites: 3 FAIL, 0 WARN$' "tools missing or not starting: the summary is not 3 FAIL, 0 WARN"
+# --hooks, as hooks-install.sh runs it: make is not the hooks', even when it does not start.
+good "${workdir}/case2-hooks"
+stub "${workdir}/case2-hooks" make 'make: error while loading shared libraries' 127
+set +e
+(cd "${lf_repo}" && PATH="${workdir}/case2-hooks:${real}" "${BASH}" "${CHECK}" --hooks) >"${out}" 2>&1
+rc=$?
+set -e
+[[ ${rc} -eq 0 ]] || fail "--hooks with a make that does not start: expected exit 0, got ${rc}"
+lacks '^(OK|FAIL) +make' "--hooks checked make, which the hooks never run"
+has '^OK +gitleaks ' "--hooks left out gitleaks, which the pre-commit hook runs"
 
 # --- Case 3 — below a minimum, or a version that cannot be read: warnings only -----------------
 good "${workdir}/case3"
@@ -205,6 +217,11 @@ run "${workdir}/case5" "${held_repo}"
 has '^OK +line ends: core\.autocrlf is true, and \.gitattributes holds' \
   "core.autocrlf true with the framework's .gitattributes: no OK line for the line ends"
 lacks '^WARN ' "core.autocrlf true with the framework's .gitattributes: a WARN line"
+# From a subdirectory: the framework's attributes are anchored at the top level, where the
+# check must read them (measured: from below, git check-attr names another path).
+mkdir -p "${held_repo}/sub"
+run "${workdir}/case5" "${held_repo}/sub"
+lacks '^WARN ' "core.autocrlf true with the framework's .gitattributes, run from a subdirectory: a WARN line"
 run "${workdir}/case5" "${lf_repo}"
 has '^OK +line ends: core\.autocrlf is not true$' "core.autocrlf unset: no OK line for the line ends"
 run "${workdir}/case5" "${outside}"

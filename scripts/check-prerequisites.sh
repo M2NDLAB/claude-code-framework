@@ -4,6 +4,7 @@
 # named, and the line ends git would give the framework's files looked at.
 #
 #   bash scripts/check-prerequisites.sh
+#   bash scripts/check-prerequisites.sh --hooks                (what the hooks need: no make)
 #   bash scripts/check-prerequisites.sh --commitlint-version   (the pin below, and nothing else)
 #
 # Runnable without make, from the project's root or from the framework's clone: the working
@@ -32,14 +33,19 @@ npx|-|commitlint, which the commit-msg hook runs|https://nodejs.org/en/download'
 COMMITLINT=21.2.3
 # The POSIX userland the scripts and the hooks run, beyond bash's builtins.
 USERLAND='awk sed grep find xargs sort diff cmp'
+# The tools the hooks never run: --hooks, which hooks-install.sh passes, leaves them out, so
+# `bash scripts/hooks-install.sh` needs no make.
+NOT_FOR_HOOKS='make'
 
+skip=''
 case "$*" in
   '') ;;
+  --hooks) skip="${NOT_FOR_HOOKS}" ;;
   --commitlint-version)
     echo "${COMMITLINT}"
     exit 0 ;;
   *)
-    echo "usage: bash scripts/check-prerequisites.sh [--commitlint-version]" >&2
+    echo "usage: bash scripts/check-prerequisites.sh [--hooks | --commitlint-version]" >&2
     exit 2 ;;
 esac
 
@@ -158,14 +164,17 @@ platform() {
 
 # Line ends: with core.autocrlf true, git checks text out with CRLF unless an attribute holds
 # the file to LF — and bash cannot run a script with CRLF line ends. The test is the one the
-# upgrade's line-end step makes: `git check-attr eol` on CLAUDE.md.
+# upgrade's line-end step makes: `git check-attr eol` on CLAUDE.md, from the repository's top
+# level — the framework's attributes are anchored there, so from a subdirectory the path
+# would name another file.
 line_ends() {
-  local autocrlf eol
+  local autocrlf eol top
   if ! command -v git >/dev/null 2>&1 \
     || [[ "$(git rev-parse --is-inside-work-tree 2>/dev/null || true)" != true ]]; then
     say SKIP "line ends: not inside a git repository"
     return 0
   fi
+  top="$(git rev-parse --show-toplevel)"
   autocrlf="$(first_line "$(git config --get core.autocrlf 2>/dev/null || true)")"
   case "${autocrlf}" in
     [Tt][Rr][Uu][Ee] | [Yy][Ee][Ss] | [Oo][Nn] | 1) ;;
@@ -173,7 +182,7 @@ line_ends() {
       say OK "line ends: core.autocrlf is not true"
       return 0 ;;
   esac
-  eol="$(first_line "$(git check-attr eol -- CLAUDE.md 2>/dev/null || true)")"
+  eol="$(first_line "$(git -C "${top}" check-attr eol -- CLAUDE.md 2>/dev/null || true)")"
   if [[ "${eol}" == "CLAUDE.md: eol: lf" ]]; then
     say OK "line ends: core.autocrlf is true, and .gitattributes holds the framework's files to LF"
   else
@@ -184,6 +193,7 @@ line_ends() {
 platform
 while IFS='|' read -r tool min why page; do
   [[ -n "${tool}" ]] || continue
+  case " ${skip} " in *" ${tool} "*) continue ;; esac
   check_tool "${tool}" "${min}" "${why}" "${page}"
 done <<EOF
 ${PREREQUISITES}

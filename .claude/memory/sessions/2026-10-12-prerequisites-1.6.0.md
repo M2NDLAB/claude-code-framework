@@ -119,7 +119,7 @@ after). Kept from their findings:
 ## Plan (one commit per task)
 - [x] 1. The registrations — IMP-079 to IMP-084, IMP-073's occurrence (`7d2052b`), IMP-077 corrected (8.20.0) —, the CI's rounds 6 to 8 at the end of v1.5.0's note, and this note with its plan; then the agent's persistent memory emptied — commit: 598cab8
 - [x] 2. `scripts/check-prerequisites.sh` and its stub-based self-test, with the lists and documents that name them: the minimums and commitlint's pin at its head, the one place; each tool run (the POSIX userland too), a tool found that does not start fails, below a minimum a warning (a version comparison bash 3.2 runs, no `sort -V`); the platform named; the line-end warning by `git check-attr eol`; D2's hints. Each case red first, a mutant for each detection branch (IMP-072) — commit: da54b98 (the pin moved to task 3, see below)
-- [ ] 3. commitlint at the pin, read from the one place by `hooks-install.sh`; `SETUP.md` §0 no longer says "latest"; a documentation-check rule holds every written minimum and the pin against the one place — commit: —
+- [x] 3. commitlint at the pin, read from the one place by `hooks-install.sh`; `SETUP.md` §0 no longer says "latest"; a documentation-check rule holds every written minimum and the pin against the one place — commit: 1e1129f
 - [ ] 4. `hooks-install.sh` runs the check, after its own repository checks and for what the hooks need; its self-test copies the check into its throwaway places, its stubs answer a version — commit: —
 - [ ] 5. gitleaks per D1 (B): `protect` stays, 8.0.0 declared; IMP-077 decided, OPEN on its trigger — commit: —
 - [ ] 6. The CI per D3: gitleaks at a fixed version and checksum, verified before it runs; the four real-hook cases in `tools/`; the *Versions* step names gitleaks and npx; the real check on each runner; the prose on what the CI installs and runs — commit: —
@@ -178,6 +178,24 @@ too.
   "Node.js 14.13 or later" in an IMP entry then fails). All five killed; one first draft
   of the last mutated three lines — the mask idiom is the other rules' too — and was
   rebuilt on the rule's own line before it counted.
+
+## hooks-install runs the check (task 4)
+- `hooks-install.sh` runs `check-prerequisites.sh --hooks` from the repository's top level,
+  after its own repository checks, in place of its `command -v gitleaks` and `npx`: a tool
+  missing or not starting stops it before any hook is written; `--hooks` leaves out make,
+  which the hooks never run, so `bash scripts/hooks-install.sh` still needs none. A missing
+  check file is said as such.
+- Found while wiring it, and measured: from a subdirectory,
+  `git check-attr eol -- CLAUDE.md` answers "unspecified" — the framework's attributes are
+  anchored at the top level — so the line-end warning would fire wrongly there. The check
+  now reads the attributes from the top level (`git -C <top>`).
+- RED first, against the code before the change: the subdirectory case fails on the check
+  without the top-level read; `test-hooks-install.sh`'s new case 4 fails on HEAD's
+  installer, which installs the hooks with a gitleaks that does not start. Then green; and
+  the mutant that drops the `--hooks` scope is killed by both self-tests.
+- `test-hooks-install.sh` counts four cases now, so `tools/test-docs-check.sh`'s fixtures
+  that plant a wrong count move with it ("Four cases:" to "Five cases:"; "the header lists
+  4 cases, the file marks 3"). Its stubs answer their version command.
 
 ## Resumption notes
 - The branch is local until task 8's first block 0; from then on it is public, and no

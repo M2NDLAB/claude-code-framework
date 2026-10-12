@@ -205,7 +205,9 @@ Here is the complete list, grouped by file:
 make hooks-install
 ```
 
-It installs three hooks: gitleaks (pre-commit), commitlint (commit-msg) and the push
+First it runs the prerequisite check for what the hooks need
+(`check-prerequisites.sh --hooks`, §0): a tool missing or not starting stops it before any
+hook is written. It installs three hooks: gitleaks (pre-commit), commitlint (commit-msg) and the push
 boundary (pre-push: a push launched from a Claude Code session is refused — the human
 pushes from their own terminal). Check: a commit with a non-conventional message must be
 rejected; a file with a fake secret must be blocked by gitleaks; `make test-scripts` must

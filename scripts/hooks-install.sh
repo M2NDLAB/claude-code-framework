@@ -50,13 +50,17 @@ fi
 HOOKS_DIR="${git_common_dir}/hooks"
 
 # --- Prerequisites ----------------------------------------------------------
-if ! command -v gitleaks >/dev/null 2>&1; then
-  echo "ERROR: gitleaks not installed (it is rule 1 of CLAUDE.md, not optional)." >&2
-  echo "  Install it for your platform: https://github.com/gitleaks/gitleaks#installing" >&2
+# The prerequisite check, for what the hooks need (--hooks: make is not among it), each tool
+# RUN, not only found, from the repository's top level, where it reads the line ends. A tool
+# missing or not starting stops the install before any hook is written — gitleaks is rule 1
+# of CLAUDE.md, not optional; a version below its minimum is shown, and the install goes on.
+if [[ ! -f "${REPO_ROOT}/scripts/check-prerequisites.sh" ]]; then
+  echo "ERROR: scripts/check-prerequisites.sh is missing: it belongs next to this script" >&2
+  echo "  (the framework's scripts/ is copied whole)." >&2
   exit 1
 fi
-if ! command -v npx >/dev/null 2>&1; then
-  echo "ERROR: npx (Node.js) not installed — it is needed for commitlint." >&2
+if ! (cd "${REPO_ROOT}" && bash scripts/check-prerequisites.sh --hooks); then
+  echo "ERROR: a tool the hooks need is missing or does not start (the FAIL lines above)." >&2
   exit 1
 fi
 # commitlint's version is pinned in one place, scripts/check-prerequisites.sh: the commit-msg

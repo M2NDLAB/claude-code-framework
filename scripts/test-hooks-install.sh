@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Self-test of scripts/hooks-install.sh. Three cases:
+# Self-test of scripts/hooks-install.sh. Four cases:
 #   1. "dangling symlink + FORCE_OVERWRITE=1": a leftover link never aborts the install —
 #      below; skipped, said aloud, where `ln -s` cannot make a dangling link (Git Bash);
 #      the commit-msg hook it installs runs commitlint at the version
@@ -9,7 +9,10 @@
 #      terminal) goes through — see "Case 2";
 #   3. where the hooks land: the repository's common git directory, from a linked worktree
 #      or from a subdirectory; outside any repository, or from a copy below the top level of
-#      the repository it sits in, a refusal — see "Case 3" at the end.
+#      the repository it sits in, a refusal — see "Case 3";
+#   4. the prerequisites: the install runs the prerequisite check first — a gitleaks that
+#      does not start stops it before any hook is written; a make that does not start does
+#      not, the hooks never run make — see "Case 4" at the end.
 #
 # Case 1.
 # Defect (RED, before the fix): in the FORCE_OVERWRITE=1 branch, a pre-existing hook that is a
@@ -44,12 +47,12 @@ workdir="$(mktemp -d)"
 trap 'rm -rf "${workdir}"' EXIT
 
 # --- Prerequisite stubs: they isolate the FORCE logic from the gitleaks/npx checks ----------
+# Each answers its version command as the prerequisite check asks it, and does nothing else.
 stub_bin="${workdir}/bin"
 mkdir -p "${stub_bin}"
-for tool in gitleaks npx; do
-  printf '#!/usr/bin/env bash\nexit 0\n' > "${stub_bin}/${tool}"
-  chmod +x "${stub_bin}/${tool}"
-done
+printf '#!/usr/bin/env bash\n[[ "${1:-}" == version ]] && echo 8.30.1\nexit 0\n' > "${stub_bin}/gitleaks"
+printf '#!/usr/bin/env bash\n[[ "${1:-}" == --version ]] && echo 10.9.2\nexit 0\n' > "${stub_bin}/npx"
+chmod +x "${stub_bin}/gitleaks" "${stub_bin}/npx"
 export PATH="${stub_bin}:${PATH}"
 
 # --- Throwaway repo with a COPY of the script (REPO_ROOT derives from the script's location)
@@ -247,3 +250,40 @@ set -e
 grep -q "not the top level of its git repository" "${workdir}/out3.log" || fail3 "a copy below the top level: the refusal does not say why"
 
 echo "PASS (hooks directory): from a linked worktree the hooks land in the common .git/hooks; no stray .git from a subdirectory; outside a repository or below its top level, a refusal."
+
+# --- Case 4 — the prerequisites: the install runs the prerequisite check first ---------------
+# A gitleaks that is installed but does not start stops the install before any hook is
+# written, the check's own line naming it; a make that does not start does not: the hooks
+# never run make, and `bash scripts/hooks-install.sh` needs none.
+fail4() {
+  echo "FAIL (prerequisites): $1" >&2
+  [[ -f "${workdir}/out4.log" ]] && { echo "--- script output ---" >&2; cat "${workdir}/out4.log" >&2; }
+  exit 1
+}
+broken="${workdir}/broken-bin"
+mkdir -p "${broken}"
+printf '#!/usr/bin/env bash\necho "gitleaks: cannot execute binary file" >&2\nexit 126\n' > "${broken}/gitleaks"
+chmod +x "${broken}/gitleaks"
+pq_repo="${workdir}/pq-repo"
+git init -q "${pq_repo}"
+mkdir -p "${pq_repo}/scripts"
+cp "${HOOKS_INSTALL}" "${pq_repo}/scripts/hooks-install.sh"
+cp "${CHECK_PREREQ}" "${pq_repo}/scripts/check-prerequisites.sh"
+set +e
+PATH="${broken}:${PATH}" bash "${pq_repo}/scripts/hooks-install.sh" >"${workdir}/out4.log" 2>&1
+rc=$?
+set -e
+[[ ${rc} -ne 0 ]] || fail4 "a gitleaks that does not start: expected a refusal, got exit 0"
+grep -q '^FAIL  *gitleaks is installed but does not start' "${workdir}/out4.log" \
+  || fail4 "a gitleaks that does not start: the refusal does not name it"
+[[ ! -e "${pq_repo}/.git/hooks/pre-commit" ]] || fail4 "a hook was written although a prerequisite does not start"
+printf '#!/usr/bin/env bash\necho "make: error while loading shared libraries" >&2\nexit 127\n' > "${broken}/make"
+chmod +x "${broken}/make"
+rm "${broken}/gitleaks"
+set +e
+PATH="${broken}:${PATH}" bash "${pq_repo}/scripts/hooks-install.sh" >"${workdir}/out4.log" 2>&1
+rc=$?
+set -e
+[[ ${rc} -eq 0 ]] || fail4 "a make that does not start stopped the install, which needs no make: exit ${rc}"
+
+echo "PASS (prerequisites): the install runs the prerequisite check first — a gitleaks that does not start stops it before any hook is written; a broken make does not, the hooks never run it."
