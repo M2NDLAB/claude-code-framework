@@ -536,6 +536,11 @@ edit "${c}/scripts/check-prerequisites.sh" '^COMMITLINT=' 'PINNED='
 run 1 "${c}"
 nfails 1
 has "no commitlint pin read from PREREQUISITES and COMMITLINT: the extraction is wrong"
+c="$(copy list-minimums-range)"
+edit "${c}/scripts/check-prerequisites.sh" '^COMMITLINT=[0-9.]*$' 'COMMITLINT=21'
+run 1 "${c}"
+nfails 1
+has "no commitlint pin read from PREREQUISITES and COMMITLINT: the extraction is wrong"
 echo "PASS (docs-check, lists): §2 and the slots, the class table and its bullets, Step 2, what is not copied, the counts, the sections, the subcommands, the copy list, the types, the format tables and the written minimums fail when out of step."
 
 # --- Case 8: language -----------------------------------------------------------------------

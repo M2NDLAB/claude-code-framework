@@ -992,7 +992,7 @@ function checkLists() {
   const PREREQ = 'scripts/check-prerequisites.sh'
   const prereqs = new Map((/^PREREQUISITES='([\s\S]*?)'$/m.exec(text(PREREQ))?.[1] ?? '')
     .split('\n').map((l) => l.split('|')).filter((f) => f.length === 4).map(([tool, min]) => [tool, min]))
-  const pinned = /^COMMITLINT=([\d.]+)$/m.exec(text(PREREQ))?.[1]
+  const pinned = /^COMMITLINT=(\d+\.\d+\.\d+)$/m.exec(text(PREREQ))?.[1]
   if (prereqs.size < 5 || !pinned) report('list', PREREQ, 1, `${plural(prereqs.size, 'tool')} and ${pinned ? 'a' : 'no'} commitlint pin read from PREREQUISITES and COMMITLINT: the extraction is wrong`)
   const TOOL_OF = { git: 'git', bash: 'bash', 'node.js': 'node', gitleaks: 'gitleaks' }
   const sameVersion = (a, b) => {

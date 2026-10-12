@@ -66,15 +66,16 @@ if ! (cd "${REPO_ROOT}" && bash scripts/check-prerequisites.sh --hooks); then
   exit 1
 fi
 # commitlint's version is pinned in one place, scripts/check-prerequisites.sh: the commit-msg
-# hook runs its two packages at that version, never npx's latest, so a release of commitlint
-# reaches a project only through a framework release that raises the pin.
+# hook runs its two packages at that version, never npx's latest. Their own dependencies
+# follow the ranges they declare, so a release of one of those can still reach a project.
+# The pin is an exact version, x.y.z: "21" would be a range to npx, which runs its newest.
 commitlint="$(bash "${REPO_ROOT}/scripts/check-prerequisites.sh" --commitlint-version 2>/dev/null || true)"
-case "${commitlint}" in
-  '' | *[!0-9.]*)
-    echo "ERROR: commitlint's version cannot be read from scripts/check-prerequisites.sh," >&2
-    echo "  which belongs next to this script (the framework's scripts/ is copied whole)." >&2
-    exit 1 ;;
-esac
+if [[ ! "${commitlint}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "ERROR: commitlint's pin cannot be read from scripts/check-prerequisites.sh as an exact" >&2
+  echo "  version, x.y.z (read: '${commitlint}'); the check belongs next to this script (the" >&2
+  echo "  framework's scripts/ is copied whole)." >&2
+  exit 1
+fi
 
 # --- Guards for a repo with pre-existing hooks (graft onto an existing project) --
 # 1. core.hooksPath active (e.g. husky): git does NOT read .git/hooks, so the hooks

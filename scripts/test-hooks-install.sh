@@ -12,7 +12,8 @@
 #      the repository it sits in, a refusal — see "Case 3";
 #   4. the prerequisites: the install runs the prerequisite check first — a gitleaks that
 #      does not start stops it before any hook is written; a make that does not start does
-#      not, the hooks never run make — see "Case 4";
+#      not, the hooks never run make; a commitlint pin that is not an exact version — 21,
+#      a range npx would resolve to its newest 21.x — stops it too — see "Case 4";
 #   5. the git gitleaks reads through the generated pre-commit: the colour off and each
 #      textconv driver turned into `cat`, after the caller's own environment configuration,
 #      which stays; a GIT_CONFIG_COUNT that is not a number stops the hook before gitleaks —
@@ -290,8 +291,22 @@ PATH="${broken}:${PATH}" bash "${pq_repo}/scripts/hooks-install.sh" >"${workdir}
 rc=$?
 set -e
 [[ ${rc} -eq 0 ]] || fail4 "a make that does not start stopped the install, which needs no make: exit ${rc}"
+# A pin that is not x.y.z: "21" is a range to npx, which would run the newest 21.x.
+pin_repo="${workdir}/pin-repo"
+git init -q "${pin_repo}"
+mkdir -p "${pin_repo}/scripts"
+cp "${HOOKS_INSTALL}" "${pin_repo}/scripts/hooks-install.sh"
+sed 's/^COMMITLINT=.*/COMMITLINT=21/' "${CHECK_PREREQ}" > "${pin_repo}/scripts/check-prerequisites.sh"
+grep -qx 'COMMITLINT=21' "${pin_repo}/scripts/check-prerequisites.sh" || fail4 "the pin was not set to 21"
+set +e
+bash "${pin_repo}/scripts/hooks-install.sh" >"${workdir}/out4.log" 2>&1
+rc=$?
+set -e
+[[ ${rc} -ne 0 ]] || fail4 "a commitlint pin of 21: expected a refusal, got exit 0"
+grep -q "commitlint's pin" "${workdir}/out4.log" || fail4 "a commitlint pin of 21: the refusal does not name the pin"
+[[ ! -e "${pin_repo}/.git/hooks/commit-msg" ]] || fail4 "a commitlint pin of 21: the commit-msg hook was written"
 
-echo "PASS (prerequisites): the install runs the prerequisite check first — a gitleaks that does not start stops it before any hook is written; a broken make does not, the hooks never run it."
+echo "PASS (prerequisites): the install runs the prerequisite check first — a gitleaks that does not start stops it before any hook is written; a broken make does not, the hooks never run it; a commitlint pin that is not x.y.z stops it."
 
 # --- Case 5 — the git gitleaks reads through the generated pre-commit ----------------------
 # gitleaks scans what `git diff` prints, which the user's git configuration can empty (a
