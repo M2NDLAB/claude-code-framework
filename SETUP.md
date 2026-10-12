@@ -38,8 +38,9 @@ framework's files to LF (run from the project's root, it reads the project's). I
 only for a tool missing or one that does not start — a version below its minimum is a
 warning — and installs nothing.
 
-**The platforms verified.** The framework's repository runs `make test-scripts` and the
-upgrade check's self-test at every push, on three GitHub-hosted images — its own
+**The platforms verified.** The framework's repository runs `make test-scripts`, the
+upgrade check's self-test, the prerequisite check and the generated hooks with the real
+gitleaks and commitlint at every push, on three GitHub-hosted images — its own
 `.github/workflows/test.yml`, which setup does not copy:
 
 | Platform | Image | bash | Node.js |
@@ -48,10 +49,11 @@ upgrade check's self-test at every push, on three GitHub-hosted images — its o
 | Linux, x64 | `ubuntu-24.04` | 5.2 | 22 |
 | Windows, x64 | `windows-2025` | 5.3, Git Bash | 22 |
 
-- The images bring their own tools: the CI installs only GNU make on Windows. The
-  Node.js column is what they carried when v1.5.0 was released; each run's log names
-  every version (its *Versions* step). The minimums in the list above are the tools'
-  own requirements, not runs.
+- The images bring their own tools; the CI installs GNU make on Windows and gitleaks on
+  the three, each at a fixed version — gitleaks' archive checked against a fixed SHA-256
+  before it runs. The Node.js column is what the images carried when v1.5.0 was released;
+  each run's log names every version (its *Versions* step). The minimums in the list above
+  are the tools' own requirements, not runs.
 - On Windows, `core.autocrlf` is `true`, as Git for Windows sets it, and `.gitattributes`
   keeps the framework's files LF; the hooks' self-test skips its dangling-symlink case,
   which Git Bash cannot plant.

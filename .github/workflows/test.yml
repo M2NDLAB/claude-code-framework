@@ -1,6 +1,8 @@
 # The framework's self-tests on the three platforms it supports. This file is the framework
 # repository's own: setup never copies .github/ into a project. Minimal on purpose — it runs
-# what `make test-scripts` and the upgrade check's self-test need, and nothing else.
+# `make test-scripts`, the upgrade check's self-test, the prerequisite check and the
+# generated hooks with the real gitleaks and commitlint, and installs only what they need
+# beyond the images: GNU make on Windows, gitleaks on the three, each at a fixed version.
 name: test
 
 on:
@@ -39,12 +41,50 @@ jobs:
       - name: GNU make (Windows)
         if: runner.os == 'Windows'
         run: choco install make --version=4.4.1 --no-progress -y
+      # gitleaks, which the generated pre-commit hook runs and no image carries: a fixed
+      # release, its archive held against a fixed SHA-256 before the binary ever runs — a
+      # link of the supply chain, pinned like the checkout action's commit. Any mismatch
+      # fails the job.
+      - name: gitleaks
+        env:
+          GITLEAKS_VERSION: 8.30.1
+          GITLEAKS_SHA256_LINUX_X64: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+          GITLEAKS_SHA256_DARWIN_ARM64: b40ab0ae55c505963e365f271a8d3846efbc170aa17f2607f13df610a9aeb6a5
+          GITLEAKS_SHA256_WINDOWS_X64: d29144deff3a68aa93ced33dddf84b7fdc26070add4aa0f4513094c8332afc4e
+        run: |
+          case "${RUNNER_OS}" in
+            Linux) asset="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" want="${GITLEAKS_SHA256_LINUX_X64}" ;;
+            macOS) asset="gitleaks_${GITLEAKS_VERSION}_darwin_arm64.tar.gz" want="${GITLEAKS_SHA256_DARWIN_ARM64}" ;;
+            Windows) asset="gitleaks_${GITLEAKS_VERSION}_windows_x64.zip" want="${GITLEAKS_SHA256_WINDOWS_X64}" ;;
+            *) echo "::error::no gitleaks archive for ${RUNNER_OS}"; exit 1 ;;
+          esac
+          dir="${RUNNER_TEMP}/gitleaks"
+          if [ "${RUNNER_OS}" = Windows ]; then dir="$(cygpath -u "${RUNNER_TEMP}")/gitleaks"; fi
+          mkdir -p "${dir}"
+          curl -fsSL --retry 3 -o "${dir}/${asset}" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${asset}"
+          # Hashed from stdin, so the output names no path: GNU's sha256sum escapes a path
+          # that holds a backslash. macOS may lack sha256sum; it has shasum.
+          got="$( (sha256sum 2>/dev/null || shasum -a 256) < "${dir}/${asset}" | cut -d' ' -f1)"
+          if [ "${got}" != "${want}" ]; then
+            echo "::error::${asset}: SHA-256 ${got}, expected ${want}"
+            exit 1
+          fi
+          if [ "${RUNNER_OS}" = Windows ]; then
+            7z x -y -bso0 -o"$(cygpath -w "${dir}")" "$(cygpath -w "${dir}/${asset}")" gitleaks.exe
+            cygpath -w "${dir}" >> "${GITHUB_PATH}"
+          else
+            tar -xzf "${dir}/${asset}" -C "${dir}" gitleaks
+            echo "${dir}" >> "${GITHUB_PATH}"
+          fi
       - name: Versions
         run: |
           git --version
           bash --version | head -n 1
           node --version
+          npx --version
           make --version | head -n 1
+          gitleaks version
           awk --version 2>&1 | head -n 1 || true
           git config --show-origin --get core.autocrlf || echo "core.autocrlf: unset"
       - name: make test-scripts
@@ -66,3 +106,11 @@ jobs:
       - name: The upgrade check's self-test
         if: ${{ !cancelled() }}
         run: bash tools/test-upgrade-check.sh
+      # The shipped check against the runner's real tools: a tool missing or not starting
+      # fails the step.
+      - name: The prerequisite check
+        if: ${{ !cancelled() }}
+        run: bash scripts/check-prerequisites.sh
+      - name: The generated hooks with the real tools
+        if: ${{ !cancelled() }}
+        run: bash tools/test-real-hooks.sh

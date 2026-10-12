@@ -121,7 +121,7 @@ after). Kept from their findings:
 - [x] 2. `scripts/check-prerequisites.sh` and its stub-based self-test, with the lists and documents that name them: the minimums and commitlint's pin at its head, the one place; each tool run (the POSIX userland too), a tool found that does not start fails, below a minimum a warning (a version comparison bash 3.2 runs, no `sort -V`); the platform named; the line-end warning by `git check-attr eol`; D2's hints. Each case red first, a mutant for each detection branch (IMP-072) — commit: da54b98 (the pin moved to task 3, see below)
 - [x] 3. commitlint at the pin, read from the one place by `hooks-install.sh`; `SETUP.md` §0 no longer says "latest"; a documentation-check rule holds every written minimum and the pin against the one place — commit: 1e1129f
 - [x] 4. `hooks-install.sh` runs the check, after its own repository checks and for what the hooks need; its self-test copies the check into its throwaway places, its stubs answer a version — commit: 77525a0
-- [ ] 5. gitleaks per D1 (B): `protect` stays, 8.0.0 declared; IMP-077 decided, OPEN on its trigger — commit: —
+- [x] 5. gitleaks per D1 (B): `protect` stays, 8.0.0 declared; IMP-077 decided, OPEN on its trigger — commit: efd4ca4
 - [ ] 6. The CI per D3: gitleaks at a fixed version and checksum, verified before it runs; the four real-hook cases in `tools/`; the *Versions* step names gitleaks and npx; the real check on each runner; the prose on what the CI installs and runs — commit: —
 - [ ] 7. The upgrade 1.5.0 → 1.6.0 rehearsed in throwaway clones, LF and CRLF: the check from `T` before Step 4, the hooks regenerated; the Upgrading note drafted — commit: —
 - [ ] 8. The CI's rounds (block 0, the user's pushes): what fails, fixed with new commits, until green on the three — commit: —
@@ -207,6 +207,26 @@ too.
   minimum, and 8.19.x would scan the history in silence —, so it now says the switched hook
   must refuse a gitleaks below 8.20.0 by itself.
 - The check's self-test: gitleaks exactly at 8.0.0 is OK, 7.6.1 is a warning.
+
+## The CI per D3 (task 6)
+- gitleaks 8.30.1 on the three images: 8.0.0, the declared minimum, ships no darwin_arm64
+  archive (its release assets, read with `gh`), so one version for all three — the latest,
+  the one whose `protect` is hidden; the minimum stays read from the source, as the check
+  says. The three archives were downloaded and hashed here: each SHA-256 equals the one in
+  the release's `gitleaks_8.30.1_checksums.txt`, and those three values are fixed in the
+  workflow, which hashes the archive before extracting it. The step, run here as the macOS
+  runner would: the right hash extracts the binary and adds it to the PATH; a wrong one
+  fails with the two hashes, nothing extracted. The Windows branch (7-Zip, `cygpath`) waits
+  for the CI.
+- `tools/test-real-hooks.sh`, the four cases of D3, each hook run as git runs it; the
+  secret is an AWS access key ID put together at run time (gitleaks 8.30.1's
+  `aws-access-token` rule, probed first). Green here in 3 s; a mutant per case — the scan's
+  failure ignored, every change refused, a pin that does not exist, commitlint's failure
+  ignored — each killed by its own case.
+- The workflow also runs the shipped `check-prerequisites.sh` against each runner's real
+  tools, and its *Versions* step names gitleaks and npx. `SETUP.md` §0, `CONTRIBUTING.md`,
+  `tools/README.md`, the README's tree and the workflow's header say what the CI now runs
+  and installs.
 
 ## Resumption notes
 - The branch is local until task 8's first block 0; from then on it is public, and no
