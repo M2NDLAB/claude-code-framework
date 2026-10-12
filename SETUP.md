@@ -16,9 +16,15 @@ The tools, by name; how to install each one depends on your platform.
 - **GNU make** — the process targets (`make hooks-install`, `make test-scripts`,
   `make reset-task`). macOS has it with Xcode's command-line tools, Linux distributions
   with their build tools; on Windows install it apart: Git for Windows ships none.
-- **gitleaks 8.0.0 or later** (https://github.com/gitleaks/gitleaks) — secret scanning in
-  the pre-commit hook, `gitleaks protect --staged`, which every release from 8.0.0 runs
-  (8.19.0 hid it from `--help`, for `gitleaks git`).
+- **gitleaks 8.18.2 or later** (https://github.com/gitleaks/gitleaks) — secret scanning in
+  the pre-commit hook, `gitleaks protect --staged` (hidden from `--help` since 8.19.0, for
+  `gitleaks git`; it still runs). A security minimum, read at gitleaks' source: below it the
+  scan can let a secret through in silence — a configured external diff replaces what it
+  reads (8.18.2 brings `--no-ext-diff`), a scan error ends in "no leaks found" and exit 0,
+  and 8.0.0 to 8.1.3 write into the project a `.gitleaks.toml` that later releases then
+  load instead of their own rules. So the prerequisite check FAILS below it, or when it
+  cannot read gitleaks' version, and `make hooks-install` stops. Debian 13's and Ubuntu
+  24.04's packages are 8.16.0: install a release instead.
 - **Node.js 22.12 or later, with npx.** commitlint (Conventional Commits) runs through npx
   at the version `scripts/check-prerequisites.sh` pins — its two packages; their own
   dependencies follow the ranges they declare —, and that version's `engines` set the
@@ -35,8 +41,9 @@ framework's clone or from the project once step 1 has copied `scripts/`. It runs
 above and compares its version with the minimum, names the platform and whether the CI
 below verifies it, and warns when `core.autocrlf` is true and nothing holds the
 framework's files to LF (run from the project's root, it reads the project's). It fails
-only for a tool missing or one that does not start — a version below its minimum is a
-warning — and installs nothing.
+for a tool missing or one that does not start, and for gitleaks below its security minimum
+or with a version it cannot read; any other version below its minimum is a warning. It
+installs nothing.
 
 **The platforms verified.** The framework's repository runs `make test-scripts`, the
 upgrade check's self-test, the prerequisite check and the generated hooks with the real
@@ -599,7 +606,7 @@ Precondition and the pin of Step 0), `inventory` (Step 2), `invariant` and `post
 (Step 5). `tools/` is not copied into the project (step 1). For a `vY` before v1.4.0
 there is no script: the steps are done by hand.
 
-**The prerequisites.** From `vY` = v1.6.0 on, run `vY`'s prerequisite check too, before
+**The prerequisites.** From `vY` = v2.0.0 on, run `vY`'s prerequisite check too, before
 Step 1: extracted into `T` the same way, run from the project root, whose line ends it
 reads.
 

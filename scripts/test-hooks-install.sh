@@ -51,10 +51,11 @@ workdir="$(mktemp -d)"
 trap 'rm -rf "${workdir}"' EXIT
 
 # --- Prerequisite stubs: they isolate the FORCE logic from the gitleaks/npx checks ----------
-# Each answers its version command as the prerequisite check asks it, and does nothing else.
+# Each answers its version command as the prerequisite check asks it, and does nothing else:
+# gitleaks as its releases from 8.19.0 do — the check asks --version first.
 stub_bin="${workdir}/bin"
 mkdir -p "${stub_bin}"
-printf '#!/usr/bin/env bash\n[[ "${1:-}" == version ]] && echo 8.30.1\nexit 0\n' > "${stub_bin}/gitleaks"
+printf '#!/usr/bin/env bash\ncase "${1:-}" in\n  --version) echo "gitleaks version 8.30.1" ;;\n  version) echo 8.30.1 ;;\nesac\nexit 0\n' > "${stub_bin}/gitleaks"
 printf '#!/usr/bin/env bash\n[[ "${1:-}" == --version ]] && echo 10.9.2\nexit 0\n' > "${stub_bin}/npx"
 chmod +x "${stub_bin}/gitleaks" "${stub_bin}/npx"
 export PATH="${stub_bin}:${PATH}"

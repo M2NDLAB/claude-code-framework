@@ -9,23 +9,28 @@
 #
 # Runnable without make, from the project's root or from the framework's clone: the working
 # directory is the repository whose line ends it reads. It installs NOTHING — installing
-# system software stays a human action. Exit 1 only when a tool is missing or does not
-# start; a version below its minimum, or one it cannot read, is a warning: a minimum is the
-# tool's own requirement read from its source, not a release run here.
+# system software stays a human action. Exit 1 when a tool is missing or does not start, and
+# when a security minimum is not met (SECURITY_MINIMUMS, below); any other version below its
+# minimum, or one it cannot read, is a warning: a minimum is the tool's own requirement read
+# from its source, not a release run here.
 set -euo pipefail
 
 # --- The prerequisites, in one place ---------------------------------------------------------
 # One line per tool: its name | its minimum ("-": none) | what needs it | where to install it.
 #   git 2.31        `git rev-parse --path-format`, which hooks-install.sh and the upgrade use
 #   bash 3.2        the oldest bash the framework's scripts are written for (macOS's bash)
-#   gitleaks 8.0.0  `gitleaks protect --staged --redact -v`, the pre-commit's scan, exists
-#                   from 8.0.0 (read from gitleaks' source)
+#   gitleaks 8.18.2 a security minimum (read from gitleaks' source): the first release whose
+#                   staged scan runs `git diff --no-ext-diff` — before it a configured
+#                   external diff replaces what gitleaks reads — and whose scan error ends
+#                   the run with exit 1, not "no leaks found" and 0; 8.0.0 to 8.1.3 also
+#                   wrote a .gitleaks.toml into the project. `protect --staged --redact -v`,
+#                   the pre-commit's scan, exists from 8.0.0
 #   node 22.12      the `engines` of commitlint at COMMITLINT, below; the agent git guard
 #                   needs less
 PREREQUISITES='git|2.31|the hooks and the upgrade (git rev-parse --path-format)|https://git-scm.com/downloads
 bash|3.2|the scripts and the hooks|https://www.gnu.org/software/bash/
 make|-|the process targets (make hooks-install, make test-scripts, make reset-task)|https://www.gnu.org/software/make/
-gitleaks|8.0.0|the secret scan of the pre-commit hook|https://github.com/gitleaks/gitleaks#installing
+gitleaks|8.18.2|the secret scan of the pre-commit hook|https://github.com/gitleaks/gitleaks#installing
 node|22.12|commitlint at its pin (the commit-msg hook) and the agent git guard|https://nodejs.org/en/download
 npx|-|commitlint, which the commit-msg hook runs|https://nodejs.org/en/download'
 # commitlint, which the commit-msg hook runs through npx: its two packages, @commitlint/cli
@@ -38,6 +43,10 @@ USERLAND='awk sed grep find xargs sort diff cmp'
 # The tools the hooks never run: --hooks, which hooks-install.sh passes, leaves them out, so
 # `bash scripts/hooks-install.sh` needs no make.
 NOT_FOR_HOOKS='make'
+# The tools whose minimum is a security minimum: below it the hook they serve can let through,
+# in silence, what it exists to refuse. Below it, or with a version that cannot be read, so
+# that the minimum cannot be confirmed, the check FAILS — and hooks-install.sh stops.
+SECURITY_MINIMUMS='gitleaks'
 
 skip=''
 case "$*" in
@@ -116,10 +125,16 @@ check_tool() {
   fi
   if [[ "${min}" == - ]]; then
     if [[ -n "${version}" ]]; then say OK "${tool} ${version}"; else say OK "${tool} runs"; fi
+  elif [[ -n "${version}" ]] && at_least "${version}" "${min}"; then
+    say OK "${tool} ${version} (${min} or later)"
+  elif [[ " ${SECURITY_MINIMUMS} " == *" ${tool} "* ]]; then
+    if [[ -z "${version}" ]]; then
+      fail "${tool}: its version cannot be read (\"${line}\"); ${min} or later is the security minimum of ${why} — install a release: ${page}"
+    else
+      fail "${tool} ${version} is below ${min}, the security minimum of ${why} — install it: ${page}"
+    fi
   elif [[ -z "${version}" ]]; then
     warn "${tool}: its version cannot be read (\"${line}\"); ${min} or later is needed by ${why} — ${page}"
-  elif at_least "${version}" "${min}"; then
-    say OK "${tool} ${version} (${min} or later)"
   else
     warn "${tool} ${version} is below ${min}, needed by ${why} — ${page}"
   fi

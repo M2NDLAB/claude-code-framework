@@ -749,9 +749,11 @@ tags: [improvement]
   history scan is written (`SETUP.md`'s step 3 and brownfield checklist, `docs/03`,
   `SECURITY.md`).
 - Expected benefit / risk: the hook does not depend on a hidden command. Risk: an older
-  gitleaks stops working with the switched hook, and the prerequisite check only warns
-  below a minimum — while 8.19.x would scan the history in silence, missing the staged
-  changes: the switched hook must refuse a gitleaks below 8.20.0 by itself.
+  gitleaks stops working with the switched hook, and 8.19.x would scan the history in
+  silence, missing the staged changes. The prerequisite check fails below gitleaks'
+  security minimum (D5, below) only when the hooks are installed: at the switch that
+  minimum becomes 8.20.0, and the switched hook refuses a gitleaks below it by itself — the
+  check at every commit, D5's option B, kept for the switch.
 - Corrected on 2026-10-12 ([[2026-10-12-prerequisites-1.6.0]]), from gitleaks' source at
   each tag: `gitleaks git` exists from 8.19.0, but in 8.19.0 to 8.19.3 it ignores
   `--pre-commit` and `--staged` — it scans the history and misses the staged changes
@@ -766,6 +768,17 @@ tags: [improvement]
   it: the hook's environment block — the colour off and each textconv read as `cat`, by
   `GIT_CONFIG_COUNT` — and the prefix of `SETUP.md`'s history scan move with it, until a
   gitleaks release passes `--no-color` itself.
+- Decided again (the user, 2026-10-12, D5 on the review's MEDIUM —
+  [[2026-10-12-prerequisites-1.6.0]]): the declared minimum becomes 8.18.2, a SECURITY
+  minimum — the prerequisite check FAILS below it, or when it cannot read gitleaks'
+  version, and the install stops. Read at gitleaks' source: before 8.18.2 the staged scan
+  runs `git diff` without `--no-ext-diff`, so a configured external diff replaces what it
+  reads, and a scan error ends in "no leaks found" and exit 0; 8.0.0 to 8.1.3 also write a
+  `.gitleaks.toml` into the project, which later releases load instead of their own rules.
+  Debian 13 and Ubuntu 24.04 package 8.16.0 (their archives, read on 2026-10-12); Debian's
+  build rules set no version, so its binary names none, and the check fails it either way —
+  unread, or below. `protect` stays, as D1 decided. Refusing an older gitleaks breaks the
+  compatibility v1.5.0 kept: the release is v2.0.0.
 
 ### IMP-078 — commitlint reads a body line that starts with "word:" as the footer
 - Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — observed four times

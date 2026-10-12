@@ -5,10 +5,12 @@
 #      prints the version it defines — see "Case 1";
 #   2. a tool missing, one installed that does not start, a userland tool missing: exit 1, a
 #      FAIL line for each with where to install it, and the other tools still checked; with
-#      --hooks, a make that does not start is left out — the hooks never run make;
-#   3. a version below its minimum — compared number by number: 22.9 is below 22.12 — and one
-#      that cannot be read: a WARN line each, exit 0. gitleaks' version is read as each of its
-#      command lines gives it, and a line that is not a version is not read as one;
+#      --hooks, a make that does not start is left out — the hooks never run make. gitleaks
+#      below its minimum, a security minimum, or with a version that cannot be read: a FAIL
+#      too — its version read as each of its command lines gives it, and a line that is not
+#      a version not read as one;
+#   3. any other version below its minimum — compared number by number: 22.9 is below 22.12 —
+#      and one that cannot be read: a WARN line each, exit 0;
 #   4. the platform, read from uname: the three the framework's CI verifies said to be so;
 #      another architecture, WSL, Cygwin and another system said not to be;
 #   5. line ends: core.autocrlf true with nothing holding the framework's files to LF warns;
@@ -97,7 +99,7 @@ good() {
   git_stub "$1" 'git version 2.31.0'
   stub "$1" bash 'GNU bash, version 3.2.57(1)-release (arm64-apple-darwin26)'
   stub "$1" make 'GNU Make 3.81'
-  gitleaks_stub "$1" 8.0.0 8
+  gitleaks_stub "$1" 8.18.2 8
   stub "$1" node 'v22.12.0'
   stub "$1" npx '10.9.2'
 }
@@ -128,7 +130,7 @@ has '^OK +git 2\.31\.0 \(2\.31 or later\)$' "git exactly at its minimum is not O
 has '^OK +node 22\.12\.0 \(22\.12 or later\)$' "node exactly at its minimum is not OK"
 has '^OK +bash 3\.2\.57 \(3\.2 or later\)$' "bash above its minimum is not OK"
 has '^OK +make 3\.81$' "make, which has no minimum, is not a plain OK line"
-has '^OK +gitleaks 8\.0\.0 \(8\.0\.0 or later\)$' "gitleaks exactly at its minimum, through its version subcommand, is not OK"
+has '^OK +gitleaks 8\.18\.2 \(8\.18\.2 or later\)$' "gitleaks exactly at its minimum, through its version subcommand, is not OK"
 has '^OK +npx 10\.9\.2$' "npx, which has no minimum, is not a plain OK line"
 has '^OK +the POSIX userland: ' "the userland present is not OK"
 lacks '^(WARN|FAIL) ' "every tool present: a WARN or a FAIL line"
@@ -136,7 +138,7 @@ has '^check-prerequisites: 0 FAIL, 0 WARN$' "every tool present: the summary is 
 # A gitleaks from 8.19.0 on answers --version as "gitleaks version <version>".
 gitleaks_stub "${workdir}/case1" 8.30.1 8.19
 run "${workdir}/case1" "${lf_repo}"
-has '^OK +gitleaks 8\.30\.1 \(8\.0\.0 or later\)$' "a gitleaks from 8.19.0 on, through --version, is not OK"
+has '^OK +gitleaks 8\.30\.1 \(8\.18\.2 or later\)$' "a gitleaks from 8.19.0 on, through --version, is not OK"
 # Asked for commitlint's pin, it prints the version its own COMMITLINT line defines, alone.
 pin="$(sed -n 's/^COMMITLINT=//p' "${CHECK}")"
 [[ -n "${pin}" ]] || fail "no COMMITLINT= line read from the check: the extraction is wrong"
@@ -170,13 +172,31 @@ set -e
 [[ ${rc} -eq 0 ]] || fail "--hooks with a make that does not start: expected exit 0, got ${rc}"
 lacks '^(OK|FAIL) +make' "--hooks checked make, which the hooks never run"
 has '^OK +gitleaks ' "--hooks left out gitleaks, which the pre-commit hook runs"
+# gitleaks' minimum is a security minimum: below it, or unread, the scan cannot be trusted.
+# gitleaks_fails <version> <command line> <the FAIL line's pattern> <what it is>
+gitleaks_fails() {
+  good "${workdir}/case2-gitleaks"
+  gitleaks_stub "${workdir}/case2-gitleaks" "$1" "$2"
+  run "${workdir}/case2-gitleaks" "${lf_repo}"
+  [[ ${rc} -eq 1 ]] || fail "$4: expected exit 1, got ${rc}"
+  has "$3" "$4: no FAIL line with where to install it"
+  has '^check-prerequisites: 1 FAIL, 0 WARN$' "$4: the summary is not 1 FAIL, 0 WARN"
+}
+gitleaks_fails 8.18.1 8 \
+  '^FAIL +gitleaks 8\.18\.1 is below 8\.18\.2, the security minimum of .*https://github\.com/gitleaks/gitleaks#installing$' \
+  "gitleaks 8.18.1, just below its security minimum"
+gitleaks_fails 7.6.1 7 '^FAIL +gitleaks 7\.6\.1 is below 8\.18\.2, the security minimum of ' \
+  "gitleaks 7.6.1, read through --version"
+# A scan's log line where the version should be: its timestamp is not read as a version.
+gitleaks_fails '' misread \
+  '^FAIL +gitleaks: its version cannot be read \("time=.*8\.18\.2 or later is the security minimum of .*https://github\.com/gitleaks/gitleaks#installing$' \
+  "gitleaks answering with a log line"
 
 # --- Case 3 — below a minimum, or a version that cannot be read: warnings only -----------------
 good "${workdir}/case3"
 git_stub "${workdir}/case3" 'git version unknown'
 stub "${workdir}/case3" bash 'GNU bash, version 3.1.17(1)-release (x86_64-pc-linux-gnu)'
 stub "${workdir}/case3" node 'v22.9.0'
-gitleaks_stub "${workdir}/case3" 7.6.1 7
 run "${workdir}/case3" "${lf_repo}"
 [[ ${rc} -eq 0 ]] || fail "below a minimum: expected exit 0 (a warning, never a failure), got ${rc}"
 has '^WARN +bash 3\.1\.17 is below 3\.2, needed by .*https://www\.gnu\.org/software/bash/$' \
@@ -184,15 +204,8 @@ has '^WARN +bash 3\.1\.17 is below 3\.2, needed by .*https://www\.gnu\.org/softw
 has '^WARN +node 22\.9\.0 is below 22\.12, needed by ' "node 22.9.0 is not below 22.12: the comparison is not number by number"
 has '^WARN +git: its version cannot be read \("git version unknown"\); 2\.31 or later is needed' \
   "git's version unread: no WARN line"
-has '^WARN +gitleaks 7\.6\.1 is below 8\.0\.0, needed by .*https://github\.com/gitleaks/gitleaks#installing$' \
-  "gitleaks below its minimum: no WARN line with where to install it"
 lacks '^FAIL ' "below a minimum: a FAIL line"
-has '^check-prerequisites: 0 FAIL, 4 WARN$' "below a minimum: the summary is not 0 FAIL, 4 WARN"
-# A scan's log line where the version should be: its timestamp is not read as a version.
-gitleaks_stub "${workdir}/case3" '' misread
-run "${workdir}/case3" "${lf_repo}"
-has '^WARN +gitleaks: its version cannot be read \("time=' \
-  "gitleaks answering with a log line: its timestamp read as a version"
+has '^check-prerequisites: 0 FAIL, 3 WARN$' "below a minimum: the summary is not 0 FAIL, 3 WARN"
 
 # --- Case 4 — the platform, read from uname ------------------------------------------------------
 # platform_is <uname -s> <uname -m> <uname -r> <what the first line must say>
@@ -251,4 +264,4 @@ run "${workdir}/case5" "${outside}"
 has '^SKIP +line ends: not inside a git repository$' "outside a repository: the line ends not said to be unchecked"
 [[ ${rc} -eq 0 ]] || fail "outside a repository: expected exit 0, got ${rc}"
 
-echo "PASS (prerequisite check): every tool run and held against its minimum number by number — a FAIL only for a tool missing or not starting, a WARN below a minimum or for a version unread —, the platform named as verified or not, the line ends warned about only where git would write CRLF."
+echo "PASS (prerequisite check): every tool run and held against its minimum number by number — a FAIL for a tool missing or not starting and for gitleaks below its security minimum or unread, a WARN for any other version below its minimum or unread —, the platform named as verified or not, the line ends warned about only where git would write CRLF."
