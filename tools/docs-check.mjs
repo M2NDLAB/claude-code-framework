@@ -22,7 +22,7 @@
 // test-scripts` runs it here, after its self-test (tools/test-docs-check.sh), and skips
 // both where tools/ is absent. Run it from anywhere inside the repository:
 //   node tools/docs-check.mjs
-// Needs git and Node.js 18 or later; no dependency.
+// Needs git and Node.js — the framework's minimum, 22.12; no dependency.
 
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, statSync } from 'node:fs'

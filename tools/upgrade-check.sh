@@ -35,7 +35,7 @@
 set -u -o pipefail
 
 # What setup copies into a project (SETUP.md, step 1): the payload.
-readonly PAYLOAD_PATHS=(.claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts)
+readonly PAYLOAD_PATHS=(.claude CLAUDE.md Makefile commitlint.config.cjs .gitignore .gitattributes scripts)
 # The slot marker, in both forms: a project grafted before v1.1.0 carries the Italian one.
 readonly MARKER_RE='TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP'
 # A marker broken by a line wrap: what is left at the end of the line.
@@ -66,6 +66,40 @@ readonly GIT_FIXED=(-c color.ui=false -c core.quotePath=false -c diff.external= 
 fw() { git -C "${FW}" "${GIT_FIXED[@]}" "$@"; }
 # Project side: read-only, never refreshing the index.
 pg() { git --no-optional-locks "${GIT_FIXED[@]}" "$@"; }
+# lf <file>: a file of the project, its line ends LF. Git for Windows checks text out with
+# CRLF by default (core.autocrlf=true), and every comparison with the framework's own text,
+# every pattern anchored at a line's end, would see the \r: the project's text is read
+# through here. (git's own reads — hash-object, diff — already convert line ends.)
+lf() { tr -d '\r' < "$1"; }
+# mode_of <path>: the mode the project commits for a file — the filesystem's executable
+# bit where git trusts it; where it does not (core.fileMode false, as on Windows: NTFS keeps
+# no such bit, and Git Bash takes any script with a shebang for executable — measured in
+# the CI), the mode the index holds.
+mode_of() {
+  if [ "$(pg config --type=bool --get core.fileMode 2>/dev/null)" = false ]; then
+    local m
+    m="$(pg ls-files -s -- "$1" | awk '{ print $1; exit }')"
+    printf '%s\n' "${m:-100644}"
+  elif [ -x "$1" ]; then
+    echo 100755
+  else
+    echo 100644
+  fi
+}
+# within <dir> <top>: whether <dir> is <top> or lies below it, compared by identity (-ef),
+# never as strings — on Windows git prints C:/… where Git Bash names the same directory
+# /c/… (measured in the CI on Windows). <dir> is the shell's own path, walked up to /, or
+# to a name dirname cannot shorten: under Cygwin's rules, Git Bash's, `//` is a root too.
+within() {
+  local d="$1" up
+  while :; do
+    [ "${d}" -ef "$2" ] && return 0
+    case "${d}" in /|.|'') return 1 ;; esac
+    up="$(dirname "${d}")"
+    [ "${up}" = "${d}" ] && return 1
+    d="${up}"
+  done
+}
 
 # classify <path>: the class of a payload file, named one by one outside the memory, so
 # that a file added to the payload has NO class until someone decides it (the self-test
@@ -86,7 +120,7 @@ classify() {
     .claude/memory/*) echo PROJECT-MEMORY ;;
     .claude/framework-version) echo GRAFT-STATE ;;
     .claude/settings.local.json | .claude/worktrees/*) echo LOCAL ;;
-    CLAUDE.md | .claude/settings.json | .gitignore | Makefile | scripts/hooks-install.sh | \
+    CLAUDE.md | .claude/settings.json | .gitignore | .gitattributes | Makefile | scripts/hooks-install.sh | \
     .claude/commands/checkpoint.md | .claude/commands/integrate.md | \
     .claude/commands/new-component.md)
       echo HYBRID ;;
@@ -125,14 +159,14 @@ require_tag() {
 
 require_t() {
   [ -n "${T:-}" ] || die "T is not set: a scratch directory outside both repositories (SETUP.md, Precondition)"
-  case "${T}" in /*) ;; *) die "T=${T} must be an absolute path" ;; esac
+  case "${T}" in /* | [A-Za-z]:[/\\]*) ;; *) die "T=${T} must be an absolute path" ;; esac
   [ -d "${T}" ] || die "T=${T} does not exist: create it first (mkdir -p)"
   # The script writes only in T, so T must lie outside both repositories.
   local t_real top
   t_real="$(cd "${T}" && pwd -P)"
   for top in "$(pwd -P)" "$(fw rev-parse --show-toplevel 2>/dev/null)"; do
     [ -n "${top}" ] || continue
-    case "${t_real}/" in "${top}/"*) die "T=${T} is inside a repository (${top}): choose a directory outside both" ;; esac
+    within "${t_real}" "${top}" && die "T=${T} is inside a repository (${top}): choose a directory outside both"
   done
   WORK="${T}/upgrade-check"
   mkdir -p "${WORK}" || die "cannot create ${WORK}"
@@ -142,14 +176,14 @@ require_t() {
 require_project_root() {
   local top common_project common_fw
   top="$(git rev-parse --show-toplevel 2>/dev/null)" || die "not inside a git repository: run it from the project's root"
-  [ "${top}" = "$(pwd -P)" ] || die "run it from the project's root (${top}), not from $(pwd -P)"
+  [ "${top}" -ef "$(pwd -P)" ] || die "run it from the project's root (${top}), not from $(pwd -P)"
   common_project="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"
   case "${common_project}" in
-    /*) ;;
+    /* | [A-Za-z]:[/\\]*) ;;
     *) die "git 2.31 or later is required (rev-parse --path-format)" ;;
   esac
   common_fw="$(fw rev-parse --path-format=absolute --git-common-dir)"
-  [ "${common_project}" != "${common_fw}" ] || die "FW is the project itself: FW must be the framework's clone"
+  if [ "${common_project}" -ef "${common_fw}" ]; then die "FW is the project itself: FW must be the framework's clone"; fi
 }
 
 # payload_files <rev>: the payload at a revision of the framework, one path per line.
@@ -199,10 +233,8 @@ check_own_copy() {
   self="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/$(basename "${BASH_SOURCE[0]}")"
   # A bare FW has no working tree, hence nothing to run from by mistake.
   top="$(fw rev-parse --show-toplevel 2>/dev/null)"
-  if [ -n "${top}" ]; then
-    case "${self}" in
-      "${top}"/*) fail "this copy runs from the framework's working tree (${self}): run the one extracted at ${vy} (SETUP.md, Precondition)" ;;
-    esac
+  if [ -n "${top}" ] && within "$(dirname "${self}")" "${top}"; then
+    fail "this copy runs from the framework's working tree (${self}): run the one extracted at ${vy} (SETUP.md, Precondition)"
   fi
   if fw cat-file -e "${vy}:tools/upgrade-check.sh" 2>/dev/null; then
     fw show "${vy}:tools/upgrade-check.sh" > "${WORK}/own-copy.vy"
@@ -410,7 +442,7 @@ old_labels() {
 # missing_titles <tag> <memory file>: vY's "## " titles the project's file lacks.
 missing_titles() {
   local own="${WORK}/titles.own"
-  grep '^## ' "$2" > "${own}" 2>/dev/null || : > "${own}"
+  { lf "$2" | grep '^## '; } > "${own}" 2>/dev/null || : > "${own}"
   fw show "$1:$2" 2>/dev/null | grep '^## ' | grep -vxF -f "${own}" || true
 }
 
@@ -441,7 +473,7 @@ cmd_inventory() {
     if [ -z "${bx}" ]; then fwst=A; elif [ -z "${by}" ]; then fwst=D; elif [ "${bx}" = "${by}" ]; then fwst="="; else fwst=M; fi
     # LEARNINGS.md: only its header region is the framework's.
     if [ "${class}" = LEARNINGS ]; then
-      header_region "${path}" > "${d}/lrn.mine" 2>/dev/null
+      lf "${path}" 2>/dev/null | header_region /dev/stdin > "${d}/lrn.mine"
       fw show "${vx}:${path}" | header_region /dev/stdin > "${d}/lrn.base"
       fw show "${vy}:${path}" | header_region /dev/stdin > "${d}/lrn.theirs"
       if cmp -s "${d}/lrn.base" "${d}/lrn.theirs"; then fwst="="; else fwst=M; fi
@@ -451,10 +483,11 @@ cmd_inventory() {
       if [ -f "${path}" ]; then
         bp="$(pg hash-object -- "${path}")"
         if [ "${bp}" = "${by}" ]; then prj="=vY"; elif [ "${bp}" = "${bx}" ]; then prj="=vX"; else prj=diverged; fi
+        lf "${path}" > "${d}/mine"
       else
         prj=absent
       fi
-      mine="${path}"; base="${d}/base"; theirs="${d}/theirs"
+      mine="${d}/mine"; base="${d}/base"; theirs="${d}/theirs"
       [ "${fwst}" = M ] && { fw show "${vx}:${path}" > "${base}"; fw show "${vy}:${path}" > "${theirs}"; }
     fi
     measure=""
@@ -483,8 +516,8 @@ cmd_inventory() {
     fi
     if [ -n "${by}" ] && [ -f "${path}" ]; then
       modey="$(mode_at "${vy}" "${path}")"
-      if [ -x "${path}" ]; then modep=100755; else modep=100644; fi
-      [ "${modey}" = "${modep}" ] || check "${path}: ${vy}'s mode is ${modey}, the project's ${modep} (chmod after the copy, Step 3)"
+      modep="$(mode_of "${path}")"
+      [ "${modey}" = "${modep}" ] || check "${path}: ${vy}'s mode is ${modey}, the project's ${modep} (chmod after the copy, on Windows git update-index --chmod: Step 3)"
     fi
   done < "${d}/paths"
   local renames
@@ -675,7 +708,8 @@ cmd_invariant() {
         else
           check "${path}: a memory template that differs from ${vy}'s — fine only for the project's own customisation, kept through the 3-way:"
           fw show "${vy}:${path}" > "${d}/template"
-          show_diff "${d}/template" "${path}"
+          lf "${path}" > "${d}/template.now"
+          show_diff "${d}/template" "${d}/template.now"
         fi
         # A slot answered at the restore point must not be open again: no more markers
         # than vY itself added (none, when vY removed or moved one).
@@ -700,7 +734,7 @@ cmd_invariant() {
             # and the titles and labels renamed by (b). Before the checkpoint, that is all.
             pg show "${restore}:${path}" > "${d}/before.raw" 2>/dev/null
             normalise_format "${d}/before.raw" > "${d}/before"
-            normalise_format "${path}" > "${d}/after"
+            lf "${path}" | normalise_format /dev/stdin > "${d}/after"
             bad="$(pointer_repairs_only "${d}/before" "${d}/after")"
             if [ -z "${bad}" ]; then
               ok "${path}: unchanged but for pointer repairs (edge case 3 (a)) and renamed titles or labels"
@@ -718,7 +752,7 @@ cmd_invariant() {
   if [ ! -f "${f}" ]; then
     info "${f}: absent"
   else
-    header_region "${f}" > "${d}/h.now"
+    lf "${f}" | header_region /dev/stdin > "${d}/h.now"
     fw show "${vy}:${f}" > "${d}/vy.learnings"
     header_region "${d}/vy.learnings" > "${d}/h.vy"
     if cmp -s "${d}/h.now" "${d}/h.vy"; then
@@ -727,7 +761,7 @@ cmd_invariant() {
       check "the header differs from ${vy}'s — fine only for the project's own text, kept through the 3-way:"
       show_diff "${d}/h.vy" "${d}/h.now"
     fi
-    body_region "${f}" > "${d}/b.now"
+    lf "${f}" | body_region /dev/stdin > "${d}/b.now"
     body_region "${d}/vy.learnings" > "${d}/b.vy"
     pg show "${restore}:${f}" 2>/dev/null | body_region /dev/stdin > "${d}/b.before"
     comments_of "${d}/b.now" > "${d}/c.now"
@@ -811,8 +845,8 @@ cmd_post() {
       NONE) fail "no class for ${path}" ;;
     esac
     modey="$(mode_at "${vy}" "${path}")"
-    if [ -x "${path}" ]; then modep=100755; else modep=100644; fi
-    [ "${modey}" = "${modep}" ] || fail "${path}: mode ${modep}, ${vy}'s is ${modey} (chmod, Step 3)"
+    modep="$(mode_of "${path}")"
+    [ "${modey}" = "${modep}" ] || fail "${path}: mode ${modep}, ${vy}'s is ${modey} (chmod, on Windows git update-index --chmod: Step 3)"
   done < "${d}/paths.vy"
   ok "${n_at} METHOD and TEMPLATE files identical to ${vy}'s"
   if grep -nE '^(<<<<<<<|>>>>>>>|\|\|\|\|\|\|\|) ' .claude/memory/LEARNINGS.md > "${d}/conflicts" 2>/dev/null; then
@@ -845,14 +879,14 @@ cmd_post() {
     mx="$(marker_count "${vx}" "${path}")"; my="$(marker_count "${vy}" "${path}")"
     if [ "${my}" -gt "${mx}" ]; then
       check "${vy} added $((my - mx)) slot(s) to ${path}: confirm the project's answer is in place, not the framework's default:"
-      grep -nE -A1 "${MARKER_RE}" "${path}" | sed 's/^/       | /'
+      lf "${path}" | grep -nE -A1 "${MARKER_RE}" | sed 's/^/       | /'
     fi
   done < "${d}/paths.vy"
 
   section "Hooks — every hook of the project's scripts/hooks-install.sh is installed (Step 4)"
   local hooks h n_h=0
   hooks="$(git rev-parse --path-format=absolute --git-common-dir)/hooks"
-  for h in $(sed -n 's/^for hook in \(.*\); do$/\1/p' scripts/hooks-install.sh 2>/dev/null); do
+  for h in $(lf scripts/hooks-install.sh 2>/dev/null | sed -n 's/^for hook in \(.*\); do$/\1/p'); do
     n_h=$((n_h + 1))
     if grep -qF "${HOOK_MARKER}" "${hooks}/${h}" 2>/dev/null; then
       ok "${h} installed, with the generator's marker"

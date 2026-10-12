@@ -7,6 +7,82 @@ SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [1.5.0] — 2026-10-11
+
+### Added
+- **macOS, Linux and Windows, verified by a CI** (IMP-070, points 1-6). The framework
+  repository's own workflow, `.github/workflows/test.yml`, runs `make test-scripts` and
+  the upgrade check's self-test on ubuntu-24.04, macos-26 and windows-2025 at every push:
+  a read-only token, `actions/checkout` pinned by its full commit SHA, named images, GNU
+  make on Windows at a fixed version. It stays in this repository: setup never copies
+  `.github/`. `SETUP.md` §0 gains the matrix of what it verifies — macOS on arm64, Linux
+  and Windows on x64 — and names what it does not.
+- **`.gitattributes` in the payload** (HYBRID): LF line ends for the framework's own paths
+  on every platform, whatever `core.autocrlf` says — bash cannot run a script with CRLF
+  line ends, and Git for Windows checks text out with CRLF by default. The project's other
+  files keep the project's own rules.
+- **The agent git guard reads the PowerShell tool too**, and the tool is kept off.
+  Claude Code's documentation says a PreToolUse hook can match it, and that on Windows
+  with Git Bash a Bash deny rule turns it off silently: `.claude/settings.json` now turns
+  it off on purpose (`CLAUDE_CODE_USE_POWERSHELL_TOOL=0`), since the framework's scripts
+  and hooks are bash; the guard's matcher becomes `Bash|PowerShell|Monitor`, and the guard
+  reads PowerShell's ordinary forms — the backtick escape, script blocks, assignments,
+  here-strings, block comments — and every spelling of git (`git.exe`, `Git`, a Windows
+  path, quoted or not), through Bash too.
+
+### Fixed
+- **`make hooks-install` on Windows.** `hooks-install.sh` refused every repository there:
+  git prints its paths as `C:/…`, Git Bash names the same directory `/c/…`, and the script
+  compared them as strings. It accepts both forms now and compares by identity.
+- **The upgrade check on Windows.** For the same reason it refused to run from the
+  project's root; it now compares the project, the framework's clone and `T` by identity.
+  It reads a file's mode from the index where git does not trust the filesystem
+  (`core.fileMode` false), and its walk up a path ends on a network path too.
+- **The upgrade check on a CRLF checkout.** It read the project's files raw: on a Windows
+  checkout every 3-way of `inventory` measured 100% of its lines in conflict, and
+  `invariant` and `post` reported eleven false FAILs each. It now reads the project's text
+  with its line ends converted, at the nine places where a `\r` changed a verdict or a
+  printed line; a case of its self-test demands the same output from an LF and a CRLF
+  copy of a project.
+- **The upgrade's precondition on Windows** (`SETUP.md`): it compared the same two forms
+  of the project's root as strings and printed STOP every time; it compares them by
+  identity now.
+
+### Changed
+- **The prerequisites name the tools, not a package manager** (`SETUP.md` §0): git 2.31,
+  bash 3.2 with a POSIX userland (on Windows, Git for Windows), GNU make (on Windows,
+  installed apart), gitleaks, Node.js 22.12 — the minimum commitlint's current release
+  imposes, for npx and the guard alike. `hooks-install.sh` points to gitleaks' own
+  installation page. On Windows, step 1 adds the scripts with their executable mode.
+
+**Upgrading from 1.4.1** (from an earlier release, also follow the entries in between —
+Step 2 of the upgrade says how they combine):
+- **Line ends, first — a Windows checkout.** If `git ls-files --eol -- CLAUDE.md` reads
+  the file as w/crlf, the framework's files are CRLF in the working tree: run the first
+  point of Step 3, *Line ends, first* — bring `.gitattributes` over, then the step rewrites
+  the framework's paths, and only them, with LF from the last commit. It refuses,
+  rewriting nothing, while those files differ from that commit, while one carries an
+  `assume-unchanged` or `skip-worktree` mark, and before `.gitattributes` holds them to LF.
+  Measured on a simulated Windows checkout (a clone with `core.autocrlf=true`): 37 of 37
+  framework files with LF afterwards, the project's own files byte for byte as they were,
+  the 3-way merges then clean; each refusal keeps the change and the index.
+- METHOD files — bring them over from the tag: `.claude/docs/04-git-workflow.md`,
+  `scripts/README.md`, `scripts/agent-git-guard.mjs`, `scripts/test-agent-git-guard.sh`,
+  `scripts/test-hooks-install.sh`.
+- HYBRID files (3-way): `.claude/settings.json` (the `env` key
+  `CLAUDE_CODE_USE_POWERSHELL_TOOL` and the matcher), `scripts/hooks-install.sh` (Windows
+  paths; the gitleaks message). `.gitattributes` is new: copy it, or — where the project
+  has one, which `inventory` flags — add `vY`'s lines after the project's own: for the same
+  path, a later line wins.
+- The memory templates and the `LEARNINGS.md` header do not change; nothing migrates.
+- The generated hooks do not change: on macOS and Linux `make hooks-install` is not
+  needed from 1.4.1. On Windows it is — 1.4.1's `hooks-install.sh` refused every
+  repository there, so the hooks were never installed.
+- On Windows, a project grafted there recorded the seven scripts as `100644`: the check
+  now reads the index, and `post` reports each mode. Record them with
+  `git update-index --chmod=+x -- scripts/*.sh scripts/*.mjs`, and commit.
+- Check the machine against `SETUP.md` §0: bash with its userland, GNU make, Node.js 22.12.
+
 ## [1.4.1] — 2026-10-11
 
 ### Fixed

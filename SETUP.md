@@ -5,18 +5,48 @@ Code". Estimated time: 15-30 minutes, most of it spent filling in the technical 
 
 ## 0. Prerequisites
 
+The tools, by name; how to install each one depends on your platform.
+
 - **git 2.31 or later** (the framework is git-centric: branches, per-task commits,
   hooks; `make hooks-install` and the upgrade's checks use `rev-parse --path-format`).
-- **gitleaks** — secret scanning in the hooks. macOS: `brew install gitleaks`.
-- **Node.js, with npx** — for two users with different floors. commitlint (Conventional
-  Commits) runs through npx at its latest release, which declares its own minimum (Node.js
-  22.12 for the 21.x line). The agent git guard, `scripts/agent-git-guard.mjs`, needs
-  14.13.1 or later: without a working `node`, delegated agents lose their Bash tool
-  (fail-closed, `docs/04`) and the main session sees a notice on every call.
+- **bash 3.2 or later, with a POSIX userland** (`awk`, `sed`, `grep`, `find`, `xargs`,
+  `sort`, `diff`, …): the framework's scripts and hooks are bash. macOS and Linux have
+  them; on Windows, Git for Windows brings both with Git Bash, which Claude Code needs too,
+  for its Bash tool and its hooks (*Hardening*, below).
+- **GNU make** — the process targets (`make hooks-install`, `make test-scripts`,
+  `make reset-task`). macOS has it with Xcode's command-line tools, Linux distributions
+  with their build tools; on Windows install it apart: Git for Windows ships none.
+- **gitleaks** (https://github.com/gitleaks/gitleaks) — secret scanning in the
+  pre-commit hook.
+- **Node.js 22.12 or later, with npx.** commitlint (Conventional Commits) runs through npx
+  at its latest release, whose minimum is 22.12 (the 21.x line); the agent git guard,
+  `scripts/agent-git-guard.mjs`, runs on Node.js too: without a working `node`, delegated
+  agents lose their shell tools (fail-closed, `docs/04`) and the main session sees a notice
+  on every call.
 - *(optional)* **tree** — to regenerate `TREE.md`. Fallback: `git ls-files`.
 - *(optional)* **Obsidian** — the `.claude/` directory opens as a vault; the `[[...]]`
   wikilinks become a navigable graph. It is not required: the links work as pointers
   in any editor.
+
+**The platforms verified.** The framework's repository runs `make test-scripts` and the
+upgrade check's self-test at every push, on three GitHub-hosted images — its own
+`.github/workflows/test.yml`, which setup does not copy:
+
+| Platform | Image | bash | Node.js |
+| --- | --- | --- | --- |
+| macOS, arm64 | `macos-26` | 3.2, the system's `/bin/bash` | 24 |
+| Linux, x64 | `ubuntu-24.04` | 5.2 | 22 |
+| Windows, x64 | `windows-2025` | 5.3, Git Bash | 22 |
+
+- The images bring their own tools: the CI installs only GNU make on Windows. The
+  Node.js column is what they carried when v1.5.0 was released; each run's log names
+  every version (its *Versions* step). The minimums in the list above are the tools'
+  own requirements, not runs.
+- On Windows, `core.autocrlf` is `true`, as Git for Windows sets it, and `.gitattributes`
+  keeps the framework's files LF; the hooks' self-test skips its dangling-symlink case,
+  which Git Bash cannot plant.
+- Not verified: WSL, Linux or Windows on arm64, macOS on Intel, other Linux
+  distributions.
 
 ## 1. Copy the template into the new project
 
@@ -26,13 +56,13 @@ Code". Estimated time: 15-30 minutes, most of it spent filling in the technical 
 > present (plus the criterion for a pre-existing `.claude/`).
 
 Copy into the root of the new repo: the `.claude/` directory, `CLAUDE.md`, `Makefile`,
-`commitlint.config.cjs`, `.gitignore`, `scripts/`. (README.md and this SETUP.md you
-may leave out of the final project, or keep them for reference.)
+`commitlint.config.cjs`, `.gitignore`, `.gitattributes`, `scripts/`. (README.md and this
+SETUP.md you may leave out of the final project, or keep them for reference.)
 
-> **`LICENSE`, `CONTRIBUTING.md`, `CHANGELOG.md` and `tools/` are NOT copied.** They are
-> files of the framework repo (its licence, its contribution flow, its history, its own
-> checks): the licence of YOUR project is your own choice ([TO BE DEFINED AT SETUP], Root
-> checklist below).
+> **`LICENSE`, `CONTRIBUTING.md`, `CHANGELOG.md`, `tools/` and `.github/` are NOT copied.**
+> They are files of the framework repo (its licence, its contribution flow, its history,
+> its own checks, its CI): the licence of YOUR project is your own choice
+> ([TO BE DEFINED AT SETUP], Root checklist below).
 > `SECURITY.md`, on the other hand, is a reusable scaffold: you can copy it and fill in
 > its `[TO BE DEFINED AT SETUP]` slots.
 
@@ -59,7 +89,11 @@ matters too: on an annotated tag the bare form returns the tag object's id. (Why
 `${FW:?}` and not `$FW`: see the *Precondition* of *Upgrading the framework*.)
 
 Then: `git init` (if it is not a repo already) and create the integration branch
-(`develop`).
+(`develop`). On Windows git records no executable bit (`core.fileMode` is false there):
+give the scripts theirs as you add them,
+`git add --chmod=+x -- scripts/*.sh scripts/*.mjs`, or they enter the history as `100644` —
+not executable in a teammate's checkout on macOS or Linux, and a mode failure in every
+check of a future upgrade.
 
 ## 2. Fill in the `[TO BE DEFINED AT SETUP]` slots
 
@@ -221,8 +255,17 @@ The method's own layer (`.claude/docs/04-git-workflow.md`, *Enforcement of the e
 boundary*) has a declared threat model: an agent's ACCIDENTAL errors with ordinary
 commands — the kind every real incident was. Deliberate evasion (disabling a hook,
 unsetting the session marker, writing to the forge with the owner's credential) is
-outside it: only the forge's rules or the operating system stop it. Two layers beyond the
-method, neither switched on by the template:
+outside it: only the forge's rules or the operating system stop it.
+
+**On Windows, Git Bash.** The method's layer is wired for the Bash tool, which on Windows
+runs in Git Bash (Git for Windows, a prerequisite); Claude Code runs the hooks there too.
+Its PowerShell tool is kept off by `CLAUDE_CODE_USE_POWERSHELL_TOOL=0` in
+`.claude/settings.json`: with the tool on, Claude takes PowerShell as its primary shell, and
+a `bash` called from PowerShell can be WSL's. A developer who turns it on keeps the guard —
+it reads PowerShell's commands too, in their ordinary forms — and the `pre-push`; the
+`deny` rules, Bash rules, do not reach it.
+
+Two layers beyond the method, neither switched on by the template:
 
 - **Server-side layer — the forge's rules.** They hold for every client and every route
   (git, the forge's CLI, its API), the owner included when no bypass is granted. The
@@ -283,6 +326,7 @@ them:
 |---|---|
 | The host's `README.md` | It is PRESERVED: it is the project's public documentation (the framework's README is not copied anyway, step 1). |
 | `.gitignore` | It is INTEGRATED: add the template's entries (secrets, `settings.local.json`, etc.) to the host's file, do not overwrite it. |
+| `.gitattributes` | It is INTEGRATED: add the template's lines (LF line ends for the framework's paths) AFTER the host's — for the same path a later line wins —, do not overwrite it. |
 | `Makefile` | It is INTEGRATED: add the process targets (`hooks-install`, `reset-task` with its `PROTECTED_BRANCHES` variable, `test-scripts`) to the host's one. |
 | `SECURITY.md` | If the host already has one, it is preserved/integrated; the template's scaffold is only needed if it is missing. |
 | `LICENSE` | The host's stays (the framework's LICENSE is never copied, step 1). |
@@ -406,7 +450,7 @@ makes the framework's own self-test fail:
   `scripts/test-*.sh`, `scripts/README.md`, `commitlint.config.cjs`.
 - **HYBRID** (a framework part that evolves + a project part to preserve, reconciled):
   `CLAUDE.md`, `.claude/settings.json`, `scripts/hooks-install.sh`, `.gitignore`,
-  `Makefile`, and the commands customised at setup (`checkpoint.md`, `integrate.md`,
+  `.gitattributes`, `Makefile`, and the commands customised at setup (`checkpoint.md`, `integrate.md`,
   `new-component.md`).
 - **MEMORY TEMPLATES** (the method's own files inside `.claude/memory/`, reconciled 3-way
   like the hybrids): the four guide READMEs — the `README.md` of `components/`,
@@ -476,7 +520,7 @@ paths once, absolute, and check them (read-only, from the project root):
 FW=/absolute/path/to/the/framework/clone
 T=/absolute/path/to/a/scratch/dir
 mkdir -p "${T:?}"
-: "${FW:?}" && test "$(git rev-parse --show-toplevel)" = "$(pwd -P)" \
+: "${FW:?}" && test "$(git rev-parse --show-toplevel)" -ef "$(pwd -P)" \
   && test -z "$(git -C "${FW:?}" rev-parse --show-prefix)" \
   && test "$(git -C "${FW:?}" rev-parse --path-format=absolute --git-common-dir)" \
        != "$(git rev-parse --path-format=absolute --git-common-dir)" \
@@ -487,12 +531,14 @@ mkdir -p "${T:?}"
 
 The check stops when the current directory is not a repository root, when `FW` is not
 a repository root, when `FW` is the project itself (any of its worktrees), and when `vY`
-is missing in `FW`; `--path-format` needs git 2.31 or later. Why `${FW:?}` and never
-`$FW`: `git -C ""` runs in the CURRENT directory — the project — so an unset `FW`
-silently brings the collision back. A shell that does not keep state between commands
-(an agent's tool calls) restates `FW=`, `T=` and the `cd` to the project root in every
-command: `${FW:?}` turns a forgotten restatement into a loud failure, while a bare
-project-side command run from the wrong directory acts on that directory's repository.
+is missing in `FW` — the root compared by identity (`-ef`): on Windows git prints `C:/…`
+where Git Bash names the same directory `/c/…`; `--path-format` needs git 2.31 or later.
+Why `${FW:?}` and never `$FW`: `git -C ""` runs in the CURRENT directory — the project —
+so an unset `FW` silently brings the collision back. A shell that does not keep state
+between commands (an agent's tool calls) restates `FW=`, `T=` and the `cd` to the
+project root in every command: `${FW:?}` turns a forgotten restatement into a loud
+failure, while a bare project-side command run from the wrong directory acts on that
+directory's repository.
 Inside `$( … )`, `<( … )` or a pipe, a failed `${FW:?}` does not stop the outer
 command: start such a line with `: "${FW:?}" &&`. `vX`/`vY` stay placeholders to
 substitute, as everywhere in this guide: a forgotten one fails loudly
@@ -597,7 +643,7 @@ complementary sources:
 
   ```bash
   git -C "${FW:?}" diff vX vY -- .claude/docs .claude/commands .claude/settings.json \
-    CLAUDE.md scripts Makefile commitlint.config.cjs .gitignore \
+    CLAUDE.md scripts Makefile commitlint.config.cjs .gitignore .gitattributes \
     .claude/memory/components/README.md .claude/memory/decisions/README.md \
     .claude/memory/plans/README.md .claude/memory/sessions/README.md
   ```
@@ -631,6 +677,39 @@ from a hand-written list; the memory's titles and field labels to rename; and th
 
 ### Step 3 — Reconcile by class
 
+- **Line ends, first — a working tree with CRLF.** Where the framework's files carry CRLF
+  in the working tree — `git ls-files --eol -- CLAUDE.md` reads them as w/crlf, as Git
+  for Windows writes them by default (`core.autocrlf` `true`) — every 3-way below would
+  conflict on every line. Before any other change of this step, bring `.gitattributes`
+  over (copied, or integrated after the project's own lines, below), then rewrite the
+  framework's paths, and only them, from the last commit:
+
+  ```bash
+  if [ "$(git check-attr eol -- CLAUDE.md)" != "CLAUDE.md: eol: lf" ]; then
+    echo "refused: no .gitattributes holds the framework's files to LF yet; bring it over first" >&2
+    false
+  elif git ls-files -v -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts | grep -q '^[[:lower:]S] '; then
+    echo "refused: a framework file is marked assume-unchanged or skip-worktree; clear the mark first" >&2
+    false
+  elif ! git diff --quiet HEAD -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts; then
+    echo "refused: the framework's paths carry changes not yet committed; commit them first" >&2
+    false
+  else
+    git rm --cached -r -q -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts \
+      && git checkout HEAD -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts
+  fi
+  ```
+
+  `git checkout HEAD` overwrites what those paths hold, so the step first refuses —
+  rewriting nothing — when their files differ from the last commit, a change staged or
+  not, and when a file carries a mark that hides its changes from `git diff`: with
+  `assume-unchanged` the step erased an edit, with `skip-worktree` `git rm --cached` stopped
+  halfway and left the rest of the framework staged as deleted (both measured). A change
+  only staged, its file back to the commit's text, makes `git rm --cached` refuse by
+  itself. Commit the change, or clear the mark (`git update-index --no-assume-unchanged`,
+  `--no-skip-worktree`), and run the step again. Before `.gitattributes` is in place the
+  step would write CRLF again and look done: it refuses. A plain `git checkout -- <paths>`
+  is not enough: git takes the files for up to date and rewrites nothing.
 - **The strategy, file by file, from the measure** (`inventory`, Step 2). Where a file's
   3-way leaves few lines in conflict, it stays surgical: take it. Where most of a file is
   in conflict — a translation release, a wide rewrite — rebuild it from `vY` and
@@ -649,7 +728,10 @@ from a hand-written list; the memory's titles and field labels to rename; and th
 
   `show` does not carry the file's mode: take it from
   `git -C "${FW:?}" ls-tree vY -- <path>` (`100755` = executable) and `chmod` a new
-  file, or one whose mode `vY` changed, accordingly.
+  file, or one whose mode `vY` changed, accordingly. On Windows, where the filesystem
+  keeps no executable bit and `chmod` changes nothing, the mode lives in the index:
+  `git add --chmod=+x -- <path>` stages the file with it (`git update-index --chmod=+x`
+  for a file already staged).
 - **PROJECT-MEMORY** → do not touch: only the declared commits of edge case 3 enter the
   closed list of Step 5, and `STATE.md`, `TREE.md` and `INDEX.md` never go through a
   3-way.
@@ -675,7 +757,9 @@ from a hand-written list; the memory's titles and field labels to rename; and th
   stack's allow-list, the whole "Technical rules" section of `CLAUDE.md`) — and if `vY`
   MOVED a slot to another file, see edge case 8 before merging either file. `.gitignore`
   is INTEGRATED (additive union: make sure the lines of the `vY` base —
-  `git -C "${FW:?}" show vY:<path>` — are present without removing the project's). The
+  `git -C "${FW:?}" show vY:<path>` — are present without removing the project's), and
+  so is `.gitattributes`, with `vY`'s lines after the project's: for the same path, a
+  later line wins. The
   `Makefile` is NOT: it goes through the 3-way like the other hybrids. A union keeps the
   old and the new recipe of the same target, and `make` then runs both, or warns
   "overriding commands" and runs only the last — measured on v1.3.2's `reset-task`.
@@ -786,10 +870,11 @@ check, and a re-run leaves it alone. Real verification:
   throwaway repository (a push from the session is refused by design: never attempt one).
 - A fake secret blocked by gitleaks, a non-conventional message rejected by commitlint.
 - `make test-scripts` green. It also checks `.claude/settings.json` against the guard:
-  the wiring of `scripts/agent-git-guard.mjs` and the two `ask` rules on the boundary's
-  own files. A failure there means the merged settings lost them — repair the settings,
-  never the test: the self-test (METHOD) and `settings.json` (HYBRID) arrive in the same
-  upgrade and check each other.
+  the wiring of `scripts/agent-git-guard.mjs` on Bash, PowerShell and Monitor, the
+  PowerShell tool kept off (`CLAUDE_CODE_USE_POWERSHELL_TOOL=0`) and the two `ask` rules on
+  the boundary's own files. A failure there means the merged settings lost them — repair
+  the settings, never the test: the self-test (METHOD) and `settings.json` (HYBRID) arrive
+  in the same upgrade and check each other.
 
 The slots `vY` added, removed or MOVED are in `inventory`'s *Markers* section, and a new
 or re-worded item of the §2 checklist in the next one: both derived from the tags. Then
@@ -1015,8 +1100,9 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
 > **Outside the upgrade payload.** `LICENSE`, `CONTRIBUTING.md`, `CHANGELOG.md` are
 > files of the FRAMEWORK REPO (not copied into the project, step 1): do not push them
 > into the project and do not read them from the project — the CHANGELOG is read from
-> the framework, by tag (Step 2). So is `tools/`: the upgrade runs its script from the
-> framework, at `vY` (*Precondition*). `SECURITY.md`, `README.md` and this `SETUP.md` inside
+> the framework, by tag (Step 2). So are `tools/` — the upgrade runs its script from the
+> framework, at `vY` (*Precondition*) — and `.github/`, the framework's own CI.
+> `SECURITY.md`, `README.md` and this `SETUP.md` inside
 > the project are optional/for reference — and be careful **not to overwrite the
 > project's `README.md`** with the framework's. `settings.local.json`
 > (unversioned) stays intact by construction.

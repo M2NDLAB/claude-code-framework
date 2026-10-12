@@ -1,0 +1,3 @@
+# The framework repository's own tools keep LF line ends on every platform: its CI runs these
+# bash scripts on Windows too. The payload's line ends are set at the root.
+* text=auto eol=lf

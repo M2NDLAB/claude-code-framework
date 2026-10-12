@@ -101,7 +101,8 @@ floor() {
 # the check needs anyway); a regex that matches nothing stops the test, never passes it.
 edit() {
   node -e 'const fs = require("fs"); const [f, re, to] = process.argv.slice(1);
-    const s = fs.readFileSync(f, "utf8"); const t = s.replace(new RegExp(re, "gm"), to);
+    // A Windows checkout writes the documents with CRLF: the edit reads them as LF.
+    const s = fs.readFileSync(f, "utf8").replace(/\r\n/g, "\n"); const t = s.replace(new RegExp(re, "gm"), to);
     if (t === s) { console.error(`edit: nothing matches ${re} in ${f}`); process.exit(1) }
     fs.writeFileSync(f, t)' "$1" "$2" "$3" || fail "the test's own edit of $1 matched nothing"
 }
@@ -144,7 +145,7 @@ diff "${workdir}/plain.log" "${out}" >/dev/null || fail "a hostile git configura
 c="$(copy crlf)"
 ( cd "${c}" && git ls-files -z | xargs -0 node -e 'const fs = require("fs");
     for (const f of process.argv.slice(1)) {
-      const b = fs.readFileSync(f); if (!b.includes(0)) fs.writeFileSync(f, b.toString("utf8").replace(/\n/g, "\r\n"))
+      const b = fs.readFileSync(f); if (!b.includes(0)) fs.writeFileSync(f, b.toString("utf8").replace(/\r?\n/g, "\r\n"))
     }' )
 run 0 "${c}"
 diff "${workdir}/plain.log" "${out}" >/dev/null || fail "CRLF line ends change the verdict"
@@ -448,8 +449,8 @@ has 'the header says "four cases"'
 c="$(copy list-setup)"
 edit "${c}/SETUP.md" '`CLAUDE\.md`, `\.claude/settings\.json`, `scripts/hooks-install\.sh`' '`.claude/settings.json`, `scripts/hooks-install.sh`'
 edit "${c}/SETUP.md" 'CLAUDE\.md scripts Makefile commitlint' 'CLAUDE.md scripts commitlint'
-edit "${c}/SETUP.md" '`CHANGELOG\.md` and `tools/` are NOT copied' '`CHANGELOG.md` and the checks are NOT copied'
-edit "${c}/SETUP.md" 'So is `tools/`:' 'So are the checks:'
+edit "${c}/SETUP.md" '`CHANGELOG\.md`, `tools/` and `\.github/` are NOT copied' '`CHANGELOG.md`, the checks and `.github/` are NOT copied'
+edit "${c}/SETUP.md" 'So are `tools/` —' 'So are the checks —'
 edit "${c}/SETUP.md" '\| `## Progress` \|' '| `## Progression` |'
 edit "${c}/SETUP.md" '\| `- Proposal:` \|' '| `- Proposals:` |'
 edit "${c}/.claude/docs/04-git-workflow.md" '`perf`, ' ''
@@ -509,7 +510,7 @@ has "LABEL_TABLE lacks Proposal"
 c="$(copy list-various)"
 edit "${c}/.claude/memory/INDEX.md" 'open / applied / deferred / rejected' 'open / applied / deferred'
 edit "${c}/SETUP.md" 'Its subcommands: `classes` \(the class table, file by file\), ' 'Its subcommands: '
-edit "${c}/SETUP.md" '`commitlint.config.cjs`, `.gitignore`, `scripts/`\.' '`commitlint.config.cjs`, `.gitignore`.'
+edit "${c}/SETUP.md" '`\.gitignore`, `\.gitattributes`, `scripts/`\.' '`.gitignore`, `.gitattributes`.'
 run 1 "${c}"
 nfails 3
 has "the backlog's sections without rejected"

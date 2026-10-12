@@ -1,6 +1,7 @@
 {
   "env": {
-    "AGENT_GIT_BOUNDARY": "1"
+    "AGENT_GIT_BOUNDARY": "1",
+    "CLAUDE_CODE_USE_POWERSHELL_TOOL": "0"
   },
   "permissions": {
     "allow": [
@@ -42,7 +43,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Bash|Monitor",
+        "matcher": "Bash|PowerShell|Monitor",
         "hooks": [
           {
             "type": "command",

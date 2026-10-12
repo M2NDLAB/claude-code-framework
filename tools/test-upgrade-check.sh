@@ -27,7 +27,17 @@
 #      slot shown to a human; an orphan, a wrong mode, a missing hook, a missing METHOD
 #      file, a METHOD file left at vX, conflict markers and a marker broken by a wrap
 #      fail.
-#   6. read-only — the four subcommands run to their end and leave the project and the
+#   6. line ends — the graft, the upgraded memory and the reconciled project, rebuilt in a
+#      copy whose files all have CRLF line ends (core.autocrlf=true: a Windows checkout),
+#      print the very lines they print with LF, for inventory, invariant and post; git
+#      itself confirms each copy's line ends, so the comparison cannot be LF against LF.
+#   7. the line-end step of SETUP.md, Step 3 — read from SETUP.md, run on the project as
+#      Git for Windows checks it out: on a clean tree it leaves no framework file with CRLF
+#      and the project's own files as they were; with a change not yet committed on a
+#      framework file — unstaged, staged, staged only, or hidden from git diff by an
+#      assume-unchanged or skip-worktree mark — it refuses and keeps the change and the
+#      index; before .gitattributes holds the framework's files to LF, it refuses too.
+#   8. read-only — the four subcommands run to their end and leave the project and the
 #      framework exactly as they were (scripts/repo-snapshot.sh, the tracked files, the
 #      index, the config, the hooks).
 # Run it from anywhere: bash tools/test-upgrade-check.sh
@@ -93,6 +103,10 @@ T_DIR="${workdir}/T"
 mkdir -p "${T_DIR}"
 # put <root> <path> <content>: write a file, creating its directory.
 put() { mkdir -p "$(dirname "$1/$2")"; printf '%b' "$3" > "$1/$2"; }
+# set_exec <repo> <path> <+x|-x>: a tracked file's executable bit, where git keeps it — the
+# filesystem's, and the index's, which is the only one on Windows: there chmod changes
+# nothing (measured in the CI). Both, so the fixture means the same on every platform.
+set_exec() { chmod "$3" "$1/$2" && g -C "$1" update-index --chmod="$3" -- "$2"; }
 
 g init -q -b main "${FWD}"
 put "${FWD}" CLAUDE.md '# Index\nStack: [TO BE DEFINED AT SETUP]\nRule A: the framework first wording.\nRule B: unchanged text.\n'
@@ -126,7 +140,7 @@ g -C "${FWD}" commit -q -am "fix: 1.0.1" && g -C "${FWD}" tag -a v1.0.1 -m v1.0.
 put "${FWD}" CLAUDE.md '# Index\nStack: [TO BE DEFINED AT SETUP]\nRule A: the framework second wording.\nRule B: fixed in 1.0.1.\n'
 put "${FWD}" Makefile '# [TO BE DEFINED AT SETUP] the branches reset-task must never touch\nPROTECTED_BRANCHES = main develop\nreset-task:\n\tPROTECTED_BRANCHES="$(PROTECTED_BRANCHES)" bash scripts/reset-task.sh\n'
 put "${FWD}" scripts/reset-task.sh '#!/usr/bin/env bash\nPROTECTED_BRANCHES="${PROTECTED_BRANCHES:-main develop}"\necho reset\n'
-chmod +x "${FWD}/scripts/reset-task.sh"
+set_exec "${FWD}" scripts/reset-task.sh +x
 put "${FWD}" .claude/docs/00-overview.md '# 00\nThe method, revised.\n'
 put "${FWD}" .claude/memory/sessions/README.md 'sessions, second version\nThe plan block of the framework repo.\n'
 put "${FWD}" .claude/memory/STATE.md '# STATE\n\n## Progress\n- template\n\n## Active branches\n- template\n'
@@ -338,7 +352,7 @@ reconciled_state() {
     g -C "${FWD}" show "v1.1.0:${f}" > "${PRJ}/${f}"
   done
   g -C "${FWD}" show v1.1.0:scripts/reset-task.sh > "${PRJ}/scripts/reset-task.sh"
-  chmod +x "${PRJ}/scripts/reset-task.sh"
+  set_exec "${PRJ}" scripts/reset-task.sh +x
   put "${PRJ}" .claude/docs/00-overview.md '# 00\nThe method, revised, our way.\n'
   put "${PRJ}" Makefile '# [TO BE DEFINED AT SETUP] the branches reset-task must never touch\nPROTECTED_BRANCHES = main dev\nreset-task:\n\tPROTECTED_BRANCHES="$(PROTECTED_BRANCHES)" bash scripts/reset-task.sh\n'
   put "${PRJ}" CLAUDE.md '# Index\nStack: bash\nRule A: the project own wording, kept.\nRule B: fixed in 1.0.1.\n'
@@ -371,7 +385,7 @@ has "CHECK  the pin reads 'v1.0.0': Step 6 writes 'version: v1.1.0'"
 break_post "an orphan" "scripts/test-repo-snapshot.sh is an orphan" \
   put "${PRJ}" scripts/test-repo-snapshot.sh 'echo removed in 1.1.0\n'
 break_post "a mode" "scripts/reset-task.sh: mode 100644, v1.1.0's is 100755" \
-  chmod -x "${PRJ}/scripts/reset-task.sh"
+  set_exec "${PRJ}" scripts/reset-task.sh -x
 break_post "a missing hook" "pre-push missing or foreign" \
   rm "${hooks_dir}/pre-push"
 break_post "a missing METHOD file" ".claude/commands/sos.md (METHOD) is missing" \
@@ -385,7 +399,127 @@ break_post "a broken marker" "a marker broken by a line wrap" \
 reconciled_state
 echo "PASS (upgrade-check post): a reconciled project passes; an orphan, a mode, a hook, a missing file and a broken marker fail."
 
-# --- Case 6: read-only ----------------------------------------------------------------
+# --- Case 6: line ends ----------------------------------------------------------------
+# Git for Windows checks text out with CRLF by default (core.autocrlf=true): a project
+# grafted there has every file of the framework with CRLF line ends, and the verdicts must
+# not depend on it.
+# crlf <dir>: every file of a working tree with CRLF line ends, as such a checkout writes
+# them; written in place, so each file keeps its mode.
+crlf() {
+  find "$1" -path "$1/.git" -prune -o -type f -print | while IFS= read -r f; do
+    awk '{ sub(/\r$/, ""); printf "%s\r\n", $0 }' "${f}" > "${workdir}/crlf.tmp"
+    cat "${workdir}/crlf.tmp" > "${f}"
+  done
+}
+# The three states, each from the graft as committed.
+graft_state() { g -C "${PRJ}" checkout -q -- . && g -C "${PRJ}" clean -q -f -d; }
+# The upgraded memory with a guide README of its own, so a template's diff is printed too.
+upgraded_from_graft() {
+  graft_state && upgraded_state \
+    && put "${PRJ}" .claude/memory/sessions/README.md 'sessions, second version, kept our way\nThe plan block of the framework repo.\n'
+}
+reconciled_from_graft() { graft_state && reconciled_state; }
+# eol_count <dir> <eol>: how many of the framework's files have <eol> line ends (lf, crlf)
+# in the working tree, as git reads them (ls-files --eol: w/<eol>). On Windows a grep for
+# $'\r$' counted none in a clone made with core.autocrlf=true (measured in the CI); git
+# reads the bytes themselves.
+eol_count() {
+  ( cd "$1" && g ls-files --eol -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore scripts ) \
+    | awk -v w="w/$2" '$2 == w { n++ } END { print n + 0 }'
+}
+# same_lines <state> <expected rc> <subcommand...>: the state built in a copy of the project
+# with LF line ends and in one with CRLF; the two runs must print the same lines.
+same_lines() {
+  local state="$1" want="$2" lf_project="${PRJ}" v other
+  shift 2
+  for v in lf crlf; do
+    rm -rf "${workdir}/project-${v}"
+    cp -R "${lf_project}" "${workdir}/project-${v}"
+    PRJ="${workdir}/project-${v}"
+    "${state}"
+    if [ "${v}" = crlf ]; then g -C "${PRJ}" config core.autocrlf true && crlf "${PRJ}"; fi
+    # Not vacuous: each copy has the line ends it is named after, and only those.
+    other=crlf; [ "${v}" = lf ] || other=lf
+    [ "$(eol_count "${PRJ}" "${v}")" -gt 0 ] && [ "$(eol_count "${PRJ}" "${other}")" -eq 0 ] \
+      || fail "$1: the ${v} copy does not have ${v} line ends only, as git reads them"
+    FW="${FWD}" T="${T_DIR}" run "${want}" "${PRJ}" "$@"
+    sed "s#${PRJ}#<project>#g" "${out}" > "${workdir}/out.${v}"
+  done
+  PRJ="${lf_project}"
+  diff "${workdir}/out.lf" "${workdir}/out.crlf" > "${workdir}/out.diff" || {
+    cat "${workdir}/out.diff" >&2
+    fail "$1: with CRLF line ends the verdict differs from the one with LF (the diff above)"
+  }
+}
+same_lines graft_state 0 inventory v1.0.0 v1.1.0
+grep -q "3-way: 1 conflict(s)" "${workdir}/out.crlf" || fail "line ends: the inventory measured no 3-way"
+same_lines upgraded_from_graft 0 invariant v1.0.0 v1.1.0 "${RESTORE}"
+grep -q "a memory template that differs from v1.1.0's" "${workdir}/out.crlf" || fail "line ends: invariant printed no template's diff"
+same_lines reconciled_from_graft 0 post v1.0.0 v1.1.0
+grep -q "OK     pre-push installed" "${workdir}/out.crlf" || fail "line ends: post read no hook list"
+grep -q "the pin reads 'v1.0.0'" "${workdir}/out.crlf" || fail "line ends: post read no pin"
+echo "PASS (upgrade-check line ends): with CRLF line ends the graft, the upgraded memory and the reconciled project get the verdicts they get with LF."
+
+# --- Case 7: the line-end step of Step 3 ------------------------------------------------
+# SETUP.md, Step 3, "Line ends, first": on a working tree with CRLF line ends, it rewrites
+# the framework's paths with LF from the last commit — so it must refuse, rewriting
+# nothing, when those paths carry a change not yet committed, and when no .gitattributes
+# holds them to LF yet. The block is READ from SETUP.md, never retyped here.
+step="${workdir}/line-end-step.sh"
+awk '/\*\*Line ends, first/ { f = 1 } f && /^  ```bash$/ { b = 1; next } b && /^  ```$/ { exit } b { sub(/^  /, ""); print }' \
+  "${REPO_ROOT}/SETUP.md" > "${step}"
+[ -s "${step}" ] || fail "line-end step: no bash block under \"Line ends, first\" in SETUP.md"
+# windows_project <name> [without-attributes]: the project as Git for Windows checks it out
+# (a clone with core.autocrlf=true), a file of its own outside the framework's paths, and —
+# unless told otherwise — the framework's .gitattributes brought in, as the step's sentence
+# says.
+windows_project() {
+  g clone -q -c core.autocrlf=true "${PRJ}" "${workdir}/$1"
+  printf 'notes of the project\r\n' > "${workdir}/$1/notes.txt"
+  g -C "${workdir}/$1" add notes.txt && g -C "${workdir}/$1" commit -q -m "docs: the project's own notes"
+  [ "${2:-}" = without-attributes ] || cp "${REPO_ROOT}/.gitattributes" "${workdir}/$1/.gitattributes"
+}
+# run_step <dir>: the step, from the project's root; its exit code in ${rc}.
+run_step() { set +e; ( cd "$1" && bash "${step}" ) > "${out}" 2>&1; rc=$?; set -e; }
+windows_project win-clean
+[ "$(eol_count "${workdir}/win-clean" crlf)" -gt 0 ] || fail "line-end step: the clone has no CRLF framework file to rewrite"
+cksum "${workdir}/win-clean/notes.txt" > "${workdir}/notes.before"
+run_step "${workdir}/win-clean"
+[ "${rc}" -eq 0 ] || fail "line-end step on a clean tree: exit ${rc}"
+[ "$(eol_count "${workdir}/win-clean" crlf)" -eq 0 ] || fail "line-end step: framework files left with CRLF"
+cksum "${workdir}/win-clean/notes.txt" | diff "${workdir}/notes.before" - >/dev/null || fail "line-end step: the project's own file changed"
+# A change not yet committed on a framework file — unstaged; staged; staged only, the
+# working file back to the commit's text; under an assume-unchanged or a skip-worktree mark,
+# where git diff sees nothing: refused every time, the change and the index kept.
+for kind in unstaged staged staged-only assume-unchanged skip-worktree; do
+  windows_project "win-${kind}"
+  w="${workdir}/win-${kind}"
+  case "${kind}" in assume-unchanged | skip-worktree) g -C "${w}" update-index --"${kind}" CLAUDE.md ;; esac
+  printf 'An answer of the project, not yet committed.\r\n' >> "${w}/CLAUDE.md"
+  case "${kind}" in staged*) g -C "${w}" add CLAUDE.md ;; esac
+  [ "${kind}" = staged-only ] && g -C "${w}" show HEAD:CLAUDE.md > "${w}/CLAUDE.md"
+  cksum "${w}/CLAUDE.md" > "${workdir}/claude.before"
+  g -C "${w}" ls-files -s -v > "${workdir}/index.before"
+  before="$(eol_count "${w}" crlf)"
+  run_step "${w}"
+  [ "${rc}" -ne 0 ] || fail "line-end step, a change (${kind}): it ran instead of refusing"
+  cksum "${w}/CLAUDE.md" | diff "${workdir}/claude.before" - >/dev/null || fail "line-end step, a change (${kind}): the change was overwritten"
+  g -C "${w}" ls-files -s -v | diff "${workdir}/index.before" - >/dev/null || fail "line-end step, a change (${kind}): the index changed before the refusal"
+  [ "$(eol_count "${w}" crlf)" -eq "${before}" ] || fail "line-end step, a change (${kind}): files were rewritten before the refusal"
+  case "${kind}" in
+    staged*) g -C "${w}" diff --cached --quiet -- CLAUDE.md && fail "line-end step, a change (${kind}): the staged change was dropped" ;;
+  esac
+done
+# Before .gitattributes is brought over, the step would write CRLF again and look done.
+windows_project win-no-attributes without-attributes
+w="${workdir}/win-no-attributes"
+g -C "${w}" ls-files -s -v > "${workdir}/index.before"
+run_step "${w}"
+[ "${rc}" -ne 0 ] || fail "line-end step without .gitattributes: it ran instead of refusing"
+g -C "${w}" ls-files -s -v | diff "${workdir}/index.before" - >/dev/null || fail "line-end step without .gitattributes: the index changed before the refusal"
+echo "PASS (upgrade-check line-end step): SETUP.md's step leaves no framework file with CRLF and the project's own files untouched; with a change not yet committed — staged or not, or hidden by an assume-unchanged or skip-worktree mark — it refuses and keeps it and the index; before .gitattributes holds the files to LF, it refuses."
+
+# --- Case 8: read-only ----------------------------------------------------------------
 snapshot() {
   bash "${REPO_ROOT}/scripts/repo-snapshot.sh" "$1"
   g -C "$1" --no-optional-locks diff HEAD

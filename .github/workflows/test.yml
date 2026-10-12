@@ -1,0 +1,68 @@
+# The framework's self-tests on the three platforms it supports. This file is the framework
+# repository's own: setup never copies .github/ into a project. Minimal on purpose — it runs
+# what `make test-scripts` and the upgrade check's self-test need, and nothing else.
+name: test
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+# The token only reads: the tests write nowhere but in their own temporary directories.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.os }}
+    # Named images, never -latest: the platforms the documentation names are the ones
+    # verified here, and moving to a new image is a deliberate change.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-26, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    defaults:
+      run:
+        # On Windows this is Git Bash, the shell the framework's scripts and hooks run in.
+        shell: bash
+    steps:
+      # Pinned by its full commit SHA: a tag can be moved, a commit cannot. The full history
+      # and the tags: the documentation check and the self-tests read the releases.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # Git for Windows ships no make, and the framework declares GNU make a prerequisite.
+      - name: GNU make (Windows)
+        if: runner.os == 'Windows'
+        run: choco install make --version=4.4.1 --no-progress -y
+      - name: Versions
+        run: |
+          git --version
+          bash --version | head -n 1
+          node --version
+          make --version | head -n 1
+          awk --version 2>&1 | head -n 1 || true
+          git config --show-origin --get core.autocrlf || echo "core.autocrlf: unset"
+      - name: make test-scripts
+        run: make test-scripts
+      # make stops at the first self-test that fails, which hides the others: after a
+      # failure each one runs on its own, so a single run shows every failure. Skipped
+      # when everything passes.
+      - name: Each self-test on its own (after a failure)
+        if: failure()
+        run: |
+          status=0
+          for t in scripts/test-*.sh tools/test-docs-check.sh; do
+            echo "::group::${t}"
+            bash "${t}" || { status=1; echo "::error::${t} failed"; }
+            echo "::endgroup::"
+          done
+          node tools/docs-check.mjs || status=1
+          exit "${status}"
+      - name: The upgrade check's self-test
+        if: ${{ !cancelled() }}
+        run: bash tools/test-upgrade-check.sh
