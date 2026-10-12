@@ -291,8 +291,82 @@ taken from the green (IMP-084):
   self-test 8 PASS; the guard's "3 CRLF cases whose CR node received" — on the three;
 - Node.js 22.23.3 on Ubuntu and Windows, 24.20.0 on macOS; npx 10.9.9 and 11.19.0.
 
+## The review (task 9) — one reviewer, read-only on git
+One delegated agent with the security mandate on the hooks, over `e281e10..4b3abb9`. Its
+sandbox was made by the main session: a clone at `4b3abb9`, no remote, and a throwaway
+project with the three generated hooks. The repository's snapshot, its tracked files, its
+three hooks and its `.git/config` were identical before and after. The harness refused the
+agent's report file; its findings, 1 HIGH, 2 MEDIUM, 2 LOW, 7 INFO:
+- **HIGH H1, older than this range — a forced colour lets the pre-commit pass a secret.**
+  gitleaks runs `git diff -U0 --no-ext-diff --staged .` without `--no-color`, in every
+  release up to 8.30.1. With `color.ui=always` or `color.diff=always` in the user's config
+  the patch comes coloured, gitleaks parses no file out of it, prints "no leaks found" and
+  exits 0. The one-off `gitleaks detect` of `SETUP.md` scans 0 commits the same way.
+  `tools/test-real-hooks.sh` sets `GIT_CONFIG_GLOBAL=/dev/null`, so the CI cannot see it.
+  Upstream: gitleaks#2281, open, filed against `gitleaks git --pre-commit --staged` too, so
+  IMP-077's switch would not cure it; PR #2284, open. The agent's fix: run gitleaks under
+  `GIT_CONFIG_PARAMETERS="${GIT_CONFIG_PARAMETERS:+${GIT_CONFIG_PARAMETERS} }'color.diff'='never'"`
+  — the last value wins, a `git -c` included, which `GIT_CONFIG_COUNT` would not beat —;
+  the same prefix wherever the method says to run `gitleaks detect`; a fifth real-hook case
+  with `color.ui=always`.
+- **MEDIUM M1 — the declared minimum, 8.0.0, admits releases whose hook is unsafe.** Read
+  at the source over the 107 v8 tags: (a) before 8.18.2 the staged diff has no
+  `--no-ext-diff`, so a `diff.external` (difftastic's documented setup) or a
+  `GIT_EXTERNAL_DIFF` replaces the patch — "no leaks found", exit 0 (gitleaks#1206, open
+  since 2023); Ubuntu 24.04 and Debian 13 ship 8.16.0; (b) 8.0.0 to 8.1.3 write their
+  default config to `<source>/.gitleaks.toml` when none exists, and every later gitleaks
+  then loads it instead of its built-in rules (measured with 8.30.1: a key found without
+  the file, missed with 8.1.3's default there); (c) 8.4.0 to 8.18.1 log a scan error and
+  exit 0 (reasoned). Its fix: the floor 8.18.2, enforced, by the check or the hook. It
+  revisits D1's number, not its choice to keep `protect`.
+- **MEDIUM M2 — the check reads a gitleaks 7.x as `OK gitleaks 2026`.** No 6.x or 7.x
+  has a `version` subcommand: their CLI ignores the word and scans the working directory,
+  the first line a log line with a timestamp, and `version_number` takes the year. With a
+  leak in the working tree it exits 1, and the check says the tool does not start. The
+  self-test's 7.6.1 stub answers `version`, a CLI that never existed: the case passes for
+  the wrong reason. The hook itself fails closed with 7.x (`unknown flag 'staged'`).
+- **LOW L1** — `hooks-install.sh`'s comment says a commitlint release reaches a project
+  only through a framework release; the two packages' own dependencies follow `^21.2.3`.
+- **LOW L2** — the workflow's header and `SETUP.md` §0 say the CI installs only make and
+  gitleaks; `tools/test-real-hooks.sh` makes npx fetch commitlint's tree, unhashed.
+- **INFO** — I1: the pin guard and the documentation check accept `21`, `.` or `1..2`.
+  I2: `core.autocrlf` is read as text, so a bare key or `2`, true for git, reads as not
+  true. I3: a FAIL for any hook tool now leaves a fresh project without the pre-push too —
+  loudly; an upgrade keeps the old hooks. I4: the `USERLAND` comment is wider than its
+  list. I5: the real-hook PASS line names the pin; nothing asserts the version that ran
+  (21.2.3, measured). I6: this repository's own commit-msg hook is still v1.5.0's. I7:
+  gitleaks' releases are unsigned, so the SHA-256 pin is trust on first use.
+- Found sound, by the agent's runs or reading: the pre-commit and pre-push hooks the two
+  installers generate, byte-identical; the commit-msg text, where only the pin expands; the
+  commit-msg failing closed (registry unreachable, offline, npx absent, a pin that does not
+  exist); the pre-commit failing closed (gitleaks absent 127, SIGSEGV 139, a panic 2); the
+  installer's order, nothing written before the check; the check writing nothing and
+  exiting 1 exactly on a FAIL, its comparison right on the edge cases under bash 3.2; the
+  three SHA-256 values equal to the release's checksums file and verified before
+  extraction, only the binary extracted; the test key never whole in a tree, a commit or
+  the CI log; 16 written minimums, 0 FAIL.
+
+**The main session's own checks**, in throwaway repositories under the scratchpad:
+- H1 through a real `git commit`, the hook `4b3abb9` generates, a staged AWS key built at
+  run time: a plain config refuses it ("leaks found: 1"); with `color.ui=always`, with
+  `color.diff=always`, and with `git -c color.ui=always commit` the commit IS created —
+  "scanned ~0 bytes", "no leaks found", exit 0. The same hook with the prefix refuses all
+  three, and `-c color.diff=always` on top of `color.ui=always`; a clean change still
+  passes under `color.ui=always`.
+- M1 at the source, four tags read: v8.0.0's `git/git.go` and v8.18.1's
+  `detect/git/git.go` run `diff -U0 --staged .`; `--no-ext-diff` first in v8.18.2
+  (`sources/git.go`); v8.30.1 still without `--no-color`. v8.0.0's `initConfig`, the one
+  that writes `.gitleaks.toml`, runs from `protect` and `detect` only: the check's
+  `gitleaks version` writes nothing, the hook's `protect` does.
+- gitleaks' root `--version`: from v8.19.0 (the agent's table over the 107 tags);
+  `gitleaks --version` here prints "gitleaks version 8.30.1".
+
+**Pending: the user's decisions** on H1 (its fix in this release) and on M1 (the floor and
+how it is enforced), asked on 2026-10-12 with the gate's verdict to follow.
+
 ## Resumption notes
 - The branch is public since round 1 (`3b0edca`): no commit is rewritten, every fix is a
   new commit. Every commit after `3b0edca` reaches the CI through the next block 0; block 1
   waits for the final run's green on the three jobs.
-- Next: task 9 — ONE reviewer, read-only on git, the snapshot before and after.
+- Next: the user's decisions on H1 and M1; then the review's fixes, each red first, one
+  commit per area; then block 0 for the new state.
