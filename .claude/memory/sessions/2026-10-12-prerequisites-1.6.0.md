@@ -117,7 +117,7 @@ after). Kept from their findings:
   real-hook case builds it at run time.
 
 ## Plan (one commit per task)
-- [ ] 1. The registrations — IMP-079 to IMP-084, IMP-073's occurrence (`7d2052b`), IMP-077 corrected (8.20.0) —, the CI's rounds 6 to 8 at the end of v1.5.0's note, and this note with its plan; then the agent's persistent memory emptied — commit: —
+- [x] 1. The registrations — IMP-079 to IMP-084, IMP-073's occurrence (`7d2052b`), IMP-077 corrected (8.20.0) —, the CI's rounds 6 to 8 at the end of v1.5.0's note, and this note with its plan; then the agent's persistent memory emptied — commit: 598cab8
 - [ ] 2. `scripts/check-prerequisites.sh` and its stub-based self-test, with the lists and documents that name them: the minimums and commitlint's pin at its head, the one place; each tool run (the POSIX userland too), a tool found that does not start fails, below a minimum a warning (a version comparison bash 3.2 runs, no `sort -V`); the platform named; the line-end warning by `git check-attr eol`; D2's hints. Each case red first, a mutant for each detection branch (IMP-072) — commit: —
 - [ ] 3. commitlint at the pin, read from the one place by `hooks-install.sh`; `SETUP.md` §0 no longer says "latest"; a documentation-check rule holds every written minimum and the pin against the one place — commit: —
 - [ ] 4. `hooks-install.sh` runs the check, after its own repository checks and for what the hooks need; its self-test copies the check into its throwaway places, its stubs answer a version — commit: —
@@ -132,6 +132,29 @@ after). Kept from their findings:
 Task 8 may take several commits, one per round of the CI: each round needs the user's
 push. Task 10's applied entries follow `docs/06`'s dedicated commits, so it takes several
 too.
+
+## The prerequisite check (task 2) — RED, then GREEN, then the mutants
+- `scripts/check-prerequisites.sh` runs each tool's version command — `gitleaks version`,
+  the subcommand 8.0.0 already has (its root `--version` came later, both read from the
+  source) —, compares the version number by number in awk (no `sort -V`), and probes the
+  userland on nothing, the same way on GNU and BSD. Run on this Mac, under the system's
+  bash 3.2 too: every tool OK; outside a repository the line ends are SKIP.
+- Two moves from the plan's wording, so that no commit claims what is not yet true
+  (IMP-073): commitlint's pin enters with task 3, where `hooks-install.sh` starts reading
+  it; gitleaks' minimum with task 5, which declares it. Until then the table says Node.js
+  22.12 comes from commitlint's 21.x line, the one npx fetches.
+- The self-test's five cases ran RED against an empty check (its first assertion), GREEN
+  against the real one (11 s here). Then one mutant per detection branch, 24, each
+  changing the script and each killed by the assertion of its own branch: a tool missing,
+  not starting, unreadable or below its minimum turned OK; the comparison made one of
+  strings; the no-minimum branch skipped; the userland's FAIL turned OK, or `cmp` dropped
+  from it; each platform arm and each architecture test; the line ends' SKIP, autocrlf
+  test, check-attr test and warning; the exit status, either way; the version cut to its
+  first number; `gitleaks --version` in place of the subcommand; a stop at the first
+  failure. Two first drafts of the architecture mutants broke the script's syntax — a
+  `.*?fi` that stopped inside "verified" — and were rebuilt before they counted.
+- Not exercised: the carriage return `first_line` strips, should a Windows program end its
+  line with one — no case feeds one; task 6 runs the check on the Windows runner.
 
 ## Resumption notes
 - The branch is local until task 8's first block 0; from then on it is public, and no

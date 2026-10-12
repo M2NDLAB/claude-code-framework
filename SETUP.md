@@ -28,6 +28,14 @@ The tools, by name; how to install each one depends on your platform.
   wikilinks become a navigable graph. It is not required: the links work as pointers
   in any editor.
 
+**Check them** with `bash scripts/check-prerequisites.sh` — without make, from the
+framework's clone or from the project once step 1 has copied `scripts/`. It runs each tool
+above and compares its version with the minimum, names the platform and whether the CI
+below verifies it, and warns when `core.autocrlf` is true and nothing holds the
+framework's files to LF (run from the project's root, it reads the project's). It fails
+only for a tool missing or one that does not start — a version below its minimum is a
+warning — and installs nothing.
+
 **The platforms verified.** The framework's repository runs `make test-scripts` and the
 upgrade check's self-test at every push, on three GitHub-hosted images — its own
 `.github/workflows/test.yml`, which setup does not copy:
@@ -446,8 +454,9 @@ makes the framework's own self-test fail:
 
 - **METHOD** (pure framework, brought to `vY`): `.claude/docs/00-06`, the
   non-customised commands in `.claude/commands/`, `scripts/reset-task.sh`,
-  `scripts/agent-git-guard.mjs`, `scripts/repo-snapshot.sh`, the self-tests
-  `scripts/test-*.sh`, `scripts/README.md`, `commitlint.config.cjs`.
+  `scripts/agent-git-guard.mjs`, `scripts/repo-snapshot.sh`,
+  `scripts/check-prerequisites.sh`, the self-tests `scripts/test-*.sh`,
+  `scripts/README.md`, `commitlint.config.cjs`.
 - **HYBRID** (a framework part that evolves + a project part to preserve, reconciled):
   `CLAUDE.md`, `.claude/settings.json`, `scripts/hooks-install.sh`, `.gitignore`,
   `.gitattributes`, `Makefile`, and the commands customised at setup (`checkpoint.md`, `integrate.md`,

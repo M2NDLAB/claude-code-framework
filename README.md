@@ -97,6 +97,7 @@ plan → execute task by task → [if sensitive] `/security-review` → `/retro`
 │   ├── agent-git-guard.mjs    PreToolUse guard: delegated agents read-only on git
 │   ├── repo-snapshot.sh       before/after fingerprint around delegated agents
 │   ├── reset-task.sh          surgical cleanup of the interrupted task
+│   ├── check-prerequisites.sh the prerequisites: each tool run, its version against its minimum
 │   ├── test-*.sh              hermetic self-tests (make test-scripts)
 │   └── README.md
 └── .claude/

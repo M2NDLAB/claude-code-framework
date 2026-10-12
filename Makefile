@@ -23,10 +23,11 @@ reset-task: ## Discard the interrupted half-done task, preserving branch and com
 
 # The last line runs the framework repository's own documentation check — tools/ is never
 # copied into a project, where the line does nothing.
-test-scripts: ## Self-test of the framework scripts (hooks-install, the agent git guard, repo-snapshot)
+test-scripts: ## Self-test of the framework scripts (hooks-install, the agent git guard, repo-snapshot, the prerequisite check)
 	bash scripts/test-hooks-install.sh
 	bash scripts/test-agent-git-guard.sh
 	bash scripts/test-repo-snapshot.sh
+	bash scripts/test-check-prerequisites.sh
 	@if [ -f tools/docs-check.mjs ]; then bash tools/test-docs-check.sh && node tools/docs-check.mjs; fi
 
 # ============================================================================
