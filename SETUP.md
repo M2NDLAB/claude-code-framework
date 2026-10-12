@@ -19,10 +19,11 @@ The tools, by name; how to install each one depends on your platform.
 - **gitleaks** (https://github.com/gitleaks/gitleaks) — secret scanning in the
   pre-commit hook.
 - **Node.js 22.12 or later, with npx.** commitlint (Conventional Commits) runs through npx
-  at its latest release, whose minimum is 22.12 (the 21.x line); the agent git guard,
-  `scripts/agent-git-guard.mjs`, runs on Node.js too: without a working `node`, delegated
-  agents lose their shell tools (fail-closed, `docs/04`) and the main session sees a notice
-  on every call.
+  at the version `scripts/check-prerequisites.sh` pins — its two packages; their own
+  dependencies follow the ranges they declare —, and that version's `engines` set the
+  minimum. The agent git guard, `scripts/agent-git-guard.mjs`, runs on Node.js too: without
+  a working `node`, delegated agents lose their shell tools (fail-closed, `docs/04`) and the
+  main session sees a notice on every call.
 - *(optional)* **tree** — to regenerate `TREE.md`. Fallback: `git ls-files`.
 - *(optional)* **Obsidian** — the `.claude/` directory opens as a vault; the `[[...]]`
   wikilinks become a navigable graph. It is not required: the links work as pointers

@@ -22,7 +22,7 @@
 // test-scripts` runs it here, after its self-test (tools/test-docs-check.sh), and skips
 // both where tools/ is absent. Run it from anywhere inside the repository:
 //   node tools/docs-check.mjs
-// Needs git and Node.js — the framework's minimum, 22.12; no dependency.
+// Needs git and Node.js 22.12 or later, the framework's minimum; no dependency.
 
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, statSync } from 'node:fs'
@@ -985,7 +985,39 @@ function checkLists() {
   const labelRows = lines(SETUP).slice(lines(SETUP).findIndex((l) => /\| Field label until 1\.0\.0 \|/.test(l))).filter((l) => /^\s*\| `- /.test(l))
   compareSets('list', SETUP, lines(SETUP).findIndex((l) => /\| Field label until 1\.0\.0 \|/.test(l)) + 1, 'the label table', labels, labelsIn(labelRows.map((l) => l.replace(/\\\|/g, '\u0000').split('|')[2].replace(/\u0000/g, '|').replace(/`/g, '')).join('\n')), 'the labels of LEARNINGS.md\'s format comment')
   compareSets('list', UPGRADE_CHECK, 1, 'LABEL_TABLE', labels, labelsIn(table('LABEL_TABLE').join('\n')), 'the labels of LEARNINGS.md\'s format comment')
-  settle('list', `§2 and the slots, the class table at ${plural(TAGS.length, 'tag')}, the copy lists, the counts, the subcommands, the sections, the commit types and the memory's titles and labels`)
+  // The minimums the documents write — "<tool> <version> or later" — and commitlint's pin,
+  // against the one place that defines them. A minimum written by hand fell behind once
+  // (v1.3.3: Node.js 14.13 named for commitlint, whose line needed 22.12). This check's
+  // self-test is skipped: its planted defects are data.
+  const PREREQ = 'scripts/check-prerequisites.sh'
+  const prereqs = new Map((/^PREREQUISITES='([\s\S]*?)'$/m.exec(text(PREREQ))?.[1] ?? '')
+    .split('\n').map((l) => l.split('|')).filter((f) => f.length === 4).map(([tool, min]) => [tool, min]))
+  const pinned = /^COMMITLINT=([\d.]+)$/m.exec(text(PREREQ))?.[1]
+  if (prereqs.size < 5 || !pinned) report('list', PREREQ, 1, `${plural(prereqs.size, 'tool')} and ${pinned ? 'a' : 'no'} commitlint pin read from PREREQUISITES and COMMITLINT: the extraction is wrong`)
+  const TOOL_OF = { git: 'git', bash: 'bash', 'node.js': 'node', gitleaks: 'gitleaks' }
+  const sameVersion = (a, b) => {
+    const x = a.split('.'), y = b.split('.')
+    return Array.from({ length: Math.max(x.length, y.length) }, (_, i) => (+x[i] || 0) === (+y[i] || 0)).every(Boolean)
+  }
+  let written = 0
+  for (const p of PRESENT.filter((f) => f !== 'tools/test-docs-check.sh')) {
+    const mask = presentMask(p)
+    lines(p).forEach((l, i) => {
+      if (!mask[i]) return
+      for (const m of l.matchAll(/\b(git|bash|Node\.js|gitleaks) v?(\d+(?:\.\d+)*) or later\b/gi)) {
+        written++
+        const min = prereqs.get(TOOL_OF[m[1].toLowerCase()])
+        const defined = min && min !== '-' ? min : null
+        if (!defined || !sameVersion(m[2], defined)) report('list', p, i + 1, `"${m[0]}", but the minimum ${PREREQ} defines is ${defined ?? 'none'}`)
+      }
+      for (const m of l.matchAll(/\bcommitlint v?(\d+\.\d+\.\d+)\b/gi)) {
+        written++
+        if (m[1] !== pinned) report('list', p, i + 1, `"${m[0]}", but ${PREREQ} pins ${pinned}`)
+      }
+    })
+  }
+  if (written < 5) report('list', PREREQ, 1, `only ${plural(written, 'written minimum')} found in the documents: the extraction is wrong`)
+  settle('list', `§2 and the slots, the class table at ${plural(TAGS.length, 'tag')}, the copy lists, the counts, the subcommands, the sections, the commit types, the memory's titles and labels, and ${plural(written, 'written minimum')} against ${PREREQ}`)
 }
 
 // --- No Italian residue in the artifacts -------------------------------------------------

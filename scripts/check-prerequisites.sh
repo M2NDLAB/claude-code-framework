@@ -4,6 +4,7 @@
 # named, and the line ends git would give the framework's files looked at.
 #
 #   bash scripts/check-prerequisites.sh
+#   bash scripts/check-prerequisites.sh --commitlint-version   (the pin below, and nothing else)
 #
 # Runnable without make, from the project's root or from the framework's clone: the working
 # directory is the repository whose line ends it reads. It installs NOTHING — installing
@@ -12,25 +13,35 @@
 # tool's own requirement read from its source, not a release run here.
 set -euo pipefail
 
-if [[ $# -ne 0 ]]; then
-  echo "usage: bash scripts/check-prerequisites.sh" >&2
-  exit 2
-fi
-
 # --- The prerequisites, in one place ---------------------------------------------------------
 # One line per tool: its name | its minimum ("-": none) | what needs it | where to install it.
 #   git 2.31    `git rev-parse --path-format`, which hooks-install.sh and the upgrade use
 #   bash 3.2    the oldest bash the framework's scripts are written for (macOS's /bin/bash)
-#   node 22.12  the `engines` of commitlint's 21.x line, which the commit-msg hook runs
-#               through npx; the agent git guard needs less
+#   node 22.12  the `engines` of commitlint at COMMITLINT, below; the agent git guard needs
+#               less
 PREREQUISITES='git|2.31|the hooks and the upgrade (git rev-parse --path-format)|https://git-scm.com/downloads
 bash|3.2|the scripts and the hooks|https://www.gnu.org/software/bash/
 make|-|the process targets (make hooks-install, make test-scripts, make reset-task)|https://www.gnu.org/software/make/
 gitleaks|-|the secret scan of the pre-commit hook|https://github.com/gitleaks/gitleaks#installing
-node|22.12|commitlint (the commit-msg hook) and the agent git guard|https://nodejs.org/en/download
+node|22.12|commitlint at its pin (the commit-msg hook) and the agent git guard|https://nodejs.org/en/download
 npx|-|commitlint, which the commit-msg hook runs|https://nodejs.org/en/download'
+# commitlint, which the commit-msg hook runs through npx: its two packages, @commitlint/cli
+# and @commitlint/config-conventional, at this version — hooks-install.sh reads it from
+# here. Their own dependencies follow the ranges they declare. This version's `engines`
+# require Node.js 22.12.0 or later (the npm registry): the minimum above.
+COMMITLINT=21.2.3
 # The POSIX userland the scripts and the hooks run, beyond bash's builtins.
 USERLAND='awk sed grep find xargs sort diff cmp'
+
+case "$*" in
+  '') ;;
+  --commitlint-version)
+    echo "${COMMITLINT}"
+    exit 0 ;;
+  *)
+    echo "usage: bash scripts/check-prerequisites.sh [--commitlint-version]" >&2
+    exit 2 ;;
+esac
 
 fails=0
 warns=0

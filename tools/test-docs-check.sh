@@ -37,8 +37,9 @@
 #      file without a class (now or at a tag), a class bullet, Step 2's pathspec, what step
 #      1 and the "Outside the upgrade payload" box say is not copied, the counts and
 #      numberings in prose, the sections of the backlog, the subcommands wherever listed,
-#      the copy list, the commit types, the title and label tables: each fails when out of
-#      step, and so does a list the check can no longer find;
+#      the copy list, the commit types, the title and label tables, a minimum or
+#      commitlint's pin written otherwise than the prerequisite check defines it: each fails
+#      when out of step, and so does a list the check can no longer find;
 #   8. language — Italian prose (by its words, or by its accents alone), an Italian file
 #      name, guillemets, an Italian commit message and a legacy form declared but gone
 #      fail; a quote, a legacy form, an accented name and a co-author's trailer do not;
@@ -136,6 +137,7 @@ floor 'N @-imports' 15
 floor 'N cited paths' 300
 floor 'N section titles' 40
 floor 'the class table at N tags' 19
+floor 'N written minimums' 10
 floor 'N text units' 3000
 cp "${out}" "${workdir}/plain.log"
 hostile="${workdir}/hostile.gitconfig"
@@ -516,7 +518,25 @@ nfails 3
 has "the backlog's sections without rejected"
 has '"Its subcommands:" lacks classes'
 has "the copy list lacks scripts"
-echo "PASS (docs-check, lists): §2 and the slots, the class table and its bullets, Step 2, what is not copied, the counts, the sections, the subcommands, the copy list, the types and the format tables fail when out of step."
+c="$(copy list-minimums)"
+edit "${c}/SETUP.md" '\*\*Node\.js 22\.12 or later' '**Node.js 22.11 or later'
+edit "${c}/tools/README.md" 'bash 3\.2 or later' 'bash 3.1 or later'
+edit "${c}/SETUP.md" '^- \*\*gitleaks\*\*' '- **gitleaks 7.0.0 or later**'
+edit "${c}/scripts/README.md" 'Prerequisites \(`check-prerequisites\.sh` checks them\)' 'Prerequisites (commitlint 21.1.0 pinned)'
+# An IMP entry is history: the minimum it wrote then stays.
+edit "${c}/.claude/memory/LEARNINGS.md" 'a dedicated MINOR release, v1\.5\.0, after v1\.4\.1\.' 'a dedicated MINOR release, v1.5.0, after v1.4.1; Node.js 14.13 or later then.'
+run 1 "${c}"
+nfails 4
+has '"Node.js 22.11 or later", but the minimum scripts/check-prerequisites.sh defines is 22.12'
+has '"bash 3.1 or later", but the minimum scripts/check-prerequisites.sh defines is 3.2'
+has '"gitleaks 7.0.0 or later", but the minimum scripts/check-prerequisites.sh defines is'
+has '"commitlint 21.1.0", but scripts/check-prerequisites.sh pins'
+c="$(copy list-minimums-source)"
+edit "${c}/scripts/check-prerequisites.sh" '^COMMITLINT=' 'PINNED='
+run 1 "${c}"
+nfails 1
+has "no commitlint pin read from PREREQUISITES and COMMITLINT: the extraction is wrong"
+echo "PASS (docs-check, lists): §2 and the slots, the class table and its bullets, Step 2, what is not copied, the counts, the sections, the subcommands, the copy list, the types, the format tables and the written minimums fail when out of step."
 
 # --- Case 8: language -----------------------------------------------------------------------
 c="$(copy lang-prose)"

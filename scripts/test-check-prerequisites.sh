@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Self-test of scripts/check-prerequisites.sh. Five cases:
 #   1. every tool present, at or above its minimum: exit 0 and an OK line for each tool the
-#      check lists, a version equal to its minimum included — see "Case 1";
+#      check lists, a version equal to its minimum included; asked for commitlint's pin, it
+#      prints the version it defines — see "Case 1";
 #   2. a tool missing, one installed that does not start, a userland tool missing: exit 1, a
 #      FAIL line for each with where to install it, and the other tools still checked;
 #   3. a version below its minimum — compared number by number: 22.9 is below 22.12 — and one
@@ -119,6 +120,11 @@ has '^OK +npx 10\.9\.2$' "npx, which has no minimum, is not a plain OK line"
 has '^OK +the POSIX userland: ' "the userland present is not OK"
 lacks '^(WARN|FAIL) ' "every tool present: a WARN or a FAIL line"
 has '^check-prerequisites: 0 FAIL, 0 WARN$' "every tool present: the summary is not 0 FAIL, 0 WARN"
+# Asked for commitlint's pin, it prints the version its own COMMITLINT line defines, alone.
+pin="$(sed -n 's/^COMMITLINT=//p' "${CHECK}")"
+[[ -n "${pin}" ]] || fail "no COMMITLINT= line read from the check: the extraction is wrong"
+[[ "$("${BASH}" "${CHECK}" --commitlint-version)" == "${pin}" ]] \
+  || fail "--commitlint-version does not print the pin alone, ${pin}"
 
 # --- Case 2 — a tool missing, one that does not start, a userland tool missing -----------------
 good "${workdir}/case2"

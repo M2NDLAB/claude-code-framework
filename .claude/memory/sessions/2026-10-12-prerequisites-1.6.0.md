@@ -118,7 +118,7 @@ after). Kept from their findings:
 
 ## Plan (one commit per task)
 - [x] 1. The registrations — IMP-079 to IMP-084, IMP-073's occurrence (`7d2052b`), IMP-077 corrected (8.20.0) —, the CI's rounds 6 to 8 at the end of v1.5.0's note, and this note with its plan; then the agent's persistent memory emptied — commit: 598cab8
-- [ ] 2. `scripts/check-prerequisites.sh` and its stub-based self-test, with the lists and documents that name them: the minimums and commitlint's pin at its head, the one place; each tool run (the POSIX userland too), a tool found that does not start fails, below a minimum a warning (a version comparison bash 3.2 runs, no `sort -V`); the platform named; the line-end warning by `git check-attr eol`; D2's hints. Each case red first, a mutant for each detection branch (IMP-072) — commit: —
+- [x] 2. `scripts/check-prerequisites.sh` and its stub-based self-test, with the lists and documents that name them: the minimums and commitlint's pin at its head, the one place; each tool run (the POSIX userland too), a tool found that does not start fails, below a minimum a warning (a version comparison bash 3.2 runs, no `sort -V`); the platform named; the line-end warning by `git check-attr eol`; D2's hints. Each case red first, a mutant for each detection branch (IMP-072) — commit: da54b98 (the pin moved to task 3, see below)
 - [ ] 3. commitlint at the pin, read from the one place by `hooks-install.sh`; `SETUP.md` §0 no longer says "latest"; a documentation-check rule holds every written minimum and the pin against the one place — commit: —
 - [ ] 4. `hooks-install.sh` runs the check, after its own repository checks and for what the hooks need; its self-test copies the check into its throwaway places, its stubs answer a version — commit: —
 - [ ] 5. gitleaks per D1 (B): `protect` stays, 8.0.0 declared; IMP-077 decided, OPEN on its trigger — commit: —
@@ -155,6 +155,29 @@ too.
   `.*?fi` that stopped inside "verified" — and were rebuilt before they counted.
 - Not exercised: the carriage return `first_line` strips, should a Windows program end its
   line with one — no case feeds one; task 6 runs the check on the Windows runner.
+
+## commitlint at the pin (task 3)
+- `COMMITLINT=21.2.3` joins the table of `check-prerequisites.sh`, which prints it alone
+  when asked (`--commitlint-version`); `hooks-install.sh` reads it there and writes it into
+  the commit-msg hook for both packages — a pin it cannot read stops the install. Every
+  throwaway place of `test-hooks-install.sh` gets the check next to the installer, as
+  every copy of `scripts/` has it.
+- The documentation check holds every "<tool> <version> or later" of the present documents
+  — 14 today: `SETUP.md`, the READMEs of `scripts/` and `tools/`, the scripts' messages,
+  `docs-check.mjs`'s own header, reworded into that form — and any "commitlint X.Y.Z"
+  against the table; an IMP entry's body is history and is skipped, and so is the check's
+  own self-test, whose planted defects are data. The answer to an observed defect: v1.3.3's
+  M3.
+- Measured: the generated commit-msg hook run for real, with npx fetching 21.2.3 — a
+  message without a type refused. A conforming one was refused too, by commitlint finding
+  no configuration in that throwaway repository: task 6's real case needs
+  `commitlint.config.cjs` there.
+- Mutants, each run once: the hook written without the pin; the check printing `latest`
+  (`hooks-install.sh` refuses it, the check's self-test sees it); the version comparison
+  always equal; the pin comparison removed; the history mask removed (a planted
+  "Node.js 14.13 or later" in an IMP entry then fails). All five killed; one first draft
+  of the last mutated three lines — the mask idiom is the other rules' too — and was
+  rebuilt on the rule's own line before it counted.
 
 ## Resumption notes
 - The branch is local until task 8's first block 0; from then on it is public, and no
