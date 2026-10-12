@@ -7,7 +7,8 @@
 #      FAIL line for each with where to install it, and the other tools still checked; with
 #      --hooks, a make that does not start is left out — the hooks never run make;
 #   3. a version below its minimum — compared number by number: 22.9 is below 22.12 — and one
-#      that cannot be read: a WARN line each, exit 0;
+#      that cannot be read: a WARN line each, exit 0. gitleaks' version is read as each of its
+#      command lines gives it, and a line that is not a version is not read as one;
 #   4. the platform, read from uname: the three the framework's CI verifies said to be so;
 #      another architecture, WSL, Cygwin and another system said not to be;
 #   5. line ends: core.autocrlf true with nothing holding the framework's files to LF warns;
@@ -73,12 +74,22 @@ git_stub() {
     "'$2'" "${REAL_GIT}" > "$1/git"
   chmod +x "$1/git"
 }
-# gitleaks_stub <dir> <first line>: gitleaks answering its `version` subcommand only, as 8.0.0
-# does — `--version` came later.
+# gitleaks_stub <dir> <version> <command line>: gitleaks as its source shows each of its
+# command lines. 7 — 7.x, go-flags: `--version` prints v<version>; any other word is read as
+# nothing, and `gitleaks version` scans the working directory, its first line a log line
+# with a timestamp (v7.6.1's options.go and scan.go). 8 — 8.0.0 to 8.18.x, cobra: the
+# `version` subcommand only; `--version` is an unknown flag. 8.19 — from 8.19.0: both, and
+# `--version` prints "gitleaks version <version>". misread — the answer the review measured:
+# `--version` refused, and a scan's log line where `version` should print the version.
 gitleaks_stub() {
   mkdir -p "$1"
-  printf '#!/bin/sh\nif [ "$1" = version ]; then echo %s; exit 0; fi\necho "unknown flag: $1" >&2\nexit 1\n' \
-    "'$2'" > "$1/gitleaks"
+  local scan_line='echo "time=\"2026-10-12T21:43:30+02:00\" level=info msg=\"opening .\"" >&2'
+  case "$3" in
+    7) printf '#!/bin/sh\nif [ "$1" = --version ]; then echo v%s; exit 0; fi\n%s\nexit 0\n' "$2" "${scan_line}" ;;
+    8) printf '#!/bin/sh\nif [ "$1" = version ]; then echo %s; exit 0; fi\necho "Error: unknown flag: $1" >&2\nexit 1\n' "$2" ;;
+    8.19) printf '#!/bin/sh\ncase "$1" in --version) echo "gitleaks version %s" ;; version) echo %s ;; *) exit 1 ;; esac\n' "$2" "$2" ;;
+    misread) printf '#!/bin/sh\nif [ "$1" = --version ]; then echo "Error: unknown flag: --version" >&2; exit 1; fi\n%s\nexit 0\n' "${scan_line}" ;;
+  esac > "$1/gitleaks"
   chmod +x "$1/gitleaks"
 }
 # good <dir>: every tool present; git, gitleaks and node exactly at their minimums.
@@ -86,7 +97,7 @@ good() {
   git_stub "$1" 'git version 2.31.0'
   stub "$1" bash 'GNU bash, version 3.2.57(1)-release (arm64-apple-darwin26)'
   stub "$1" make 'GNU Make 3.81'
-  gitleaks_stub "$1" '8.0.0'
+  gitleaks_stub "$1" 8.0.0 8
   stub "$1" node 'v22.12.0'
   stub "$1" npx '10.9.2'
 }
@@ -122,6 +133,10 @@ has '^OK +npx 10\.9\.2$' "npx, which has no minimum, is not a plain OK line"
 has '^OK +the POSIX userland: ' "the userland present is not OK"
 lacks '^(WARN|FAIL) ' "every tool present: a WARN or a FAIL line"
 has '^check-prerequisites: 0 FAIL, 0 WARN$' "every tool present: the summary is not 0 FAIL, 0 WARN"
+# A gitleaks from 8.19.0 on answers --version as "gitleaks version <version>".
+gitleaks_stub "${workdir}/case1" 8.30.1 8.19
+run "${workdir}/case1" "${lf_repo}"
+has '^OK +gitleaks 8\.30\.1 \(8\.0\.0 or later\)$' "a gitleaks from 8.19.0 on, through --version, is not OK"
 # Asked for commitlint's pin, it prints the version its own COMMITLINT line defines, alone.
 pin="$(sed -n 's/^COMMITLINT=//p' "${CHECK}")"
 [[ -n "${pin}" ]] || fail "no COMMITLINT= line read from the check: the extraction is wrong"
@@ -161,7 +176,7 @@ good "${workdir}/case3"
 git_stub "${workdir}/case3" 'git version unknown'
 stub "${workdir}/case3" bash 'GNU bash, version 3.1.17(1)-release (x86_64-pc-linux-gnu)'
 stub "${workdir}/case3" node 'v22.9.0'
-gitleaks_stub "${workdir}/case3" '7.6.1'
+gitleaks_stub "${workdir}/case3" 7.6.1 7
 run "${workdir}/case3" "${lf_repo}"
 [[ ${rc} -eq 0 ]] || fail "below a minimum: expected exit 0 (a warning, never a failure), got ${rc}"
 has '^WARN +bash 3\.1\.17 is below 3\.2, needed by .*https://www\.gnu\.org/software/bash/$' \
@@ -173,6 +188,11 @@ has '^WARN +gitleaks 7\.6\.1 is below 8\.0\.0, needed by .*https://github\.com/g
   "gitleaks below its minimum: no WARN line with where to install it"
 lacks '^FAIL ' "below a minimum: a FAIL line"
 has '^check-prerequisites: 0 FAIL, 4 WARN$' "below a minimum: the summary is not 0 FAIL, 4 WARN"
+# A scan's log line where the version should be: its timestamp is not read as a version.
+gitleaks_stub "${workdir}/case3" '' misread
+run "${workdir}/case3" "${lf_repo}"
+has '^WARN +gitleaks: its version cannot be read \("time=' \
+  "gitleaks answering with a log line: its timestamp read as a version"
 
 # --- Case 4 — the platform, read from uname ------------------------------------------------------
 # platform_is <uname -s> <uname -m> <uname -r> <what the first line must say>

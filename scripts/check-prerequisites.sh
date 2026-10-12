@@ -78,11 +78,25 @@ at_least() {
   }'
 }
 
-# version_of <tool>: the tool's version command — for gitleaks the `version` subcommand, which
-# every 8.x release has (its `--version` came later).
+# version_of <tool>: the tool's version command. gitleaks has two, and before 8.19.0 each
+# release answers only one: `--version` in 7.x, the `version` subcommand from 8.0.0 — a word
+# 7.x reads as no command at all, scanning the working directory instead. So `--version`
+# first, its output kept only when it answers; then `version`.
 version_of() {
-  if [[ "$1" == gitleaks ]]; then gitleaks version; else "$1" --version; fi
+  local out
+  if [[ "$1" != gitleaks ]]; then
+    "$1" --version
+  elif out="$(gitleaks --version 2>/dev/null)"; then
+    printf '%s\n' "${out}"
+  else
+    gitleaks version
+  fi
 }
+
+# A gitleaks version line, and nothing else: "8.30.1" and "v7.6.1" as its version commands
+# print them, "gitleaks version 8.30.1" as `--version` does from 8.19.0. Any other line is
+# not read: a 7.x scan's first line, a log line, holds a timestamp that reads as a number.
+GITLEAKS_VERSION_LINE='^(gitleaks version )?v?[0-9]+(\.[0-9]+)+$'
 
 # check_tool <tool> <minimum> <what needs it> <where to install it>
 check_tool() {
@@ -97,6 +111,9 @@ check_tool() {
   fi
   line="$(first_line "${out}")"
   version="$(version_number "${line}")"
+  if [[ "${tool}" == gitleaks && ! "${line}" =~ ${GITLEAKS_VERSION_LINE} ]]; then
+    version=''
+  fi
   if [[ "${min}" == - ]]; then
     if [[ -n "${version}" ]]; then say OK "${tool} ${version}"; else say OK "${tool} runs"; fi
   elif [[ -z "${version}" ]]; then
