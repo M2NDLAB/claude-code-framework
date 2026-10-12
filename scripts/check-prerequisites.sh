@@ -209,13 +209,13 @@ line_ends() {
     return 0
   fi
   top="$(git rev-parse --show-toplevel)"
-  autocrlf="$(first_line "$(git config --get core.autocrlf 2>/dev/null || true)")"
-  case "${autocrlf}" in
-    [Tt][Rr][Uu][Ee] | [Yy][Ee][Ss] | [Oo][Nn] | 1) ;;
-    *)
-      say OK "line ends: core.autocrlf is not true"
-      return 0 ;;
-  esac
+  # As git reads it: true, yes, on, any number but 0 and the key without a value are true;
+  # input is no boolean — git refuses to read it as one — and is not true.
+  autocrlf="$(first_line "$(git config --type=bool --get core.autocrlf 2>/dev/null || true)")"
+  if [[ "${autocrlf}" != true ]]; then
+    say OK "line ends: core.autocrlf is not true"
+    return 0
+  fi
   eol="$(first_line "$(git -C "${top}" check-attr eol -- CLAUDE.md 2>/dev/null || true)")"
   if [[ "${eol}" == "CLAUDE.md: eol: lf" ]]; then
     say OK "line ends: core.autocrlf is true, and .gitattributes holds the framework's files to LF"

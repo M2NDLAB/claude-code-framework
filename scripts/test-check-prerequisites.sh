@@ -13,9 +13,10 @@
 #      and one that cannot be read: a WARN line each, exit 0;
 #   4. the platform, read from uname: the three the framework's CI verifies said to be so;
 #      another architecture, WSL, Cygwin and another system said not to be;
-#   5. line ends: core.autocrlf true with nothing holding the framework's files to LF warns;
-#      held to LF — read from a subdirectory too —, or core.autocrlf not true, it does not;
-#      outside a repository, not checked.
+#   5. line ends: core.autocrlf true with nothing holding the framework's files to LF warns —
+#      true as git reads it: 2, or the key without a value, too; held to LF — read from a
+#      subdirectory too —, or core.autocrlf not true, input included, it does not; outside a
+#      repository, not checked.
 #
 # HERMETIC: the tools are stubs in a PATH of the test's own, beside wrappers for the real
 # tools the check itself runs — wrappers, not links: Git Bash's `ln -s` copies a binary away
@@ -249,6 +250,27 @@ run "${workdir}/case5" "${crlf_repo}"
 has '^WARN +line ends: core\.autocrlf is true and nothing holds the framework.s files to LF' \
   "core.autocrlf true with nothing holding the framework's files to LF: no WARN line"
 has '^check-prerequisites: 0 FAIL, 1 WARN$' "core.autocrlf true, nothing holding LF: the summary is not 0 FAIL, 1 WARN"
+# True as git reads it, beyond the words: a number other than 0, and the key without a value.
+for value in 2 bare; do
+  odd_repo="${workdir}/autocrlf-${value}"
+  git init -q "${odd_repo}"
+  if [[ ${value} == bare ]]; then
+    printf '[core]\n\tautocrlf\n' >> "${odd_repo}/.git/config"
+  else
+    git -C "${odd_repo}" config core.autocrlf "${value}"
+  fi
+  [[ "$(git -C "${odd_repo}" config --type=bool --get core.autocrlf)" == true ]] \
+    || fail "core.autocrlf ${value}: git does not read it as true, so the case would prove nothing"
+  run "${workdir}/case5" "${odd_repo}"
+  has '^WARN +line ends: core\.autocrlf is true and nothing holds' \
+    "core.autocrlf ${value}, true for git: no WARN line"
+done
+input_repo="${workdir}/autocrlf-input"
+git init -q "${input_repo}"
+git -C "${input_repo}" config core.autocrlf input
+run "${workdir}/case5" "${input_repo}"
+has '^OK +line ends: core\.autocrlf is not true$' "core.autocrlf input: not read as not true"
+[[ ${rc} -eq 0 ]] || fail "core.autocrlf input: expected exit 0, got ${rc}"
 run "${workdir}/case5" "${held_repo}"
 has '^OK +line ends: core\.autocrlf is true, and \.gitattributes holds' \
   "core.autocrlf true with the framework's .gitattributes: no OK line for the line ends"
