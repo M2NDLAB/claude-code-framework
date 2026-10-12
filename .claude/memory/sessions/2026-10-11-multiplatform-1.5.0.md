@@ -587,3 +587,38 @@ Candidate lessons — offered, not recorded: the user decides which become IMPs.
 ## Received for later blocks
 - **v1.6.0** (prerequisites and versions): point 7 of IMP-070, the prerequisite check;
   IMP-076, commitlint pinned or not; IMP-077, `gitleaks git` in place of `protect`.
+
+## After the checkpoint: the CI's rounds 6 to 8, and the merge (appended on 2026-10-12)
+Written in v1.6.0's first commit ([[2026-10-12-prerequisites-1.6.0]]): the branch was frozen
+for the merge, and the user asked for this account there. The note is append-only, so the
+lines above stay; this section supersedes what they say of task 9's range ("five rounds",
+up to `766365a` in the plan, `3d7d16a` in Done), of the last green run (round 5's), and of
+the Verification and the Follow-up.
+- **Round 6** — run 38173900708 on `7cb3bb7`, the final block 0: Ubuntu green (81 s),
+  macOS green (169 s), Windows red (316 s). The guard's self-test stopped at the
+  anti-vacuity check of `766365a`: the `\r` of the check's `$'…'` string did not reach
+  node. The upgrade check's self-test passed its eight cases on Windows, its CRLF copies
+  confirmed by git: the check's tolerance of CRLF line ends, proven there. The product was
+  not at fault — Claude Code hands the guard JSON, where a `\r` is an escape. The user
+  allowed a test-only commit on the frozen branch.
+- **`7d2052b`** — the command sent to node as `od`'s hex dump, on the guess that the pipe
+  to node.exe lost the `\r`. Its message claims more than was measured: an occurrence of
+  IMP-073.
+- **Round 7** — run 38270936385 on `7d2052b`: Ubuntu green (83 s), macOS green (167 s),
+  Windows red (533 s) at the same check, whose diagnostic printed "bash holds x\r as 78":
+  the `\r` was already gone in what od read, so the guess was wrong. The check wrote its
+  `\r` as a literal inside `$(…)`, the CRLF cases through a variable: whether the cases of
+  rounds 3 to 5 carried theirs is NOT established, and by the user's decision it is not
+  investigated further (IMP-084).
+- **`9fa2e9a`**, the user's option B — the CRLF cases written as JSON escapes, the form
+  Claude Code sends, the same on every platform; the anti-vacuity check moved to node
+  itself, a probe in the guard's place on the same wiring; `od` gone.
+- **Round 8** — run 38275935122 on `9fa2e9a`: green on the three — Ubuntu 81 s, macOS
+  177 s, Windows 467 s. On Windows the guard's self-test printed "3 CRLF cases whose CR
+  node received" and reached its end for the first time.
+- **The merge** — `e281e10`, "feat(platforms): merge feat/multiplatform-1.5.0 into main",
+  tagged v1.5.0 (signed), pushed with the remote branch deleted in the same atomic push;
+  the CI on `main` green on the three (run 38279471576). Block 1's rehearsal in a
+  throwaway clone had printed every check but the signature, off there by construction.
+- **Task 9**, then: `6382884` to `3d7d16a` for rounds 1 to 5, then `7d2052b` and `9fa2e9a`
+  — eight rounds.

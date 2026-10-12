@@ -659,6 +659,12 @@ tags: [improvement]
   of it; a commit made before a measurement ends claims nothing about it. The candidate
   place: the Definition of Done of `docs/02`.
 - Expected benefit / risk: no rewrite of history to correct a claim. Risk: none.
+- An occurrence in v1.5.0, recorded on 2026-10-12 ([[2026-10-12-prerequisites-1.6.0]]):
+  `7d2052b`'s message claims more than was measured — "so those greens proved nothing
+  about a \r" (whether the CRLF cases of rounds 3 to 5 carried their `\r` is not
+  established, IMP-084), and a diagnostic that "tells bash apart from what follows it" (it
+  measured bash's printf, the pipe and od together, on the check's path only). The commit
+  was public: the correction is this record.
 
 ### IMP-074 — The bump is fixed by the brief before the content
 - Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — the user's brief; the
@@ -731,12 +737,17 @@ tags: [improvement]
   current documentation: its own pre-commit hook definition (`.pre-commit-hooks.yaml`)
   runs `gitleaks git --pre-commit --redact --staged --verbose`, and 8.30.1's
   `gitleaks git --help` documents `--pre-commit` ("scan using git diff") and `--staged`
-  ("scan staged commits (good for pre-commit)"). The `git` command exists from 8.19.0: the
-  switch makes 8.19.0 gitleaks' minimum, for the prerequisites to state and v1.6.0's
-  prerequisite check to verify.
+  ("scan staged commits (good for pre-commit)"). The switch's minimum, for the
+  prerequisites to state and v1.6.0's prerequisite check to verify, is 8.20.0 (corrected
+  below; first recorded as 8.19.0).
 - Resumption trigger: v1.6.0 (prerequisites and versions).
 - Expected benefit / risk: the hook does not depend on a hidden command. Risk: an older
-  gitleaks (before 8.19.0) stops working with the hook — the prerequisite check catches it.
+  gitleaks (before 8.20.0) stops working with the hook — the prerequisite check catches it.
+- Corrected on 2026-10-12 ([[2026-10-12-prerequisites-1.6.0]]), from gitleaks' source at
+  each tag: `gitleaks git` exists from 8.19.0, but in 8.19.0 to 8.19.3 it ignores
+  `--pre-commit` and `--staged` — it scans the history and misses the staged changes
+  (issue #1522, fixed by #1533 in 8.20.0). `protect --staged` reads the staged diff
+  through its own code in every release from 8.0.0 to 8.30.1, hidden from 8.19.0.
 
 ### IMP-078 — commitlint reads a body line that starts with "word:" as the footer
 - Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — observed four times
@@ -769,6 +780,101 @@ tags: [improvement]
   where a warning was — for a footer typed without its blank line too.
 - A fourth time, at v1.5.0's checkpoint: "projects:" opened a wrapped body line; the
   commit was written again while still local.
+
+### IMP-079 — A parser of another shell's syntax covers the forms it was held against, not the language
+- Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro), recorded at
+  the user's request in [[2026-10-12-prerequisites-1.6.0]]
+- Observed problem: v1.5.0's task 5 taught the guard PowerShell's syntax. Its mutants
+  proved each piece of the reading (8 of 8); none could prove its coverage, and the
+  reviewer got 15 of 19 ordinary forms through — an assignment, a script block, a
+  here-string. IMP-071's shape, a new occurrence: "ordinary forms" claimed against the
+  cases written, not against the language.
+- Proposal: NOT decided. Before a parser of another language's syntax claims a coverage,
+  its cases are held against the language's own list of constructs, the claim's source.
+  IMP-083 pulls the other way — which forms the guard must know at all —: weigh the two
+  together.
+- Expected benefit / risk: a claim of coverage that holds. Risk: more cases to write and
+  keep.
+
+### IMP-080 — A guard against uncommitted changes must see what git hides from its diff
+- Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro), recorded at
+  the user's request in [[2026-10-12-prerequisites-1.6.0]]
+- Observed problem: the line-end step of `SETUP.md` was to refuse a change not yet
+  committed, never erase it (the user's request in v1.5.0). `git diff --quiet HEAD` cannot
+  see an edit behind `assume-unchanged`, nor stop `git rm --cached` halfway on a
+  `skip-worktree` entry. The review found both, the probes measured them, and `4f9f9ef`
+  fixed them with `git ls-files -v`.
+- Proposal: NOT decided. A step that refuses to overwrite uncommitted work reads the
+  index's marks (`git ls-files -v`: a lowercase tag for assume-unchanged, `S` for
+  skip-worktree) as well as the diff. Where to write it — the conventions of the
+  framework's procedures, or `docs/02` — is to be decided.
+- Expected benefit / risk: no step erases what it promised to keep. Risk: none.
+
+### IMP-081 — On Git Bash, git counts line ends, not grep
+- Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro), recorded at
+  the user's request in [[2026-10-12-prerequisites-1.6.0]]
+- Observed problem: in the CI's fourth round a grep for a line-ending `\r` counted no CRLF
+  file on Git Bash; in the fifth, git counted them in the same kind of clone
+  (`core.autocrlf=true`). The red was the test's, not the product's: `b8ccbe0` moved the
+  count to `git ls-files --eol`.
+- Proposal: NOT decided. A test that must know a file's line ends asks git
+  (`git ls-files --eol`) or reads the bytes, never greps for `\r$`. The candidate place:
+  the conventions of the framework's self-tests (`scripts/README.md`, `tools/README.md`).
+- Expected benefit / risk: line-end tests that mean the same on every platform. Risk:
+  none.
+
+### IMP-082 — The whole suite before each commit, the documentation check included
+- Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro), recorded at
+  the user's request in [[2026-10-12-prerequisites-1.6.0]]
+- Observed problem: a prose edit in `SETUP.md` passed the self-test that reads its block and
+  failed the documentation check — caught after the commit, amended while it was still
+  local.
+- Proposal: NOT decided. Before each commit of the framework the whole suite runs —
+  `make test-scripts`, the documentation check included, and the upgrade check's
+  self-test —, not only the self-test of the file touched. The candidate place:
+  `CONTRIBUTING.md`, *This repo's workflow*.
+- Expected benefit / risk: no commit that the CI or the next commit finds red. Risk: a few
+  minutes per commit.
+
+### IMP-083 — The guard grows beyond its threat model
+- Date: 2026-10-12 | Origin: the user's request at v1.5.0's integration (2026-10-11), from
+  [[2026-10-11-multiplatform-1.5.0]]; recorded in [[2026-10-12-prerequisites-1.6.0]]
+- Priority: MEDIUM (user decision, 2026-10-11) — the process block.
+- Observed problem: in v1.5.0 the guard learned non-ordinary PowerShell forms —
+  here-strings, block comments, `${name}` — while the PowerShell tool is off by
+  `CLAUDE_CODE_USE_POWERSHELL_TOOL=0`; v1.3.0's threat model covers an agent's accidental
+  errors made with ordinary commands (`docs/04`, *Enforcement of the execution boundary*).
+  `scripts/agent-git-guard.mjs` counts 234 lines at v1.3.0, 238 at v1.3.1, 239 from v1.3.2
+  to v1.4.1 and 309 at v1.5.0 (`db1fc77` +35 −21, the review's fix `ceac061` +69 −13).
+- Proposal (the user's): at a retro, review each form the guard recognises against that
+  criterion, remove what is not needed, and fix an admission rule for future forms: only
+  forms observed, or ordinary ones. Weigh it with IMP-079, which asks the opposite of a
+  parser's claim of coverage.
+- Expected benefit / risk: a guard as large as its job. Risk: a form removed that a
+  developer with the PowerShell tool on would use — the tool is off by default.
+
+### IMP-084 — A cross-platform test can pass vacuously when its datum does not reach the program under test intact
+- Date: 2026-10-12 | Origin: the CI's rounds 6 to 8 of v1.5.0, in the last section of
+  [[2026-10-11-multiplatform-1.5.0]] — the lesson in the user's words; recorded in
+  [[2026-10-12-prerequisites-1.6.0]]
+- Observed problem: on Windows the guard self-test's anti-vacuity check (`766365a`) failed
+  in round 6 (run 38173900708, on `7cb3bb7`) and in round 7 (run 38270936385, on
+  `7d2052b`): the `\r` of the check's own `$'…'` string did not reach node, nor, in round
+  7, `od`. The guard's CRLF cases had passed on Windows in rounds 3 to 5 through the same
+  transport, but the check wrote its `\r` differently from them — a literal inside `$(…)`,
+  theirs through a variable —, so their own path was never measured: whether those rounds
+  were vacuous is NOT established, and by the user's decision (2026-10-12) it is not
+  investigated further. The user's fix, `9fa2e9a`: the CRLF cases written as JSON escapes,
+  the form Claude Code sends — the test proves the real path, not Git Bash's behaviour, a
+  detail of the test environment —, and the anti-vacuity check moved to node itself, a
+  probe in the guard's place on the same wiring. Round 8 (run 38275935122) was green on
+  the three images.
+- Proposal: NOT decided. IMP-071's family — verify that the check really checked: (a) a
+  cross-platform test feeds its datum in the form the product receives, not in a form a
+  platform's shell must carry intact; (b) its anti-vacuity check looks at the program
+  under test, on the same path as the cases it vouches for. The candidate place:
+  `docs/02`, *Tests that demonstrate*, with IMP-071.
+- Expected benefit / risk: a green that means what it says on every platform. Risk: none.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
