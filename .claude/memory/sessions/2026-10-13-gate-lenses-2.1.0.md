@@ -2,7 +2,7 @@
 date: 2026-10-13
 task: v2.1.0 — the gate's lenses (IMP-056, IMP-058, IMP-059, IMP-071, IMP-073, IMP-084, IMP-087) — two principles, each rule written in one place; hooks-install.sh's message says what it measures
 branch: feat/gate-lenses-2.1.0
-status: in-progress
+status: completed
 model: 'claude-opus-5-5'
 turns: 3
 tags: [session, security-gate, docs, imp, plan]
@@ -116,7 +116,7 @@ tags: [session, security-gate, docs, imp, plan]
 - [x] 9. `hooks-install.sh` says what it measures — the hook differs from the one this version generates —; `scripts/README.md` and `SETUP.md` stop inferring a customisation; a case of its self-test red first — commit: bf3879b
 - [x] 10. The CI's rounds (block 0, the user's pushes): what fails, fixed with new commits, until green on the three — commit: none to fix — round 1 green on `bf3879b` (run 38412448958), recorded with task 11
 - [x] 11. ONE reviewer, read-only on git, the snapshot before and after, applying the two lenses to the framework's payload: HIGHs fixed here, MEDIUMs and LOWs recorded as IMPs, trivial text fixed; the gate's verdict written — commit: b7e3f09, 56099e3, and the record of the review (its own sha cannot be written in it)
-- [ ] 12. `/retro` and `/checkpoint`: the upgrade 2.0.0 → 2.1.0 rehearsed on the final payload — commit: —
+- [x] 12. `/retro` and `/checkpoint`: the upgrade 2.0.0 → 2.1.0 rehearsed on the final payload — commit: the checkpoint (its own sha cannot be written in it)
 - [ ] 13. `/integrate`: the CHANGELOG 2.1.0 entry, claiming only what was measured; the bump computed again against the expected MINOR; the final block 0 green on the three, then blocks 1 and 2 — commit: the CHANGELOG commit (its own sha cannot be written in it)
 
 The applying commits (tasks 2 to 8) each carry their IMP's part of the text and move the
@@ -197,10 +197,36 @@ MEDIUM M1 to M4 accepted as recorded debt by the user's limit for this release, 
 its IMP — M1's and M2's claims, in `docs/03` and `docs/04`, stay wider than the code until
 their IMPs are decided. LOW: four fixed, the rest recorded. INFO recorded.
 
+## Task 12 — the upgrade rehearsed, the retro, the checkpoint
+**The upgrade 2.0.0 → 2.1.0, rehearsed on the final payload** (`8e44a42` and the draft entry,
+committed and tagged v2.1.0 in a clone only; a project grafted at v2.0.0 with every setup
+answer in place, its v2.0.0 hooks installed), with LF and with CRLF line ends, the same
+results on both:
+- the prerequisite check from `T`, 0 FAIL, 0 WARN; `preflight` 0/0; `inventory` 0 FAIL,
+  0 CHECK, the same line for line — `hooks-install.sh` diverged with 0 conflicts of 312
+  lines, the seven METHOD files at `vX` in the project;
+- Step 3: the METHOD files with the tag's modes, the 3-way clean, the project's answers kept;
+- Step 4: `make hooks-install` exit 0 — "pre-push differs from the hook this version
+  generates (another release's, or a local change)", its `.bak` 2.0.0's hook byte for byte;
+  the pre-commit and the commit-msg unchanged, no `.bak`. Refused in the upgraded project: a
+  fake secret, a message without a type, a secret under `git -c color.ui=always`, a private
+  key in a `*.key binary`; no scan directory left; the project's `make test-scripts` green,
+  its new cases 7 and 8 among them;
+- Step 5: `invariant` 0/0; `post` 0/0 once the pin reads v2.1.0. The rehearsal's own script
+  first left the pin's version line at v2.0.0 — its substitution did not match an escaped
+  regex — and was rerun with the line written right.
+
+**The retro.** The applied entries carry their commits and, for the lenses, what their first
+use verified: the review's HIGH and the MEDIUMs its perimeter reached; point 10 narrowed
+three of this release's own messages before their push. IMP-078 gets a sixth occurrence,
+after which each message was checked by a grep before its commit. New: IMP-101 — each new
+case of the hooks' self-test edits two fixtures of the documentation check's.
+
 ## Resumption notes
 - The branch is public since round 1 (`bf3879b`): no commit is rewritten. The last green
   run is round 1's; `9debae4`, `b7e3f09`, `56099e3` and this record reach the CI through the
   next block 0.
-- Next: task 12 — `/retro` and `/checkpoint`, the shas of the seven applied entries written
-  into their headings, the upgrade 2.0.0 → 2.1.0 rehearsed on the final payload (the
-  generated pre-push changes: its comment). Then task 13, the bump computed on the content.
+- Next: task 13 — `/integrate`: the 2.1.0 entry from the scratchpad's
+  `changelog-2.1.0-draft.md`; the bump computed on the content, as the user asked — new
+  rules in the payload, a MINOR, v2.1.0 —, its reasoning declared before the tag; the final
+  block 0 green on the three; then blocks 1 and 2.

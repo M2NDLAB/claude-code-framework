@@ -623,6 +623,9 @@ tags: [improvement]
 - A fifth time, in v2.0.0's review fixes ([[2026-10-12-prerequisites-1.6.0]]): "source:"
   opened a wrapped body line of the breaking commit; written again while still local, as
   `5f05004`.
+- A sixth time, in v2.1.0 ([[2026-10-13-gate-lenses-2.1.0]]): "diff:" opened a wrapped body line of task 3's
+  commit, written again while still local. From then on each message was checked before its
+  commit with a grep for a body line opening with a word and a colon.
 
 ### IMP-079 — A parser of another shell's syntax covers the forms it was held against, not the language
 - Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro), recorded at
@@ -935,6 +938,17 @@ tags: [improvement]
   `YES=1` given on the command line.
 - Expected benefit / risk: a comment that is true, a prompt that cannot be skipped by
   accident. Risk: none.
+
+### IMP-101 — Each new case of the hooks' self-test edits the documentation check's fixtures
+- Date: 2026-10-13 | Origin: v2.1.0's retro — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem: two fixtures of `tools/test-docs-check.sh` plant their defects by editing
+  the literal case count in `scripts/test-hooks-install.sh`'s header ("Six cases:" to "Seven
+  cases:") and expecting a message that names the counts. Every case added to that self-test
+  breaks both: five commits over v2.0.0 and v2.1.0 edited them (`77525a0`, `050b2f5`,
+  `bfd6c90`, `bf3879b`, `b7e3f09`), `050b2f5`'s after the suite ran red.
+- Proposal: NOT decided — the fixtures read the current count from the header and plant
+  count + 1, so a new case touches only the self-test it belongs to.
+- Expected benefit / risk: a new case is one change, not three. Risk: none.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
@@ -2023,7 +2037,7 @@ line on; older entries are not backfilled.
   declare (`^21.2.3`, `yargs ^18.0.0`, …), fetched unhashed — `SETUP.md` §0 and the CI's
   statement say so. Raising the pin is a framework release's decision, and its cost.
 
-### IMP-056 — The security gate checks what the code does, not what the product claims → applied on 2026-10-13
+### IMP-056 — The security gate checks what the code does, not what the product claims → applied on 2026-10-13, commit 4937100
 - Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — a presentation-only
   deliverable, behaviourally clean for both lenses of its review, carried four truth defects
   in what it asserted
@@ -2042,9 +2056,13 @@ line on; older entries are not backfilled.
   from its classification; a deliverable whose product asserts a security property is under
   the gate for that alone, the trigger this entry left open. `/security-review`'s check 11
   recalls it.
+- Verified ([[2026-10-13-gate-lenses-2.1.0]]): the lens's first use, v2.1.0's review of the whole payload,
+  found the hooks' coverage claimed wider than it is — the release's HIGH, fixed in
+  `b7e3f09` — and two MEDIUMs whose claims stay wider than the code, recorded as IMP-091 and
+  IMP-092; the main session measured the HIGH.
 - Uncovered: the lens is a discipline of reading; no mechanical check holds it.
 
-### IMP-058 — Widening a claim beyond the diff widens the gate's perimeter → applied on 2026-10-13
+### IMP-058 — Widening a claim beyond the diff widens the gate's perimeter → applied on 2026-10-13, commit b9b003f
 - Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — a small fix attested
   as verified a claim over a whole registry, four entries of which were false
 - Observed problem (condensed): the gate was the diff's — `docs/03` ran `/security-review`
@@ -2058,9 +2076,12 @@ line on; older entries are not backfilled.
 - Applied in v2.1.0 ([[2026-10-13-gate-lenses-2.1.0]]): the claims lens of `docs/03` sets
   the perimeter at the claim, not the diff — from these N to all, a list of exceptions that
   disappears, a range of versions —; the gate's first step points at it.
+- Verified ([[2026-10-13-gate-lenses-2.1.0]]): in the review's first use of the lenses, the perimeter took it
+  beyond the diff — the HIGH lay in `docs/04`'s table and in the installer's install-time
+  check, neither touched by the release.
 - Uncovered: telling a widened claim from a narrow one stays a reading; no check finds it.
 
-### IMP-073 — Write the record after the last measurement → applied on 2026-10-13
+### IMP-073 — Write the record after the last measurement → applied on 2026-10-13, commit 2f13de1
 - Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at the
   user's request in [[2026-10-11-multiplatform-1.5.0]]
 - Observed problem (condensed): records claimed results ahead of their measurement, or
@@ -2075,10 +2096,13 @@ line on; older entries are not backfilled.
 - Applied in v2.1.0 ([[2026-10-13-gate-lenses-2.1.0]]): the Definition of Done's point 10 —
   a commit message, a changelog entry, an applied IMP's Verified part is written after the
   last measurement it cites.
+- Verified ([[2026-10-13-gate-lenses-2.1.0]]): applied to this release's own commits before their push, the
+  point narrowed three messages — a time ("a month before" for sixteen days), an attribution,
+  a clause about work not yet done —, each amended while still local.
 - Uncovered: a public commit that claims too much stays as it is; its correction is a record,
   as the occurrences were.
 
-### IMP-071 — A claim of coverage is a list that declares itself complete → applied on 2026-10-13
+### IMP-071 — A claim of coverage is a list that declares itself complete → applied on 2026-10-13, commit 1278bf2
 - Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at the
   user's request in [[2026-10-11-multiplatform-1.5.0]]
 - Observed problem (condensed): "Every rule the check advertises has its defect here", the
@@ -2092,7 +2116,7 @@ line on; older entries are not backfilled.
   against its source, as IMP-068's check does, or narrowed to what was measured.
 - Uncovered: a list no program can extract stays a reading, IMP-068's own limit.
 
-### IMP-059 — Gating an external tool's invocation is not enough: check what the tool runs by itself → applied on 2026-10-13
+### IMP-059 — Gating an external tool's invocation is not enough: check what the tool runs by itself → applied on 2026-10-13, commit 9575569
 - Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — a dry-run gate that
   looked closed while the gated tool kept updating itself
 - Observed problem (condensed): a gate on a tool's invocation left open what the tool does by
@@ -2111,10 +2135,15 @@ line on; older entries are not backfilled.
   source or in its documentation; each such path closed by the tool's off-switch,
   compensated, or declared as a known limit. `/security-review`'s check 11 recalls both
   lenses.
+- Verified ([[2026-10-13-gate-lenses-2.1.0]]): the lens's first use found a hook manager that takes
+  `core.hooksPath` back after the install — husky, at every `npm install` — and, among the
+  findings recorded, Claude Code's own extension points, the tools outside the guard's
+  matcher, a clean filter and gitleaks' type sniff (IMP-090, IMP-092, IMP-093, IMP-095,
+  IMP-096).
 - Uncovered: a behaviour neither documented nor read at the source stays unseen, and a new
   release of the tool can add one.
 
-### IMP-087 — A hermetic test cannot see the defects the user's configuration causes → applied on 2026-10-13
+### IMP-087 — A hermetic test cannot see the defects the user's configuration causes → applied on 2026-10-13, commit a6f6463
 - Date: 2026-10-13 | Origin: the review of v2.0.0, its HIGH H1, and the main session's
   measures of its family — [[2026-10-12-prerequisites-1.6.0]] (the retro)
 - Observed problem (condensed): the real-hook test emptied the git configuration for
@@ -2131,7 +2160,7 @@ line on; older entries are not backfilled.
 - Uncovered: the configurations users have are open-ended; the cases stay those observed,
   or read at the tool's source.
 
-### IMP-084 — A cross-platform test can pass vacuously when its datum does not reach the program under test intact → applied on 2026-10-13
+### IMP-084 — A cross-platform test can pass vacuously when its datum does not reach the program under test intact → applied on 2026-10-13, commit d35fc6c
 - Date: 2026-10-12 | Origin: the CI's rounds 6 to 8 of v1.5.0, in the last section of
   [[2026-10-11-multiplatform-1.5.0]] — the lesson in the user's words; recorded in
   [[2026-10-12-prerequisites-1.6.0]]
