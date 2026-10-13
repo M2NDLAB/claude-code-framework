@@ -91,7 +91,7 @@ tags: [session, retro, imp, plan, security-gate]
 - [x] 1. The retro's registrations — the 45 outcomes in `LEARNINGS.md`, IMP-102 and IMP-103, what the user verified on the two projects — and this note with its plan — commit: 5ddaa56
 - [x] 2. `/integrate` and the cycle's close: apply IMP-102 (the recovery block produced only after a failed check is reported; `docs/04`'s rule 3), IMP-074 (the bump computed on the content), IMP-051 (the reconciliation after a merge is the next deliverable's first step) — commit: 2d82446, a25e17e, 8c58dc0
 - [x] 3. Resumption: apply IMP-094 (`reset-task.sh`: the fix, a self-test red first, `docs/01`'s manual form) and IMP-052 (verify before continuing) — commit: 2cb04dd, 14d09fc
-- [x] 4. Process: apply IMP-053 (the gate's verdict always written), IMP-057 (an invariant over a known debt), IMP-060 with IMP-063 (delegation), IMP-078 (a body line read as the footer), IMP-103 (a LOW finding declared as a limit) — commit: 8cf45b1, 3bfc446, 85c7fbe, c62e58d, and IMP-103's (its own sha cannot be written in it)
+- [x] 4. Process: apply IMP-053 (the gate's verdict always written), IMP-057 (an invariant over a known debt), IMP-060 with IMP-063 (delegation), IMP-078 (a body line read as the footer), IMP-103 (a LOW finding declared as a limit) — commit: 8cf45b1, 3bfc446, 85c7fbe, c62e58d, 29cccab
 - [ ] 5. Harvest: apply IMP-061 (the source note's date in the block; each lesson counted once at recording) — commit: —
 - [ ] 6. The boundary's claims: apply IMP-092 with IMP-093 and IMP-097's IDE terminal, IMP-083 with IMP-079, IMP-075 with IMP-065 — commit: —
 - [ ] 7. `SETUP.md`: apply IMP-091 (the scan's known limits, IMP-095's and IMP-096's with them) and IMP-085 (the framework's files out of deploy artifacts) — commit: —

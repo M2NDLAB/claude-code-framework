@@ -297,7 +297,8 @@ the README's *Philosophy*.
 In practice: mark those IMPs with the line `- Destination: framework` (IMP format in
 the format comment of `LEARNINGS.md`), then run `/harvest-framework` — it collects the
 marked entries and prints a copyable block for them, ready to be anonymised and
-re-proposed as an IMP in the framework repo (`CONTRIBUTING.md`). The command only reads and
+re-proposed in the framework repo (`CONTRIBUTING.md`), where a lesson already received
+counts once. The command only reads and
 prints: the transfer stays your explicit gesture. Details in
 `.claude/docs/06-self-improvement.md`, *"The bridge to the framework"*.
 

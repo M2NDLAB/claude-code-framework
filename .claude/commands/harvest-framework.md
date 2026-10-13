@@ -33,7 +33,11 @@ project's backlog and only SOME IMPs are framework-bound: those are the ones it 
    - with `$ARGUMENTS`: narrow to the given criterion (a specific IMP `IMP-nnn`, a
      date/session, a section). Interpret `$ARGUMENTS` as a filter on the entries found.
 3. For each entry in the perimeter, read the body of the IMP in `LEARNINGS.md` and collect:
-   number and title, Origin, Observed problem, Proposal, Benefit/risk.
+   number and title, Origin, Observed problem, Proposal, Benefit/risk — and the date of the
+   session note its Origin cites: the date at the start of the note's name, never the name
+   itself, whose slug can name the project; the first note's when it cites several, the
+   entry's own Date when it cites none. The number and that date let the framework count the
+   lesson once.
 
 ## 3. Anti-vacuity (mandatory)
 If NO IMP is marked `Destination: framework` in the chosen perimeter: do NOT print an
@@ -49,31 +53,32 @@ ANONYMISED: no name of this project/client/environment, no project-specific
 path, no local SHA, no `[[wikilink]]` to a local session note (docs/04: the shared
 history of the framework is agnostic). Rephrase "Origin" in generic terms ("emerged
 while working on a project that uses the framework"), never with the identity of the
-project.
+project. The entry's number and its source note's date stay, still anonymous.
 
 ```
 ===== FRAMEWORK HARVEST =====
 # Re-propose each entry as an IMP in the framework repo (the number and the Origin's
-# [[session note]] are assigned there).
+# [[session note]] are assigned there) — or, when the framework already holds it (the
+# same entry and date), as evidence on that entry.
 # BEFORE pasting: check that NO names/paths/SHAs of this project are left.
 
-### <title of the lesson>              (was IMP-<nnn> in this project)
+### <title of the lesson>              (was IMP-<nnn> in this project, <YYYY-MM-DD>)
 - Origin: <generic and anonymous context>
 - Observed problem: <...>
 - Proposal: <what to change IN the framework: CLAUDE.md / docs/NN / command / hook / process>
 - Expected benefit / risk: <...>
 
-### <title of the next lesson>         (was IMP-<nnn> in this project)
+### <title of the next lesson>         (was IMP-<nnn> in this project, <YYYY-MM-DD>)
 - ...
 ===== END OF HARVEST =====
 ```
 
 ## 5. Close
-- Recall that the next step is HUMAN: open the framework repo and register the
-  entries as IMP proposals (the framework's `CONTRIBUTING.md`), one by one, after
-  re-checking the anonymisation.
+- Recall that the next step is HUMAN: open the framework repo and register each entry —
+  a new proposal, or evidence on the one it repeats (the framework's `CONTRIBUTING.md`) —,
+  one by one, after re-checking the anonymisation.
 - Do NOT mark anything as "already carried upstream" and do NOT modify `LEARNINGS.md`: the
-  command does not mutate state. De-duplication between successive harvests is human
-  curation — to avoid raking up again the lessons already carried upstream, narrow with
-  `$ARGUMENTS` (e.g. to a date) or annotate by hand the entries already carried upstream.
+  command does not mutate state. A lesson harvested twice is counted once by the
+  framework, at recording time, from its number and date; to print less, narrow with
+  `$ARGUMENTS` (e.g. to a date).
 - Then STOP.

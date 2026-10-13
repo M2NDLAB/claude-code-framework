@@ -23,42 +23,6 @@ tags: [improvement]
 
 ## OPEN proposals (awaiting the user's decision)
 
-### IMP-061 — `/harvest-framework` re-prints entries already carried upstream: double counts at recording time
-- Date: 2026-09-27 | Origin: [[2026-09-26-client-harvest-registration]] — recording a
-  client project's harvest, re-harvested lessons were counted twice until the pre-commit
-  review caught it
-- Observed problem: `/harvest-framework` prints EVERY entry marked
-  `Destination: framework`, in any section (step 2: the default perimeter is the whole
-  backlog), whether or not it was already carried upstream, and by design it marks
-  nothing (step 5): de-duplication is left to human curation (narrow with `$ARGUMENTS`,
-  or annotate by hand). The printed block carries no provenance the framework can match
-  against what it already recorded: the Origin is anonymised to a generic context. In
-  the recording of 2026-09-26, seven of the fifteen harvested entries repeated, in whole
-  or in part, lessons already relayed on 2026-09-24 from the same upgrade session;
-  nothing in the block said so, and the draft counted three of them as "independent" or
-  "second" occurrences — a double count the retro would have inherited — until the
-  review caught it ([[2026-09-26-client-harvest-registration]], *Retro* and *Problems
-  encountered*, 3). That client's backlog already holds more marked entries than the
-  fifteen: a default harvest there re-prints the fifteen with them, unless the human
-  narrows it or has annotated them.
-- Proposal: NOT decided here (retro). Directions raised in the origin note, to evaluate:
-  (a) a "carried upstream" mark on the client's entry (e.g. a line added by the human
-  after the transfer, which the default perimeter then skips — the command itself stays
-  read-only, IMP-033's boundary); (b) a matchable provenance in the printed block (the
-  source session's date, the client's entry number), still anonymous; (c) on the
-  framework side, a "count once" check at recording time against the lessons already
-  recorded — practised by hand on 2026-09-26, written nowhere.
-- Expected benefit / risk: a re-harvested lesson is recognised as such, so the retro
-  weighs each lesson once. Risk: (a) adds a line to the IMP format, a backlog-format
-  change that reaches client projects only through the upgrade — and the format comment
-  of `LEARNINGS.md` sits under IMP-046's contradiction; (b) must stay anonymous
-  (`docs/04`, shared history).
-- Status: APPROVED on 2026-10-13 (the retro over the backlog) — for v2.2.0, directions (b)
-  and (c): the printed block already names the client's entry ("was IMP-nnn") and adds the
-  source note's date, still anonymous; the framework counts each lesson once at recording
-  time. No line is added to a client's entries, so the format of its `LEARNINGS.md` does not
-  change. From this cycle on the harvest is the framework's only source of lessons.
-
 ### IMP-075 — Auto mode and the framework's boundaries
 - Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — the user ran
   `/auto-mode-setup` on 2026-10-11
@@ -1716,6 +1680,24 @@ line on; older entries are not backfilled.
   the process still becomes one. `/security-review`'s closing line follows. `CLAUDE.md`'s
   rule 8, "LOW at least recorded", stays true of a declared limit and is not touched.
 - Verified: the documentation check passes.
+
+### IMP-061 — `/harvest-framework` re-prints entries already carried upstream: double counts at recording time → applied on 2026-10-14
+- Origin: [[2026-09-26-client-harvest-registration]] — `/harvest-framework` prints every
+  marked entry, carried upstream or not, with no provenance the framework could match: in
+  the recording of 2026-09-26, seven of fifteen harvested entries repeated lessons relayed
+  two days before, and the draft counted three of them as independent occurrences until the
+  review caught it.
+- Applied (directions (b) and (c)): the command collects, beside the entry's number, the
+  date of the session note its Origin cites — the date only, never the note's name, whose
+  slug can name the project — and prints both in each entry's heading; its closing step
+  says a lesson harvested twice is counted once by the framework, and drops the advice to
+  annotate the project's entries by hand, so a project's `LEARNINGS.md` keeps its format.
+  `docs/06`'s bridge and `SETUP.md`'s pointer say a repeat is evidence on the entry it
+  repeats; `CONTRIBUTING.md`, *In practice, for a proposed change*, says how the framework
+  counts once: the pair matched against the recordings' session notes, a neutral label for
+  the project, its number written as "the project's entry 012", never as an IMP number.
+- Verified: the documentation check passes; the command cannot run in this repository,
+  where no entry is marked, so its first use is the next harvest from a project.
 
 ## Deferred (not rejected — resumed at the right time)
 

@@ -159,6 +159,13 @@ project**: there the lesson is marked `Destination: framework` and
 (see `.claude/docs/06-self-improvement.md`, *"The bridge to the framework"*).
 Either way it becomes an IMP entry in `LEARNINGS.md`.
 
+**A harvested lesson counts once.** Each entry of the block carries the project's entry
+number and its source note's date. Before recording it, look for that pair among the
+lessons already received — the session notes of earlier recordings list them, with a
+neutral label for the project, never its name: a repeat is evidence on the existing entry,
+never a new entry nor a second occurrence. The project's number is written as "the
+project's entry 012", never as an IMP number, which would collide with this backlog's.
+
 1. Open a feature branch from `main`.
 2. Conventional commits, hooks installed, no secrets (gitleaks blocks them anyway).
 3. If the change touches the method's rules or docs: attach the IMP entry (problem
