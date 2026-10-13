@@ -562,61 +562,6 @@ tags: [improvement]
 - Expected benefit / risk: the boundaries are known where they hold and where they do not.
   Risk: none for the investigation itself.
 
-### IMP-070 — Multi-platform support: macOS, Linux, Windows
-- Date: 2026-10-10 | Origin: the user's requirement of 2026-10-10, recorded in
-  [[2026-10-10-integrate-two-blocks-1.3.4]] and here in [[2026-10-10-upgrade-verification-1.4.0]] — the
-  framework is tested on macOS only
-- Priority: HIGH (user decision) — a dedicated MINOR release, v1.5.0, after v1.4.1.
-- Observed problem: every script and self-test has run on macOS only, and the
-  prerequisites prescribe `brew install gitleaks`, a package manager of one platform (an
-  agnosticism leak). From Claude Code's documentation: on native Windows, with Git for
-  Windows the Bash tool uses Git Bash; without it, commands go through the PowerShell
-  tool, which the delegated-agent guard does not intercept — the read-only boundary of
-  `docs/04` falls there (the `pre-push` holds: it is a git hook).
-- Proposal: the direction the user decided — (a) a POSIX environment on Windows too,
-  through Git for Windows (needed for git anyway). NO twin bash/PowerShell scripts; a
-  rewrite in Node only as plan B, if the tests on Windows show excessive costs. To do:
-  1. GitHub Actions CI on macOS, Ubuntu and Windows running `make test-scripts`, in the
-     framework repository and OUTSIDE the payload, with minimal permissions;
-  2. fix what fails;
-  3. `make` on Windows: a declared prerequisite, or targets runnable as scripts;
-  4. the PowerShell tool: check the current documentation for whether a PreToolUse hook
-     can intercept it; if yes, extend the guard; if not, the framework requires the Bash
-     tool and says so in `SETUP.md`, *Hardening*;
-  5. a platform matrix in the README and `SETUP.md`, only with what the CI verifies;
-  6. the prerequisites name the tools, not the package managers;
-  7. a prerequisite check: a script runnable WITHOUT make (`bash scripts/…`) that checks
-     git, bash, Node.js (minimum version), gitleaks, make and whatever else is needed;
-     when something is missing it prints the install command for the detected platform
-     and exits with an error. It installs NOTHING: installing system software stays a
-     human action. Called from `SETUP.md` (graft and upgrade) and from `hooks-install`;
-  8. measure what the `Makefile` is for today: if it only gives short names to scripts,
-     weigh dropping make from the prerequisites.
-- Resumption trigger: v1.4.1 integrated — v1.5.0 starts with a read-only phase 1, like the
-  other blocks.
-- Expected benefit / risk: the method holds where its users work, and its boundaries are
-  stated where they do not. Risk: a matrix promising more than the CI proves — point 5
-  guards it.
-- Phase 1, read-only (2026-10-11, [[2026-10-11-multiplatform-1.5.0]]): each point measured
-  and decided. Points 1-6 and the upgrade check's tolerance of CRLF line ends go in
-  v1.5.0, point 7 in v1.6.0; the `Makefile` stays (point 8: short names for three scripts,
-  one setup slot and the project's own targets — dropping make would touch 42 lines of 15
-  documents). Point 4: the documentation says a PreToolUse hook can match the PowerShell
-  tool (`Bash|PowerShell`); option C — the tool off by `CLAUDE_CODE_USE_POWERSHELL_TOOL=0`,
-  the guard reading `PowerShell` too. make: a declared prerequisite, installed on the
-  Windows runner at a fixed version. Node.js: 22.12 declared, majors 22 and 24 verified by
-  the CI.
-- Plan B threshold (user decision, 2026-10-11): the rewrite in Node.js is weighed again
-  when the Windows job runs over 30 minutes, steadily for 3 consecutive runs. A ratio to
-  the Linux job ("over 5 times") was dropped the same day: with Linux near a minute it
-  would fire for a 5-minute Windows job, with no real cost behind it.
-- Applied in v1.5.0 (2026-10-11, [[2026-10-11-multiplatform-1.5.0]]): points 1-6 — the CI
-  green on the three images (Windows in 453 s, far below the plan B threshold),
-  `.gitattributes` in the payload, the upgrade check's CRLF tolerance and its Windows
-  forms, the PowerShell tool off and read by the guard, the prerequisites by tool name,
-  the platform matrix. The entry stays OPEN for point 7, the prerequisite check, in
-  v1.6.0.
-
 ### IMP-071 — A claim of coverage is a list that declares itself complete
 - Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at
   the user's request in [[2026-10-11-multiplatform-1.5.0]]
@@ -1984,6 +1929,39 @@ line on; older entries are not backfilled.
 - Uncovered: a list with no structure a program can extract is out of reach — such a
   list stops claiming completeness ("the FOURTH species" and "three real upgrades" were
   reworded); the tripwire sees how many markers a file has, not which slot is new.
+
+### IMP-070 — Multi-platform support: macOS, Linux, Windows → applied on 2026-10-13, commits da54b98, 77525a0, 6212081, 3b0edca, c3190c2, 5f05004, c99525a (point 7; points 1 to 6 in v1.5.0)
+- Date: 2026-10-10 | Origin: the user's requirement of 2026-10-10, recorded in
+  [[2026-10-10-integrate-two-blocks-1.3.4]] and [[2026-10-10-upgrade-verification-1.4.0]]
+  — the framework was tested on macOS only
+- Observed problem (condensed): every script and self-test had run on macOS only, the
+  prerequisites named one platform's package manager, and on Windows the PowerShell tool
+  escaped the delegated agents' guard.
+- Decision (the user, 2026-10-10 and 2026-10-11 — [[2026-10-11-multiplatform-1.5.0]]): a
+  POSIX environment on Windows too, through Git for Windows, no twin scripts; a rewrite in
+  Node.js weighed only past the plan B threshold — the Windows job over 30 minutes, steadily,
+  for 3 consecutive runs; the `Makefile` stays (point 8); the PowerShell tool off, and read
+  by the guard (point 4).
+- Applied in v1.5.0 ([[2026-10-11-multiplatform-1.5.0]]): points 1 to 6 — the CI on macOS,
+  Ubuntu and Windows; `.gitattributes` in the payload; the upgrade check's CRLF tolerance
+  and its Windows forms; the prerequisites by tool name; the platform matrix.
+- Applied in v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]): point 7 —
+  `scripts/check-prerequisites.sh`, runnable without make. It runs each tool, compares its
+  version with a minimum read from the tool's own source, names the platform and whether the
+  CI verifies it, and warns when git would write the framework's files with CRLF; it fails
+  for a tool missing or not starting, and for gitleaks below its security minimum or unread
+  (the user's D5); it installs nothing. `hooks-install.sh` runs it first; `SETUP.md` §0 and
+  the upgrade's *Precondition* call it.
+- Verified ([[2026-10-12-prerequisites-1.6.0]]): its self-test, against stubs of each tool,
+  gitleaks' three command lines among them, a mutant per detection branch caught; in the CI,
+  against each image's real tools, 0 FAIL and 0 WARN on the three, Windows taking the branch
+  where `core.autocrlf` is true and `.gitattributes` holds LF; the upgrade from 1.5.0,
+  rehearsed on the final payload with LF and with CRLF line ends, the check run from `T`
+  before Step 1.
+- Uncovered: point 7 asked for the install command of the detected platform; the check
+  names the tool's official page instead (the user's D2) — a package manager's command per
+  platform would bring back the leak point 6 removed. Not verified: WSL, Cygwin, Linux and
+  Windows on arm64, macOS on Intel — the check names them as such.
 
 ## Deferred (not rejected — resumed at the right time)
 

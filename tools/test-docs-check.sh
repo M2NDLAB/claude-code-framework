@@ -523,8 +523,9 @@ edit "${c}/SETUP.md" '\*\*Node\.js 22\.12 or later' '**Node.js 22.11 or later'
 edit "${c}/tools/README.md" 'bash 3\.2 or later' 'bash 3.1 or later'
 edit "${c}/SETUP.md" '^- \*\*gitleaks 8\.18\.2 or later\*\*' '- **gitleaks 7.0.0 or later**'
 edit "${c}/scripts/README.md" 'Prerequisites \(`check-prerequisites\.sh` checks them\)' 'Prerequisites (commitlint 21.1.0 pinned)'
-# An IMP entry is history: the minimum it wrote then stays.
-edit "${c}/.claude/memory/LEARNINGS.md" 'a dedicated MINOR release, v1\.5\.0, after v1\.4\.1\.' 'a dedicated MINOR release, v1.5.0, after v1.4.1; Node.js 14.13 or later then.'
+# An IMP entry is history: the minimum it wrote then stays. The plant goes into an applied
+# entry, whose text no longer changes.
+edit "${c}/.claude/memory/LEARNINGS.md" 'coherence review before the merge\.' 'coherence review before the merge; Node.js 14.13 or later then.'
 run 1 "${c}"
 nfails 4
 has '"Node.js 22.11 or later", but the minimum scripts/check-prerequisites.sh defines is 22.12'
