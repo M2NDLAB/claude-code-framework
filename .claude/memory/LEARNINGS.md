@@ -816,8 +816,8 @@ tags: [improvement]
 - Verified by the user on 2026-10-13: on the user's machines, neither of the two projects
   checked has `core.hooksPath` set or a hook manager configured — at the root or in a
   subdirectory; husky, lefthook, simple-git-hooks.
-- A mitigation, the user's decision in v2.1.0: the graft's and the upgrade's checklists
-  (`SETUP.md`, *Inherited git hygiene* and Step 4) check `core.hooksPath` and look for a hook
+- A mitigation, the user's decision in v2.1.0, `3359003`: the graft's and the upgrade's
+  checklists (`SETUP.md`, *Inherited git hygiene* and Step 4) check `core.hooksPath` and look for a hook
   manager, so the case shows at a graft or an upgrade; the detection at use time stays open.
 
 ### IMP-091 — The commits git creates itself skip the pre-commit
@@ -835,8 +835,8 @@ tags: [improvement]
   `/integrate`'s block 1 or in the pre-push.
 - Expected benefit / risk: the baseline says what it covers; a compensation would close the
   route. Risk: a scan at publication repeats work on every push.
-- Partly applied on 2026-10-13, the user's decision after v2.1.0's review: the claims
-  narrowed — `docs/03`'s baseline says what the hook does and declares this limit,
+- Partly applied on 2026-10-13, the user's decision after v2.1.0's review, `ee883ee`: the
+  claims narrowed — `docs/03`'s baseline says what the hook does and declares this limit,
   `CLAUDE.md`'s rule 1 points to it. Measured then on git 2.54.0 with a marker hook: a
   cherry-pick or a revert that applies cleanly, `git am` and a rebase's `--continue` after
   a conflict do not run the pre-commit; a cherry-pick's `--continue` after a conflict and a

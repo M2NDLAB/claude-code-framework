@@ -4,7 +4,7 @@ task: v2.1.0 — the gate's lenses (IMP-056, IMP-058, IMP-059, IMP-071, IMP-073,
 branch: feat/gate-lenses-2.1.0
 status: completed
 model: 'claude-opus-5-5'
-turns: 3
+turns: 5
 tags: [session, security-gate, docs, imp, plan]
 ---
 # Session 2026-10-13 — v2.1.0: the gate's lenses
@@ -15,8 +15,9 @@ tags: [session, security-gate, docs, imp, plan]
 
 ## The fields of this very note
 - `model: 'claude-opus-5-5'` — the main session.
-- `turns: 3` — the user's brief for phase 1, with v2.0.0 integrated; the user's decisions;
-  the user's follow-ups on the gate's trigger and the bump.
+- `turns: 5` — the user's brief for phase 1, with v2.0.0 integrated; the user's decisions;
+  the user's follow-ups on the gate's trigger and the bump; the request for the review's
+  summary before blocks 1 and 2; the user's decisions on that summary.
 
 ## The brief — persisted so a /clear does not lose it
 - v2.0.0 integrated and published by the user (`b6035c3`, the tag v2.0.0 signed, the branch
@@ -117,7 +118,7 @@ tags: [session, security-gate, docs, imp, plan]
 - [x] 10. The CI's rounds (block 0, the user's pushes): what fails, fixed with new commits, until green on the three — commit: none to fix — round 1 green on `bf3879b` (run 38412448958), recorded with task 11
 - [x] 11. ONE reviewer, read-only on git, the snapshot before and after, applying the two lenses to the framework's payload: HIGHs fixed here, MEDIUMs and LOWs recorded as IMPs, trivial text fixed; the gate's verdict written — commit: b7e3f09, 56099e3, and the record of the review (its own sha cannot be written in it)
 - [x] 12. `/retro` and `/checkpoint`: the upgrade 2.0.0 → 2.1.0 rehearsed on the final payload — commit: the checkpoint (its own sha cannot be written in it)
-- [x] 13. `/integrate`: the CHANGELOG 2.1.0 entry, claiming only what was measured; the bump computed again against the expected MINOR; the final block 0 green on the three, then blocks 1 and 2 — commit: the CHANGELOG commit (its own sha cannot be written in it); blocks 0, 1 and 2, the user's
+- [x] 13. `/integrate`: the CHANGELOG 2.1.0 entry, claiming only what was measured; the bump computed again against the expected MINOR; the final block 0 green on the three, then blocks 1 and 2 — commit: f0ff644 (the entry), ee883ee and 3359003 (the user's decisions on the review's summary), and their record (its own sha cannot be written in it); blocks 0, 1 and 2, the user's
 
 The applying commits (tasks 2 to 8) each carry their IMP's part of the text and move the
 entry to Applied, as `docs/06` says. Task 10 may take several commits, one per round of the
@@ -222,14 +223,65 @@ three of this release's own messages before their push. IMP-078 gets a sixth occ
 after which each message was checked by a grep before its commit. New: IMP-101 — each new
 case of the hooks' self-test edits two fixtures of the documentation check's.
 
+## Task 13 — /integrate, and the user's decisions on the review's summary
+**Round 2 of the CI, on `f0ff644`** (the 2.1.0 entry; run 38429254941): green on the three.
+Read in the log: 30 PASS and 0 FAIL on Ubuntu and on macOS, 29 PASS, 0 FAIL and the
+dangling-symlink SKIP on Windows — one more than round 1 on each, case 8 —; docs-check
+0 FAIL and the one CHECK of the release being prepared; the real hooks' PASS on the three.
+
+**The summary of the review**, asked by the user before blocks 1 and 2, from the reviewer's
+report: 23 findings, 1 HIGH, 4 MEDIUM, 17 LOW, 1 INFO. Writing it, the author found a defect
+of this release's own: `b7e3f09` set the `core.hooksPath` exception into `docs/03`'s baseline
+right after "always, without exceptions", and left "on every commit", which M1 refutes — a
+freshly written document asserting the contrary of a debt accepted in the same review, what
+the *Claims* lens calls a broken promise.
+
+**The user's decisions (2026-10-13), and what was done:**
+1. The baseline fixed before the blocks — `ee883ee`. `docs/03` says what the pre-commit does
+   and declares its limits, among them the commits git creates itself; "always-on" went with
+   the absolute. Measured first, on git 2.54.0 with a marker hook: a cherry-pick or a revert
+   that applies cleanly, `git am` and a rebase's `--continue` after a conflict do not run the
+   pre-commit; a cherry-pick's `--continue` after a conflict and a merge concluded by
+   `git commit` do; a clean merge runs `pre-merge-commit` — so the baseline names only the
+   first four. One CHANGELOG line. IMP-091 partly applied.
+2. `CLAUDE.md`'s rule 1 approved, minimal — `ee883ee`: three lines, the claim narrowed to
+   what the hook does, its limits pointed to `docs/03`.
+3. IMP-090 at MEDIUM, its trigger the first project with a hook manager, the user's check of
+   the machines recorded without the projects' names — `3359003`. The graft's checklist
+   (*Inherited git hygiene*) and the upgrade's Step 4 check `core.hooksPath` and look for a
+   hook manager with three commands, tried on a clean repository, on one holding husky's,
+   lefthook's and simple-git-hooks' files, and on one with `core.hooksPath` set. The
+   CHANGELOG's entry for the HIGH says so, and no longer lends `core.hooksPath` to every
+   hook manager.
+4. For the retro of phase 7, the user's: the data of the two lenses. *Claims*: 14 findings,
+   2 MEDIUM (M1, M4) and 12 LOW (L3, L4, L6, L8 to L14, L16, L17), the four trivial texts
+   among them. *The real path*: 9 findings, the only HIGH (H1), 2 MEDIUM (M2, M3), 5 LOW (L1,
+   L2, L5, L7, L15) and the INFO (I1). And the defect above: the *Claims* lens, on its first
+   use, caught one the release itself made — found by its author writing a summary, not by a
+   check.
+
+M1's claim is now narrowed; M2's stays wider than the code until IMP-092 is decided.
+
+**The upgrade 2.0.0 → 2.1.0, rehearsed again on the final payload** (`3359003`, tagged v2.1.0
+in a clone only), the project grafted at v2.0.0 with every setup answer of `CLAUDE.md` in
+place — title, stack, repo, rules 5 and 8, the technical rules — and the formatting slot,
+with LF and with CRLF line ends, the same results on both: `inventory` names the seven METHOD
+files and the two HYBRID ones the CHANGELOG lists, `CLAUDE.md` with 0 conflicts of 101 lines
+and `hooks-install.sh` with 0 of 312; the answers kept, rule 1 in its new form and no
+conflict marker; `pre-push.bak` 2.0.0's hook byte for byte, the pre-commit and the
+commit-msg unchanged; the refusals held — a fake secret, a message without a type, a secret
+under a forced colour, a key in a `*.key binary` —, no scan directory left; the project's
+`make test-scripts` 11 PASS, 0 FAIL, as in task 12; `invariant` 0/0, `post` 0/0 once the pin
+reads v2.1.0.
+
 ## Resumption notes
-- The branch is public since round 1 (`bf3879b`): no commit is rewritten. The last green
-  run is round 1's; every commit after it — `9debae4` to the CHANGELOG commit — reaches the
-  CI through the final block 0; block 1 waits for that run's green on the three jobs, and
-  checks that the merged tree is the tested one.
+- The branch is public since round 1 (`bf3879b`): no commit is rewritten. Round 2 is green
+  on `f0ff644`; `ee883ee`, `3359003` and this record reach the CI through the final block 0;
+  block 1 waits for that run's green on the three jobs, and checks that the merged tree is
+  the tested one.
 - Task 13's bump, computed on the content as the user asked: by the commit types alone the
   range gives a PATCH — two `fix`, the rest `docs` and `chore`, the seven apply commits among
   the `chore`s (IMP-074's occurrence) —; by the content, new rules in shipped payload files
   (`docs/00`, `docs/02`, `docs/03`, `/security-review`) and no break of the contract, a MINOR:
   v2.1.0 from v2.0.0, as expected.
-- Next: the user's blocks — the final block 0, then blocks 1 and 2.
+- Next: the user's blocks — the final block 0 on this record, then blocks 1 and 2.

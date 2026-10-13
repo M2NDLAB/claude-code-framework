@@ -61,9 +61,9 @@ Step 2 of the upgrade says how they combine):
   `scripts/README.md`, `scripts/test-hooks-install.sh`.
 - HYBRID files (3-way): `scripts/hooks-install.sh` (the re-run's message, the refusal when
   `core.hooksPath` is set, the pre-push's comment) and `CLAUDE.md` (rule 1's sentence on the
-  hook, three lines). `scripts/hooks-install.sh` rehearsed on a project with every setup
-  answer in place, the pre-commit's formatting slot among them: the merge clean, with LF and
-  with CRLF line ends.
+  hook, three lines). Both rehearsed on a project with every setup answer in place —
+  `CLAUDE.md`'s title, stack, repo, rules 5 and 8 and technical rules, the pre-commit's
+  formatting slot —: both merges clean, with LF and with CRLF line ends.
 - **`make hooks-install`**: the generated pre-push's comment changes, so the re-run saves the
   old hook as `pre-push.bak`, saying it differs from the hook this version generates: unless
   the project edited it, it is 2.0.0's own, byte for byte (the rehearsal compared them) —
