@@ -291,6 +291,18 @@ taken from the green (IMP-084):
   self-test 8 PASS; the guard's "3 CRLF cases whose CR node received" — on the three;
 - Node.js 22.23.3 on Ubuntu and Windows, 24.20.0 on macOS; npx 10.9.9 and 11.19.0.
 
+Round 2, the review's fixes: `5138f1f` (`4b3abb9` to `5138f1f`, nine commits), run
+38381455621, green on the three jobs — Ubuntu in 105 s, macOS in 203 s, Windows in 624 s.
+Read in the log:
+- `make test-scripts`: 18 PASS on Ubuntu and macOS, the new pre-commit environment case
+  among them; on Windows 17 PASS and the dangling-symlink SKIP — the case passes there
+  too, `GIT_CONFIG_COUNT`, `read -d ''` and the process substitution under Git Bash;
+  docs-check 0 FAIL, 0 CHECK; the upgrade check's self-test 8 PASS;
+- the prerequisite check on each runner: "OK gitleaks 8.30.1 (8.18.2 or later)", read
+  through `--version`, 0 FAIL, 0 WARN on the three;
+- the real hooks: the PASS line of the six cases on the three — case 6's own check that
+  the textconv masks the line passed on Windows too, so the case was not vacuous there.
+
 ## The review (task 9) — one reviewer, read-only on git
 One delegated agent with the security mandate on the hooks, over `e281e10..4b3abb9`. Its
 sandbox was made by the main session: a clone at `4b3abb9`, no remote, and a throwaway
@@ -456,5 +468,6 @@ install another to adopt this release: `make hooks-install` refuses. The release
 - The branch is public since round 1 (`3b0edca`): no commit is rewritten, every fix is a
   new commit. Every commit after `3b0edca` reaches the CI through the next block 0; block 1
   waits for the final run's green on the three jobs.
-- Next: block 0 for `050b2f5` to this note's commit; the user's decision on N1. The
-  CHANGELOG draft in the scratchpad is v2.0.0's, BREAKING first.
+- The last green run is round 2's, on `5138f1f`. Next: the user's decision on N1; its
+  commits, or its record, reach the CI through the next block 0. The CHANGELOG draft in the
+  scratchpad is v2.0.0's, BREAKING first.
