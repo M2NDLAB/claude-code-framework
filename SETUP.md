@@ -16,20 +16,38 @@ The tools, by name; how to install each one depends on your platform.
 - **GNU make** — the process targets (`make hooks-install`, `make test-scripts`,
   `make reset-task`). macOS has it with Xcode's command-line tools, Linux distributions
   with their build tools; on Windows install it apart: Git for Windows ships none.
-- **gitleaks** (https://github.com/gitleaks/gitleaks) — secret scanning in the
-  pre-commit hook.
+- **gitleaks 8.18.2 or later** (https://github.com/gitleaks/gitleaks) — secret scanning in
+  the pre-commit hook, `gitleaks protect --staged` (hidden from `--help` since 8.19.0, for
+  `gitleaks git`; it still runs). A security minimum, read at gitleaks' source: below it the
+  scan can let a secret through in silence — a configured external diff replaces what it
+  reads (8.18.2 brings `--no-ext-diff`), from 8.4.0 a scan error ends in "no leaks found"
+  and exit 0, and 8.0.0 to 8.1.3 write into the project a `.gitleaks.toml` that later
+  releases then load instead of their own rules. So the prerequisite check FAILS below it,
+  or when it cannot read gitleaks' version, and `make hooks-install` stops. Debian 13's and
+  Ubuntu 24.04's packages are 8.16.0: install a release instead.
 - **Node.js 22.12 or later, with npx.** commitlint (Conventional Commits) runs through npx
-  at its latest release, whose minimum is 22.12 (the 21.x line); the agent git guard,
-  `scripts/agent-git-guard.mjs`, runs on Node.js too: without a working `node`, delegated
-  agents lose their shell tools (fail-closed, `docs/04`) and the main session sees a notice
-  on every call.
+  at the version `scripts/check-prerequisites.sh` pins — its two packages; their own
+  dependencies follow the ranges they declare —, and that version's `engines` set the
+  minimum. The agent git guard, `scripts/agent-git-guard.mjs`, runs on Node.js too: without
+  a working `node`, delegated agents lose their shell tools (fail-closed, `docs/04`) and the
+  main session sees a notice on every call.
 - *(optional)* **tree** — to regenerate `TREE.md`. Fallback: `git ls-files`.
 - *(optional)* **Obsidian** — the `.claude/` directory opens as a vault; the `[[...]]`
   wikilinks become a navigable graph. It is not required: the links work as pointers
   in any editor.
 
-**The platforms verified.** The framework's repository runs `make test-scripts` and the
-upgrade check's self-test at every push, on three GitHub-hosted images — its own
+**Check them** with `bash scripts/check-prerequisites.sh` — without make, from the
+framework's clone or from the project once step 1 has copied `scripts/`. It runs each tool
+above and compares its version with the minimum, names the platform and whether the CI
+below verifies it, and warns when `core.autocrlf` is true and nothing holds the
+framework's files to LF (run from the project's root, it reads the project's). It fails
+for a tool missing or one that does not start, and for gitleaks below its security minimum
+or with a version it cannot read; any other version below its minimum is a warning. It
+installs nothing.
+
+**The platforms verified.** The framework's repository runs `make test-scripts`, the
+upgrade check's self-test, the prerequisite check and the generated hooks with the real
+gitleaks and commitlint at every push, on three GitHub-hosted images — its own
 `.github/workflows/test.yml`, which setup does not copy:
 
 | Platform | Image | bash | Node.js |
@@ -38,10 +56,13 @@ upgrade check's self-test at every push, on three GitHub-hosted images — its o
 | Linux, x64 | `ubuntu-24.04` | 5.2 | 22 |
 | Windows, x64 | `windows-2025` | 5.3, Git Bash | 22 |
 
-- The images bring their own tools: the CI installs only GNU make on Windows. The
-  Node.js column is what they carried when v1.5.0 was released; each run's log names
-  every version (its *Versions* step). The minimums in the list above are the tools'
-  own requirements, not runs.
+- The images bring their own tools; the CI installs GNU make on Windows and gitleaks on
+  the three, each at a fixed version — gitleaks' archive checked against a fixed SHA-256
+  before it runs. The real hooks' commit-msg makes npx fetch commitlint from the npm
+  registry, as it does in a project: its two packages at their pin, their dependencies by
+  the ranges they declare, no hash checked. The Node.js column is what the images carried when v1.5.0 was released;
+  each run's log names every version (its *Versions* step). The minimums in the list above
+  are the tools' own requirements, not runs.
 - On Windows, `core.autocrlf` is `true`, as Git for Windows sets it, and `.gitattributes`
   keeps the framework's files LF; the hooks' self-test skips its dangling-symlink case,
   which Git Bash cannot plant.
@@ -196,17 +217,48 @@ Here is the complete list, grouped by file:
 make hooks-install
 ```
 
-It installs three hooks: gitleaks (pre-commit), commitlint (commit-msg) and the push
+First it runs the prerequisite check for what the hooks need
+(`check-prerequisites.sh --hooks`, §0): a tool missing or not starting stops it before any
+hook is written. It installs three hooks: gitleaks (pre-commit), commitlint (commit-msg) and the push
 boundary (pre-push: a push launched from a Claude Code session is refused — the human
 pushes from their own terminal). Check: a commit with a non-conventional message must be
 rejected; a file with a fake secret must be blocked by gitleaks; `make test-scripts` must
 pass — it proves the pre-push on a throwaway repository and the delegated agents' guard on
 the command forms. A pre-push of your own (git-lfs's, for one): see Step 4 of the upgrade.
 
+**What the pre-commit's scan reads.** gitleaks scans the staged changes as `git diff` shows
+them. The hook turns git's colour off and reads each textconv driver as `cat` for it, so a
+configuration that would empty or convert that output hides no secret. A file git shows as
+binary although it holds text — the attribute `binary` or `-diff`, a diff driver's
+`binary = true` — is copied from the index into a directory only the user can read, under
+`TMPDIR`, and scanned apart; the hook removes the directory when it ends, on an error or a
+Ctrl-C too. Measured on an arm64 Mac: 50 MB of such text adds about 12 s, a tenth of what
+the scan takes on the same text staged plain, and a file binary by its content costs its
+first 8000 bytes — so no size limit. Known limits: a file binary by its content (a NUL in
+its first 8000 bytes) is not scanned, as gitleaks reads text; a `git -c` naming the colour
+or a textconv on a commit's command line wins over the hook's settings — a deliberate
+choice, outside the threat model (`docs/04`, *Enforcement of the execution boundary*); a
+SIGKILL during the scan, which no process can catch, leaves its directory behind, in the
+user's own temporary directory.
+
 > **Does the repo already have a history?** (a graft onto an existing project) The hook
 > only protects commits from now on: complete the baseline with a one-off scan of the
-> ENTIRE history, `gitleaks detect` (from the repo root). Assess every finding BEFORE
-> going on: a secret in pushed history stays exposed even if you remove it from the
+> ENTIRE history, from the repo root:
+>
+> ```bash
+> GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=color.diff GIT_CONFIG_VALUE_0=never gitleaks detect
+> ```
+>
+> The three variables, git's documented environment configuration, turn its colour off for
+> the scan: a colour your git configuration forces to "always" leaves gitleaks nothing to
+> read, and it reports a clean history. If `git config --get-regexp '^diff\..*\.textconv$'`
+> lists a textconv driver, gitleaks reads that driver's conversion instead of what was
+> committed: add one pair per driver, `GIT_CONFIG_COUNT=2` with
+> `GIT_CONFIG_KEY_1=diff.<driver>.textconv GIT_CONFIG_VALUE_1=cat`. The scan does not read
+> what the history shows as binary (measured: a key committed in a `*.key binary` is not
+> found): if the project marks text files `binary` or `-diff`, scan their current content as
+> files too, `gitleaks detect --no-git --source <path>`. Assess every finding BEFORE going
+> on: a secret in pushed history stays exposed even if you remove it from the
 > current files — rotate/revoke it immediately; rewriting the history is a separate
 > operation, to be decided with judgement (`docs/03`, baseline).
 
@@ -446,8 +498,9 @@ makes the framework's own self-test fail:
 
 - **METHOD** (pure framework, brought to `vY`): `.claude/docs/00-06`, the
   non-customised commands in `.claude/commands/`, `scripts/reset-task.sh`,
-  `scripts/agent-git-guard.mjs`, `scripts/repo-snapshot.sh`, the self-tests
-  `scripts/test-*.sh`, `scripts/README.md`, `commitlint.config.cjs`.
+  `scripts/agent-git-guard.mjs`, `scripts/repo-snapshot.sh`,
+  `scripts/check-prerequisites.sh`, the self-tests `scripts/test-*.sh`,
+  `scripts/README.md`, `commitlint.config.cjs`.
 - **HYBRID** (a framework part that evolves + a project part to preserve, reconciled):
   `CLAUDE.md`, `.claude/settings.json`, `scripts/hooks-install.sh`, `.gitignore`,
   `.gitattributes`, `Makefile`, and the commands customised at setup (`checkpoint.md`, `integrate.md`,
@@ -572,6 +625,19 @@ nothing. Its subcommands: `classes` (the class table, file by file), `preflight`
 Precondition and the pin of Step 0), `inventory` (Step 2), `invariant` and `post`
 (Step 5). `tools/` is not copied into the project (step 1). For a `vY` before v1.4.0
 there is no script: the steps are done by hand.
+
+**The prerequisites.** From `vY` = v2.0.0 on, run `vY`'s prerequisite check too, before
+Step 1: extracted into `T` the same way, run from the project root, whose line ends it
+reads.
+
+```bash
+git -C "${FW:?}" show vY:scripts/check-prerequisites.sh > "${T:?}/check-prerequisites.sh" \
+  && bash "${T:?}/check-prerequisites.sh"
+```
+
+A FAIL is a tool to install or repair before Step 4, whose `make hooks-install` runs the
+same check — the project's copy, brought over in Step 3 — and stops on it; a WARN, a
+version below its minimum, stops nothing.
 
 ### Step 0 — Determine the `vX` baseline
 

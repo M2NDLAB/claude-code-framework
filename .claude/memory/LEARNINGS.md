@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-10-11
+updated: 2026-10-13
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -562,61 +562,6 @@ tags: [improvement]
 - Expected benefit / risk: the boundaries are known where they hold and where they do not.
   Risk: none for the investigation itself.
 
-### IMP-070 — Multi-platform support: macOS, Linux, Windows
-- Date: 2026-10-10 | Origin: the user's requirement of 2026-10-10, recorded in
-  [[2026-10-10-integrate-two-blocks-1.3.4]] and here in [[2026-10-10-upgrade-verification-1.4.0]] — the
-  framework is tested on macOS only
-- Priority: HIGH (user decision) — a dedicated MINOR release, v1.5.0, after v1.4.1.
-- Observed problem: every script and self-test has run on macOS only, and the
-  prerequisites prescribe `brew install gitleaks`, a package manager of one platform (an
-  agnosticism leak). From Claude Code's documentation: on native Windows, with Git for
-  Windows the Bash tool uses Git Bash; without it, commands go through the PowerShell
-  tool, which the delegated-agent guard does not intercept — the read-only boundary of
-  `docs/04` falls there (the `pre-push` holds: it is a git hook).
-- Proposal: the direction the user decided — (a) a POSIX environment on Windows too,
-  through Git for Windows (needed for git anyway). NO twin bash/PowerShell scripts; a
-  rewrite in Node only as plan B, if the tests on Windows show excessive costs. To do:
-  1. GitHub Actions CI on macOS, Ubuntu and Windows running `make test-scripts`, in the
-     framework repository and OUTSIDE the payload, with minimal permissions;
-  2. fix what fails;
-  3. `make` on Windows: a declared prerequisite, or targets runnable as scripts;
-  4. the PowerShell tool: check the current documentation for whether a PreToolUse hook
-     can intercept it; if yes, extend the guard; if not, the framework requires the Bash
-     tool and says so in `SETUP.md`, *Hardening*;
-  5. a platform matrix in the README and `SETUP.md`, only with what the CI verifies;
-  6. the prerequisites name the tools, not the package managers;
-  7. a prerequisite check: a script runnable WITHOUT make (`bash scripts/…`) that checks
-     git, bash, Node.js (minimum version), gitleaks, make and whatever else is needed;
-     when something is missing it prints the install command for the detected platform
-     and exits with an error. It installs NOTHING: installing system software stays a
-     human action. Called from `SETUP.md` (graft and upgrade) and from `hooks-install`;
-  8. measure what the `Makefile` is for today: if it only gives short names to scripts,
-     weigh dropping make from the prerequisites.
-- Resumption trigger: v1.4.1 integrated — v1.5.0 starts with a read-only phase 1, like the
-  other blocks.
-- Expected benefit / risk: the method holds where its users work, and its boundaries are
-  stated where they do not. Risk: a matrix promising more than the CI proves — point 5
-  guards it.
-- Phase 1, read-only (2026-10-11, [[2026-10-11-multiplatform-1.5.0]]): each point measured
-  and decided. Points 1-6 and the upgrade check's tolerance of CRLF line ends go in
-  v1.5.0, point 7 in v1.6.0; the `Makefile` stays (point 8: short names for three scripts,
-  one setup slot and the project's own targets — dropping make would touch 42 lines of 15
-  documents). Point 4: the documentation says a PreToolUse hook can match the PowerShell
-  tool (`Bash|PowerShell`); option C — the tool off by `CLAUDE_CODE_USE_POWERSHELL_TOOL=0`,
-  the guard reading `PowerShell` too. make: a declared prerequisite, installed on the
-  Windows runner at a fixed version. Node.js: 22.12 declared, majors 22 and 24 verified by
-  the CI.
-- Plan B threshold (user decision, 2026-10-11): the rewrite in Node.js is weighed again
-  when the Windows job runs over 30 minutes, steadily for 3 consecutive runs. A ratio to
-  the Linux job ("over 5 times") was dropped the same day: with Linux near a minute it
-  would fire for a 5-minute Windows job, with no real cost behind it.
-- Applied in v1.5.0 (2026-10-11, [[2026-10-11-multiplatform-1.5.0]]): points 1-6 — the CI
-  green on the three images (Windows in 453 s, far below the plan B threshold),
-  `.gitattributes` in the payload, the upgrade check's CRLF tolerance and its Windows
-  forms, the PowerShell tool off and read by the guard, the prerequisites by tool name,
-  the platform matrix. The entry stays OPEN for point 7, the prerequisite check, in
-  v1.6.0.
-
 ### IMP-071 — A claim of coverage is a list that declares itself complete
 - Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at
   the user's request in [[2026-10-11-multiplatform-1.5.0]]
@@ -646,6 +591,11 @@ tags: [improvement]
   `docs/02`, *Tests that demonstrate*.
 - Expected benefit / risk: a green campaign means what it says. Risk: campaigns cost more
   runs.
+- In v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]) the mutants of the review's fixes settled
+  which guards to keep: two proved needed — without the check of `GIT_CONFIG_COUNT`, bash
+  3.2 went on past an arithmetic error in an `export`; without `|| true`, git dying of a
+  closed pipe failed the pre-commit with 141 —, and the explicit signal traps proved
+  redundant, since bash runs the EXIT trap on INT, TERM and HUP, and were left out.
 
 ### IMP-073 — Write the record after the last measurement
 - Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at
@@ -659,6 +609,18 @@ tags: [improvement]
   of it; a commit made before a measurement ends claims nothing about it. The candidate
   place: the Definition of Done of `docs/02`.
 - Expected benefit / risk: no rewrite of history to correct a claim. Risk: none.
+- An occurrence in v1.5.0, recorded on 2026-10-12 ([[2026-10-12-prerequisites-1.6.0]]):
+  `7d2052b`'s message claims more than was measured — "so those greens proved nothing
+  about a \r" (whether the CRLF cases of rounds 3 to 5 carried their `\r` is not
+  established, IMP-084), and a diagnostic that "tells bash apart from what follows it" (it
+  measured bash's printf, the pipe and od together, on the check's path only). The commit
+  was public: the correction is this record.
+- An occurrence in v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]): `5f05004`'s message, and
+  the first wording of `SETUP.md` §0, of the check's comment, of IMP-077 and of the draft
+  CHANGELOG, said that before 8.18.2 a scan error ends in "no leaks found" and exit 0. The
+  source read showed it from 8.4.0 to 8.18.1 only — 8.0.0 and 8.3.0 end such an error
+  with `log.Fatal`. Found while checking the CHANGELOG's claims, the documents narrowed
+  before the tag; the commit was public: the correction is this record.
 
 ### IMP-074 — The bump is fixed by the brief before the content
 - Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — the user's brief; the
@@ -674,6 +636,10 @@ tags: [improvement]
   `docs/04` win, and `/integrate` says so before the tag and asks the user to confirm.
 - Expected benefit / risk: the version says what the release does. Risk: a brief's
   expectation overridden — by design, and never without the user's confirmation.
+- In practice, v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]): the brief expected a MINOR;
+  the review's MEDIUM, decided by the user as a security minimum that refuses a gitleaks
+  v1.5.0 accepted, made the release breaking. The bump was computed again by `docs/04`,
+  declared a MAJOR before the tag, and confirmed by the user.
 
 ### IMP-075 — Auto mode and the framework's boundaries
 - Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — the user ran
@@ -703,22 +669,6 @@ tags: [improvement]
   writes an environment that does not leak one repository's facts into the others. Risk:
   none.
 
-### IMP-076 — commitlint is not pinned
-- Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — phase 1's inventory of
-  the prerequisites
-- Observed problem: the commit-msg hook runs `npx --yes --package @commitlint/cli
-  --package @commitlint/config-conventional commitlint`: npx fetches the latest release at
-  the first commit — 21.2.3 on 2026-10-11, whose `engines` require Node.js `>=22.12.0`
-  (npm registry). The framework's Node.js minimum rose to 22.12 without a decision of
-  ours, and a future major can raise it again, or change behaviour, under every project at
-  once.
-- Proposal: NOT decided — weigh in v1.6.0 pinning both packages' versions in the hook,
-  raised by a deliberate release; against it, a fix in commitlint then reaches the
-  projects only through a framework release.
-- Resumption trigger: v1.6.0 (prerequisites and versions).
-- Expected benefit / risk: a prerequisite moves only by our decision. Risk: pinned
-  versions age, and someone must raise them.
-
 ### IMP-077 — gitleaks `protect` is deprecated
 - Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — phase 1's inventory of
   the prerequisites
@@ -731,12 +681,51 @@ tags: [improvement]
   current documentation: its own pre-commit hook definition (`.pre-commit-hooks.yaml`)
   runs `gitleaks git --pre-commit --redact --staged --verbose`, and 8.30.1's
   `gitleaks git --help` documents `--pre-commit` ("scan using git diff") and `--staged`
-  ("scan staged commits (good for pre-commit)"). The `git` command exists from 8.19.0: the
-  switch makes 8.19.0 gitleaks' minimum, for the prerequisites to state and v1.6.0's
-  prerequisite check to verify.
-- Resumption trigger: v1.6.0 (prerequisites and versions).
+  ("scan staged commits (good for pre-commit)"). The switch's minimum, for the
+  prerequisites to state and v1.6.0's prerequisite check to verify, is 8.20.0 (corrected
+  below; first recorded as 8.19.0).
+- Decided (the user, 2026-10-12, v1.6.0's D1 — [[2026-10-12-prerequisites-1.6.0]]): the
+  hook keeps `protect`, and gitleaks' declared minimum is 8.0.0, where `protect --staged`,
+  `--redact` and `-v` exist; `detect` stays with it. The entry stays OPEN on its trigger.
+- Resumption trigger (the deadline): gitleaks announces the removal of `protect`. Then the
+  hook moves to `gitleaks git --pre-commit --redact --staged --verbose`, with 8.20.0 as the
+  minimum — 8.19.x's `--staged` defect —, and `detect` to `gitleaks git` wherever the
+  history scan is written (`SETUP.md`'s step 3 and brownfield checklist, `docs/03`,
+  `SECURITY.md`).
 - Expected benefit / risk: the hook does not depend on a hidden command. Risk: an older
-  gitleaks (before 8.19.0) stops working with the hook — the prerequisite check catches it.
+  gitleaks stops working with the switched hook, and 8.19.x would scan the history in
+  silence, missing the staged changes. The prerequisite check fails below gitleaks'
+  security minimum (D5, below) only when the hooks are installed: at the switch that
+  minimum becomes 8.20.0, and the switched hook refuses a gitleaks below it by itself — the
+  check at every commit, D5's option B, kept for the switch.
+- Corrected on 2026-10-12 ([[2026-10-12-prerequisites-1.6.0]]), from gitleaks' source at
+  each tag: `gitleaks git` exists from 8.19.0, but in 8.19.0 to 8.19.3 it ignores
+  `--pre-commit` and `--staged` — it scans the history and misses the staged changes
+  (issue #1522, fixed by #1533 in 8.20.0). `protect --staged` reads the staged diff
+  through its own code in every release from 8.0.0 to 8.30.1, hidden from 8.19.0.
+- Added on 2026-10-12 (v1.6.0's review, its HIGH — [[2026-10-12-prerequisites-1.6.0]]):
+  gitleaks runs its `git diff` and `git log -p` without `--no-color` in every release up to
+  8.30.1, so a colour the user's git configuration forces to "always" leaves it nothing to
+  scan, and a textconv driver shows it a conversion instead of what is committed — both
+  measured through real commits. Upstream: gitleaks#2281 (open, filed against
+  `gitleaks git --pre-commit --staged` too) and PR #2284 (open). The switch does not cure
+  it: the hook's environment block — the colour off and each textconv read as `cat`, by
+  `GIT_CONFIG_COUNT` — and the prefix of `SETUP.md`'s history scan move with it, until a
+  gitleaks release passes `--no-color` itself. So does the hook's scan apart of the text git
+  shows as binary (D6, 2026-10-13): `gitleaks git --pre-commit` reads `git diff` too, and
+  "Binary files differ" hides a key in a `*.key binary` from it as from `protect`.
+- Decided again (the user, 2026-10-12, D5 on the review's MEDIUM —
+  [[2026-10-12-prerequisites-1.6.0]]): the declared minimum becomes 8.18.2, a SECURITY
+  minimum — the prerequisite check FAILS below it, or when it cannot read gitleaks'
+  version, and the install stops. Read at gitleaks' source: before 8.18.2 the staged scan
+  runs `git diff` without `--no-ext-diff`, so a configured external diff replaces what it
+  reads; from 8.4.0 to 8.18.1 a scan error ends in "no leaks found" and exit 0; 8.0.0 to
+  8.1.3 also write a
+  `.gitleaks.toml` into the project, which later releases load instead of their own rules.
+  Debian 13 and Ubuntu 24.04 package 8.16.0 (their archives, read on 2026-10-12); Debian's
+  build rules set no version, so its binary names none, and the check fails it either way —
+  unread, or below. `protect` stays, as D1 decided. Refusing an older gitleaks breaks the
+  compatibility v1.5.0 kept: the release is v2.0.0.
 
 ### IMP-078 — commitlint reads a body line that starts with "word:" as the footer
 - Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — observed four times
@@ -769,6 +758,195 @@ tags: [improvement]
   where a warning was — for a footer typed without its blank line too.
 - A fourth time, at v1.5.0's checkpoint: "projects:" opened a wrapped body line; the
   commit was written again while still local.
+- A fifth time, in v2.0.0's review fixes ([[2026-10-12-prerequisites-1.6.0]]): "source:"
+  opened a wrapped body line of the breaking commit; written again while still local, as
+  `5f05004`.
+
+### IMP-079 — A parser of another shell's syntax covers the forms it was held against, not the language
+- Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro), recorded at
+  the user's request in [[2026-10-12-prerequisites-1.6.0]]
+- Observed problem: v1.5.0's task 5 taught the guard PowerShell's syntax. Its mutants
+  proved each piece of the reading (8 of 8); none could prove its coverage, and the
+  reviewer got 15 of 19 ordinary forms through — an assignment, a script block, a
+  here-string. IMP-071's shape, a new occurrence: "ordinary forms" claimed against the
+  cases written, not against the language.
+- Proposal: NOT decided. Before a parser of another language's syntax claims a coverage,
+  its cases are held against the language's own list of constructs, the claim's source.
+  IMP-083 pulls the other way — which forms the guard must know at all —: weigh the two
+  together.
+- Expected benefit / risk: a claim of coverage that holds. Risk: more cases to write and
+  keep.
+
+### IMP-080 — A guard against uncommitted changes must see what git hides from its diff
+- Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro), recorded at
+  the user's request in [[2026-10-12-prerequisites-1.6.0]]
+- Observed problem: the line-end step of `SETUP.md` was to refuse a change not yet
+  committed, never erase it (the user's request in v1.5.0). `git diff --quiet HEAD` cannot
+  see an edit behind `assume-unchanged`, nor stop `git rm --cached` halfway on a
+  `skip-worktree` entry. The review found both, the probes measured them, and `4f9f9ef`
+  fixed them with `git ls-files -v`.
+- Proposal: NOT decided. A step that refuses to overwrite uncommitted work reads the
+  index's marks (`git ls-files -v`: a lowercase tag for assume-unchanged, `S` for
+  skip-worktree) as well as the diff. Where to write it — the conventions of the
+  framework's procedures, or `docs/02` — is to be decided.
+- Expected benefit / risk: no step erases what it promised to keep. Risk: none.
+
+### IMP-081 — On Git Bash, git counts line ends, not grep
+- Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro), recorded at
+  the user's request in [[2026-10-12-prerequisites-1.6.0]]
+- Observed problem: in the CI's fourth round a grep for a line-ending `\r` counted no CRLF
+  file on Git Bash; in the fifth, git counted them in the same kind of clone
+  (`core.autocrlf=true`). The red was the test's, not the product's: `b8ccbe0` moved the
+  count to `git ls-files --eol`.
+- Proposal: NOT decided. A test that must know a file's line ends asks git
+  (`git ls-files --eol`) or reads the bytes, never greps for `\r$`. The candidate place:
+  the conventions of the framework's self-tests (`scripts/README.md`, `tools/README.md`).
+- Expected benefit / risk: line-end tests that mean the same on every platform. Risk:
+  none.
+
+### IMP-082 — The whole suite before each commit, the documentation check included
+- Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro), recorded at
+  the user's request in [[2026-10-12-prerequisites-1.6.0]]
+- Observed problem: a prose edit in `SETUP.md` passed the self-test that reads its block and
+  failed the documentation check — caught after the commit, amended while it was still
+  local.
+- Proposal: NOT decided. Before each commit of the framework the whole suite runs —
+  `make test-scripts`, the documentation check included, and the upgrade check's
+  self-test —, not only the self-test of the file touched. The candidate place:
+  `CONTRIBUTING.md`, *This repo's workflow*.
+- Expected benefit / risk: no commit that the CI or the next commit finds red. Risk: a few
+  minutes per commit.
+- An occurrence in v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]): two commits that moved
+  IMPs to Applied went in after the documentation check alone; the check's self-test,
+  whose plant was anchored on a line the move dropped, failed, and the checkpoint's commit
+  followed, its command not gated on the suite's exit. All local: rebuilt, each after a
+  green suite. Gating the commit on the suite in the same command (`make test-scripts &&
+  git commit …`) would have stopped it.
+
+### IMP-083 — The guard grows beyond its threat model
+- Date: 2026-10-12 | Origin: the user's request at v1.5.0's integration (2026-10-11), from
+  [[2026-10-11-multiplatform-1.5.0]]; recorded in [[2026-10-12-prerequisites-1.6.0]]
+- Priority: MEDIUM (user decision, 2026-10-11) — the process block.
+- Observed problem: in v1.5.0 the guard learned non-ordinary PowerShell forms —
+  here-strings, block comments, `${name}` — while the PowerShell tool is off by
+  `CLAUDE_CODE_USE_POWERSHELL_TOOL=0`; v1.3.0's threat model covers an agent's accidental
+  errors made with ordinary commands (`docs/04`, *Enforcement of the execution boundary*).
+  `scripts/agent-git-guard.mjs` counts 234 lines at v1.3.0, 238 at v1.3.1, 239 from v1.3.2
+  to v1.4.1 and 309 at v1.5.0 (`db1fc77` +35 −21, the review's fix `ceac061` +69 −13).
+- Proposal (the user's): at a retro, review each form the guard recognises against that
+  criterion, remove what is not needed, and fix an admission rule for future forms: only
+  forms observed, or ordinary ones. Weigh it with IMP-079, which asks the opposite of a
+  parser's claim of coverage.
+- Expected benefit / risk: a guard as large as its job. Risk: a form removed that a
+  developer with the PowerShell tool on would use — the tool is off by default.
+
+### IMP-084 — A cross-platform test can pass vacuously when its datum does not reach the program under test intact
+- Date: 2026-10-12 | Origin: the CI's rounds 6 to 8 of v1.5.0, in the last section of
+  [[2026-10-11-multiplatform-1.5.0]] — the lesson in the user's words; recorded in
+  [[2026-10-12-prerequisites-1.6.0]]
+- Observed problem: on Windows the guard self-test's anti-vacuity check (`766365a`) failed
+  in round 6 (run 38173900708, on `7cb3bb7`) and in round 7 (run 38270936385, on
+  `7d2052b`): the `\r` of the check's own `$'…'` string did not reach node, nor, in round
+  7, `od`. The guard's CRLF cases had passed on Windows in rounds 3 to 5 through the same
+  transport, but the check wrote its `\r` differently from them — a literal inside `$(…)`,
+  theirs through a variable —, so their own path was never measured: whether those rounds
+  were vacuous is NOT established, and by the user's decision (2026-10-12) it is not
+  investigated further. The user's fix, `9fa2e9a`: the CRLF cases written as JSON escapes,
+  the form Claude Code sends — the test proves the real path, not Git Bash's behaviour, a
+  detail of the test environment —, and the anti-vacuity check moved to node itself, a
+  probe in the guard's place on the same wiring. Round 8 (run 38275935122) was green on
+  the three images.
+- Proposal: NOT decided. IMP-071's family — verify that the check really checked: (a) a
+  cross-platform test feeds its datum in the form the product receives, not in a form a
+  platform's shell must carry intact; (b) its anti-vacuity check looks at the program
+  under test, on the same path as the cases it vouches for. The candidate place:
+  `docs/02`, *Tests that demonstrate*, with IMP-071.
+- Expected benefit / risk: a green that means what it says on every platform. Risk: none.
+
+### IMP-085 — The framework's files kept out of deploy artifacts
+- Date: 2026-10-13 | Origin: the user's question, 2026-10-13 — recorded in
+  [[2026-10-12-prerequisites-1.6.0]]
+- Priority: LOW (user decision, 2026-10-13).
+- Observed problem: the framework serves during development only, but its files —
+  `CLAUDE.md`, `.claude/` with the project's memory, the scripts, the `Makefile` — sit in
+  the project's repository. A deploy that copies the whole repository (a `COPY . .` into an
+  image, for one) carries them into production, the project's memory included.
+- The first check, made when recording it (2026-10-13): no page says it. `SETUP.md`,
+  `CLAUDE.md`, `.claude/docs/`, `README.md` and `CONTRIBUTING.md` searched for deploy,
+  production, docker, image, container, artifact and exclude: only the technical rules'
+  slot for the production artifact's format and `docs/02`'s Definition of Done, point 9,
+  neither about the framework's own files.
+- Proposal: NOT decided — and only because it is missing: one line of principle, agnostic
+  to the stack, in `SETUP.md` (its *Hardening* section, for one): keep the framework's
+  paths out of deploy artifacts with the stack's own mechanism; the list of those paths
+  derives from the class table (`tools/upgrade-check.sh classes <tag>`, `SETUP.md`, *The
+  mental model: the classes of file, and the graft state*). No exclusion file in the
+  payload: such files depend on the stack and stay the project's.
+- Expected benefit / risk: a project's memory and process files do not reach production
+  through a copy of the whole repository. Risk: none — a line of principle.
+- Resumption trigger: the next release that touches `SETUP.md`'s *Hardening*, or the
+  retrospective over the backlog.
+
+### IMP-086 — The framework repository's visibility, and what its memory holds
+- Date: 2026-10-13 | Origin: the user's decision, 2026-10-13 — at the end of the cycle the
+  framework's repository becomes PRIVATE, for personal use; recorded in
+  [[2026-10-12-prerequisites-1.6.0]]
+- Priority: LOW (user decision, 2026-10-13).
+- Observed problem: the switch changes conditions the repository relies on today, to be
+  handled at that moment:
+  - rulesets on GitHub's Free plan apply to public repositories only: Pro, or a
+    protection that is local only;
+  - the CI has 2,000 minutes a month, Windows counted twice and macOS ten times — the
+    user's proposal: drop macOS from the CI, already covered locally;
+  - the "Repository visibility" line of auto mode, in the user's `~/.claude/settings.json`,
+    to update;
+  - `README.md` and `CONTRIBUTING.md` must not present the repository as public.
+- The memory's hygiene, valid while private too: no names or details of the projects that
+  use the framework, no personal data, references in a neutral form — the practice since
+  v1.3.2. What has been public stays public: no rewriting of history.
+- Proposal: NOT decided — the list above, applied when the repository turns private.
+- Expected benefit / risk: the switch costs no protection and no CI coverage unknowingly.
+  Risk: without macOS in the CI, bash 3.2 and the BSD userland are verified only locally.
+- Resumption trigger: the switch of the repository to private, at the end of the cycle.
+
+### IMP-087 — A hermetic test cannot see the defects the user's configuration causes
+- Date: 2026-10-13 | Origin: the review of v2.0.0, its HIGH H1, and the main session's
+  measures of its family — [[2026-10-12-prerequisites-1.6.0]] (the retro)
+- Observed problem: `tools/test-real-hooks.sh` ran the generated hooks with the real
+  gitleaks and commitlint, the git configuration emptied for hermeticity
+  (`GIT_CONFIG_GLOBAL=/dev/null`), as every self-test of the framework does. A colour the
+  user's configuration forces had let every staged secret through the pre-commit since the
+  hook existed, and the test could not see it — nor a textconv driver, nor an attribute that
+  marks a text file binary: three silent bypasses, all from configuration the hermetic
+  setup removed. The reviewer found the first by reading gitleaks' source, the main session
+  the other two by measuring its family.
+- Proposal: NOT decided. A test of a tool that reads the user's configuration keeps its
+  hermetic baseline and adds cases under the configurations users have — each named, each
+  checked to take hold before the case counts, as the real-hook cases 5 to 7 check that git
+  does colour, mask or show the file as binary —, chosen from how the tool reads that
+  configuration (here, gitleaks reading `git diff`). The candidate place: `docs/02`, *Tests
+  that demonstrate*, with IMP-071 and IMP-084 — the family "verify that the check really
+  checked".
+- Expected benefit / risk: the defects that live in the configuration show in the tests.
+  Risk: the configurations users have are open-ended; the cases stay those observed or read
+  at the source.
+
+### IMP-088 — A change next to a setup slot conflicts at every project's upgrade
+- Date: 2026-10-13 | Origin: task 10 of v2.0.0, the upgrade rehearsed on the final payload —
+  [[2026-10-12-prerequisites-1.6.0]] (the retro)
+- Observed problem: the block that scans the text git shows as binary was inserted right
+  after the pre-commit's protect line, and ended next to the formatting slot's line, which
+  every project answers at setup: the 3-way merge of `hooks-install.sh` conflicted, 41 of
+  311 lines, for every such project. Only the release's rehearsal found it, after three
+  green CI rounds: the upgrade check measures the 3-way at a project's upgrade, nothing at
+  the framework's commit.
+- Proposal: NOT decided. At each commit that touches a HYBRID file, measure its 3-way merge
+  from the latest tag against a copy whose every slot is answered — the slots the
+  documentation check already knows, `SETUP.md` §2 —, in the framework's own checks; or,
+  lighter, a rule in `CONTRIBUTING.md`: a change keeps unchanged lines between itself and a
+  slot's line, and the release's rehearsal stays the backstop.
+- Expected benefit / risk: the conflict shows at the commit that makes it. Risk: a fixture
+  of answered slots to keep, or a rule no check holds.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
@@ -1799,6 +1977,63 @@ line on; older entries are not backfilled.
 - Uncovered: a list with no structure a program can extract is out of reach — such a
   list stops claiming completeness ("the FOURTH species" and "three real upgrades" were
   reworded); the tripwire sees how many markers a file has, not which slot is new.
+
+### IMP-070 — Multi-platform support: macOS, Linux, Windows → applied on 2026-10-13, commits da54b98, 77525a0, 6212081, 3b0edca, c3190c2, 5f05004, c99525a (point 7; points 1 to 6 in v1.5.0)
+- Date: 2026-10-10 | Origin: the user's requirement of 2026-10-10, recorded in
+  [[2026-10-10-integrate-two-blocks-1.3.4]] and [[2026-10-10-upgrade-verification-1.4.0]]
+  — the framework was tested on macOS only
+- Observed problem (condensed): every script and self-test had run on macOS only, the
+  prerequisites named one platform's package manager, and on Windows the PowerShell tool
+  escaped the delegated agents' guard.
+- Decision (the user, 2026-10-10 and 2026-10-11 — [[2026-10-11-multiplatform-1.5.0]]): a
+  POSIX environment on Windows too, through Git for Windows, no twin scripts; a rewrite in
+  Node.js weighed only past the plan B threshold — the Windows job over 30 minutes, steadily,
+  for 3 consecutive runs; the `Makefile` stays (point 8); the PowerShell tool off, and read
+  by the guard (point 4).
+- Applied in v1.5.0 ([[2026-10-11-multiplatform-1.5.0]]): points 1 to 6 — the CI on macOS,
+  Ubuntu and Windows; `.gitattributes` in the payload; the upgrade check's CRLF tolerance
+  and its Windows forms; the prerequisites by tool name; the platform matrix.
+- Applied in v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]): point 7 —
+  `scripts/check-prerequisites.sh`, runnable without make. It runs each tool, compares its
+  version with a minimum read from the tool's own source, names the platform and whether the
+  CI verifies it, and warns when git would write the framework's files with CRLF; it fails
+  for a tool missing or not starting, and for gitleaks below its security minimum or unread
+  (the user's D5); it installs nothing. `hooks-install.sh` runs it first; `SETUP.md` §0 and
+  the upgrade's *Precondition* call it.
+- Verified ([[2026-10-12-prerequisites-1.6.0]]): its self-test, against stubs of each tool,
+  gitleaks' three command lines among them, a mutant per detection branch caught; in the CI,
+  against each image's real tools, 0 FAIL and 0 WARN on the three, Windows taking the branch
+  where `core.autocrlf` is true and `.gitattributes` holds LF; the upgrade from 1.5.0,
+  rehearsed on the final payload with LF and with CRLF line ends, the check run from `T`
+  before Step 1.
+- Uncovered: point 7 asked for the install command of the detected platform; the check
+  names the tool's official page instead (the user's D2) — a package manager's command per
+  platform would bring back the leak point 6 removed. Not verified: WSL, Cygwin, Linux and
+  Windows on arm64, macOS on Intel — the check names them as such.
+
+### IMP-076 — commitlint is not pinned → applied on 2026-10-13, commits 1e1129f, f430e1f
+- Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — phase 1's inventory of
+  the prerequisites
+- Observed problem (condensed): the commit-msg hook ran npx's latest commitlint, whose
+  21.x `engines` had raised the Node.js minimum to 22.12 with no decision of ours; a later
+  major could raise it again, or change behaviour, under every project at once.
+- Decision (the user's brief for v1.6.0, 2026-10-12 — [[2026-10-12-prerequisites-1.6.0]]):
+  commitlint pinned to an explicit version defined in ONE place, the Node.js minimum
+  derived from it, checked on npm.
+- Applied in v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]): 21.2.3 for both packages,
+  `COMMITLINT=` at the head of `scripts/check-prerequisites.sh`; `hooks-install.sh` reads
+  it through `--commitlint-version`, refuses anything but an exact x.y.z, and writes it
+  into the commit-msg hook; Node.js 22.12, the minimum, is 21.2.3's `engines` (the npm
+  registry). A rule of the documentation check holds every minimum the documents write, and
+  the pin, against that one place.
+- Verified ([[2026-10-12-prerequisites-1.6.0]]): the shipped self-test finds the pin in the
+  generated hook, and a pin of 21 refused, red first; in the CI, the real commit-msg at the
+  pin accepts a conforming message and refuses one without a type on the three platforms;
+  npx resolved the packages at 21.2.3 (the review); the upgrade from 1.5.0, rehearsed, saved
+  1.5.0's commit-msg byte for byte as its `.bak`.
+- Uncovered: the pin fixes the two packages only; their dependencies follow the ranges they
+  declare (`^21.2.3`, `yargs ^18.0.0`, …), fetched unhashed — `SETUP.md` §0 and the CI's
+  statement say so. Raising the pin is a framework release's decision, and its cost.
 
 ## Deferred (not rejected — resumed at the right time)
 

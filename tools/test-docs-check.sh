@@ -37,8 +37,9 @@
 #      file without a class (now or at a tag), a class bullet, Step 2's pathspec, what step
 #      1 and the "Outside the upgrade payload" box say is not copied, the counts and
 #      numberings in prose, the sections of the backlog, the subcommands wherever listed,
-#      the copy list, the commit types, the title and label tables: each fails when out of
-#      step, and so does a list the check can no longer find;
+#      the copy list, the commit types, the title and label tables, a minimum or
+#      commitlint's pin written otherwise than the prerequisite check defines it: each fails
+#      when out of step, and so does a list the check can no longer find;
 #   8. language — Italian prose (by its words, or by its accents alone), an Italian file
 #      name, guillemets, an Italian commit message and a legacy form declared but gone
 #      fail; a quote, a legacy form, an accented name and a co-author's trailer do not;
@@ -136,6 +137,7 @@ floor 'N @-imports' 15
 floor 'N cited paths' 300
 floor 'N section titles' 40
 floor 'the class table at N tags' 19
+floor 'N written minimums' 10
 floor 'N text units' 3000
 cp "${out}" "${workdir}/plain.log"
 hostile="${workdir}/hostile.gitconfig"
@@ -438,14 +440,14 @@ edit "${c}/SETUP.md" 'These eight cases' 'These seven cases'
 edit "${c}/SETUP.md" 'It installs three hooks' 'It installs four hooks'
 edit "${c}/SETUP.md" 'the four guide READMEs' 'the five guide READMEs'
 edit "${c}/README.md" '\+ 4 subfolders' '+ 5 subfolders'
-edit "${c}/scripts/test-hooks-install.sh" 'Three cases:' 'Four cases:'
+edit "${c}/scripts/test-hooks-install.sh" 'Six cases:' 'Seven cases:'
 run 1 "${c}"
 nfails 5
 has '"These seven cases", but the numbered edge cases are 8'
 has '"It installs four hooks"'
 has '"the five guide READMEs"'
 has '"+ 5 subfolders"'
-has 'the header says "four cases"'
+has 'the header says "seven cases"'
 c="$(copy list-setup)"
 edit "${c}/SETUP.md" '`CLAUDE\.md`, `\.claude/settings\.json`, `scripts/hooks-install\.sh`' '`.claude/settings.json`, `scripts/hooks-install.sh`'
 edit "${c}/SETUP.md" 'CLAUDE\.md scripts Makefile commitlint' 'CLAUDE.md scripts commitlint'
@@ -490,7 +492,7 @@ edit "${c}/scripts/test-hooks-install.sh" '^# --- Case 3 — .*\n' ''
 run 1 "${c}"
 has "the METHOD bullet names CLAUDE.md, which classify() puts in HYBRID"
 has 'edge case 3 is numbered "9."'
-has "the header lists 3 cases, the file marks 2"
+has "the header lists 6 cases, the file marks 5"
 c="$(copy list-sources)"
 edit "${c}/tools/upgrade-check.sh" '^#   classes <rev>' '#   kinds <rev>  '
 edit "${c}/tools/upgrade-check.sh" 'usage: upgrade-check\.sh classes\|' 'usage: upgrade-check.sh '
@@ -516,7 +518,31 @@ nfails 3
 has "the backlog's sections without rejected"
 has '"Its subcommands:" lacks classes'
 has "the copy list lacks scripts"
-echo "PASS (docs-check, lists): §2 and the slots, the class table and its bullets, Step 2, what is not copied, the counts, the sections, the subcommands, the copy list, the types and the format tables fail when out of step."
+c="$(copy list-minimums)"
+edit "${c}/SETUP.md" '\*\*Node\.js 22\.12 or later' '**Node.js 22.11 or later'
+edit "${c}/tools/README.md" 'bash 3\.2 or later' 'bash 3.1 or later'
+edit "${c}/SETUP.md" '^- \*\*gitleaks 8\.18\.2 or later\*\*' '- **gitleaks 7.0.0 or later**'
+edit "${c}/scripts/README.md" 'Prerequisites \(`check-prerequisites\.sh` checks them\)' 'Prerequisites (commitlint 21.1.0 pinned)'
+# An IMP entry is history: the minimum it wrote then stays. The plant goes into an applied
+# entry, whose text no longer changes.
+edit "${c}/.claude/memory/LEARNINGS.md" 'coherence review before the merge\.' 'coherence review before the merge; Node.js 14.13 or later then.'
+run 1 "${c}"
+nfails 4
+has '"Node.js 22.11 or later", but the minimum scripts/check-prerequisites.sh defines is 22.12'
+has '"bash 3.1 or later", but the minimum scripts/check-prerequisites.sh defines is 3.2'
+has '"gitleaks 7.0.0 or later", but the minimum scripts/check-prerequisites.sh defines is'
+has '"commitlint 21.1.0", but scripts/check-prerequisites.sh pins'
+c="$(copy list-minimums-source)"
+edit "${c}/scripts/check-prerequisites.sh" '^COMMITLINT=' 'PINNED='
+run 1 "${c}"
+nfails 1
+has "no commitlint pin read from PREREQUISITES and COMMITLINT: the extraction is wrong"
+c="$(copy list-minimums-range)"
+edit "${c}/scripts/check-prerequisites.sh" '^COMMITLINT=[0-9.]*$' 'COMMITLINT=21'
+run 1 "${c}"
+nfails 1
+has "no commitlint pin read from PREREQUISITES and COMMITLINT: the extraction is wrong"
+echo "PASS (docs-check, lists): §2 and the slots, the class table and its bullets, Step 2, what is not copied, the counts, the sections, the subcommands, the copy list, the types, the format tables and the written minimums fail when out of step."
 
 # --- Case 8: language -----------------------------------------------------------------------
 c="$(copy lang-prose)"

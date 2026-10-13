@@ -55,8 +55,10 @@ foresees). Concretely:
   applies to the messages too, because pushed history is not rewritten.
 
 **The CI, before the merge — block 0.** The CI (`.github/workflows/test.yml`) runs
-`make test-scripts` and the upgrade check's self-test on macOS, Linux and Windows, on what
-is pushed — and a deliverable's branch otherwise stays local until `/integrate`. So, in
+`make test-scripts`, the upgrade check's self-test, the prerequisite check and the generated
+hooks with the real gitleaks and commitlint (`tools/test-real-hooks.sh`) on macOS, Linux and
+Windows, on what is pushed — and a deliverable's branch otherwise stays local until
+`/integrate`. So, in
 this repository, the human runs a block 0 before `/integrate`'s block 1: push the feature
 branch (`git push -u origin <branch>`) and wait until the CI is green on the three
 platforms. Block 1 then checks that the tree it merges is the one the CI tested — the merge

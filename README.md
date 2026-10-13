@@ -87,7 +87,7 @@ plan → execute task by task → [if sensitive] `/security-review` → `/retro`
 ├── SECURITY.md                security policy (real for the repo + scaffold [TO BE DEFINED])
 ├── CHANGELOG.md               Keep a Changelog, wired to the versioning of docs/04
 ├── Makefile                   process targets only (hooks-install, reset-task, test-scripts)
-├── tools/                     the repo's own checks (upgrade, documentation) — NOT copied into projects
+├── tools/                     the repo's own checks (upgrade, documentation, the real hooks) — NOT copied into projects
 ├── .github/                   the repo's own CI (macOS, Linux, Windows) — NOT copied into projects
 ├── commitlint.config.cjs      Conventional Commits types
 ├── .gitignore                 baseline (secrets + IDE/OS) + [TO BE DEFINED] section
@@ -97,6 +97,7 @@ plan → execute task by task → [if sensitive] `/security-review` → `/retro`
 │   ├── agent-git-guard.mjs    PreToolUse guard: delegated agents read-only on git
 │   ├── repo-snapshot.sh       before/after fingerprint around delegated agents
 │   ├── reset-task.sh          surgical cleanup of the interrupted task
+│   ├── check-prerequisites.sh the prerequisites: each tool run, its version against its minimum
 │   ├── test-*.sh              hermetic self-tests (make test-scripts)
 │   └── README.md
 └── .claude/

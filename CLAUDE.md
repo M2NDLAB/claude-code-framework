@@ -85,7 +85,7 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
 - Slash commands: `/checkpoint`, `/integrate`, `/sos`, `/retro`, `/security-review`,
   `/new-component`, `/lint-memory`, `/harvest-framework`
 - `make hooks-install` — install the git hooks (gitleaks + commitlint + the pre-push push boundary)
-- `make test-scripts` — self-test of the framework scripts (hooks-install, the agent git guard, repo-snapshot)
+- `make test-scripts` — self-test of the framework scripts (hooks-install, the agent git guard, repo-snapshot, the prerequisite check)
 - `make reset-task` — discard the interrupted half-done task (keeps commits; the
   protected branches are the Makefile's `PROTECTED_BRANCHES`; `YES=1` without asking)
 
