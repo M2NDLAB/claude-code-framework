@@ -654,22 +654,6 @@ tags: [improvement]
   writes an environment that does not leak one repository's facts into the others. Risk:
   none.
 
-### IMP-076 — commitlint is not pinned
-- Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — phase 1's inventory of
-  the prerequisites
-- Observed problem: the commit-msg hook runs `npx --yes --package @commitlint/cli
-  --package @commitlint/config-conventional commitlint`: npx fetches the latest release at
-  the first commit — 21.2.3 on 2026-10-11, whose `engines` require Node.js `>=22.12.0`
-  (npm registry). The framework's Node.js minimum rose to 22.12 without a decision of
-  ours, and a future major can raise it again, or change behaviour, under every project at
-  once.
-- Proposal: NOT decided — weigh in v1.6.0 pinning both packages' versions in the hook,
-  raised by a deliberate release; against it, a fix in commitlint then reaches the
-  projects only through a framework release.
-- Resumption trigger: v1.6.0 (prerequisites and versions).
-- Expected benefit / risk: a prerequisite moves only by our decision. Risk: pinned
-  versions age, and someone must raise them.
-
 ### IMP-077 — gitleaks `protect` is deprecated
 - Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — phase 1's inventory of
   the prerequisites
@@ -1962,6 +1946,30 @@ line on; older entries are not backfilled.
   names the tool's official page instead (the user's D2) — a package manager's command per
   platform would bring back the leak point 6 removed. Not verified: WSL, Cygwin, Linux and
   Windows on arm64, macOS on Intel — the check names them as such.
+
+### IMP-076 — commitlint is not pinned → applied on 2026-10-13, commits 1e1129f, f430e1f
+- Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — phase 1's inventory of
+  the prerequisites
+- Observed problem (condensed): the commit-msg hook ran npx's latest commitlint, whose
+  21.x `engines` had raised the Node.js minimum to 22.12 with no decision of ours; a later
+  major could raise it again, or change behaviour, under every project at once.
+- Decision (the user's brief for v1.6.0, 2026-10-12 — [[2026-10-12-prerequisites-1.6.0]]):
+  commitlint pinned to an explicit version defined in ONE place, the Node.js minimum
+  derived from it, checked on npm.
+- Applied in v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]): 21.2.3 for both packages,
+  `COMMITLINT=` at the head of `scripts/check-prerequisites.sh`; `hooks-install.sh` reads
+  it through `--commitlint-version`, refuses anything but an exact x.y.z, and writes it
+  into the commit-msg hook; Node.js 22.12, the minimum, is 21.2.3's `engines` (the npm
+  registry). A rule of the documentation check holds every minimum the documents write, and
+  the pin, against that one place.
+- Verified ([[2026-10-12-prerequisites-1.6.0]]): the shipped self-test finds the pin in the
+  generated hook, and a pin of 21 refused, red first; in the CI, the real commit-msg at the
+  pin accepts a conforming message and refuses one without a type on the three platforms;
+  npx resolved the packages at 21.2.3 (the review); the upgrade from 1.5.0, rehearsed, saved
+  1.5.0's commit-msg byte for byte as its `.bak`.
+- Uncovered: the pin fixes the two packages only; their dependencies follow the ranges they
+  declare (`^21.2.3`, `yargs ^18.0.0`, …), fetched unhashed — `SETUP.md` §0 and the CI's
+  statement say so. Raising the pin is a framework release's decision, and its cost.
 
 ## Deferred (not rejected — resumed at the right time)
 
