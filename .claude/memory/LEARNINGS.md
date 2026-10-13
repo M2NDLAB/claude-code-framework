@@ -23,44 +23,6 @@ tags: [improvement]
 
 ## OPEN proposals (awaiting the user's decision)
 
-### IMP-057 — A test invariant over a known debt: a bidirectional allow-list, not an empty set
-- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
-  a class invariant made the honest declaration the only way to break the build
-- Observed problem (client-side, relayed): after the last two known violations of a
-  capability registry were fixed, an invariant was added that scanned the registry and
-  FAILED whenever an entry was declared as not honouring the capability. It looked like
-  the natural strengthening of "close the class", but it made the honest declaration
-  the only move that breaks the build: for a new unit without the capability, the
-  fastest way to green is not to fix it but to declare it compliant and mention the
-  flag in a comment (the other check was a grep on the file). The test pushed towards
-  the lie exactly where the code needs the truth — a summary attests "nothing changed"
-  on that very data (IMP-056).
-- On the framework's source: `docs/02` (*Tests that demonstrate*) prescribes invariants
-  "re-applied BY CONSTRUCTION" — a property over ALL entities, with an anti-vacuity
-  check — and says nothing about known exceptions. The lesson QUALIFIES that example:
-  when the property is an entity's self-declared flag, introspection over all entities
-  measures the declaration.
-- Proposal (as relayed; NOT decided here — retro): in `docs/02`, an invariant over a
-  set with a KNOWN debt is written as a BIDIRECTIONAL ALLOW-LIST, not as an empty-set
-  assertion: (a) an unlisted member that violates the property fails → the debt cannot
-  grow silently; (b) a listed member that no longer violates it fails → an exemption
-  cannot outlive its fix. General rule: if declaring the truth breaks the build, the
-  test is badly designed — it measures the declaration, not the behaviour.
-- For the retro: to be reconciled with `docs/02`'s "not as assertions about the state
-  known today" — check (b) makes the list a shrink-only register of exemptions, the
-  mirror of the anti-vacuity guard (that one guards the scanned set, (b) the list).
-  Kin: the bidirectional set comparison of IMP-038 (`/lint-memory` check 11); debts
-  kept with their reason (`docs/03`).
-- Expected benefit / risk: removes the incentive to lie in the registries that security
-  assertions rely on. Risk: an allow-list can become a comfortable parking lot —
-  mitigated by check (b) and by a recorded reason for every entry.
-- **First use, 2026-10-11** ([[2026-10-11-payload-purity-1.4.1]]): the documentation
-  check of v1.4.1 keeps its exceptions this way, each with its reason, an unused one
-  failing. Direction (b) proved itself at once: a mutation that silenced the language rule
-  was caught on the unchanged repository, because the declared exceptions of the frozen
-  memory stopped matching. The `docs/02` rule itself stays open.
-- Status: APPROVED on 2026-10-13 (the retro over the backlog) — for v2.2.0.
-
 ### IMP-060 — A delegation brief quotes the user's decisions verbatim; a multi-agent report declares its coverage gaps
 - Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
   agents re-opened an already-decided point as "undecided, blocking" because the brief
@@ -1782,6 +1744,22 @@ line on; older entries are not backfilled.
   ways cleanly, with LF and with CRLF line ends; nothing that reads the memory checks the
   session-note format, so no older note fails. Not adopted from the annotation: a diff of
   the baseline's executable lines as the upgrade's reason — outside the approved form.
+
+### IMP-057 — A test invariant over a known debt: a bidirectional allow-list, not an empty set → applied on 2026-10-14
+- Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project: once
+  the last known violations of a capability registry were fixed, an invariant failed
+  whenever an entry declared it did not honour the capability, so the fastest way to green
+  for a new unit without it was to declare it compliant. The test pushed towards the lie
+  exactly where the code needed the truth.
+- Applied: `docs/02`, *Tests that demonstrate*, gains the rule — an invariant over a set
+  with a known debt is a bidirectional allow-list: an unlisted member that violates the
+  property fails, a listed one that no longer does fails, each entry with its reason; the
+  list is reconciled with "not assertions about the state known today", since (b) breaks it
+  the day that state changes, as the anti-vacuity check guards the scanned set; and a test
+  that the truth breaks measures the declaration — the test is what to fix.
+- Verified: the documentation check passes. Its own exceptions follow the rule since
+  v1.4.1, where direction (b) caught a mutation on the unchanged repository
+  ([[2026-10-11-payload-purity-1.4.1]]).
 
 ## Deferred (not rejected — resumed at the right time)
 

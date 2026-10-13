@@ -84,6 +84,14 @@ are stack-agnostic principles: the conventions specific to the chosen language g
   ALL entities, with an anti-vacuity check (it fails if the scanned set is empty).
   That way a future regression breaks the build by itself, instead of waiting for
   someone to remember to update the test.
+- An invariant over a set that carries a KNOWN debt is a BIDIRECTIONAL allow-list, not an
+  assertion that no member violates the property: (a) a member that violates it and is not
+  listed fails, so the debt cannot grow in silence; (b) a listed member that no longer
+  violates it fails, so an exemption cannot outlive its fix; each entry carries its reason.
+  The list is no assertion about the state known today — (b) breaks it the day that state
+  changes, as the anti-vacuity check guards the scanned set. And if declaring the truth
+  breaks the build — a unit that says it lacks the property —, the test measures the
+  declaration, not the behaviour: the test is what to fix.
 - A test of what drives an external tool keeps its hermetic baseline, and adds cases under
   the configurations the users have — their git configuration, their attributes, their
   platform: emptying the configuration for hermeticity also removes the defects it causes.
