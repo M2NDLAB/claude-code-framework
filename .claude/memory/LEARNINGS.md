@@ -23,45 +23,6 @@ tags: [improvement]
 
 ## OPEN proposals (awaiting the user's decision)
 
-### IMP-060 — A delegation brief quotes the user's decisions verbatim; a multi-agent report declares its coverage gaps
-- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
-  agents re-opened an already-decided point as "undecided, blocking" because the brief
-  paraphrased the decisions
-- Observed problem (client-side, relayed): the brief given to the review agents of a
-  multi-agent assessment paraphrased only one of the user's decisions and left out
-  another one already taken. Several agents and verifiers then treated that decided
-  point as "undecided, blocking", and the finding had to be retracted in the report.
-  The same run lost 2 of 27 agents to stalls: declaring the uncovered items explicitly,
-  and re-checking them by hand, kept the report honest.
-- On the framework's source: (a) is absent — `docs/00` (*Scope and session hygiene*)
-  has no delegation bullet (the nearest is the effort one), and `docs/05`'s self-sufficient report is the outward
-  analogue; (b) exists IN PART — `docs/03`, *Before acting on the findings* (Applied
-  IMP-016), is a reader-side completeness check, for reviews only. New: the writer-side
-  declaration of the stalled or skipped agents and of the items they left uncovered,
-  the re-check by hand, and the extension beyond reviews. The framework practised it
-  once without writing it down ([[2026-07-14-registrazione-imp-innesto-brownfield]]).
-  A kin case of its own: a brief that carried a wrong factual premise
-  ([[2026-09-24-third-upgrade-lessons]], *Problems encountered*, 1) — both show that
-  agents take the brief as ground truth.
-- Proposal (as relayed — (b)'s placement corrected by the verification, the client put
-  both halves in `docs/00`; NOT decided here — retro): (a) a brief for delegated agents
-  quotes the user's decisions and constraints VERBATIM, never summarised — a new bullet
-  in `docs/00` (*Scope and session hygiene*), or one delegation paragraph shared with
-  IMP-055; (b) a multi-agent report declares its coverage gaps explicitly — `docs/03`,
-  *Before acting on the findings*, generalised beyond reviews.
-- Expected benefit / risk: fewer false findings and no silent coverage holes. Risk:
-  longer briefs.
-- Merged on 2026-10-13 (the retro over the backlog — the same family: how a review is
-  delegated): IMP-063 — A fan-out has a stall cost: one independent reviewer first (2026-10-07,
-  [[2026-09-27-imp-054-055-agent-git-boundary]]). That block's pre-note review workflow — 3
-  reviewers, then 3 skeptics — stalled, 0 of 3 reviewers back after about an hour, and the
-  proposal reached the user with the gap declared; in phase 2 ONE reviewer returned in about
-  20 minutes with 1 HIGH and 5 MEDIUM, all reproduced. Its direction joins this entry's: one
-  independent reviewer first, a fan-out only where the blast radius warrants it, with a stall
-  budget — a time after which the run is stopped and its gap declared, as (b) above says.
-- Status: APPROVED on 2026-10-13 (the retro over the backlog) — for v2.2.0, IMP-063
-  included.
-
 ### IMP-061 — `/harvest-framework` re-prints entries already carried upstream: double counts at recording time
 - Date: 2026-09-27 | Origin: [[2026-09-26-client-harvest-registration]] — recording a
   client project's harvest, re-harvested lessons were counted twice until the pre-commit
@@ -1760,6 +1721,26 @@ line on; older entries are not backfilled.
 - Verified: the documentation check passes. Its own exceptions follow the rule since
   v1.4.1, where direction (b) caught a mutation on the unchanged repository
   ([[2026-10-11-payload-purity-1.4.1]]).
+
+### IMP-060 — A delegation brief quotes the user's decisions verbatim; a multi-agent report declares its coverage gaps → applied on 2026-10-14
+- Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project: a brief
+  that paraphrased the user's decisions, and left one out, made several agents treat a
+  decided point as "undecided, blocking"; the same run lost 2 of 27 agents to stalls, and
+  declaring what they left uncovered kept the report honest. Merged in: IMP-063, from
+  [[2026-09-27-imp-054-055-agent-git-boundary]] — a review workflow of 3 reviewers and 3
+  skeptics stalled for an hour, while one reviewer returned in about 20 minutes with 1 HIGH
+  and 5 MEDIUM, all reproduced.
+- Applied: `docs/00`, *Scope and session hygiene*, gains the delegation bullet — the brief
+  quotes the user's decisions and constraints verbatim, or points at the record that holds
+  them; one independent agent first, a fan-out only where the consequences of being wrong
+  warrant it, with a stall budget fixed before the run; a report built from several agents
+  names its gaps, checked by hand or reported as not covered. `docs/03`'s section on
+  adversarial reviews applies it to the reviewers. The verbatim quote is for the brief: a
+  record persisted in the memory follows rule 9 and is English.
+- Verified: the documentation check resolves the cited section. This release's mapping
+  ([[2026-10-13-backlog-retro-2.2.0]]) followed (a) and (b) before they were written: its
+  four read-only agents got the user's decisions verbatim and each returned its coverage
+  gaps; the snapshot was unchanged after them.
 
 ## Deferred (not rejected — resumed at the right time)
 

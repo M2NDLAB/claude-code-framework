@@ -78,6 +78,10 @@ The criterion is not nominal severity but the **blast radius** of the defect:
 - **Author-verifies** — sufficient (and adversarial review is overhead): for factual
   reconnaissance and inspectable local fixes, with zero blast radius.
 
+One independent reviewer comes first; a fan-out of reviewers, then verifiers, only where
+the blast radius warrants it, with a stall budget fixed before the run — and its report
+names what it did not cover (`00-overview.md`, *Scope and session hygiene*).
+
 **Before acting on the findings.** In a multi-agent review — especially after
 interruptions or resumes — check COMPLETENESS against the right numbers: the
 authoritative source is the review's SYNTHESIS, not the raw counts of an execution

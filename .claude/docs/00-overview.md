@@ -130,6 +130,15 @@ Definition of Done and the commit are enough.
   implementations, security reviews, adversarial analysis. For reading, structured
   writing over decisions already taken, and chores, the standard level is enough. It
   is a principle, not a rigid rule: tools change, proportionality does not.
+- **Delegate with the user's words, and say what was not covered.** A brief for a
+  delegated agent — a subagent, a workflow agent — quotes the user's decisions and
+  constraints verbatim, or points at the record that holds them verbatim: a paraphrase
+  drops what the agents then treat as undecided. One independent agent first; a fan-out —
+  several agents, then verifiers — only where the consequences of being wrong warrant it,
+  with a stall budget fixed before the run: past it the run is stopped, and what it did
+  not cover is declared. A report built from several agents names its gaps — the agents
+  that stalled or were skipped, the items left uncovered — and those items are checked by
+  hand or reported as not covered.
 
 ## Process principles (in priority order)
 
