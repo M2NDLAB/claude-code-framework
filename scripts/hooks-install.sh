@@ -144,7 +144,7 @@ done
 mkdir -p "${HOOKS_DIR}"
 
 # Installs a generated hook: if the target exists (it is necessarily OURS, foreign
-# ones are handled above) but the content differs, it is either an earlier release's hook
+# ones are handled above) but the content differs, it is either another release's hook
 # or one customised locally (e.g. the adapted formatting block, as the hook's own comments
 # ask for) — a difference this script measures, and cannot tell the cause of. A .bak of it
 # is saved before rewriting, so that a re-run destroys no customisation.
@@ -152,7 +152,7 @@ install_generated() {
   local target="$1"
   if [[ -f "${target}" ]] && ! cmp -s "${target}" "${target}.new"; then
     cp "${target}" "${target}.bak"
-    echo "WARNING: ${target##*/} differs from the hook this version generates (an earlier release's, or a local change): saved to ${target}.bak before rewriting." >&2
+    echo "WARNING: ${target##*/} differs from the hook this version generates (another release's, or a local change): saved to ${target}.bak before rewriting." >&2
   fi
   mv "${target}.new" "${target}"
   chmod +x "${target}"
@@ -287,8 +287,8 @@ cat > "${HOOKS_DIR}/pre-push.new" <<'HOOK'
 # is the human's. A push launched from a Claude Code session is refused, whatever form
 # it took (git -C, an alias, sh -c, a script, a make target): the session's markers are
 # inherited by every process the agent starts. AGENT_GIT_BOUNDARY is set by the `env`
-# key of .claude/settings.json; CLAUDECODE, set by Claude Code itself but undocumented,
-# is the fallback. Deliberate evasion (--no-verify, hooks disabled, plumbing) is outside
+# key of .claude/settings.json; CLAUDECODE, set by Claude Code itself and documented in its
+# environment-variable reference, is the fallback. Deliberate evasion (--no-verify, hooks disabled, plumbing) is outside
 # this layer's threat model. A project's own pre-push (e.g. git-lfs's) lives in
 # pre-push.local, next to this file: it runs after the check, with the same arguments
 # and stdin.

@@ -905,7 +905,7 @@ from a hand-written list; the memory's titles and field labels to rename; and th
 
 ### Step 4 — Re-sync the hooks and audit the markers
 
-`make hooks-install` (idempotent; a hook that differs from the one it generates — an earlier
+`make hooks-install` (idempotent; a hook that differs from the one it generates — another
 release's, or one with the project's formatting block — is saved as a `.bak` first).
 It installs into the repository's COMMON git directory, which all its worktrees share:
 run from the upgrade's own worktree, `vY`'s hooks reach the main worktree too, still on

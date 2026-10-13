@@ -1,9 +1,9 @@
 ---
 description: Security review of the modified code
 ---
-Run a security review of the modified files (`git diff`). Minimum checks,
-stack-agnostic — adapt/extend those specific to your technology
-(see @.claude/docs/03-security-gate.md):
+Run a security review of the branch's changes, and of the set a widened claim names
+(check 11). Minimum checks, stack-agnostic — adapt/extend those specific to your
+technology (see @.claude/docs/03-security-gate.md):
 
 1. **Secrets** hardcoded or in committed config (including base64-encoded ones).
 2. **Injection** (SQL/NoSQL/command/template): queries or commands built by
