@@ -253,41 +253,6 @@ tags: [improvement]
   not silent (Step 4's marker grep re-surfaces the slot, edge case 7 catches the filled
   one), but the project must then re-answer a slot the §2 checklist never lists.
 
-### IMP-056 — The security gate checks what the code does, not what the product claims
-- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
-  a presentation-only deliverable, behaviourally clean for both adversarial lenses,
-  still carried four truth defects in what it asserted
-- Observed problem (client-side, relayed): behaviourally the diff really was
-  presentation-only — both review lenses confirmed that consent, the dry-run branches,
-  dispatch and exit codes were intact. Yet it carried four TRUTH defects: an end-of-run
-  summary ATTESTED in the persistent session log that components without a dry-run
-  gate had "previewed, changed nothing" (false for two of them), and a disk line could
-  claim space freed on a cache that had grown. The author's reasoning was "the label
-  follows the contract, the bug is elsewhere (a known debt)" — but reality did not
-  honour the contract, and the user documentation just written turned the label into a
-  promise. (Client-side: the gate passed only after the four were fixed.)
-- On the framework's source: `docs/03` names only defects of ACTION ("a bypassed check,
-  a spoof, an exposed administrative endpoint") and `security-review.md` has no
-  truthfulness check: nothing covers the assertions a product emits.
-- Proposal (as relayed; NOT decided here — retro): an explicit lens in `docs/03`,
-  "claims, not only actions": when a deliverable produces ASSERTIONS about security
-  properties (badges, states, summaries, "nothing was changed" messages) — especially
-  when they end up in a persistent artifact (log, report, export) — each one is
-  verified against the REAL behaviour of the code it describes, not against the
-  contract that code is supposed to honour. Operating criterion: a string that asserts
-  something did NOT happen needs a datum that proves it, kept separate from the
-  classification it would otherwise be inferred from.
-- The mechanism to name: a known, accepted debt (`docs/03`, *After the review*) becomes
-  a written promise to the user through a label or a freshly written user doc.
-- Open for the retro: how the lens's trigger (a deliverable that emits security
-  assertions) meets `docs/03`'s sensitive-only scope (and `docs/00` step 2) — either
-  the lens carries its own trigger, or "sensitive" includes the surfaces that attest
-  security properties. Precedent here: IMP-020, the hook that exited 0 with a
-  misleading warning. Kin: IMP-058 (its perimeter), IMP-057.
-- Expected benefit / risk: a known, accepted debt can no longer become a written
-  promise unnoticed. Risk: none — one more lens, applied only where there are
-  assertions.
-
 ### IMP-057 — A test invariant over a known debt: a bidirectional allow-list, not an empty set
 - Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
   a class invariant made the honest declaration the only way to break the build
@@ -2061,6 +2026,27 @@ line on; older entries are not backfilled.
 - Uncovered: the pin fixes the two packages only; their dependencies follow the ranges they
   declare (`^21.2.3`, `yargs ^18.0.0`, …), fetched unhashed — `SETUP.md` §0 and the CI's
   statement say so. Raising the pin is a framework release's decision, and its cost.
+
+### IMP-056 — The security gate checks what the code does, not what the product claims → applied on 2026-10-13
+- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — a presentation-only
+  deliverable, behaviourally clean for both lenses of its review, carried four truth defects
+  in what it asserted
+- Observed problem (condensed): `docs/03` named only defects of action, and
+  `/security-review` had no truthfulness check: nothing covered the assertions a product
+  emits. In the framework's own product, v2.0.0 met three ([[2026-10-12-prerequisites-1.6.0]]):
+  the pre-commit relayed gitleaks' "no leaks found" after "scanned ~0 bytes"; the
+  prerequisite check printed "OK gitleaks 2026"; `hooks-install.sh` claimed "local changes"
+  from a mere difference.
+- Decision (the user, 2026-10-13 — [[2026-10-13-gate-lenses-2.1.0]]): one principle with
+  IMP-058, IMP-071 and IMP-073, a claim covers exactly what a datum shows; its text in
+  `docs/03` only, `/security-review` recalling it in one line.
+- Applied in v2.1.0 ([[2026-10-13-gate-lenses-2.1.0]]): `docs/03`, *The lenses of the gate*,
+  its first lens, *Claims, not only actions* — an assertion about a security property
+  checked against the real behaviour, an assertion of absence backed by a datum kept apart
+  from its classification; a deliverable whose product asserts a security property is under
+  the gate for that alone, the trigger this entry left open. `/security-review`'s check 11
+  recalls it.
+- Uncovered: the lens is a discipline of reading; no mechanical check holds it.
 
 ## Deferred (not rejected — resumed at the right time)
 

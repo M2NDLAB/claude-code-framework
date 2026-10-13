@@ -41,6 +41,20 @@ green functional tests can still carry security defects the tests cannot see (a
 bypassed check, a spoof, an exposed administrative endpoint). Only a dedicated review
 finds them before they reach integration.
 
+## The lenses of the gate
+
+A review that reads only what the code DOES can miss what the product SAYS. Every review of
+the gate applies the lens below, and a deliverable whose product asserts a security
+property is under the gate for that alone.
+
+- **Claims, not only actions.** Every assertion the product makes about a security property
+  — a status, a badge, a summary, an "OK", "nothing changed", "no leaks found" — is checked
+  against what the code really does, not against the contract it is meant to honour. An
+  assertion that something did NOT happen needs a datum that shows it — what was read, and
+  how much —, kept apart from the classification it would otherwise be inferred from. A
+  debt accepted below (*After the review*) turns into a broken promise the moment a label
+  or a freshly written document asserts the contrary.
+
 ## When the review must be adversarial (author ≠ judge)
 
 The criterion is not nominal severity but the **blast radius** of the defect:
