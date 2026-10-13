@@ -219,37 +219,6 @@ tags: [improvement]
   publication is not adopted: a scan at every push, for a route that needs a secret pasted
   into a conflict's resolution.
 
-### IMP-092 — Claude Code's permission flow can replace the guard's verdict and the ask rules
-- Date: 2026-10-13 | Origin: v2.1.0's review, M2 and I1 — [[2026-10-13-gate-lenses-2.1.0]]
-- Observed problem (read by the reviewer in Claude Code's documentation, 2026-10-13): a mod
-  that handles `tool.check` — mods are on by default — answers after the rules and the
-  PreToolUse hooks and can approve a call a hook blocked, unless the hook sits in managed
-  settings, and what an ask rule would prompt for; a PermissionRequest hook can answer an
-  ask prompt; `disableAllHooks: true`, the switch the documentation gives for stopping mods,
-  also stops the guard and the SessionStart hook. `docs/04` says the guard's verdict "always
-  stands" and that the boundary's files "always" ask. I1: a command hook's
-  `"onFailure": "block"` (Claude Code 2.1.295 or later) now offers the off-switch for the
-  fail-open `docs/04` declares, and would block the main session too on any failure, which
-  `docs/04`'s design avoids.
-- Proposal: NOT decided — declare the three routes in `docs/04` (the fail-closed bullet,
-  the ask bullet, the guard's row); weigh `"disableAllHooks": false` in the project's
-  `settings.json`, which overrides a user's `true`; weigh `onFailure` at a retro.
-- Expected benefit / risk: the boundary's claims hold against Claude Code's own extension
-  points. Risk: pinning a setting the user may have chosen.
-- Merged on 2026-10-13 (the retro over the backlog — the same change to `docs/04`: Claude
-  Code's own tools and extension points outside the guard): IMP-093 — Delegated agents can
-  write git state outside the guard's matcher (v2.1.0's review, M3,
-  [[2026-10-13-gate-lenses-2.1.0]]). The EnterWorktree tool, available to subagents, creates a
-  worktree on a new branch in the shared repository, and ExitWorktree with `remove` deletes
-  the worktree and its branch; a project's git MCP server (commit, checkout, reset) is the
-  same class. The guard matches `Bash|PowerShell|Monitor`. Declared with this entry's routes;
-  extending the matcher is not adopted.
-- Status: APPROVED on 2026-10-13 (the retro over the backlog) — for v2.2.0: the routes
-  declared in `docs/04`, IMP-093's tools with them, and the IDE terminal of IMP-097
-  (deferred, its code with IMP-095). `"disableAllHooks": false` and `onFailure` are not
-  adopted: the first pins a choice of the user's, the second would block the main session on
-  any failure, against the design `docs/04` declares.
-
 ### IMP-099 — The platform the check names as verified is wider than the CI's images
 - Date: 2026-10-13 | Origin: v2.1.0's review, L13 — [[2026-10-13-gate-lenses-2.1.0]]
 - Observed problem: `check-prerequisites.sh` calls any non-WSL Linux on x86_64 a platform the
@@ -1698,6 +1667,35 @@ line on; older entries are not backfilled.
   the project, its number written as "the project's entry 012", never as an IMP number.
 - Verified: the documentation check passes; the command cannot run in this repository,
   where no entry is marked, so its first use is the next harvest from a project.
+
+### IMP-092 — Claude Code's permission flow can replace the guard's verdict and the ask rules → applied on 2026-10-14
+- Origin: v2.1.0's review, M2 and I1, *The real path* ([[2026-10-13-gate-lenses-2.1.0]]) —
+  `docs/04` said the guard's verdict "always stands" and the boundary's files "always" ask,
+  while Claude Code's own extension points can answer in their place. Merged in: IMP-093,
+  M3 — tools that write git state outside the guard's matcher.
+- Applied, as declarations: `docs/04` gains *What Claude Code can put above the guard and
+  the rules* — a mod the user installs that handles `tool.check` can approve a call the
+  guard blocked, one an `ask` rule would prompt for and, outside managed settings and Team
+  or Enterprise plans, one a `deny` rule refuses; a PermissionRequest hook can answer a
+  prompt in the user's place; `"disableAllHooks": true`, the switch for turning mods off,
+  stops the settings hooks with no notice; `"onFailure": "block"` would close the fail-open
+  in the main session too, so it is not set. The fail-closed bullet says the wiring never
+  changes the guard's verdict; the guard's and the deny rules' rows name what is outside
+  them; the read-only bullet and the ask bullet are narrowed to match. IMP-093's tools —
+  EnterWorktree, which creates a worktree on a new branch with no prompt, and a git MCP
+  server — are declared outside the guard. IMP-097's IDE terminal is declared in the bullet
+  on where the human pushes; its code waits with IMP-095. The worktree-isolation bullet
+  gains what the reading found besides: a fresh worktree fetches the default branch when
+  the repository was not fetched for 24 hours, which moves a ref the snapshot sees, and
+  falls back to the local HEAD without a remote. `SETUP.md`, `scripts/README.md` and the
+  README follow. `"disableAllHooks": false` is not adopted: it pins a choice of the user's.
+- Verified: each sentence against Claude Code's documentation as read on 2026-10-14 —
+  *Configure permissions* (*Extend permissions with hooks*), *Hooks reference*, *Mods
+  overview*, the environment-variable reference, the tools reference and *Run parallel
+  sessions with worktrees* — read, not measured; `docs/04` with its slots answered inline
+  merges three ways cleanly, with LF and with CRLF line ends.
+- Uncovered by this commit: the guard's own comment that Bash, PowerShell and Monitor are the
+  tools that execute git, in an ask-protected file.
 
 ## Deferred (not rejected — resumed at the right time)
 

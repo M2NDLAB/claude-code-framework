@@ -906,12 +906,13 @@ from a hand-written list; the memory's titles and field labels to rename; and th
 > Nor does it WRITE in the framework repo: no checkout, switch, stash, `worktree add` or
 > commit there — it only reads it by tag (*Precondition*). Only the MAIN session
 > writes: delegated agents — subagents, workflow agents — are read-only on git, which the
-> guard enforces from v1.3.0 (`docs/04`, *Delegated agents and the shared working
-> tree*). The READING can be spread across them (inventories, diffs by tag, a review);
+> guard enforces on the shell tools from v1.3.0 (`docs/04`, *Delegated agents and the
+> shared working tree*). The READING can be spread across them (inventories, diffs by tag, a review);
 > the branch, `git merge-file`, the commits and any throwaway clone for a dry run stay
 > with the main session. An edit to `.claude/settings.json` or
 > `scripts/agent-git-guard.mjs` through the file tools asks the human (the `ask` rules),
-> auto mode included; the shell commands of Step 3 do not. Where `vY` changes a
+> auto mode included, unless a mod or a PermissionRequest hook answers in the user's place
+> (`docs/04`); the shell commands of Step 3 do not. Where `vY` changes a
 > RULE (rather than being a factual correction), Level 2 of `docs/06` kicks in: it is
 > PROPOSED, not applied silently — *"Never rewrite your own rules on your own
 > initiative"* (`CLAUDE.md`, rule 6).
