@@ -23,45 +23,6 @@ tags: [improvement]
 
 ## OPEN proposals (awaiting the user's decision)
 
-### IMP-075 — Auto mode and the framework's boundaries
-- Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — the user ran
-  `/auto-mode-setup` on 2026-10-11
-- Priority: MEDIUM (user decision, 2026-10-11).
-- Observed problem: from Claude Code's documentation (https://code.claude.com/docs/en/auto-mode-config,
-  read on 2026-10-11): auto mode allows pushes to any branch of the working repository,
-  the default branch included; content-scoped `permissions.ask` rules are evaluated before
-  the classifier and always prompt, but a push written another way (`git -C <dir> push`,
-  `git -c <key>=<value> push`) does not match them; the classifier reads `autoMode` only
-  from the user's and the managed settings (and `--settings`), never from a project's
-  `.claude/settings.json` or `settings.local.json`. So `/auto-mode-setup`, run in a
-  repository, drafts entries from that repository and writes them into
-  `~/.claude/settings.json`, which holds for every project. Observed: the trusted
-  repository and the framework's visibility applied to all projects, and a false
-  statement about the classic protection of `main`; the user corrected the file.
-- Proposal (the user's): in `docs/04` and in *Hardening* of the framework's `SETUP.md` —
-  (1) the `pre-push` stays the boundary on the push in auto mode too; (2) a recipe of ask
-  rules as a net for the common case, with its limit; (3) a warning: auto mode's
-  environment is per user, to be written in a form true for every repository.
-- Weighed against IMP-067: kept apart. IMP-067 measures which of the framework's
-  mechanisms LOAD in non-interactive modes (`claude -p`, `--bare`, CI, the Agent SDK);
-  this one states what HOLDS in an interactive permission mode, from the documentation,
-  with a text ready. They meet in one place — the Agent SDK and `--settings` carry
-  `autoMode` inline —, which IMP-067's probes should cover.
-- Expected benefit / risk: a user of auto mode knows which boundary stops a push, and
-  writes an environment that does not leak one repository's facts into the others. Risk:
-  none.
-- Merged on 2026-10-13 (the retro over the backlog — the same family: what auto mode does to
-  the boundaries): IMP-065 — Edit the method's own files with the file tools, so the
-  checkpoints that guard them apply (2026-10-07, [[2026-09-27-imp-054-055-agent-git-boundary]]).
-  `.claude/` is a protected path for Claude Code's file tools, and the `ask` rules on
-  `settings.json` and `scripts/agent-git-guard.mjs` apply to the file tools only; in that
-  block some `.claude/` edits went through Python one-offs, which no checkpoint sees, and
-  auto mode's instruction to prefer the shell for file changes was a contributing factor.
-  Its line joins this entry's text: the method's own files are edited with the file tools,
-  and a shell write to them is a slip to report.
-- Status: APPROVED on 2026-10-13 (the retro over the backlog) — for v2.2.0, IMP-065
-  included.
-
 ### IMP-082 — The whole suite before each commit, the documentation check included
 - Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro), recorded at
   the user's request in [[2026-10-12-prerequisites-1.6.0]]
@@ -1685,6 +1646,31 @@ line on; older entries are not backfilled.
 - Verified: the forms `scripts/README.md` now names — git after its global options, spelled
   `git.exe`, `Git` or a Windows path — are cases of `scripts/test-agent-git-guard.sh`
   (read); the documentation check passes.
+
+### IMP-075 — Auto mode and the framework's boundaries → applied on 2026-10-14
+- Origin: [[2026-10-11-multiplatform-1.5.0]] — the user ran `/auto-mode-setup` on 2026-10-11:
+  it drafted entries from this repository into `~/.claude/settings.json`, which holds for
+  every project — the trusted repository, the framework's visibility, and a false
+  statement about the protection of `main` —, and the user corrected the file. Merged in:
+  IMP-065 ([[2026-09-27-imp-054-055-agent-git-boundary]]) — the `ask` rules on the boundary's
+  files cover the file tools only, and some `.claude/` edits had gone through shell
+  one-offs, auto mode's preference for the shell a contributing factor.
+- Applied (the user's proposal): `docs/04` gains *In auto mode too* — auto mode allows
+  pushes to any branch, the default one included, and a push written another way matches
+  no rule, so the `pre-push` stays the boundary; its local-file bullet says `autoMode` is
+  read only from the user's settings, the managed ones and `--settings`, so what the setup
+  command drafts from one repository is written true for all of them; its `ask` bullet
+  says the method's own files are edited with the file tools, a shell write to them a slip
+  to report, a procedure that writes them by design excepted. `SETUP.md`'s *Hardening*
+  gains *In auto mode*: the boundary, the documentation's `ask` recipe as a net for the
+  usual spelling in the user's own settings — `Bash(git push *)`, `Bash(gh pr create *)`,
+  commands that begin that way only, a framework project's `deny` answering first —, and
+  the per-user environment.
+- Verified: each sentence against Claude Code's *Configure auto mode*, read on 2026-10-14
+  (*Common boundaries*, *Add a human checkpoint*, *Where the classifier reads
+  configuration*, *Generate environment entries*) — read, not measured; `docs/04` merges
+  three ways cleanly with its slots answered inline, with LF and with CRLF line ends.
+- Kept apart from IMP-067, deferred: that one measures what loads in non-interactive modes.
 
 ## Deferred (not rejected — resumed at the right time)
 

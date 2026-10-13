@@ -302,6 +302,11 @@ command does not matter:
   Code's extension, which sets `CLAUDECODE` there (its environment-variable reference): the
   `pre-push`, which reads that marker, refuses the push as a session's. A terminal outside
   the IDE carries no marker.
+- **In auto mode too.** Auto mode allows pushes to any branch of the working repository,
+  the default branch included (Claude Code's *Configure auto mode*, read on 2026-10-14);
+  `deny` and explicit `ask` rules run before its classifier, but a push written another
+  way — `git -C <dir> push`, `git -c <key>=<value> push` — matches neither. The `pre-push`
+  stays the push's boundary there as everywhere.
 - **Fail-closed for delegated agents, open for the main session.** Claude Code lets a
   PreToolUse hook that exits 1, misses its binary or times out PROCEED, so the wiring
   decides what a broken guard means. The wiring never changes the guard's own verdict, pass
@@ -403,11 +408,19 @@ what Claude Code may run without asking. Keep them **clean and specific**:
   user's place (*Enforcement of the execution boundary*). Claude Code
   reloads settings while it runs, so an accidental edit would change the boundary at
   once. The rule covers the built-in file tools; a write through a shell command is
-  outside it (and outside the threat model).
+  outside it (and outside the threat model). So the method's own files — `.claude/`,
+  `CLAUDE.md`, `scripts/` — are edited with the file tools, auto mode included, whose
+  instructions favour the shell: a shell write to them skips the checkpoint and is a slip
+  to report, except in a procedure that writes them by design, such as the upgrade of the
+  framework's `SETUP.md`.
 - **A local, UNVERSIONED file.** Personal permissions live in `settings.local.json`
   (already in `.gitignore`) and start out **empty**: what is shared and reasoned about
   lives in the versioned file; ad-hoc grants stay local and do not pollute the
-  project template.
+  project template. Auto mode's own settings, `autoMode`, are read only from the user's
+  settings, the managed ones and `--settings`, never from the project's files: what Claude
+  Code's auto-mode setup command drafts from one repository — a trusted repository, its
+  visibility — lands in the user's settings and holds for every project, so it is written
+  in a form true for all of them.
 - **No vague auto-approvals.** Avoid grants of the "stop asking for similar commands"
   kind: an `allow` that is too broad is a hole nobody remembers opening. Better one
   prompt more than an implicit, forgotten permission.

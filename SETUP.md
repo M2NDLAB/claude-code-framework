@@ -318,6 +318,18 @@ a `bash` called from PowerShell can be WSL's. A developer who turns it on keeps 
 it reads PowerShell's commands too, in the forms its self-test lists — and the `pre-push`; the
 `deny` rules, Bash rules, do not reach it.
 
+**In auto mode.** The method's layer holds there too: auto mode allows pushes to any branch
+of the working repository, the default branch included, and the `pre-push` is what stops a
+push from the session, however it is spelled (`docs/04`, *Enforcement of the execution
+boundary*). As a net for the usual spelling in the repositories without the framework, the
+`ask` rules Claude Code's documentation suggests — `Bash(git push *)` and
+`Bash(gh pr create *)`, in your own `~/.claude/settings.json` — prompt even in auto mode, for
+commands that begin that way only; in a framework project the `deny` on `Bash(git push:*)`
+answers first. And auto mode's own settings are read only from `~/.claude/settings.json`,
+managed settings and `--settings`: what its setup command drafts from one repository — a
+trusted repository, a visibility — holds for every project, so write it in a form true for
+all of them.
+
 Two layers beyond the method, neither switched on by the template:
 
 - **Server-side layer — the forge's rules.** They hold for every client and every route
