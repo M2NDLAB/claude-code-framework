@@ -495,20 +495,6 @@ tags: [improvement]
   adopted: the first pins a choice of the user's, the second would block the main session on
   any failure, against the design `docs/04` declares.
 
-### IMP-094 — reset-task.sh leaves a staged change in the working tree, and reports success
-- Date: 2026-10-13 | Origin: v2.1.0's review, M4 — [[2026-10-13-gate-lenses-2.1.0]]
-- Observed problem: `git restore .` restores the working tree FROM THE INDEX, and only then
-  does `git restore --staged .` reset the index: a staged change survives as an unstaged
-  one, yet the script reports the task discarded (measured: staged B, then C in the working
-  tree; afterwards ` M f`, the file holding B). Both restores swallow their errors, and no
-  self-test covers the script; `docs/01`'s manual form leaves staged changes staged.
-- Proposal: NOT decided — `git restore --source=HEAD --staged --worktree -- .`, errors not
-  swallowed, a self-test with a staged change, `docs/01`'s manual form corrected.
-- Expected benefit / risk: a resumption restarts from a clean task, as `docs/01` promises.
-  Risk: none.
-- Status: APPROVED on 2026-10-13 (the retro over the backlog) — for v2.2.0: the fix, a
-  self-test red first, `docs/01`'s manual form corrected.
-
 ### IMP-099 — The platform the check names as verified is wider than the CI's images
 - Date: 2026-10-13 | Origin: v2.1.0's review, L13 — [[2026-10-13-gate-lenses-2.1.0]]
 - Observed problem: `check-prerequisites.sh` calls any non-WSL Linux on x86_64 a platform the
@@ -1822,6 +1808,31 @@ line on; older entries are not backfilled.
   copies with their placeholders answered and `checkpoint.md`'s setup paragraph deleted, with
   LF and with CRLF line ends. Read in `SETUP.md`: an upgrade's first `/checkpoint` is its
   Step 6, after Step 5's invariant on the memory, which the rule leaves as it was.
+
+### IMP-094 — reset-task.sh leaves a staged change in the working tree, and reports success → applied on 2026-10-14
+- Origin: v2.1.0's review, M4 ([[2026-10-13-gate-lenses-2.1.0]]) — `git restore .` restores
+  the working tree from the INDEX, and only then did `git restore --staged .` reset the
+  index: a staged change survived as an unstaged one while the script reported the task
+  discarded; both restores swallowed their errors, no self-test covered the script, and
+  `docs/01`'s manual forms had the same defect.
+- Applied: `reset-task.sh` restores the index and the working tree from HEAD in one step
+  (`git restore --source=HEAD --staged --worktree -- .`), reports a step git refuses as a
+  failure, and says the task is discarded only once the tree reads clean and HEAD has not
+  moved. Found while mapping it ([[2026-10-13-backlog-retro-2.2.0]]): in bash 3.2 `cd ""`
+  succeeds and stays put, so outside a repository the script went on and reported a discard;
+  the top level is now resolved in its own step. `docs/01`'s two manual forms are corrected;
+  the new self-test, `scripts/test-reset-task.sh`, is wired in the `Makefile`'s
+  `test-scripts`, `CLAUDE.md`'s list, `scripts/README.md`'s table and the upgrade check's
+  classes.
+- Verified: the self-test, red first against the script as committed — case 1 left
+  ` M both.txt` and ` M staged.txt`; alone, case 2 (the index's lock held) and case 3
+  (outside a repository) each exited 0 saying "Half-done task discarded" — and green after
+  the fix, case 4 under `core.autocrlf` true included (macOS, bash 3.2). The `Makefile` and
+  `CLAUDE.md`, HYBRID, merge three ways cleanly against copies with their setup answers in
+  place, with LF and with CRLF line ends.
+- Uncovered (not measured, known limits of the script): a merge, rebase or cherry-pick in
+  progress, whose state files survive a restore; a detached HEAD, where the guard on
+  protected branches has no branch to compare.
 
 ## Deferred (not rejected — resumed at the right time)
 
