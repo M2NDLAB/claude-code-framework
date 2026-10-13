@@ -7,6 +7,102 @@ SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [2.0.0] — 2026-10-13
+
+**Breaking: gitleaks 8.18.2 or later.** `make hooks-install`, through the prerequisite check
+it now runs first, refuses a gitleaks below 8.18.2, or one whose version it cannot read —
+which 1.5.0 accepted. Below 8.18.2 the pre-commit's scan can let a secret through in silence
+(*Changed*, below). Debian 13's and Ubuntu 24.04's packages are 8.16.0: install a release
+(https://github.com/gitleaks/gitleaks#installing) before upgrading.
+
+### Added
+- **A prerequisite check, `scripts/check-prerequisites.sh`** (METHOD, IMP-070 point 7),
+  runnable without make. It RUNS each tool — git, bash and the POSIX userland, GNU make,
+  gitleaks, Node.js and npx — rather than finding it, compares its version with the
+  minimum, names the platform and whether the framework's CI verifies it, and warns when
+  `core.autocrlf` is true and nothing holds the framework's files to LF. A tool missing or
+  not starting fails it, with the tool's installation page, and so does gitleaks below its
+  security minimum or with a version the check cannot read; any other version below its
+  minimum, or unread, is a warning. It installs nothing. Its self-test,
+  `scripts/test-check-prerequisites.sh` (METHOD), runs it against stub tools, gitleaks'
+  three command lines among them, in `make test-scripts`.
+- **The generated hooks run with the real tools in the CI** — the framework repository's
+  own `tools/test-real-hooks.sh`: the pre-commit hook refuses a staged secret, also with a
+  colour the user's git configuration forces, behind a textconv that masks it, and in a key
+  file marked binary, and lets a clean change through; the commit-msg hook accepts a
+  conforming message and refuses one without a type. The CI installs gitleaks 8.30.1, its
+  archive checked against a SHA-256
+  fixed in the workflow before it runs, and runs the prerequisite check against each
+  image's real tools. npx fetches commitlint from the npm registry there as in a project,
+  unhashed.
+
+### Changed
+- **gitleaks' minimum is 8.18.2, a security minimum** (IMP-077) — the breaking change
+  above. Read at gitleaks' source: before 8.18.2 the staged diff runs without
+  `--no-ext-diff`, so a configured external diff replaces what gitleaks reads; from 8.4.0
+  to 8.18.1 a scan error also ends in "no leaks found" and exit 0; 8.0.0 to 8.1.3 write a
+  `.gitleaks.toml` into the project, which later releases load instead of their own rules.
+  The hook keeps `gitleaks protect --staged`, hidden from `--help` since 8.19.0; its
+  replacement, `gitleaks git --pre-commit --staged`, scans the staged changes only from
+  8.20.0, and the switch waits for gitleaks to announce the removal of `protect`.
+- **commitlint is pinned** (IMP-076): 21.2.3 for both its packages, an exact version defined
+  in one place — the head of `check-prerequisites.sh` —, which `hooks-install.sh` writes
+  into the commit-msg hook and refuses unless it is x.y.z. The hook ran npx's latest, so a
+  new major could raise the Node.js minimum, or change behaviour, under every project at
+  once. The two packages' own dependencies still follow the ranges they declare. Node.js
+  22.12 stays the minimum: the `engines` of 21.2.3.
+- **`hooks-install.sh` runs the prerequisite check first**, for what the hooks need — no
+  make: a tool missing or not starting, or a gitleaks below its security minimum, stops it
+  before any hook is written. It looked only for gitleaks and npx on the PATH.
+
+### Fixed
+- **The pre-commit hook let a staged secret through when the user's git configuration
+  forced a colour** — `color.ui` or `color.diff` set to "always" — **or a textconv driver
+  converted the staged text**: gitleaks scans what its own `git diff` prints, found
+  nothing to read, or read the conversion, and printed "no leaks found". In every earlier
+  release; measured through real commits. The hook now runs gitleaks with git's documented
+  environment configuration, after the caller's own: the colour off, each configured
+  textconv read as `cat`. Only an explicit `git -c` naming one of these settings still
+  wins. The one-off history scan of `SETUP.md`'s step 3, which scanned 0 commits under a
+  forced colour, gives the same prefix, and the pairs for a textconv.
+- **The pre-commit hook let a secret through in a file git shows as binary although it
+  holds text** — the attribute `binary` or `-diff`, a diff driver's `binary = true`: with
+  `*.key binary` in `.gitattributes`, a guard against line-end conversion, a staged private
+  key was committed with "no leaks found". In every earlier release; measured. The hook now
+  copies each such file from the index into a directory under `TMPDIR` that only the user
+  can read, scans it with `gitleaks detect --no-git` — the project's `.gitleaks.toml` and
+  `.gitleaksignore` passed on —, and removes it however the hook ends, Ctrl-C included. A
+  file binary by its content stays unscanned, as gitleaks reads text. Measured on an arm64
+  Mac: 50 MB of such text adds about 12 s, a tenth of the scan of the same text staged
+  plain. `SETUP.md` §3 says what the scan reads and its known limits.
+
+**Upgrading from 1.5.0** (from an earlier release, also follow the entries in between —
+Step 2 of the upgrade says how they combine):
+- **gitleaks 8.18.2 or later, first — the breaking change.** Before Step 1, run `vY`'s
+  prerequisite check from `T`, as the *Precondition* says. A FAIL — gitleaks below 8.18.2,
+  or one whose version cannot be read, among them — is a tool to install or repair before
+  Step 4, whose `make hooks-install` runs the same check and stops on it.
+- **If your git configuration forced a colour** (`color.ui` or `color.diff` "always", at
+  any level), every earlier pre-commit scanned nothing, and so did a history scan: scan the
+  history with the command of `SETUP.md`'s step 3. **If the project marks text files
+  binary** (`binary`, `-diff`), the earlier pre-commit never read them, nor does the history
+  scan: scan their current content as files, as step 3 says.
+- METHOD files — bring them over from the tag: `scripts/README.md`,
+  `scripts/test-hooks-install.sh`; and two new ones, executable:
+  `scripts/check-prerequisites.sh`, `scripts/test-check-prerequisites.sh`.
+- HYBRID files (3-way): `scripts/hooks-install.sh` (the check first, commitlint's pin, the
+  git configuration the pre-commit gives gitleaks, the scan apart of the text git shows as
+  binary), `Makefile` (the new self-test in `test-scripts`), `CLAUDE.md` (the
+  `test-scripts` line of *Quick commands*). Rehearsed on a project with every setup answer
+  in place, the pre-commit's formatting slot among them: the three merges clean, with LF
+  and with CRLF line ends.
+- **`make hooks-install` is needed** — 1.5.0's note said the hooks did not change: the
+  pre-commit and the commit-msg hooks change. The re-run says each "contained local
+  changes" and saves it as `.bak`: unless the project edited them, they are 1.5.0's own,
+  byte for byte (the rehearsal compared them) — compare, then remove the `.bak` files. The
+  pre-push hook does not change.
+- The memory templates and the `LEARNINGS.md` header do not change; nothing migrates.
+
 ## [1.5.0] — 2026-10-11
 
 ### Added

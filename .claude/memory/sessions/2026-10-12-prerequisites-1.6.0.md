@@ -128,7 +128,7 @@ after). Kept from their findings:
 - [x] 8. The CI's rounds (block 0, the user's pushes): what fails, fixed with new commits, until green on the three — commit: the record of round 1 — green on `3b0edca` (run 38299497518), nothing to fix (its own sha cannot be written in it)
 - [x] 9. ONE reviewer, read-only on git, snapshot before and after, with the security mandate on the hooks; the gate's verdict written; fixes — commit: a661b70 to bfd6c90, and the record of N1 (its own sha cannot be written in it)
 - [x] 10. `/retro` and `/checkpoint`: the upgrade rehearsed again on the final payload; IMP-070 and IMP-076 applied, each in its `chore(claude): apply IMP-nnn` commit (`docs/06`); IMP-077 stays OPEN on its trigger (D1) — commit: 944691f, 256f473, f60ceea, and this checkpoint (its own sha cannot be written in it)
-- [ ] 11. `/integrate`: the CHANGELOG 1.6.0 entry, claiming only what was measured (IMP-073); the bump computed again against the expected MINOR; the final block 0 green on the three, then blocks 1 and 2 — commit: the CHANGELOG commit (its own sha cannot be written in it)
+- [x] 11. `/integrate`: the CHANGELOG 1.6.0 entry, claiming only what was measured (IMP-073); the bump computed again against the expected MINOR; the final block 0 green on the three, then blocks 1 and 2 — commit: 7d09000 and the CHANGELOG commit, whose entry is 2.0.0's (its own sha cannot be written in it); blocks 0, 1 and 2, the user's
 
 Task 8 may take several commits, one per round of the CI: each round needs the user's
 push. Task 10's applied entries follow `docs/06`'s dedicated commits, so it takes several
@@ -568,14 +568,28 @@ body line. New, OPEN: IMP-087 — a hermetic test cannot see the defects the use
 configuration causes (H1 and N1's root); IMP-088 — a change next to a setup slot
 conflicts at every project's upgrade (this task's finding).
 
+## Task 11 — the CHANGELOG, the bump, the blocks
+- The bump, computed by `/integrate` from `origin/main..HEAD`: one `feat(scripts)!` with a
+  BREAKING CHANGE footer, `5f05004`, among `feat`, `fix`, `docs`, `ci` and `chore` commits
+  → MAJOR; the base `v1.5.0`, a SemVer tag. **v2.0.0** — the brief's expected MINOR
+  overridden by `docs/04`, declared before the tag and confirmed by the user (2026-10-13).
+- Checking the entry's claims against the record found one too wide: the documents said a
+  scan error passed in silence before 8.18.2, and the source shows it from 8.4.0 to 8.18.1
+  only — narrowed in `7d09000`, IMP-073's occurrence, before the entry was written.
+- The entry, from the scratchpad's `changelog-2.0.0-draft.md`: the breaking change first;
+  Added, Changed, Fixed — H1 with the textconv, and N1 —; Upgrading from 1.5.0, each claim
+  one the rehearsal measured. The documentation check: 0 FAIL and the CHECK of the release
+  being prepared, its tag after the merge.
+- Then the user's blocks: the final block 0, this commit pushed and the CI green on the
+  three; block 1, the merge `--no-ff` into `main`, its tree checked equal to the tested
+  one, the tag v2.0.0 signed and verified; block 2, the atomic push of `main`, the tag and
+  the branch's deletion, then `git branch -d`.
+
 ## Resumption notes
 - The branch is public since round 1 (`3b0edca`): no commit is rewritten, every fix is a
   new commit. Every commit after `3b0edca` reaches the CI through the next block 0; block 1
   waits for the final run's green on the three jobs.
-- The last green run is round 3's, on `cca6092`. `944691f`, the two IMP commits and this
-  checkpoint reach the CI through the final block 0, with task 11's CHANGELOG commit.
-- Next: task 11 — `/integrate`: the 2.0.0 entry from the scratchpad's
-  `changelog-2.0.0-draft.md`, claiming only what was measured; the bump, MAJOR, declared
-  and confirmed; the final block 0 green on the three; then blocks 1 and 2, the tag
-  v2.0.0 signed, the branch deleted locally and on GitHub. The user regenerates this
-  repository's own hooks after the integration (I6).
+- The last green run is round 3's, on `cca6092`. Every commit after it — `944691f` to the
+  CHANGELOG commit — reaches the CI through the final block 0; block 1 waits for that run's
+  green on the three jobs, and checks that the merged tree is the tested one.
+- After the integration: the user regenerates this repository's own hooks (I6).
