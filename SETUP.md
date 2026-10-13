@@ -224,7 +224,7 @@ boundary (pre-push: a push launched from a Claude Code session is refused — th
 pushes from their own terminal). Check: a commit with a non-conventional message must be
 rejected; a file with a fake secret must be blocked by gitleaks; `make test-scripts` must
 pass — it proves the pre-push on a throwaway repository and the delegated agents' guard on
-the command forms. A pre-push of your own (git-lfs's, for one): see Step 4 of the upgrade.
+the command forms its cases list. A pre-push of your own (git-lfs's, for one): see Step 4 of the upgrade.
 
 **What the pre-commit's scan reads.** gitleaks scans the staged changes as `git diff` shows
 them. The hook turns git's colour off and reads each textconv driver as `cat` for it, so a
@@ -315,7 +315,7 @@ runs in Git Bash (Git for Windows, a prerequisite); Claude Code runs the hooks t
 Its PowerShell tool is kept off by `CLAUDE_CODE_USE_POWERSHELL_TOOL=0` in
 `.claude/settings.json`: with the tool on, Claude takes PowerShell as its primary shell, and
 a `bash` called from PowerShell can be WSL's. A developer who turns it on keeps the guard —
-it reads PowerShell's commands too, in their ordinary forms — and the `pre-push`; the
+it reads PowerShell's commands too, in the forms its self-test lists — and the `pre-push`; the
 `deny` rules, Bash rules, do not reach it.
 
 Two layers beyond the method, neither switched on by the template:

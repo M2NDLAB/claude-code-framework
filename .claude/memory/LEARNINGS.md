@@ -84,36 +84,6 @@ tags: [improvement]
   `CONTRIBUTING.md`, the commit gated on the suite in the same command — the practice of
   v2.1.0.
 
-### IMP-083 — The guard grows beyond its threat model
-- Date: 2026-10-12 | Origin: the user's request at v1.5.0's integration (2026-10-11), from
-  [[2026-10-11-multiplatform-1.5.0]]; recorded in [[2026-10-12-prerequisites-1.6.0]]
-- Priority: MEDIUM (user decision, 2026-10-11) — the process block.
-- Observed problem: in v1.5.0 the guard learned non-ordinary PowerShell forms —
-  here-strings, block comments, `${name}` — while the PowerShell tool is off by
-  `CLAUDE_CODE_USE_POWERSHELL_TOOL=0`; v1.3.0's threat model covers an agent's accidental
-  errors made with ordinary commands (`docs/04`, *Enforcement of the execution boundary*).
-  `scripts/agent-git-guard.mjs` counts 234 lines at v1.3.0, 238 at v1.3.1, 239 from v1.3.2
-  to v1.4.1 and 309 at v1.5.0 (`db1fc77` +35 −21, the review's fix `ceac061` +69 −13).
-- Proposal (the user's): at a retro, review each form the guard recognises against that
-  criterion, remove what is not needed, and fix an admission rule for future forms: only
-  forms observed, or ordinary ones. Weigh it with IMP-079, which asks the opposite of a
-  parser's claim of coverage.
-- Expected benefit / risk: a guard as large as its job. Risk: a form removed that a
-  developer with the PowerShell tool on would use — the tool is off by default.
-- Merged on 2026-10-13 (the retro over the backlog — the user had asked to weigh the two
-  together): IMP-079 — A parser of another shell's syntax covers the forms it was held
-  against, not the language (2026-10-12, [[2026-10-11-multiplatform-1.5.0]]). v1.5.0's
-  mutants proved each piece of the guard's PowerShell reading, and the reviewer still got 15
-  of 19 ordinary forms through; v2.1.0's review (L6, [[2026-10-13-gate-lenses-2.1.0]]) found
-  bash forms the guard passes — git inside an unquoted heredoc's `$(…)` or backticks, a
-  function defined with the `function` keyword, a `coproc`, a command name held in a
-  variable. Its principle is the Definition of Done's point 10 (IMP-071, v2.1.0); what it
-  leaves is `docs/04`'s claim, which is narrowed to the forms the guard was held against.
-- Status: APPROVED on 2026-10-13 (the retro over the backlog) — for v2.2.0, reduced: the
-  admission rule — only forms observed, or ordinary ones — and `docs/04`'s claim narrowed,
-  IMP-079 included. No pruning of the forms the guard reads: it has stayed at 309 lines since
-  v1.5.0, and the rule stops the growth.
-
 ### IMP-085 — The framework's files kept out of deploy artifacts
 - Date: 2026-10-13 | Origin: the user's question, 2026-10-13 — recorded in
   [[2026-10-12-prerequisites-1.6.0]]
@@ -1696,6 +1666,25 @@ line on; older entries are not backfilled.
   merges three ways cleanly, with LF and with CRLF line ends.
 - Uncovered by this commit: the guard's own comment that Bash, PowerShell and Monitor are the
   tools that execute git, in an ask-protected file.
+
+### IMP-083 — The guard grows beyond its threat model → applied on 2026-10-14
+- Origin: the user's request at v1.5.0's integration ([[2026-10-11-multiplatform-1.5.0]]) —
+  in v1.5.0 the guard learned non-ordinary PowerShell forms for a tool the framework keeps
+  off, growing from 239 to 309 lines. Merged in: IMP-079 — a parser's coverage holds for the
+  forms it was held against, not for the language: v1.5.0's reviewer got 15 of 19 ordinary
+  PowerShell forms through, and v2.1.0's review (L6, [[2026-10-13-gate-lenses-2.1.0]]) found
+  bash forms the guard passes.
+- Applied (reduced, as approved): `docs/04`'s guard row covers the forms its self-test holds
+  it to, not "ordinary forms", and its *Outside this layer* names L6's forms — git in an
+  unquoted heredoc's `$(…)` or backticks, a function declared with `function` and no
+  parentheses, a `coproc`, a command name in a variable. *Proven, not assumed* says the
+  cases are the guard's coverage and states the admission rule: a form joins them only when
+  an agent was seen writing it, or it is an ordinary form of the shell's own documentation,
+  never because the parser could read it. `SETUP.md` and `scripts/README.md` narrow their
+  coverage claims the same way. No form is pruned: the rule stops the growth.
+- Verified: the forms `scripts/README.md` now names — git after its global options, spelled
+  `git.exe`, `Git` or a Windows path — are cases of `scripts/test-agent-git-guard.sh`
+  (read); the documentation check passes.
 
 ## Deferred (not rejected — resumed at the right time)
 
