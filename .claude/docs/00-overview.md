@@ -98,7 +98,10 @@ Definition of Done and the commit are enough.
 > In short: FIXED steps 1·3·4·5; CONDITIONAL step 2 (`/security-review`, only if
 > under the gate). The order is not arbitrary — `/retro` before `/checkpoint` so that the
 > checkpoint persists the IMPs just recorded; `/integrate` last because it is the
-> only one that touches shared state, and only once memory and docs are aligned.
+> only one that touches shared state, and only once memory and docs are aligned. The
+> merge it prints happens after the checkpoint, outside the session: the memory lags it
+> by one step until the next deliverable, whose first `/checkpoint` reconciles it — not a
+> commit of its own after the merge, one more to push.
 
 > **And `/lint-memory`?** It is not a step of the end-of-deliverable cycle: it is a
 > PERIODIC health-check. It is typically run together with the periodic retrospective

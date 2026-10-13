@@ -23,45 +23,6 @@ tags: [improvement]
 
 ## OPEN proposals (awaiting the user's decision)
 
-### IMP-051 — The memory lags one merge: `/checkpoint` runs before the merge
-- Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — a post-merge
-  reconciliation commit keeps reappearing, and each one is one more local commit to push
-- Observed problem: the end-of-deliverable cycle runs `/checkpoint` (step 4) BEFORE
-  `/integrate` (step 5), and the merge happens outside the session. So the memory
-  records the PRE-merge state ("awaiting merge + tag + push"); `/checkpoint` itself says
-  STATE "can be stale" because merges happen outside the session; and the fix is an
-  optional later `/checkpoint` (`integrate.md`) — itself a new local commit, one more
-  push. Recurring:
-  - the client project: 5 reconcile-after-merge commits on its main, and its STATE on
-    main is one merge behind TODAY — each reconcile goes through a branch + merge, which
-    is again unrecorded, so the lag regresses by one step;
-  - this repo (`git log --first-parent main`): four dedicated post-integration
-    checkpoints made directly on `main` — `95e43bd` (v0.6.0), `d8d4036` (v0.6.1),
-    `b576f37` (v0.6.2), `21ab017` (v1.0.0) — each written with main == origin/main, so
-    each left `main` one commit ahead (`d8d4036` records `95e43bd` being pushed with the
-    next deliverable); plus the v0.3.0 trailing note (`eaefae3`, merged by `ec59010`)
-    and the v1.1.0 CHANGELOG promoted after the merge (`48fe236`). Here it is not STATE
-    that lags (a clean template, hybrid regime) but the session notes: their
-    "Follow-up: /integrate" is rewritten after the fact — or never, when the next
-    deliverable's note absorbs the outcome and the pre-merge follow-up stays as written.
-- Already declined once: the v0.3.0 note
-  ([[2026-07-17-audit-preintegrate-closeout-v0.3.0]], "Process note (not an IMP)")
-  called the trailing note "execution discipline, not a doc gap". The new fact is the
-  recurrence — 4 dedicated post-integration checkpoints here since that note (6
-  trailing commits in all), and 5 reconcile commits in the client — which makes it
-  structural rather than a slip.
-- Proposal: NOT decided here (retro). Directions to evaluate: the pre-merge checkpoint
-  records the state as it will be once the user runs the printed block (with what to do
-  if the user deviates); or `/integrate` puts the reconcile commit INSIDE the user's
-  block, so it is pushed with the merge; or the reconcile is declared the FIRST step of
-  the next deliverable — the de-facto practice here — so the lag is explicit and bounded.
-- Expected benefit / risk: no trailing commit to push after every integration, and a
-  memory that is true right after the merge. Risk: recording as done a merge the user has
-  not run yet — the recorded state must say it is conditional on the block.
-- Status: APPROVED on 2026-10-13 (the retro over the backlog) — for v2.2.0, direction (c):
-  the reconciliation after a merge is the first step of the next deliverable, the de-facto
-  practice here; no conditional state recorded, no trailing commit to push.
-
 ### IMP-052 — Resumption after an abrupt interruption: verify before continuing
 - Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — resuming after a
   session limit or a machine sleep, the protocol says WHERE to resume, not WHETHER the
@@ -1845,6 +1806,22 @@ line on; older entries are not backfilled.
 - Verified: `integrate.md`'s 3-way merge against a copy with the branch placeholders answered
   stays clean, with LF and with CRLF line ends. The rule itself is exercised at this
   release's own `/integrate`, which expects a MINOR.
+
+### IMP-051 — The memory lags one merge: `/checkpoint` runs before the merge → applied on 2026-10-14
+- Origin: [[2026-09-24-third-upgrade-lessons]] — the cycle runs `/checkpoint` before
+  `/integrate`, and the merge happens outside the session, so the memory records the state
+  awaiting the merge, and the fix was an optional later `/checkpoint`: one more commit to
+  push. Recurring: 5 reconcile commits in the client project, 6 trailing commits here since
+  v0.3.0 — structural rather than a slip, though v0.3.0 had called it execution discipline.
+- Applied (direction (c), the de-facto practice here): the reconciliation after a merge is
+  the next deliverable's first `/checkpoint`. The memory never records a merge not yet run,
+  and no commit of its own follows the merge. `/integrate`'s closing paragraph, `/checkpoint`'s
+  step 7 and `docs/00`'s summary of the cycle say so; `/checkpoint`'s step 3 already holds
+  the reconciliation with git.
+- Verified: `integrate.md` and `checkpoint.md`, both HYBRID, merge three ways cleanly against
+  copies with their placeholders answered and `checkpoint.md`'s setup paragraph deleted, with
+  LF and with CRLF line ends. Read in `SETUP.md`: an upgrade's first `/checkpoint` is its
+  Step 6, after Step 5's invariant on the memory, which the rule leaves as it was.
 
 ## Deferred (not rejected — resumed at the right time)
 

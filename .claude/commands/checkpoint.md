@@ -43,7 +43,9 @@ values, then deletes this paragraph: [TO BE DEFINED AT SETUP].
 5. EXPLICIT `git add` of the relevant files (never `git add .`), memory and doc included.
 6. Commit with a Conventional Commit: correct type and scope, body with the WHY.
 7. Show the commit created. Do NOT push: the push is the user's decision. At the end
-   of a deliverable, for the merge + tag commands ready to paste use `/integrate`.
+   of a deliverable, for the merge + tag commands ready to paste use `/integrate`. The
+   merge it prints happens outside the session: the next deliverable's first checkpoint
+   reconciles it, at step 3 — never a commit of its own after the merge.
 
 If the code does not compile or the tests fail: commit as `chore: wip …` ONLY if we are
 on a feature branch (`wip` is not a commit type: the commit-msg hook rejects a `wip:`

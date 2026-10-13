@@ -180,5 +180,8 @@ then `--no-ff <integration>`, and tags (`v1.0.0` or the MAJOR/MINOR/PATCH bump) 
 `git push --atomic origin <stable> v<X.Y.Z>` alone: the integration branch is never
 deleted.
 
-Do NOT run push/merge/tag: the blocks are for the user. Once integration has happened,
-the user can run `/checkpoint` to reconcile `STATE.md` and the active branches.
+Do NOT run push/merge/tag: the blocks are for the user. The merge happens after the
+checkpoint, outside the session: until the next deliverable the memory records the state
+that awaits the blocks, never a merge not yet run. The next deliverable's first
+`/checkpoint` reconciles `STATE.md` and the active branches with what the user ran — not a
+commit of its own after the merge, which would be one more to push.
