@@ -45,35 +45,6 @@ tags: [improvement]
   `CONTRIBUTING.md`, the commit gated on the suite in the same command — the practice of
   v2.1.0.
 
-### IMP-085 — The framework's files kept out of deploy artifacts
-- Date: 2026-10-13 | Origin: the user's question, 2026-10-13 — recorded in
-  [[2026-10-12-prerequisites-1.6.0]]
-- Priority: LOW (user decision, 2026-10-13).
-- Observed problem: the framework serves during development only, but its files —
-  `CLAUDE.md`, `.claude/` with the project's memory, the scripts, the `Makefile` — sit in
-  the project's repository. A deploy that copies the whole repository (a `COPY . .` into an
-  image, for one) carries them into production, the project's memory included.
-- The first check, made when recording it (2026-10-13): no page says it. `SETUP.md`,
-  `CLAUDE.md`, `.claude/docs/`, `README.md` and `CONTRIBUTING.md` searched for deploy,
-  production, docker, image, container, artifact and exclude: only the technical rules'
-  slot for the production artifact's format and `docs/02`'s Definition of Done, point 9,
-  neither about the framework's own files.
-- Proposal: NOT decided — and only because it is missing: one line of principle, agnostic
-  to the stack, in `SETUP.md` (its *Hardening* section, for one): keep the framework's
-  paths out of deploy artifacts with the stack's own mechanism; the list of those paths
-  derives from the class table (`tools/upgrade-check.sh classes <tag>`, `SETUP.md`, *The
-  mental model: the classes of file, and the graft state*). No exclusion file in the
-  payload: such files depend on the stack and stay the project's.
-- Expected benefit / risk: a project's memory and process files do not reach production
-  through a copy of the whole repository. Risk: none — a line of principle.
-- Resumption trigger: the next release that touches `SETUP.md`'s *Hardening*, or the
-  retrospective over the backlog.
-- Status: APPROVED on 2026-10-13 (the retro over the backlog, which is its trigger) — for
-  v2.2.0: the line of principle in *Hardening*, and a check in the upgrade's checklist.
-- Verified by the user on 2026-10-13: of the two projects using the framework, one has no
-  deploy; the other builds its services' container images with the repository's root as the
-  build context, copying specific paths — this entry's check runs at its upgrade.
-
 ### IMP-086 — The framework repository's visibility, and what its memory holds
 - Date: 2026-10-13 | Origin: the user's decision, 2026-10-13 — at the end of the cycle the
   framework's repository becomes PRIVATE, for personal use; recorded in
@@ -1665,6 +1636,22 @@ line on; older entries are not backfilled.
   route that needs a secret pasted into a conflict's resolution.
 - Verified: the documentation check passes; each declared limit cites its own datum —
   measured, or read at gitleaks' source — as recorded in IMP-095, IMP-096, IMP-098 and IMP-089.
+
+### IMP-085 — The framework's files kept out of deploy artifacts → applied on 2026-10-14
+- Origin: the user's question, 2026-10-13 ([[2026-10-12-prerequisites-1.6.0]]) — the framework
+  serves development only, but its files, the project's memory among them, sit in the
+  repository, and a deploy that copies the whole repository carries them into production;
+  no page said so.
+- Applied: `SETUP.md`'s *Hardening* gains *Keep the framework out of what you deploy* — keep
+  the framework's files out with the stack's own mechanism, `.claude/` whole, `CLAUDE.md`, the
+  framework's scripts, `commitlint.config.cjs`, the files the project also owns being its own
+  call; a build from a working tree also carries what git ignores there; the class table
+  names every framework file; no ignore file in the payload. The upgrade's Step 5 gains the
+  check: no framework path in a deploy artifact, the paths `vY` adds above all.
+- Verified: the documentation check passes. The user verified the two projects using the
+  framework on 2026-10-13: one has no deploy; the other builds its services' container
+  images with the repository's root as the build context, copying specific paths — the
+  check runs at its upgrade.
 
 ## Deferred (not rejected — resumed at the right time)
 

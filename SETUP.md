@@ -365,6 +365,18 @@ Two layers beyond the method, neither switched on by the template:
   native Windows is unsupported; and the unsandboxed retry must be switched off
   (`allowUnsandboxedCommands: false`), or a failing command can be retried outside it.
 
+**Keep the framework out of what you deploy.** The framework serves development only, but its
+files sit in the repository: a build that copies the whole repository — a container image
+built with `COPY . .` from the root, for one — carries them into production, the project's
+memory included, and from a working tree also what git ignores there, such as
+`settings.local.json` and the agents' worktrees. Keep them out with your stack's own
+mechanism — the build context's ignore file, or an explicit list of what is copied: the
+`.claude/` directory whole, `CLAUDE.md`, the framework's scripts, `commitlint.config.cjs`;
+the files the project also owns — the `Makefile`, `.gitignore`, `.gitattributes` — stay its
+own call. The class table names every framework file (`tools/upgrade-check.sh classes <tag>`,
+*The mental model: the classes of file, and the graft state*). The framework ships no ignore
+file for this: such files depend on the stack.
+
 ---
 
 ## Grafting onto an EXISTING project (brownfield)
@@ -1013,6 +1025,10 @@ Italian one.
   renamed/moved docs, STATE vs git, `LEARNINGS`↔`STATE` coherence, orphan pages).
 - The project's build/tests green (even if the upgrade is process-only, confirm the
   project still builds and commits).
+- **No framework file in a deploy artifact.** If the project builds one from the repository —
+  a container image from its root, for one —, check that no framework path reaches it, the
+  paths `vY` adds above all (the files `inventory` marks `A`): an explicit exclusion list does
+  not know them yet (*Hardening*, *Keep the framework out of what you deploy*).
 
 ### Step 6 — Closing and hand-off
 
