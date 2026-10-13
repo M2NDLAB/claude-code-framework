@@ -95,14 +95,14 @@ tags: [session, security-gate, docs, imp, plan]
   blocks 1 and 2 with the tested tip checked and the branch deleted locally and on GitHub.
 
 ## Plan (one commit per task)
-- [ ] 1. The registrations — IMP-089, the history scan's limit; the product's "contained local changes" as IMP-073's occurrence — and this note with its plan; then the agent's persistent memory emptied — commit: —
-- [ ] 2. Apply IMP-056: `docs/03` gets *The lenses of the gate*, with its first lens, *Claims, not only actions*; `/security-review` recalls it in one line — commit: —
-- [ ] 3. Apply IMP-058: the claims lens's perimeter — the claim's set, not the diff — commit: —
-- [ ] 4. Apply IMP-073: `docs/02`'s Definition of Done gets the records' line — written after the last measurement they cite — commit: —
-- [ ] 5. Apply IMP-071: the same line, no wider than the measurement — a list that declares itself complete held against its source, or narrowed — commit: —
-- [ ] 6. Apply IMP-059: the second lens, *The real path*; `/security-review`'s line recalls both — commit: —
-- [ ] 7. Apply IMP-087: `docs/02`'s *Tests that demonstrate* gets the tests' line — cases under the users' real configurations — commit: —
-- [ ] 8. Apply IMP-084: the same line — each case checks that its datum reaches the program before it counts — commit: —
+- [x] 1. The registrations — IMP-089, the history scan's limit; the product's "contained local changes" as IMP-073's occurrence — and this note with its plan; then the agent's persistent memory emptied — commit: 6d7844a
+- [x] 2. Apply IMP-056: `docs/03` gets *The lenses of the gate*, with its first lens, *Claims, not only actions*; `/security-review` recalls it in one line — commit: 4937100
+- [x] 3. Apply IMP-058: the claims lens's perimeter — the claim's set, not the diff — commit: b9b003f
+- [x] 4. Apply IMP-073: `docs/02`'s Definition of Done gets the records' line — written after the last measurement they cite — commit: 2f13de1
+- [x] 5. Apply IMP-071: the same line, no wider than the measurement — a list that declares itself complete held against its source, or narrowed — commit: 1278bf2
+- [x] 6. Apply IMP-059: the second lens, *The real path*; `/security-review`'s line recalls both — commit: 9575569
+- [x] 7. Apply IMP-087: `docs/02`'s *Tests that demonstrate* gets the tests' line — cases under the users' real configurations — commit: a6f6463
+- [x] 8. Apply IMP-084: the same line — each case checks that its datum reaches the program before it counts — commit: d35fc6c
 - [ ] 9. `hooks-install.sh` says what it measures — the hook differs from the one this version generates —; `scripts/README.md` and `SETUP.md` stop inferring a customisation; a case of its self-test red first — commit: —
 - [ ] 10. The CI's rounds (block 0, the user's pushes): what fails, fixed with new commits, until green on the three — commit: —
 - [ ] 11. ONE reviewer, read-only on git, the snapshot before and after, applying the two lenses to the framework's payload: HIGHs fixed here, MEDIUMs and LOWs recorded as IMPs, trivial text fixed; the gate's verdict written — commit: —
@@ -112,6 +112,33 @@ tags: [session, security-gate, docs, imp, plan]
 The applying commits (tasks 2 to 8) each carry their IMP's part of the text and move the
 entry to Applied, as `docs/06` says. Task 10 may take several commits, one per round of the
 CI; each round needs the user's push.
+
+## The applying commits (tasks 2 to 8)
+- Each commit carries its IMP's part of the text and moves the entry to Applied, its heading
+  dated; the commits' shas go into the headings at the checkpoint, as the earlier applying
+  commits had theirs written by the commit after them (`ff7fbb6` and `63a306b`, IMP-043).
+- `docs/03` gets *The lenses of the gate* (IMP-056, IMP-058, IMP-059): *Claims, not only
+  actions*, its perimeter the claim's set, and *The real path*; the gate's first step points
+  at the lenses, and a deliverable whose product asserts a security property is under the
+  gate for that alone — the trigger IMP-056 had left open. `/security-review` recalls both
+  lenses in its check 11, without their text.
+- `docs/02`: the Definition of Done's point 10, the records (IMP-073, IMP-071); *Tests that
+  demonstrate*'s new line, the users' configurations and the datum reaching the program
+  (IMP-087, IMP-084).
+- Caught on the way, each local and amended: two commit messages with a body line read as
+  the footer, or a claim wider than its datum ("a month before" for sixteen days; "the
+  review" for the review and the main session's measures; a forward clause about work not
+  done yet) — this release's own rule, applied to its commits. And the documentation check
+  refused "CHANGELOG" in a payload page: a project has no such file — "a changelog entry".
+
+## The installer's message (task 9)
+- The new case of `scripts/test-hooks-install.sh`, case 7, red first: a re-run over the hooks
+  in place saved and said nothing, and over an earlier release's commit-msg — the generated
+  hook with another pin — it saved a `.bak` byte for byte, but the message said "contained
+  local changes". Green after: "differs from the hook this version generates (an earlier
+  release's, or a local change)". Two mutants caught — no `.bak` saved; a `.bak` and a
+  warning over an unchanged hook. `scripts/README.md` and `SETUP.md`'s Step 4 stop inferring
+  a customisation.
 
 ## Resumption notes
 - The branch is local until task 10's first block 0; from then on it is public, and no

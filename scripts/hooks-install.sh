@@ -140,14 +140,15 @@ done
 mkdir -p "${HOOKS_DIR}"
 
 # Installs a generated hook: if the target exists (it is necessarily OURS, foreign
-# ones are handled above) but the content differs, it contains local customisations
-# (e.g. the adapted formatting block, as the hook's own comments ask for):
-# a .bak of it is saved before rewriting, so that a re-run does not destroy them.
+# ones are handled above) but the content differs, it is either an earlier release's hook
+# or one customised locally (e.g. the adapted formatting block, as the hook's own comments
+# ask for) — a difference this script measures, and cannot tell the cause of. A .bak of it
+# is saved before rewriting, so that a re-run destroys no customisation.
 install_generated() {
   local target="$1"
   if [[ -f "${target}" ]] && ! cmp -s "${target}" "${target}.new"; then
     cp "${target}" "${target}.bak"
-    echo "WARNING: ${target##*/} contained local changes: saved to ${target}.bak before rewriting." >&2
+    echo "WARNING: ${target##*/} differs from the hook this version generates (an earlier release's, or a local change): saved to ${target}.bak before rewriting." >&2
   fi
   mv "${target}.new" "${target}"
   chmod +x "${target}"
