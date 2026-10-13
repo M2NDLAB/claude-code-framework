@@ -2,7 +2,7 @@
 date: 2026-10-12
 task: v1.6.0 — prerequisites and versions (IMP-070 point 7, IMP-076, IMP-077) — a prerequisite check runnable without make; commitlint pinned in one place; gitleaks' minimum declared, its hook kept; the generated hooks run with the real tools in the CI
 branch: feat/prerequisites-1.6.0
-status: in-progress
+status: completed
 model: 'claude-opus-5-5'
 turns: 4
 tags: [session, prerequisites, ci, tools, imp, plan]
@@ -127,7 +127,7 @@ after). Kept from their findings:
 - [x] 7. The upgrade 1.5.0 → 1.6.0 rehearsed in throwaway clones, LF and CRLF: the check from `T` before Step 4, the hooks regenerated; the Upgrading note drafted — commit: 3b0edca
 - [x] 8. The CI's rounds (block 0, the user's pushes): what fails, fixed with new commits, until green on the three — commit: the record of round 1 — green on `3b0edca` (run 38299497518), nothing to fix (its own sha cannot be written in it)
 - [x] 9. ONE reviewer, read-only on git, snapshot before and after, with the security mandate on the hooks; the gate's verdict written; fixes — commit: a661b70 to bfd6c90, and the record of N1 (its own sha cannot be written in it)
-- [ ] 10. `/retro` and `/checkpoint`: the upgrade rehearsed again on the final payload; IMP-070 and IMP-076 applied, each in its `chore(claude): apply IMP-nnn` commit (`docs/06`); IMP-077 stays OPEN on its trigger (D1) — commit: —
+- [x] 10. `/retro` and `/checkpoint`: the upgrade rehearsed again on the final payload; IMP-070 and IMP-076 applied, each in its `chore(claude): apply IMP-nnn` commit (`docs/06`); IMP-077 stays OPEN on its trigger (D1) — commit: 944691f, 256f473, f60ceea, and this checkpoint (its own sha cannot be written in it)
 - [ ] 11. `/integrate`: the CHANGELOG 1.6.0 entry, claiming only what was measured (IMP-073); the bump computed again against the expected MINOR; the final block 0 green on the three, then blocks 1 and 2 — commit: the CHANGELOG commit (its own sha cannot be written in it)
 
 Task 8 may take several commits, one per round of the CI: each round needs the user's
@@ -303,6 +303,13 @@ Read in the log:
   through `--version`, 0 FAIL, 0 WARN on the three;
 - the real hooks: the PASS line of the six cases on the three — case 6's own check that
   the textconv masks the line passed on Windows too, so the case was not vacuous there.
+
+Round 3, N1's fix: `cca6092` (`c810ac4` to `cca6092`, three commits), run 38386488214,
+green on the three jobs — Ubuntu in 97 s, macOS in 222 s, Windows in 647 s. Read in the
+log: 28 PASS on Ubuntu and macOS, 27 and the dangling-symlink SKIP on Windows; the shipped
+self-test's case 6 passed on the three, Ctrl-C through job control included, its NOTE on
+Git Bash's modes printed there; the seven real-hook cases on the three — the scan apart
+ran `gitleaks.exe` on Windows; the prerequisite check 0 FAIL, 0 WARN.
 
 ## The review (task 9) — one reviewer, read-only on git
 One delegated agent with the security mandate on the hooks, over `e281e10..4b3abb9`. Its
@@ -520,11 +527,55 @@ under a `TMPDIR` of its own: the directory 0700 (its mode not checked under Git 
 after a pass, a refusal or a Ctrl-C — INT to the hook's process group, job control on.
 `SETUP.md` §3 says what the scan reads, its measured cost and its known limits.
 
+## Task 10 — the upgrade rehearsed again, the IMPs applied, the retro
+**The rehearsal on the final payload found a conflict.** On `cca6092`, the draft entry
+committed and tagged v2.0.0 in a clone only, the project grafted at v1.5.0 with every setup
+answer in place: the 3-way merge of `scripts/hooks-install.sh` had 1 conflict, 41 of 311
+lines. The block that scans the text git shows as binary ended next to the pre-commit's
+formatting slot, which the project had answered. Measured with `git merge-file` against
+that project: the block after protect as it was, 1 conflict; after protect without its
+blank line, 0; before protect, 0 — chosen, `944691f`: the lines from protect to the slot
+stay as v1.5.0 wrote them. The suite and both hook tests green on it.
+
+**Rehearsed again on `944691f`**, with LF and with CRLF line ends, the same results on both:
+- the prerequisite check from `T`: "OK gitleaks 8.30.1 (8.18.2 or later)", 0 FAIL, 0 WARN;
+  `preflight` 0/0; `inventory` 0 FAIL, 0 CHECK, the same line for line —
+  `hooks-install.sh` diverged with 0 conflicts of 307 lines, `CLAUDE.md` 0 of 118;
+- Step 3: the METHOD files with the tag's modes; the three 3-way merges clean, the
+  project's answers kept;
+- Step 4: `make hooks-install` exit 0 — "pre-commit contained local changes" and
+  "commit-msg contained local changes", each `.bak` 1.5.0's hook byte for byte; the
+  pre-push unchanged; the commit-msg at 21.2.3. Refused in the upgraded project: a fake
+  secret, a message without a type, a secret under `git -c color.ui=always`, a private
+  key in a `*.key binary`; no scan directory left; the project's `make test-scripts`
+  green;
+- Step 5: `invariant` 0/0; `post` 0 FAIL and the pin's CHECK — 0/0 after Step 6.
+The draft's Upgrading note now says what was measured.
+
+**The IMPs.** IMP-070 applied, `256f473` — its point 7 came with this release; IMP-076
+applied, `f60ceea`. IMP-077 stays OPEN on its trigger, D5's floor recorded in it.
+
+**A slip, mended while local.** The two IMP commits went in after the documentation check
+alone, not the whole suite: the check's self-test planted a historical minimum on IMP-070's
+priority line, which the final form drops, and failed. It showed when the checkpoint's
+suite ran red — and the checkpoint's commit went in too, its command not gated on the
+suite. The three commits were local: rebuilt from `944691f`, the plant moved to an applied
+entry in the first, each commit after a green suite — IMP-082's occurrence.
+
+**The retro.** Occurrences: IMP-072 — the mutants settled which guards to keep; IMP-074 —
+the expected MINOR became a MAJOR, declared before the tag; IMP-078 — a fifth "word:"
+body line. New, OPEN: IMP-087 — a hermetic test cannot see the defects the user's
+configuration causes (H1 and N1's root); IMP-088 — a change next to a setup slot
+conflicts at every project's upgrade (this task's finding).
+
 ## Resumption notes
 - The branch is public since round 1 (`3b0edca`): no commit is rewritten, every fix is a
   new commit. Every commit after `3b0edca` reaches the CI through the next block 0; block 1
   waits for the final run's green on the three jobs.
-- The last green run is round 2's, on `5138f1f`. `c810ac4`, `bfd6c90` and N1's record reach
-  the CI through the next block 0. Then task 10: `/retro` and `/checkpoint`, the upgrade
-  rehearsed again on the final payload — the pre-commit and the commit-msg change. The
-  CHANGELOG draft in the scratchpad is v2.0.0's, BREAKING first.
+- The last green run is round 3's, on `cca6092`. `944691f`, the two IMP commits and this
+  checkpoint reach the CI through the final block 0, with task 11's CHANGELOG commit.
+- Next: task 11 — `/integrate`: the 2.0.0 entry from the scratchpad's
+  `changelog-2.0.0-draft.md`, claiming only what was measured; the bump, MAJOR, declared
+  and confirmed; the final block 0 green on the three; then blocks 1 and 2, the tag
+  v2.0.0 signed, the branch deleted locally and on GitHub. The user regenerates this
+  repository's own hooks after the integration (I6).

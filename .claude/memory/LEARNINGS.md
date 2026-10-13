@@ -591,6 +591,11 @@ tags: [improvement]
   `docs/02`, *Tests that demonstrate*.
 - Expected benefit / risk: a green campaign means what it says. Risk: campaigns cost more
   runs.
+- In v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]) the mutants of the review's fixes settled
+  which guards to keep: two proved needed — without the check of `GIT_CONFIG_COUNT`, bash
+  3.2 went on past an arithmetic error in an `export`; without `|| true`, git dying of a
+  closed pipe failed the pre-commit with 141 —, and the explicit signal traps proved
+  redundant, since bash runs the EXIT trap on INT, TERM and HUP, and were left out.
 
 ### IMP-073 — Write the record after the last measurement
 - Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at
@@ -625,6 +630,10 @@ tags: [improvement]
   `docs/04` win, and `/integrate` says so before the tag and asks the user to confirm.
 - Expected benefit / risk: the version says what the release does. Risk: a brief's
   expectation overridden — by design, and never without the user's confirmation.
+- In practice, v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]): the brief expected a MINOR;
+  the review's MEDIUM, decided by the user as a security minimum that refuses a gitleaks
+  v1.5.0 accepted, made the release breaking. The bump was computed again by `docs/04`,
+  declared a MAJOR before the tag, and confirmed by the user.
 
 ### IMP-075 — Auto mode and the framework's boundaries
 - Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — the user ran
@@ -742,6 +751,9 @@ tags: [improvement]
   where a warning was — for a footer typed without its blank line too.
 - A fourth time, at v1.5.0's checkpoint: "projects:" opened a wrapped body line; the
   commit was written again while still local.
+- A fifth time, in v2.0.0's review fixes ([[2026-10-12-prerequisites-1.6.0]]): "source:"
+  opened a wrapped body line of the breaking commit; written again while still local, as
+  `5f05004`.
 
 ### IMP-079 — A parser of another shell's syntax covers the forms it was held against, not the language
 - Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro), recorded at
@@ -797,6 +809,12 @@ tags: [improvement]
   `CONTRIBUTING.md`, *This repo's workflow*.
 - Expected benefit / risk: no commit that the CI or the next commit finds red. Risk: a few
   minutes per commit.
+- An occurrence in v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]): two commits that moved
+  IMPs to Applied went in after the documentation check alone; the check's self-test,
+  whose plant was anchored on a line the move dropped, failed, and the checkpoint's commit
+  followed, its command not gated on the suite's exit. All local: rebuilt, each after a
+  green suite. Gating the commit on the suite in the same command (`make test-scripts &&
+  git commit …`) would have stopped it.
 
 ### IMP-083 — The guard grows beyond its threat model
 - Date: 2026-10-12 | Origin: the user's request at v1.5.0's integration (2026-10-11), from
@@ -883,6 +901,45 @@ tags: [improvement]
 - Expected benefit / risk: the switch costs no protection and no CI coverage unknowingly.
   Risk: without macOS in the CI, bash 3.2 and the BSD userland are verified only locally.
 - Resumption trigger: the switch of the repository to private, at the end of the cycle.
+
+### IMP-087 — A hermetic test cannot see the defects the user's configuration causes
+- Date: 2026-10-13 | Origin: the review of v2.0.0, its HIGH H1, and the main session's
+  measures of its family — [[2026-10-12-prerequisites-1.6.0]] (the retro)
+- Observed problem: `tools/test-real-hooks.sh` ran the generated hooks with the real
+  gitleaks and commitlint, the git configuration emptied for hermeticity
+  (`GIT_CONFIG_GLOBAL=/dev/null`), as every self-test of the framework does. A colour the
+  user's configuration forces had let every staged secret through the pre-commit since the
+  hook existed, and the test could not see it — nor a textconv driver, nor an attribute that
+  marks a text file binary: three silent bypasses, all from configuration the hermetic
+  setup removed. The reviewer found the first by reading gitleaks' source, the main session
+  the other two by measuring its family.
+- Proposal: NOT decided. A test of a tool that reads the user's configuration keeps its
+  hermetic baseline and adds cases under the configurations users have — each named, each
+  checked to take hold before the case counts, as the real-hook cases 5 to 7 check that git
+  does colour, mask or show the file as binary —, chosen from how the tool reads that
+  configuration (here, gitleaks reading `git diff`). The candidate place: `docs/02`, *Tests
+  that demonstrate*, with IMP-071 and IMP-084 — the family "verify that the check really
+  checked".
+- Expected benefit / risk: the defects that live in the configuration show in the tests.
+  Risk: the configurations users have are open-ended; the cases stay those observed or read
+  at the source.
+
+### IMP-088 — A change next to a setup slot conflicts at every project's upgrade
+- Date: 2026-10-13 | Origin: task 10 of v2.0.0, the upgrade rehearsed on the final payload —
+  [[2026-10-12-prerequisites-1.6.0]] (the retro)
+- Observed problem: the block that scans the text git shows as binary was inserted right
+  after the pre-commit's protect line, and ended next to the formatting slot's line, which
+  every project answers at setup: the 3-way merge of `hooks-install.sh` conflicted, 41 of
+  311 lines, for every such project. Only the release's rehearsal found it, after three
+  green CI rounds: the upgrade check measures the 3-way at a project's upgrade, nothing at
+  the framework's commit.
+- Proposal: NOT decided. At each commit that touches a HYBRID file, measure its 3-way merge
+  from the latest tag against a copy whose every slot is answered — the slots the
+  documentation check already knows, `SETUP.md` §2 —, in the framework's own checks; or,
+  lighter, a rule in `CONTRIBUTING.md`: a change keeps unchanged lines between itself and a
+  slot's line, and the release's rehearsal stays the backstop.
+- Expected benefit / risk: the conflict shows at the commit that makes it. Risk: a fixture
+  of answered slots to keep, or a rule no check holds.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
