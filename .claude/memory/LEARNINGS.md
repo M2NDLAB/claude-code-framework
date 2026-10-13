@@ -23,51 +23,6 @@ tags: [improvement]
 
 ## OPEN proposals (awaiting the user's decision)
 
-### IMP-052 — Resumption after an abrupt interruption: verify before continuing
-- Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — resuming after a
-  session limit or a machine sleep, the protocol says WHERE to resume, not WHETHER the
-  resumed state holds
-- Observed problem: `docs/01` puts interruptions explicitly in scope (usage limits,
-  crashes — and rule 7), and its RESUMPTION reads the plan, confirms the committed tasks
-  with `git log` and DISCARDS a dirty tree (`scripts/reset-task.sh`). Missing before
-  continuing: a syntax/build check, a test run of the resumed state, a comparison with
-  the design or the recorded decision. Committed tasks are verified by construction
-  (PHASE 3 verifies before each commit); the unverified window is the uncommitted
-  half-task and the plan tick, which may land "right after" its commit. Two gaps
-  besides: (a) "verify, then continue" implies KEEPING the half-done work, while step 3
-  discards it — the rule has to say when each applies; (b) scope: RESUMPTION runs "at
-  the start of EVERY session" and the Cleanup section "if a session dies"; an
-  interruption INSIDE the same session (a usage-limit reset or a sleep, then the
-  conversation goes on) triggers neither, and for a task without a plan the only rule
-  is Cleanup's discard-everything-uncommitted. Evidence in the client project: a
-  deliverable with no plan was resumed after a usage limit from the dirty working tree,
-  and a wiring gap — all tests green — was "found by comparing the diff with the
-  design, not by a test".
-- Placement: `docs/01` RESUMPTION, not `/sos` — an escalation that ends in STOP and is
-  triggered by being stuck (`docs/05`, *WHEN to produce a report*), not by an
-  interruption. A precedent exists: `docs/03` already asks to check COMPLETENESS
-  "especially after interruptions or resumes" — for reviews only.
-- Proposal: NOT decided here (retro): a short verify-before-continuing step in
-  RESUMPTION — `git status`, the build/syntax check, the tests of the touched area, a
-  reading of the diff against the design — valid with or without a plan, plus the rule
-  for keeping vs discarding the half-done work.
-- Expected benefit / risk: a resumed session does not build on a state nobody checked,
-  and the wiring gaps that green tests miss are looked for at the moment they are most
-  likely. Risk: ceremony on trivial resumptions — scale the check to the size of the
-  uncommitted work (none → nothing to verify).
-- **Evidence relayed from a client project** (annotation 2026-09-26,
-  [[2026-09-26-client-harvest-registration]]): after a resumption, a branch was created
-  from the wrong base. Relayed by the user together with the harvest; not found in the
-  client's records read for this deliverable (a read-only search of its memory and of
-  its commit subjects), so it is recorded as relayed, with no cause attributed. For the
-  direction above: RESUMPTION confirms the committed tasks with `git log` on the branch,
-  but nothing checks the branch's BASE — a candidate item of the verify-before-
-  continuing step (e.g. the branch's merge-base against the base the plan or the
-  recorded decision expects).
-- Status: APPROVED on 2026-10-13 (the retro over the backlog) — for v2.2.0: the
-  verify-before-continuing step, scaled to the uncommitted work, the branch's base included,
-  with the rule for keeping or discarding the half-done work.
-
 ### IMP-053 — The security-gate verdict is always written, "not applicable" included
 - Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — a skipped gate and a
   forgotten gate look the same in the memory
@@ -1833,6 +1788,26 @@ line on; older entries are not backfilled.
 - Uncovered (not measured, known limits of the script): a merge, rebase or cherry-pick in
   progress, whose state files survive a restore; a detached HEAD, where the guard on
   protected branches has no branch to compare.
+
+### IMP-052 — Resumption after an abrupt interruption: verify before continuing → applied on 2026-10-14
+- Origin: [[2026-09-24-third-upgrade-lessons]] — `docs/01`'s RESUMPTION said WHERE to resume,
+  not WHETHER the resumed state held: it confirmed the committed tasks and discarded a dirty
+  tree, at the start of a session only. In the client project a deliverable without a plan
+  was resumed after a usage limit from its dirty tree, and a wiring gap, all tests green,
+  was found by reading the diff against the design; a branch was created from the wrong
+  base after a resumption (relayed, [[2026-09-26-client-harvest-registration]]).
+- Applied: RESUMPTION covers a pause inside a session too (a usage limit, a machine's
+  sleep). Its new step 3 verifies before continuing, with or without a plan, scaled to what
+  is not committed: always `git status`, the plan's ticks against the commits and the
+  branch's base — `git log <integration branch>..HEAD` lists only the deliverable's own
+  commits —; with uncommitted work, the build or syntax check, the touched area's tests and
+  the diff read against the plan or the decision. Step 4 says what happens to the half-done
+  work: discarded in a new session, whose context is gone; kept in the same session after a
+  pause if step 3 holds; a `chore: wip` commit verified the same way and never undone
+  without the user.
+- Verified: the documentation check resolves the sections it cites. Rule 7 of `CLAUDE.md` —
+  "if a session is interrupted … discard only the uncommitted half-done task" — stays true
+  of a new session, so the HYBRID file is not touched for it.
 
 ## Deferred (not rejected — resumed at the right time)
 

@@ -134,19 +134,30 @@ plan), and apply this additional discipline:
 > cross-module refactor the smoke test of the wired system (DoD, docs/02 point 3)
 > matters even more.
 
-## RESUMPTION (at the start of EVERY session)
+## RESUMPTION (at the start of EVERY session, and after a pause inside one)
 
-The `SessionStart` hook injects `STATE.md`. In addition, at startup:
+The `SessionStart` hook injects `STATE.md`. In addition, at startup — and when the same
+session goes on after a pause (a usage limit, a machine's sleep) —:
 1. Check whether a plan with `status: in-progress` exists in `.claude/memory/plans/`.
 2. If there is one AND it concerns the prompt the user is asking for (or the user
    says "resume"): read the plan, run `git log --oneline` on the branch to confirm
    which tasks are already committed, and RESUME from the first unticked task. Do NOT
    restart tasks already done. Do NOT recreate the branch.
-3. Before resuming the interrupted task: if the working tree is dirty (code of the
-   half-done task), discard it with `make reset-task` (`YES=1` without asking) or manually,
-   from the repository's top level (`git restore --source=HEAD --staged --worktree -- . &&
-   git clean -fd`) — restart from the clean task, not from rubble.
-4. A well-formed resumption prompt gives the TASK directly ("resume from the first
+3. Verify before continuing, with or without a plan, scaled to what is not committed.
+   Always: `git status`; the plan's ticks against the commits — a tick can lag its commit;
+   and the branch's BASE: `git log --oneline <integration branch>..HEAD` lists only this
+   deliverable's commits — one that is not means the branch started from the wrong base,
+   clean tree or not. With work not yet committed, also: the build or syntax check, the
+   tests of the area it touches, and its diff read against the plan or the recorded
+   decision — the wiring gaps green tests miss show there.
+4. Then the half-done work. In a new session its context is gone: discard it with
+   `make reset-task` (`YES=1` without asking) or manually, from the repository's top level
+   (`git restore --source=HEAD --staged --worktree -- . && git clean -fd`) — restart from
+   the clean task, not from rubble. In the same session after a pause the context holds:
+   keep the work if step 3 holds, discard it as above if it does not. A `chore: wip` commit
+   (`04-git-workflow.md`, *WHEN to commit*) is half-done work too: step 3 verifies it, and
+   it is never undone without the user (*Rollback*).
+5. A well-formed resumption prompt gives the TASK directly ("resume from the first
    unticked task of plan X") and POINTS at the plan and the session notes for
    context: it must not produce an empty turn ("awaiting instructions") nor
    reconstruct in the chat what is already on disk.
