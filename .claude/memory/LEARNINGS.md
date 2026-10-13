@@ -621,6 +621,15 @@ tags: [improvement]
   source read showed it from 8.4.0 to 8.18.1 only — 8.0.0 and 8.3.0 end such an error
   with `log.Fatal`. Found while checking the CHANGELOG's claims, the documents narrowed
   before the tag; the commit was public: the correction is this record.
+- An occurrence in the product, reported by the user on 2026-10-13
+  ([[2026-10-13-gate-lenses-2.1.0]]): `hooks-install.sh` prints "<hook> contained local
+  changes" whenever the hook in place differs from the one it generates — also when that
+  hook is an earlier release's, untouched. v2.0.0's rehearsal measured both `.bak` files
+  byte-identical to v1.5.0's hooks, and the user met the message regenerating this
+  repository's hooks: the script measures a difference and claims its cause.
+  `scripts/README.md` ("if you have customised them") and `SETUP.md` ("a `.bak` of the
+  project's formatting block") repeat the inference. Decided: fixed in v2.1.0, the message
+  saying what it measures (the user's option a).
 
 ### IMP-074 — The bump is fixed by the brief before the content
 - Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — the user's brief; the
@@ -947,6 +956,24 @@ tags: [improvement]
   slot's line, and the release's rehearsal stays the backstop.
 - Expected benefit / risk: the conflict shows at the commit that makes it. Risk: a fixture
   of answered slots to keep, or a rule no check holds.
+
+### IMP-089 — The history scan misses a key committed in a file marked binary
+- Date: 2026-10-13 | Origin: measured in [[2026-10-12-prerequisites-1.6.0]] (task 9, N1's
+  family); recorded at the user's request in [[2026-10-13-gate-lenses-2.1.0]]
+- Priority: LOW (user decision, 2026-10-13).
+- Observed problem: `gitleaks detect`, the one-off history scan of `SETUP.md`'s step 3,
+  reads `git log -p`, which shows a file marked `binary` or `-diff` as "Binary files
+  differ": a key committed in a `*.key binary` is not found (measured: exit 0, "no leaks
+  found"; found without the attribute). `gitleaks detect --no-git --source <path>`, which
+  step 3 names, covers only the current content: a key removed since, still in the
+  history, stays unseen.
+- Proposal: NOT decided — when the trigger comes, scan every committed version of the files
+  the project marks binary (their blobs, through `git rev-list --all -- <paths>` and
+  `git cat-file`), or say in step 3 how to.
+- Expected benefit / risk: a graft's baseline scan reads every committed key. Risk: a scan
+  over every version of those files costs time on a long history.
+- Resumption trigger: the first graft into a project whose `.gitattributes` marks key files
+  as binary.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
