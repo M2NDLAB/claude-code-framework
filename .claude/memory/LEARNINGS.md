@@ -492,21 +492,6 @@ tags: [improvement]
 - Expected benefit / risk: the boundaries are known where they hold and where they do not.
   Risk: none for the investigation itself.
 
-### IMP-071 — A claim of coverage is a list that declares itself complete
-- Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at
-  the user's request in [[2026-10-11-multiplatform-1.5.0]]
-- Observed problem: "Every rule the check advertises has its defect here", the header of
-  the documentation check's self-test, had IMP-068's own shape — a list (the rules)
-  declaring itself complete against a source (the forms the check names) —, inside the
-  tool built to catch that shape. It was false twice, both times found by the reviewer,
-  never by the author.
-- Proposal: NOT decided. A claim of coverage — a self-test's header, a CHANGELOG line, an
-  applied entry's Verified part — is either held against its source, as IMP-068 does, or
-  narrowed to what was measured. Where to write it (`docs/02`, *Tests that demonstrate*,
-  is the candidate) is to be decided.
-- Expected benefit / risk: the records stop claiming more than was measured. Risk: none
-  beyond one more sentence in the rules.
-
 ### IMP-072 — Mutate the paths, not only the sites
 - Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at
   the user's request in [[2026-10-11-multiplatform-1.5.0]]
@@ -2012,6 +1997,20 @@ line on; older entries are not backfilled.
   last measurement it cites.
 - Uncovered: a public commit that claims too much stays as it is; its correction is a record,
   as the occurrences were.
+
+### IMP-071 — A claim of coverage is a list that declares itself complete → applied on 2026-10-13
+- Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at the
+  user's request in [[2026-10-11-multiplatform-1.5.0]]
+- Observed problem (condensed): "Every rule the check advertises has its defect here", the
+  header of the documentation check's self-test, declared itself complete against the forms
+  the check names, IMP-068's own shape inside the tool built to catch it — false twice,
+  found both times by the reviewer.
+- Decision (the user, 2026-10-13 — [[2026-10-13-gate-lenses-2.1.0]]): in the principle of
+  IMP-056, IMP-058 and IMP-073; the records' line of `docs/02` says it.
+- Applied in v2.1.0 ([[2026-10-13-gate-lenses-2.1.0]]): the Definition of Done's point 10
+  goes on — no wider than the measurement: a list that declares itself complete is held
+  against its source, as IMP-068's check does, or narrowed to what was measured.
+- Uncovered: a list no program can extract stays a reading, IMP-068's own limit.
 
 ## Deferred (not rejected — resumed at the right time)
 
