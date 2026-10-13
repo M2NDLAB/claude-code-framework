@@ -80,12 +80,16 @@ fi
 # --- Guards for a repo with pre-existing hooks (graft onto an existing project) --
 # 1. core.hooksPath active (e.g. husky): git does NOT read .git/hooks, so the hooks
 #    written below would NEVER run — installed but inert. Better to stop and let the
-#    user decide than to give false confidence.
+#    user decide than to give false confidence. This check runs at install time only: a
+#    hook manager sets core.hooksPath again at its next run (husky at every npm install,
+#    unless HUSKY=0), and the hooks then stop running without a word (docs/04).
 hooks_path="$(git -C "${REPO_ROOT}" config --get core.hooksPath || true)"
 if [[ -n "${hooks_path}" ]]; then
   echo "ERROR: core.hooksPath is set to '${hooks_path}': git ignores .git/hooks," >&2
   echo "  so the framework hooks would never run. Choose one:" >&2
-  echo "  - integrate these hooks' commands into your hook manager (e.g. husky), or" >&2
+  echo "  - integrate these hooks' commands into your hook manager (e.g. husky) — the durable" >&2
+  echo "    choice: a hook manager sets core.hooksPath again at its next run (husky at every" >&2
+  echo "    npm install, unless HUSKY=0), and from then on these hooks do not run; or" >&2
   echo "  - remove the override and re-run. FIRST find out where it comes from (local," >&2
   echo "    global or system): git config --show-origin --get core.hooksPath" >&2
   echo "    then: git config --unset core.hooksPath   (add --global if it comes from there)" >&2

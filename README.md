@@ -26,8 +26,8 @@ approved by the human, never self-applied; the ones useful to any project travel
 back up to the template through the project→framework bridge (`/harvest-framework`).
 - **Security gate & git workflow** — mandatory review on sensitive components,
 conventional commits, SemVer versioning on annotated tags, a paste-ready "ready for
-integration" block, git hooks (secret scan, formatting, and a pre-push that leaves
-every push to the human), delegated agents kept read-only on git.
+integration" block, git hooks (secret scan, formatting, and a pre-push that refuses an
+agent session's push), delegated agents kept read-only on git.
 - **Grafting and upgrading** — it starts from scratch (greenfield), grafts onto an
 existing project (brownfield) and upgrades in place (`vX → vY`) preserving the
 memory accumulated so far, with the `.claude/framework-version` provenance pin as a

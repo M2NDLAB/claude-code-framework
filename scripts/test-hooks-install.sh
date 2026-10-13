@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Self-test of scripts/hooks-install.sh. Seven cases:
+# Self-test of scripts/hooks-install.sh. Eight cases:
 #   1. "dangling symlink + FORCE_OVERWRITE=1": a leftover link never aborts the install —
 #      below; skipped, said aloud, where `ln -s` cannot make a dangling link (Git Bash);
 #      the commit-msg hook it installs runs commitlint at the version
@@ -24,8 +24,11 @@
 #      ends — passing, refused, or stopped by a signal — see "Case 6";
 #   7. a re-run: over its own hooks unchanged, nothing saved and nothing said; over a hook
 #      that differs — an earlier release's, untouched by the user — a .bak of it, and a
-#      message that says what was measured, a difference, not a local change — see "Case 7"
-#      at the end.
+#      message that says what was measured, a difference, not a local change — see "Case 7";
+#   8. core.hooksPath set — a hook manager's, husky's for one: the install stops before
+#      writing any hook, and its message says that such a manager sets it again at its next
+#      run, so integrating the commands into it is the durable choice — see "Case 8" at the
+#      end.
 #
 # Case 1.
 # Defect (RED, before the fix): in the FORCE_OVERWRITE=1 branch, a pre-existing hook that is a
@@ -524,3 +527,31 @@ grep -q '^WARNING: commit-msg differs from the hook this version generates' "${w
 ! grep -q 'local changes' "${workdir}/out7.log" || fail7 "the message claims local changes it did not measure"
 
 echo "PASS (re-run): over its own unchanged hooks a re-run saves and says nothing; over an earlier release's hook it saves a .bak and says the hook differs from the one it generates, claiming no local change."
+
+# --- Case 8 — core.hooksPath set, as a hook manager sets it --------------------------------
+# git then reads another directory, and the hooks written to .git/hooks would never run. The
+# install refuses, and since the check runs at install time only, its message must say that a
+# hook manager sets core.hooksPath again at its next run: removing it and re-running lasts
+# until then.
+fail8() {
+  echo "FAIL (core.hooksPath): $1" >&2
+  [[ -f "${workdir}/out8.log" ]] && { echo "--- script output ---" >&2; cat "${workdir}/out8.log" >&2; }
+  exit 1
+}
+hp_repo="${workdir}/hookspath-repo"
+git init -q "${hp_repo}"
+mkdir -p "${hp_repo}/scripts"
+cp "${HOOKS_INSTALL}" "${hp_repo}/scripts/hooks-install.sh"
+cp "${CHECK_PREREQ}" "${hp_repo}/scripts/check-prerequisites.sh"
+git -C "${hp_repo}" config core.hooksPath .husky/_
+set +e
+bash "${hp_repo}/scripts/hooks-install.sh" >"${workdir}/out8.log" 2>&1
+rc=$?
+set -e
+[[ ${rc} -ne 0 ]] || fail8 "core.hooksPath set: the install went on"
+[[ ! -e "${hp_repo}/.git/hooks/pre-commit" ]] || fail8 "core.hooksPath set: a hook was written where git does not read it"
+grep -q "core.hooksPath is set to '.husky/_'" "${workdir}/out8.log" || fail8 "the refusal does not name the setting"
+grep -q 'sets core.hooksPath again at its next run' "${workdir}/out8.log" \
+  || fail8 "the message does not say that a hook manager sets core.hooksPath again"
+
+echo "PASS (core.hooksPath): with core.hooksPath set the install stops before writing a hook, and says a hook manager sets it again at its next run, the durable choice being to integrate the commands into it."
