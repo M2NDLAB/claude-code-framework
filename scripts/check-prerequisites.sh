@@ -21,10 +21,10 @@ set -euo pipefail
 #   bash 3.2        the oldest bash the framework's scripts are written for (macOS's bash)
 #   gitleaks 8.18.2 a security minimum (read from gitleaks' source): the first release whose
 #                   staged scan runs `git diff --no-ext-diff` — before it a configured
-#                   external diff replaces what gitleaks reads — and whose scan error ends
-#                   the run with exit 1, not "no leaks found" and 0; 8.0.0 to 8.1.3 also
-#                   wrote a .gitleaks.toml into the project. `protect --staged --redact -v`,
-#                   the pre-commit's scan, exists from 8.0.0
+#                   external diff replaces what gitleaks reads —; from 8.4.0 to 8.18.1 a
+#                   scan error also ended in "no leaks found" and 0, which 8.18.2 turns
+#                   into exit 1; 8.0.0 to 8.1.3 wrote a .gitleaks.toml into the project.
+#                   `protect --staged --redact -v`, the pre-commit's scan, exists from 8.0.0
 #   node 22.12      the `engines` of commitlint at COMMITLINT, below; the agent git guard
 #                   needs less
 PREREQUISITES='git|2.31|the hooks and the upgrade (git rev-parse --path-format)|https://git-scm.com/downloads

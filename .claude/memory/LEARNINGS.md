@@ -615,6 +615,12 @@ tags: [improvement]
   established, IMP-084), and a diagnostic that "tells bash apart from what follows it" (it
   measured bash's printf, the pipe and od together, on the check's path only). The commit
   was public: the correction is this record.
+- An occurrence in v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]): `5f05004`'s message, and
+  the first wording of `SETUP.md` §0, of the check's comment, of IMP-077 and of the draft
+  CHANGELOG, said that before 8.18.2 a scan error ends in "no leaks found" and exit 0. The
+  source read showed it from 8.4.0 to 8.18.1 only — 8.0.0 and 8.3.0 end such an error
+  with `log.Fatal`. Found while checking the CHANGELOG's claims, the documents narrowed
+  before the tag; the commit was public: the correction is this record.
 
 ### IMP-074 — The bump is fixed by the brief before the content
 - Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — the user's brief; the
@@ -713,7 +719,8 @@ tags: [improvement]
   minimum — the prerequisite check FAILS below it, or when it cannot read gitleaks'
   version, and the install stops. Read at gitleaks' source: before 8.18.2 the staged scan
   runs `git diff` without `--no-ext-diff`, so a configured external diff replaces what it
-  reads, and a scan error ends in "no leaks found" and exit 0; 8.0.0 to 8.1.3 also write a
+  reads; from 8.4.0 to 8.18.1 a scan error ends in "no leaks found" and exit 0; 8.0.0 to
+  8.1.3 also write a
   `.gitleaks.toml` into the project, which later releases load instead of their own rules.
   Debian 13 and Ubuntu 24.04 package 8.16.0 (their archives, read on 2026-10-12); Debian's
   build rules set no version, so its binary names none, and the check fails it either way —

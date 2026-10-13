@@ -20,11 +20,11 @@ The tools, by name; how to install each one depends on your platform.
   the pre-commit hook, `gitleaks protect --staged` (hidden from `--help` since 8.19.0, for
   `gitleaks git`; it still runs). A security minimum, read at gitleaks' source: below it the
   scan can let a secret through in silence — a configured external diff replaces what it
-  reads (8.18.2 brings `--no-ext-diff`), a scan error ends in "no leaks found" and exit 0,
-  and 8.0.0 to 8.1.3 write into the project a `.gitleaks.toml` that later releases then
-  load instead of their own rules. So the prerequisite check FAILS below it, or when it
-  cannot read gitleaks' version, and `make hooks-install` stops. Debian 13's and Ubuntu
-  24.04's packages are 8.16.0: install a release instead.
+  reads (8.18.2 brings `--no-ext-diff`), from 8.4.0 a scan error ends in "no leaks found"
+  and exit 0, and 8.0.0 to 8.1.3 write into the project a `.gitleaks.toml` that later
+  releases then load instead of their own rules. So the prerequisite check FAILS below it,
+  or when it cannot read gitleaks' version, and `make hooks-install` stops. Debian 13's and
+  Ubuntu 24.04's packages are 8.16.0: install a release instead.
 - **Node.js 22.12 or later, with npx.** commitlint (Conventional Commits) runs through npx
   at the version `scripts/check-prerequisites.sh` pins — its two packages; their own
   dependencies follow the ranges they declare —, and that version's `engines` set the
