@@ -299,21 +299,6 @@ tags: [improvement]
   — one place — instead of written by hand, so the claim stays true whatever IMP-086 decides
   on the CI.
 
-### IMP-103 — A LOW finding that a line of text does not close becomes a declared limit, not an IMP
-- Date: 2026-10-13 | Origin: [[2026-10-13-backlog-retro-2.2.0]] — the retro over the
-  backlog, on the data of v2.1.0's review ([[2026-10-13-gate-lenses-2.1.0]])
-- Observed problem: 6 of the 11 IMPs v2.1.0's review opened came from LOW findings — IMP-095
-  to IMP-100. `docs/03` asks only that LOW/INFO findings be "at least recorded (debt or
-  backlog)", and recording them as IMPs grows a backlog the framework now wants small: from
-  this cycle on it develops from the lessons the projects' real use brings, through
-  `/harvest-framework`.
-- Proposal (the agent's, at the retro; adopted by the user): in `docs/03`, a LOW finding that
-  a line of text does not close becomes a limit declared where the claim it concerns lives,
-  not an IMP.
-- Expected benefit / risk: the backlog keeps what needs a decision, and a reader meets the
-  limit where the claim is. Risk: a limit declared rather than fixed — LOW, and in sight.
-- Status: APPROVED on 2026-10-13 (the retro over the backlog) — for v2.2.0.
-
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
 - Date: YYYY-MM-DD | Origin: [[<session note>]] — <problem>
@@ -1717,6 +1702,20 @@ line on; older entries are not backfilled.
 - Verified: the documentation check passes, its Types line untouched. In this release the
   messages were checked before each commit with a grep for such a line: it stopped three of
   them, rewrapped while still uncommitted ([[2026-10-13-backlog-retro-2.2.0]]).
+
+### IMP-103 — A LOW finding that a line of text does not close becomes a declared limit, not an IMP → applied on 2026-10-14
+- Origin: [[2026-10-13-backlog-retro-2.2.0]] — the retro over the backlog, on the data of
+  v2.1.0's review ([[2026-10-13-gate-lenses-2.1.0]]): 6 of the 11 IMPs that review opened came
+  from LOW findings, IMP-095 to IMP-100, while `docs/03` asked only that LOW/INFO findings
+  be "at least recorded", and the framework now wants a small backlog, grown from the
+  projects' real use.
+- Applied (the agent's proposal at the retro, adopted by the user): `docs/03`'s point 4 of
+  *How the gate works* — a LOW/INFO finding that a line of text closes, a claim narrowed to
+  what the code does, is closed in the release; one it does not close becomes a known limit,
+  declared where the claim it concerns lives, not a proposal in the backlog; a lesson about
+  the process still becomes one. `/security-review`'s closing line follows. `CLAUDE.md`'s
+  rule 8, "LOW at least recorded", stays true of a declared limit and is not touched.
+- Verified: the documentation check passes.
 
 ## Deferred (not rejected — resumed at the right time)
 

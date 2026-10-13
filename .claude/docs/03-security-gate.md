@@ -38,7 +38,11 @@ On top of the Definition of Done (`02-code-quality.md`), BEFORE the merge reques
 2. **HIGH/CRITICAL findings → RESOLVED** before the PR. Non-negotiable.
 3. **MEDIUM findings → resolved**, or **explicitly accepted** as known debt in
    `memory/STATE.md`, with the reason for accepting them.
-4. **LOW/INFO findings → at least recorded** (debt or backlog).
+4. **LOW/INFO findings → closed, or declared.** One that a line of text closes — a claim
+   narrowed to what the code does — is closed in the release. One that it does not close
+   becomes a known limit, declared where the claim it concerns lives — the document, the
+   comment or the message that states what the code does —, not a proposal in the
+   backlog; a lesson about the process still becomes one (*After the review*).
 
 The gate is a GATE, not an optional activity: a component that is "complete" and has
 green functional tests can still carry security defects the tests cannot see (a
