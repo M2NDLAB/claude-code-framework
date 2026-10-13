@@ -78,7 +78,10 @@ Definition of Done and the commit are enough.
    enforcement edge, surfaces that act on behalf of a client (the concrete list is
    `[TO BE DEFINED AT SETUP]`) —, or a deliverable whose product asserts a security
    property (`03-security-gate.md`, *The lenses of the gate*). Under the gate this is a
-   GATE: HIGH/CRITICAL findings are resolved BEFORE going on. Otherwise, skip it.
+   GATE: HIGH/CRITICAL findings are resolved BEFORE going on. Otherwise, skip it — and
+   write the verdict anyway, one line with its reason, in the session note
+   (`.claude/memory/sessions/README.md`, *Format*): a gate skipped and a gate forgotten
+   must not look the same.
 3. **`/retro` — end-of-deliverable reflection (FIXED).** Was there friction? A
    rule or a doc that would have helped? → record the proposals as IMPs in
    `LEARNINGS.md` (`06-self-improvement.md`). It is lightweight: with no friction it

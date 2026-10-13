@@ -62,7 +62,7 @@ in, is in **[SETUP.md](SETUP.md)**):
    suggested command is in `SETUP.md`.
 
 From there on you work with the cycle described in `.claude/docs/00-overview.md`:
-plan → execute task by task → [if sensitive] `/security-review` → `/retro` →
+plan → execute task by task → [if under the gate] `/security-review` → `/retro` →
 `/checkpoint` → `/integrate` (push decided by the human); if you get stuck, `/sos`.
 
 > Grafting the framework onto an **existing** project (brownfield)? The steps are

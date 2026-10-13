@@ -283,7 +283,7 @@ Open Claude Code in the project root and give it a command like this one:
 From here on the cycle is the one in `.claude/docs/00-overview.md` (see "The
 end-of-deliverable cycle"). For every heavy prompt Claude Code will produce a plan in
 `.claude/memory/plans/`; at the end of a deliverable it will follow the sequence [if
-sensitive] `/security-review` → `/retro` → `/checkpoint` → `/integrate`; when it gets
+under the gate] `/security-review` → `/retro` → `/checkpoint` → `/integrate`; when it gets
 stuck, `/sos`. The periodic review of the IMP backlog stays `/retro` over the whole
 `LEARNINGS.md`.
 
@@ -1002,8 +1002,9 @@ certain; unknown `grafted` → `n/a (retrofit YYYY-MM-DD)`. The pin lives outsid
 `.claude/memory/`: the closed list of Step 5 needs no entry for it.
 
 `/checkpoint` (the upgrade's session note — `vX→vY`, what was reconciled, what the user
-decided; `STATE.md` with the updated framework version; `TREE.md` if the structure
-changed). Then `/integrate`: a process-only upgrade of the project does NOT bring
+decided, and its security-gate line with the reason, since an upgrade rewrites the security
+baseline: the hooks, the permissions, a destructive guard; `STATE.md` with the updated
+framework version; `TREE.md` if the structure changed). Then `/integrate`: a process-only upgrade of the project does NOT bring
 product features/fixes → bump **"no tag"** (`chore`, internal work, not a release):
 declare it and omit the tag. The merge of the upgrade branch and the push are HUMAN
 actions. If something does not add up at review time, the branch is thrown away: the

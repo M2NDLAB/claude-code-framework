@@ -18,7 +18,7 @@ This repo applies to itself the method it describes (`.claude/docs/`):
   `commitlint.config.cjs`, format and rules in
   `.claude/docs/04-git-workflow.md`. Install the hooks with `make hooks-install`
   (requires gitleaks and Node.js).
-- **End-of-deliverable cycle** (`.claude/docs/00-overview.md`): [if sensitive]
+- **End-of-deliverable cycle** (`.claude/docs/00-overview.md`): [if under the gate]
   `/security-review` → `/retro` → `/checkpoint` → `/integrate`.
 - **Changes to the RULES go through an IMP proposal** in
   `.claude/memory/LEARNINGS.md` (`.claude/docs/06-self-improvement.md`): first the

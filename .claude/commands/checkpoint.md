@@ -20,6 +20,8 @@ values, then deletes this paragraph: [TO BE DEFINED AT SETUP].
      resumption; on a later write: the value before this session's first write + all
      of this session's messages, never counting a message twice). Never backfill
      notes that predate these fields;
+   - at a deliverable's last checkpoint, the note's security-gate line
+     (`sessions/README.md`, *Format*): the outcome, or "not applicable" with its reason;
    - update the components/ notes of the components touched;
    - rewrite STATE.md with the current state; AFTER the rewrite check that the
      pre-existing entries of "Caution & open issues" are still present or

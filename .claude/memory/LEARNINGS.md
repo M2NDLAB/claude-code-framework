@@ -23,52 +23,6 @@ tags: [improvement]
 
 ## OPEN proposals (awaiting the user's decision)
 
-### IMP-053 — The security-gate verdict is always written, "not applicable" included
-- Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — a skipped gate and a
-  forgotten gate look the same in the memory
-- Observed problem: `docs/00` (end-of-deliverable step 2) says "If it is not sensitive,
-  skip it"; `docs/03` scopes the gate to sensitive components; `/checkpoint`,
-  `/integrate` and the session-note format carry no gate line. The practice is
-  inconsistent: 4 of the 13 session notes of this repo before this one record "Security
-  gate: not sensitive → skipped", the other 9 are silent (the v1.0.0, v1.1.0 and v1.2.0
-  notes included). In the client project one note records a not-applicable verdict —
-  and one deliverable that touched components on its sensitive list has no gate record
-  at all: the memory cannot tell a forgotten review from an inapplicable one, which is
-  the case that matters.
-- Proposal: NOT decided here (retro): the verdict is written every time, one line with
-  the reason — "Security gate: not applicable — <reason>", or the outcome. Natural
-  places: the Format block of `sessions/README.md`, the memory step of `/checkpoint`,
-  and `docs/00` step 2 ("skip it, and write the one-line verdict").
-- Expected benefit / risk: an absent verdict means a forgotten one, by construction, for
-  one line per note. Risk: a boilerplate line written without thinking — the mandatory
-  reason is what keeps it honest.
-- **Evidence from a client harvest — the upgrade** (annotation 2026-09-26,
-  [[2026-09-26-client-harvest-registration]]; recorded here and not as an entry of its
-  own — the reason is in the note): an upgrade rewrites the security BASELINE —
-  `hooks-install.sh` (the gitleaks hook), `settings.json` (the permissions),
-  `reset-task.sh` (a destructive guard) — none of them a sensitive component, and the
-  upgrade section of `SETUP.md` never names `/security-review` or a verdict: Step 6
-  closes with `/checkpoint` and `/integrate` only, skipping steps 2-3 of `docs/00`'s
-  cycle. Client-side, relayed: the notes of its two earlier upgrades carry no gate line
-  — this entry's skipped-or-forgotten ambiguity. New for the direction above: (1) the
-  upgrade (`SETUP.md` Step 5 or 6) as one more place for the one-line verdict; (2) the
-  content of its reason, a diff of the EXECUTABLE lines of the baseline scripts —
-  measured v1.0.0→v1.2.1: the generated hooks' executable lines identical,
-  `hooks-install.sh` changing messages and the hook-ownership test, `reset-task.sh`
-  messages only, the allow/deny lists of `settings.json` unchanged — which must keep
-  the code-read strings that live in COMMENTS: the hooks' ownership marker is a comment,
-  it changed Italian→English, and stripping comments hides exactly the change behind
-  IMP-050 point 5's rollback defect (IMP-048, level 3). As a mechanical check it
-  belongs with IMP-050 (points 3-4)'s Step 5 inputs. (3) Not a gate matter — a factual
-  defect listed in the note for the user's decision: `reset-task.sh` is filed METHOD
-  while it carries a setup slot (the protected branches) whose natural answer is
-  inline, a predictable hybrid like the setup-customised commands. A plain overwrite is
-  not silent (Step 4's marker grep re-surfaces the slot, edge case 7 catches the filled
-  one), but the project must then re-answer a slot the §2 checklist never lists.
-- Status: APPROVED on 2026-10-13 (the retro over the backlog) — for v2.2.0: the one-line
-  verdict with its reason, naming which trigger applies — a sensitive component, or a
-  security property the product asserts (v2.1.0).
-
 ### IMP-057 — A test invariant over a known debt: a bidirectional allow-list, not an empty set
 - Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
   a class invariant made the honest declaration the only way to break the build
@@ -1808,6 +1762,26 @@ line on; older entries are not backfilled.
 - Verified: the documentation check resolves the sections it cites. Rule 7 of `CLAUDE.md` —
   "if a session is interrupted … discard only the uncommitted half-done task" — stays true
   of a new session, so the HYBRID file is not touched for it.
+
+### IMP-053 — The security-gate verdict is always written, "not applicable" included → applied on 2026-10-14
+- Origin: [[2026-09-24-third-upgrade-lessons]] — a skipped gate and a forgotten one looked
+  the same in the memory: 4 of this repository's 13 notes before it recorded "not
+  sensitive → skipped", 9 were silent, and in the client project a deliverable that touched
+  components on its sensitive list had no gate record at all. An upgrade, which rewrites the
+  security baseline, never named a verdict ([[2026-09-26-client-harvest-registration]]).
+- Applied: the session-note format gains a `## Security gate` line and a section that says
+  when it is written — the note that closes a deliverable, always, with its reason: the
+  outcome, or "not applicable" and why, naming the trigger, a sensitive component or a
+  security property the product asserts; a closing note without it is a forgotten gate, and
+  older notes stay valid. `/checkpoint`'s step 3 writes it at a deliverable's last
+  checkpoint, `docs/00`'s step 2 asks for it when the review is skipped, and the upgrade's
+  checkpoint in `SETUP.md` carries it. The cycle's summaries in `README.md`,
+  `CONTRIBUTING.md` and `SETUP.md` said "[if sensitive]", narrower than the gate since
+  v2.1.0: "[if under the gate]".
+- Verified: `checkpoint.md` (HYBRID) and `docs/00` with its slot answered inline merge three
+  ways cleanly, with LF and with CRLF line ends; nothing that reads the memory checks the
+  session-note format, so no older note fails. Not adopted from the annotation: a diff of
+  the baseline's executable lines as the upgrade's reason — outside the approved form.
 
 ## Deferred (not rejected — resumed at the right time)
 
