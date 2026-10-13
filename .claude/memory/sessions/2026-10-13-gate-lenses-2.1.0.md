@@ -117,7 +117,7 @@ tags: [session, security-gate, docs, imp, plan]
 - [x] 10. The CI's rounds (block 0, the user's pushes): what fails, fixed with new commits, until green on the three — commit: none to fix — round 1 green on `bf3879b` (run 38412448958), recorded with task 11
 - [x] 11. ONE reviewer, read-only on git, the snapshot before and after, applying the two lenses to the framework's payload: HIGHs fixed here, MEDIUMs and LOWs recorded as IMPs, trivial text fixed; the gate's verdict written — commit: b7e3f09, 56099e3, and the record of the review (its own sha cannot be written in it)
 - [x] 12. `/retro` and `/checkpoint`: the upgrade 2.0.0 → 2.1.0 rehearsed on the final payload — commit: the checkpoint (its own sha cannot be written in it)
-- [ ] 13. `/integrate`: the CHANGELOG 2.1.0 entry, claiming only what was measured; the bump computed again against the expected MINOR; the final block 0 green on the three, then blocks 1 and 2 — commit: the CHANGELOG commit (its own sha cannot be written in it)
+- [x] 13. `/integrate`: the CHANGELOG 2.1.0 entry, claiming only what was measured; the bump computed again against the expected MINOR; the final block 0 green on the three, then blocks 1 and 2 — commit: the CHANGELOG commit (its own sha cannot be written in it); blocks 0, 1 and 2, the user's
 
 The applying commits (tasks 2 to 8) each carry their IMP's part of the text and move the
 entry to Applied, as `docs/06` says. Task 10 may take several commits, one per round of the
@@ -224,9 +224,12 @@ case of the hooks' self-test edits two fixtures of the documentation check's.
 
 ## Resumption notes
 - The branch is public since round 1 (`bf3879b`): no commit is rewritten. The last green
-  run is round 1's; `9debae4`, `b7e3f09`, `56099e3` and this record reach the CI through the
-  next block 0.
-- Next: task 13 — `/integrate`: the 2.1.0 entry from the scratchpad's
-  `changelog-2.1.0-draft.md`; the bump computed on the content, as the user asked — new
-  rules in the payload, a MINOR, v2.1.0 —, its reasoning declared before the tag; the final
-  block 0 green on the three; then blocks 1 and 2.
+  run is round 1's; every commit after it — `9debae4` to the CHANGELOG commit — reaches the
+  CI through the final block 0; block 1 waits for that run's green on the three jobs, and
+  checks that the merged tree is the tested one.
+- Task 13's bump, computed on the content as the user asked: by the commit types alone the
+  range gives a PATCH — two `fix`, the rest `docs` and `chore`, the seven apply commits among
+  the `chore`s (IMP-074's occurrence) —; by the content, new rules in shipped payload files
+  (`docs/00`, `docs/02`, `docs/03`, `/security-review`) and no break of the contract, a MINOR:
+  v2.1.0 from v2.0.0, as expected.
+- Next: the user's blocks — the final block 0, then blocks 1 and 2.

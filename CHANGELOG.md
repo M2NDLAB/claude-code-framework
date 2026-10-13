@@ -7,6 +7,62 @@ SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [2.1.0] — 2026-10-13
+
+### Added
+- **The gate's lenses** (IMP-056, IMP-058, IMP-059): `docs/03` gets *The lenses of the gate*,
+  which every review of the gate applies. *Claims, not only actions* — an assertion the
+  product makes about a security property, a status, a summary, an "OK", "nothing changed",
+  "no leaks found", is checked against what the code really does, and an assertion that
+  something did not happen needs a datum that shows it; when a change widens a claim, the
+  review covers the set the claim names, beyond the diff. *The real path* — a gate on an
+  external tool covers what the tool does by itself on the way to its effect, what its
+  configuration, the user's included, makes it do and what it updates, writes or fetches
+  unasked; each such path is closed by the tool's off-switch, compensated, or declared as a
+  known limit. A deliverable whose product asserts a security property is under the gate for
+  that alone: `docs/00`'s cycle follows that trigger, and `/security-review` recalls the
+  lenses in its check 11, their text living in `docs/03` only.
+- **Two lines in `docs/02`** (IMP-073, IMP-071, IMP-087, IMP-084). The Definition of Done's
+  point 10: a commit message, a changelog entry, the Verified part of an applied IMP is
+  written after the last measurement it cites, and no wider than it. And in *Tests that
+  demonstrate*: a test of what drives an external tool adds cases under the configurations
+  the users have, each checking that its datum reaches the program under test before it
+  counts.
+
+### Fixed
+- **`hooks-install.sh` claimed local changes it never measured.** Run again over a hook that
+  differs from the one it generates — another release's, untouched, as well as a customised
+  one —, it said the hook "contained local changes". It now says the hook differs from the
+  one this version generates, and saves it as `.bak` as before. The user met it regenerating
+  this repository's hooks after 2.0.0's integration.
+- **The hooks' coverage was claimed wider than it is** — the HIGH of this release's review. A
+  hook manager sets `core.hooksPath` again at its next run — husky does, from the `prepare`
+  script its setup writes, at every `npm install`, unless `HUSKY=0` —, and from then on the
+  pre-commit's scan and the push boundary do not run, without a word: with `core.hooksPath`
+  set after the install, a commit holding a key goes through (measured). `docs/04`, `docs/03`
+  and `scripts/README.md` now say so, `README.md` no longer says the pre-push leaves every
+  push to the human, and the installer's refusal when `core.hooksPath` is set says that a hook
+  manager sets it again, integrating the framework's commands into it being the durable
+  choice.
+- `docs/04` and the generated pre-push's comment no longer call `CLAUDECODE` undocumented:
+  Claude Code's environment-variable reference documents it.
+
+**Upgrading from 2.0.0** (from an earlier release, also follow the entries in between —
+Step 2 of the upgrade says how they combine):
+- METHOD files — bring them over from the tag: `.claude/docs/00-overview.md`,
+  `.claude/docs/02-code-quality.md`, `.claude/docs/03-security-gate.md`,
+  `.claude/docs/04-git-workflow.md`, `.claude/commands/security-review.md`,
+  `scripts/README.md`, `scripts/test-hooks-install.sh`.
+- HYBRID files (3-way): `scripts/hooks-install.sh` (the re-run's message, the refusal when
+  `core.hooksPath` is set, the pre-push's comment). Rehearsed on a project with every setup
+  answer in place, the pre-commit's formatting slot among them: the merge clean, with LF and
+  with CRLF line ends.
+- **`make hooks-install`**: the generated pre-push's comment changes, so the re-run saves the
+  old hook as `pre-push.bak`, saying it differs from the hook this version generates: unless
+  the project edited it, it is 2.0.0's own, byte for byte (the rehearsal compared them) —
+  compare, then remove the `.bak`. The pre-commit and the commit-msg hooks do not change.
+- The memory templates and the `LEARNINGS.md` header do not change; nothing migrates.
+
 ## [2.0.0] — 2026-10-13
 
 **Breaking: gitleaks 8.18.2 or later.** `make hooks-install`, through the prerequisite check
