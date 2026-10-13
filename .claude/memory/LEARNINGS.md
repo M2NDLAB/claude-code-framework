@@ -266,37 +266,6 @@ tags: [improvement]
   time. No line is added to a client's entries, so the format of its `LEARNINGS.md` does not
   change. From this cycle on the harvest is the framework's only source of lessons.
 
-### IMP-074 — The bump is fixed by the brief before the content
-- Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — the user's brief; the
-  reviewer's L1 in [[2026-10-10-upgrade-safety-1.3.3]] and L14 in
-  [[2026-10-11-payload-purity-1.4.1]]
-- Priority: MEDIUM (user decision, 2026-10-11) — the process block.
-- Observed problem: v1.3.3 and v1.4.1 brought new rules into the payload — MINORs by the
-  criteria of `docs/04`, *Versioning* — and shipped as PATCHes, because the user's brief
-  had fixed the bump before the content existed. The reviewer flagged it both times; both
-  times the brief prevailed, and the version undersold what the release did.
-- Proposal (the user's): the brief states the EXPECTED bump; `/integrate` computes it again
-  from the commits with the criteria of `docs/04`; where the two diverge, the criteria of
-  `docs/04` win, and `/integrate` says so before the tag and asks the user to confirm.
-- Expected benefit / risk: the version says what the release does. Risk: a brief's
-  expectation overridden — by design, and never without the user's confirmation.
-- In practice, v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]): the brief expected a MINOR;
-  the review's MEDIUM, decided by the user as a security minimum that refuses a gitleaks
-  v1.5.0 accepted, made the release breaking. The bump was computed again by `docs/04`,
-  declared a MAJOR before the tag, and confirmed by the user.
-- An occurrence in v2.1.0, pointed out by the user on 2026-10-13
-  ([[2026-10-13-gate-lenses-2.1.0]]): the commits that apply IMPs as `docs/06` says are typed
-  `chore`, and here they carry the new rules of `docs/02` and `docs/03` into the payload.
-  With the release's one `fix`, a bump computed from the types alone comes out a PATCH,
-  while by `docs/04`'s criteria a new rule in the payload is a MINOR. The user's instruction:
-  `/integrate` computes the bump on the content — the new rules in the payload —, not only on
-  the commits' types, and declares its reasoning before the tag; v2.1.0 expected.
-- Status: APPROVED on 2026-10-13 (the retro over the backlog) — for v2.2.0: `/integrate`'s
-  step 2 computes the bump on the content — the new rules in the files the project ships —,
-  not only on the types; it names the brief's expected bump and states its reasoning before
-  the tag, and where the two differ the criteria of `docs/04` win, with the user's
-  confirmation.
-
 ### IMP-075 — Auto mode and the framework's boundaries
 - Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — the user ran
   `/auto-mode-setup` on 2026-10-11
@@ -1855,6 +1824,27 @@ line on; older entries are not backfilled.
   section starts right under the paragraph above it: with a blank line in between, git
   aligned the section against the answered line below it and the merge conflicted
   (measured). The behaviour itself shows at this release's own `/integrate`.
+
+### IMP-074 — The bump is fixed by the brief before the content → applied on 2026-10-14
+- Origin: [[2026-10-11-multiplatform-1.5.0]], the user's brief; the reviewer's L1 in
+  [[2026-10-10-upgrade-safety-1.3.3]] and L14 in [[2026-10-11-payload-purity-1.4.1]] — v1.3.3
+  and v1.4.1 brought new rules into the payload, MINORs by `docs/04`'s criteria, and shipped
+  as PATCHes, the brief having fixed the bump before the content existed. In v2.1.0
+  ([[2026-10-13-gate-lenses-2.1.0]]) the applying commits, typed `chore` as `docs/06` says,
+  carried new rules: by the types alone a PATCH, by the content a MINOR — the user's
+  instruction was to compute it on the content and declare the reasoning before the tag.
+  v2.0.0 had shown the other direction: a brief's MINOR became a MAJOR, declared and
+  confirmed ([[2026-10-12-prerequisites-1.6.0]]).
+- Applied (the user's proposal): `docs/04`, *Versioning*, gains *The type suggests; the
+  content decides* — a `docs` or `chore` commit that brings a new rule or command into what
+  the project ships is a MINOR, a `fix` that breaks the contract a MAJOR. `/integrate`'s
+  step 2 weighs the content after the types, states the bump with its reasoning above the
+  blocks, names the bump the request expected if it named one, and where the two differ says
+  so and waits for the user's confirmation before step 3's commit; its documentation-is-the-
+  product exception and step 5's checklist follow.
+- Verified: `integrate.md`'s 3-way merge against a copy with the branch placeholders answered
+  stays clean, with LF and with CRLF line ends. The rule itself is exercised at this
+  release's own `/integrate`, which expects a MINOR.
 
 ## Deferred (not rejected — resumed at the right time)
 

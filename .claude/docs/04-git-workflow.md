@@ -118,6 +118,14 @@ For a deliverable that gathers several commits, the bump is the **highest** amon
 those of the included commits (a single `feat` among many `chore`s → MINOR; no
 `feat`/`fix` → no tag, it is internal work, not a release).
 
+**The type suggests; the content decides.** A type is a label written before the release
+exists: a commit typed `docs` or `chore` can bring a new rule or command into what the
+project ships — a MINOR by the criteria below —, one typed `fix` can break the public
+contract — a MAJOR. So `/integrate` weighs the content too and states the bump with its
+reasoning before the tag; if the request that opened the deliverable named an expected
+bump, it names that too, and where the two differ the criteria of this section win, with
+the user's confirmation.
+
 **When the documentation IS the product** — a method/tooling project, whose consumers
 receive its docs and commands as the thing itself — the last row does not apply as
 written: the file type does not decide, what reaches the consumers does. A change to the

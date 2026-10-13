@@ -30,12 +30,20 @@ failed check*); everything else must be PRINTED, not executed.
 Apply the *Versioning* rules of docs/04 to the branch's set of commits:
 - the bump is the HIGHEST among those of the commits: `feat`→MINOR, `fix`→PATCH,
   breaking (`type!`/`BREAKING CHANGE:`)→MAJOR;
+- then weigh the CONTENT, which decides where the types undersell it (docs/04, *Versioning*,
+  "The type suggests; the content decides"): a new rule, check or command in the files the
+  project ships is a MINOR even under a `docs` or `chore` type, a change that breaks the
+  public contract a MAJOR whatever its type. State the bump above the blocks with its
+  reasoning — the commits and the content that decide it; if the request that opened the
+  deliverable named an expected bump, name it too, and where the two differ say so and wait
+  for the user's confirmation before step 3's commit;
 - if there are only `refactor`/`perf`/`test`/`docs`/`build`/`ci`/`chore` or
   memory/doc-only commits → **no tag** (it is internal work, not a release: state it
   explicitly above the blocks and omit the tag commands) — EXCEPT in a project whose
   documentation is the product (docs/04, *Versioning*, "When the documentation IS the
-  product"): there a change to the files it ships is a release, at least a PATCH,
-  whatever the commit types, and only a change confined to its own memory or to files
+  product"): there a change to the files it ships is a release, at least a PATCH whatever
+  the commit types — a MINOR or a MAJOR by its content, as the bullet above says —, and
+  only a change confined to its own memory or to files
   it does not ship is no tag;
 - respect the regime: **pre-1.0** (`0.y.z`) tags on the integration branch
   (`<integration>`); **post-1.0** the feature→`<integration>` merge is NOT tagged — the
@@ -147,7 +155,8 @@ verifies only with `gpg.ssh.allowedSignersFile` configured.
   (conventional default, not overridden in `commitlint.config.cjs`);
 - the merge commit type is a valid type (`feat`/`fix`/...), NEVER `merge:`;
 - the tag version is consistent with the computed bump and with `git describe`, and
-  the tag is free;
+  the tag is free; the bump's reasoning stands above the blocks, with the user's
+  confirmation where it differs from the bump the request expected;
 - the git arguments use **normal spaces** and ASCII hyphens: no non-breaking/unicode
   spaces nor "long" dashes copied from an editor — a `--no-ff` with a wrong character
   fails obscurely;
