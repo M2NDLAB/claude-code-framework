@@ -185,8 +185,6 @@ add_config color.diff never
 while IFS= read -r -d '' key; do
   add_config "${key}" cat
 done < <(git config -z --name-only --get-regexp '^diff\..*\.textconv$' || true)
-gitleaks protect --staged --redact -v
-
 #    The files git shows as binary reach gitleaks as "Binary files differ", unread. One binary
 #    by its content stays unread: gitleaks reads text. One that only an attribute or a diff
 #    driver makes binary (`binary`, `-diff`, `binary = true`) still holds text — a private key
@@ -222,6 +220,8 @@ if [[ -n "${scan_dir}" ]]; then
       --gitleaks-ignore-path "${top}")
   fi
 fi
+
+gitleaks protect --staged --redact -v
 
 # 2. AUTOMATIC FORMATTING — [TO BE DEFINED AT SETUP].
 #    Uncomment and adapt to the project's language(s). The idea: apply the formatter
