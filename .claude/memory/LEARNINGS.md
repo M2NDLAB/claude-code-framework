@@ -122,34 +122,6 @@ tags: [improvement]
   a HYBRID file, as v2.0.0 and v2.1.0 did. The mechanical check is not adopted: a fixture of
   answered slots to keep.
 
-### IMP-091 — The commits git creates itself skip the pre-commit
-- Date: 2026-10-13 | Origin: v2.1.0's review, M1 — [[2026-10-13-gate-lenses-2.1.0]]
-- Observed problem: git runs the pre-commit only from `git commit`. A rebase's `--continue`
-  commits a conflict's resolution through the sequencer with `-n` (measured: a key pasted
-  into the resolution is committed; git's sequencer.c read by the reviewer); `git am` runs
-  pre-applypatch instead; a cherry-pick or a revert commits in-process. The framework's
-  own merge step resolves conflicts in `git rebase origin/<integration>` (`docs/04`,
-  `/integrate`'s block 1). `docs/03`'s baseline — "on every commit … always, without
-  exceptions" — and `CLAUDE.md`'s rule 1 claim more.
-- Proposal: NOT decided — narrow the claims (the scan runs on `git commit`; the commits git
-  creates itself are not scanned) in `docs/03`, `CLAUDE.md` and `SETUP.md`'s known limits;
-  weigh compensating at publication — gitleaks over the range about to go public, in
-  `/integrate`'s block 1 or in the pre-push.
-- Expected benefit / risk: the baseline says what it covers; a compensation would close the
-  route. Risk: a scan at publication repeats work on every push.
-- Partly applied on 2026-10-13, the user's decision after v2.1.0's review, `ee883ee`: the
-  claims narrowed — `docs/03`'s baseline says what the hook does and declares this limit,
-  `CLAUDE.md`'s rule 1 points to it. Measured then on git 2.54.0 with a marker hook: a
-  cherry-pick or a revert that applies cleanly, `git am` and a rebase's `--continue` after
-  a conflict do not run the pre-commit; a cherry-pick's `--continue` after a conflict and a
-  merge concluded by `git commit` do; a clean merge runs `pre-merge-commit` instead. Still
-  open: `SETUP.md`'s known limits and a compensation at publication.
-- Status: APPROVED on 2026-10-13 (the retro over the backlog) — for v2.2.0, the rest of its
-  text: the known limits of `SETUP.md`'s *What the pre-commit's scan reads*, which read as
-  complete, gain this limit and those of IMP-095 and IMP-096, deferred. The compensation at
-  publication is not adopted: a scan at every push, for a route that needs a secret pasted
-  into a conflict's resolution.
-
 ### IMP-099 — The platform the check names as verified is wider than the CI's images
 - Date: 2026-10-13 | Origin: v2.1.0's review, L13 — [[2026-10-13-gate-lenses-2.1.0]]
 - Observed problem: `check-prerequisites.sh` calls any non-WSL Linux on x86_64 a platform the
@@ -1672,6 +1644,28 @@ line on; older entries are not backfilled.
   three ways cleanly with its slots answered inline, with LF and with CRLF line ends.
 - Kept apart from IMP-067, deferred: that one measures what loads in non-interactive modes.
 
+### IMP-091 — The commits git creates itself skip the pre-commit → applied on 2026-10-14
+- Origin: v2.1.0's review, M1, *Claims* ([[2026-10-13-gate-lenses-2.1.0]]) — git runs the
+  pre-commit only from `git commit`, so a key pasted into a rebase conflict's resolution was
+  committed (measured), while `docs/03`'s baseline and `CLAUDE.md`'s rule 1 claimed every
+  commit. v2.1.0 narrowed those two claims (`ee883ee`), measured on git 2.54.0 which commits
+  run the hook and which do not.
+- Applied, the rest of the text: the known limits of `SETUP.md`'s *What the pre-commit's scan
+  reads* gain the commits git creates itself, as measured, and, under IMP-103, the limits of
+  the hooks' group whose code is deferred: the scan apart passes over a file that starts with
+  an application's signature and over a type change, reads the project's `.gitleaks.toml`
+  where `protect` would read `GITLEAKS_CONFIG_TOML` first (IMP-095), and a clean filter shows
+  it git-lfs's pointer, not the content (IMP-096). The same rule puts each other limit where
+  its claim lives: a `pre-push.local` that is not executable is skipped without a word
+  (`docs/04`, `SETUP.md`'s Step 4, `scripts/README.md`); a re-run writes its `.bak` over the
+  one an earlier run left (IMP-098, `SETUP.md`'s Step 4, `scripts/README.md`); the history
+  scan reads neither a merge's own resolution nor a type change (IMP-089, `SETUP.md`'s box).
+  `docs/03`'s baseline points at the list, and `scripts/README.md`'s claim on the scan apart
+  names it. The compensation at publication is not adopted: a scan at every push, for a
+  route that needs a secret pasted into a conflict's resolution.
+- Verified: the documentation check passes; each declared limit cites its own datum —
+  measured, or read at gitleaks' source — as recorded in IMP-095, IMP-096, IMP-098 and IMP-089.
+
 ## Deferred (not rejected — resumed at the right time)
 
 ### IMP-026 — Claude Code skills as a managed artifact → deferred on 2026-07-11
@@ -1988,9 +1982,10 @@ line on; older entries are not backfilled.
     count + 1.
 - Deferred on 2026-10-13 (the retro over the backlog, the user's decision), as one group:
   the code waits for the next change of a generated hook, so the projects regenerate their
-  hooks once; meanwhile v2.2.0 declares the limits — the scan's in `SETUP.md`'s known limits
-  (IMP-091), the IDE terminal in `docs/04` (IMP-092). In the group IMP-101 goes first: the
-  others add cases to the hooks' self-test.
+  hooks once; meanwhile v2.2.0 declares the limits where their claims live — the scan's in
+  `SETUP.md`'s known limits, a `pre-push.local` that is not executable and the `.bak` a re-run
+  writes over (IMP-091), the IDE terminal in `docs/04` (IMP-092). In the group IMP-101 goes
+  first: the others add cases to the hooks' self-test.
 - Resumption trigger: the first of — a release that changes a generated hook (pre-commit,
   commit-msg or pre-push); a human push refused in an IDE's integrated terminal; a project
   that tracks files with git-lfs. Verified by the user on 2026-10-13: git-lfs is absent from

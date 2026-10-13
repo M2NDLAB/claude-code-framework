@@ -239,7 +239,16 @@ its first 8000 bytes) is not scanned, as gitleaks reads text; a `git -c` naming 
 or a textconv on a commit's command line wins over the hook's settings — a deliberate
 choice, outside the threat model (`docs/04`, *Enforcement of the execution boundary*); a
 SIGKILL during the scan, which no process can catch, leaves its directory behind, in the
-user's own temporary directory.
+user's own temporary directory; the commits git creates itself — a rebase's `--continue`,
+`git am`, a cherry-pick or a revert that applies cleanly — run no pre-commit at all, while a
+cherry-pick's `--continue` after a conflict and a merge concluded by `git commit` do
+(measured on git 2.54.0); the scan apart passes over a file whose first bytes are an
+application's signature (`MZ`, `%PDF`, …) and over a type change — a symlink turned into a
+key file marked binary goes through (measured) —, and with `GITLEAKS_CONFIG_TOML` set it
+still reads the project's `.gitleaks.toml`, which `gitleaks protect` reads only after that
+variable (read at gitleaks' source); a clean filter rewrites what is staged before the scan
+sees it — under git-lfs a pointer, the content reaching the LFS store unscanned (measured
+with a filter like git-lfs's).
 
 > **Does the repo already have a history?** (a graft onto an existing project) The hook
 > only protects commits from now on: complete the baseline with a one-off scan of the
@@ -257,7 +266,8 @@ user's own temporary directory.
 > `GIT_CONFIG_KEY_1=diff.<driver>.textconv GIT_CONFIG_VALUE_1=cat`. The scan does not read
 > what the history shows as binary (measured: a key committed in a `*.key binary` is not
 > found): if the project marks text files `binary` or `-diff`, scan their current content as
-> files too, `gitleaks detect --no-git --source <path>`. Assess every finding BEFORE going
+> files too, `gitleaks detect --no-git --source <path>`. Nor does it read what a merge's own
+> resolution introduced, or a type change (read at gitleaks' source). Assess every finding BEFORE going
 > on: a secret in pushed history stays exposed even if you remove it from the
 > current files — rotate/revoke it immediately; rewriting the history is a separate
 > operation, to be decided with judgement (`docs/03`, baseline).
@@ -932,7 +942,8 @@ from a hand-written list; the memory's titles and field labels to rename; and th
 ### Step 4 — Re-sync the hooks and audit the markers
 
 `make hooks-install` (idempotent; a hook that differs from the one it generates — another
-release's, or one with the project's formatting block — is saved as a `.bak` first).
+release's, or one with the project's formatting block — is saved as a `.bak` first, over the
+`.bak` an earlier run left: compare each `.bak`, then remove it, before the next upgrade).
 It installs into the repository's COMMON git directory, which all its worktrees share:
 run from the upgrade's own worktree, `vY`'s hooks reach the main worktree too, still on
 `vX` until the merge — expected. (Until v1.3.2 the script aborted from a linked worktree
@@ -940,7 +951,8 @@ with `mkdir: … Not a directory`.) From v1.3.0 it also installs the `pre-push` 
 boundary: if the project already has a `pre-push` of its own (git-lfs's, for one), the
 script stops — rename it to `pre-push.local` in the same hooks directory (the path the
 script prints; `$H` below) and re-run: the generated pre-push runs it after the boundary
-check, and a re-run leaves it alone. Real verification:
+check, if it is executable — one that is not is skipped without a word —, and a re-run
+leaves it alone. Real verification:
 
 - **Every hook the script generates is installed and carries the generator's marker.**
   The list is read from the script's own loop, so a hook added to it is checked too:

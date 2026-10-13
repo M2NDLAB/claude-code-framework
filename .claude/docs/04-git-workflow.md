@@ -341,7 +341,8 @@ command does not matter:
 - **Installed, not versioned.** The `pre-push` exists only after `make hooks-install`
   (at setup, and again at each upgrade of the framework). A project's own pre-push
   (git-lfs's, for one) goes in `.git/hooks/pre-push.local`: the generated hook runs it after
-  the check. The guard needs Node.js, already a prerequisite of the hooks.
+  the check, if it is executable — one that is not is skipped without a word, and git-lfs's
+  objects are then never uploaded. The guard needs Node.js, already a prerequisite of the hooks.
 - **If the guard cannot run** — its file or `node` missing, a crash — delegated agents
   lose the Bash, PowerShell and Monitor tools until it is repaired; the main session keeps
   them, sees an `agent-git-guard: cannot run` notice on each call, and repairs it.

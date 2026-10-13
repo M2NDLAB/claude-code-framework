@@ -8,7 +8,8 @@ Security has two levels in this framework:
    it. Its limits include the commits git creates itself — a rebase's `--continue`,
    `git am`, a cherry-pick or a revert that applies cleanly —, which do not run it, and
    a hook manager that sets `core.hooksPath` after the install, which takes it out
-   (`04-git-workflow.md`, *Enforcement of the execution boundary*). On a repo with
+   (`04-git-workflow.md`, *Enforcement of the execution boundary*); the scan's own limits
+   are listed in the framework's `SETUP.md`, *What the pre-commit's scan reads*. On a repo with
    PRE-EXISTING history (grafting the framework onto an existing project) the baseline
    is COMPLETED by a one-off scan of the whole history — `gitleaks detect` — as a setup
    step (step 3 of the framework's `SETUP.md`).
