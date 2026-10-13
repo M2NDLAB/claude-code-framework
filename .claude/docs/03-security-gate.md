@@ -44,9 +44,9 @@ finds them before they reach integration.
 
 ## The lenses of the gate
 
-A review that reads only what the code DOES can miss what the product SAYS. Every review of
-the gate applies the lens below, and a deliverable whose product asserts a security
-property is under the gate for that alone.
+A review that reads only what the code DOES can miss what the product SAYS, and the path a
+tool takes to its effect. Every review of the gate applies the two lenses below, and a
+deliverable whose product asserts a security property is under the gate for that alone.
 
 - **Claims, not only actions.** Every assertion the product makes about a security property
   — a status, a badge, a summary, an "OK", "nothing changed", "no leaks found" — is checked
@@ -58,6 +58,11 @@ property is under the gate for that alone.
   diff's: when a change widens a claim — from these N to all, a list of exceptions that
   disappears, a range of versions —, the review covers the set the claim names, beyond the
   files the change touched.
+- **The real path.** A gate on an external tool covers what the tool does by itself on the
+  way to its effect: what its configuration — the user's included — makes it do, and what it
+  updates, writes or fetches unasked, read at its source or in its documentation. Each such
+  path is closed by the tool's own off-switch, compensated, or declared as a known limit; a
+  path left unread is a gap of the gate.
 
 ## When the review must be adversarial (author ≠ judge)
 

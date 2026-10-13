@@ -290,41 +290,6 @@ tags: [improvement]
   was caught on the unchanged repository, because the declared exceptions of the frozen
   memory stopped matching. The `docs/02` rule itself stays open.
 
-### IMP-059 — Gating an external tool's invocation is not enough: check what the tool runs by itself
-- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
-  a dry-run gate that looked closed while the gated tool kept updating itself
-- Observed problem (client-side, relayed): putting a package manager's update behind
-  the dry-run gate seemed to close the issue. But the tool runs its own update
-  automatically before several of its subcommands, and not even the tool's own dry-run
-  flag stops it — the decision is taken before the arguments are read. A preview-only
-  session kept rewriting the tool's index through units that "only list" things: the
-  front door closed, the service door open — invisible to any test with a mock, because
-  a mock does not reproduce the real tool's implicit behaviour.
-- On the framework's source: nothing in `docs/02` (I/O, dependencies, *verify against
-  REAL artifacts*) or `docs/03` covers it; it extends the Definition of Done's "not
-  just isolated units with mocks" to the external tools a component drives.
-- Proposal (as relayed; NOT decided here — retro): in `docs/02` (or the technical-rules
-  template), when you gate the invocation of an external tool, check its source/docs
-  for paths where it re-runs the gated action implicitly, and use the official
-  off-switch (typically an environment variable). It applies to any tool with automatic
-  behaviours: package managers, git (hooks, auto-gc), CI runners, formatters with a
-  watch mode.
-- Evidence inside the framework (the verification's, not the lesson's): `git status` —
-  allowed as `Bash(git status)` by `settings.json`, a read-only inspection for
-  `docs/04` (*Permission configuration*) — writes `.git/index` by itself (an
-  optional-lock refresh); git documents the off-switch, `git --no-optional-locks` /
-  `GIT_OPTIONAL_LOCKS=0` (git-status(1)). Config-dependent: `status` runs a configured
-  fsmonitor, and `diff A B`, `show <commit>` and `log -p` run a configured textconv
-  (off-switch `--no-textconv`). Observed, not probed: the generated `commit-msg` hook
-  runs commitlint through `npx --yes` with unpinned packages, and an npm debug log of a
-  commit in a grafted project shows it contacting the package registry — an implicit
-  network step behind the commit gate.
-- Kin: IMP-054 — the same class, a different opener (there the CALLER reaches the
-  program through another syntax; here the TOOL reaches the effect by itself); IMP-020 —
-  a different mechanism with the same outcome, a false sense of security.
-- Expected benefit / risk: avoids gates that look closed and are not. Risk: none — a
-  one-off check per tool, usually a grep in its docs.
-
 ### IMP-060 — A delegation brief quotes the user's decisions verbatim; a multi-agent report declares its coverage gaps
 - Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
   agents re-opened an already-decided point as "undecided, blocking" because the brief
@@ -2011,6 +1976,28 @@ line on; older entries are not backfilled.
   goes on — no wider than the measurement: a list that declares itself complete is held
   against its source, as IMP-068's check does, or narrowed to what was measured.
 - Uncovered: a list no program can extract stays a reading, IMP-068's own limit.
+
+### IMP-059 — Gating an external tool's invocation is not enough: check what the tool runs by itself → applied on 2026-10-13
+- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — a dry-run gate that
+  looked closed while the gated tool kept updating itself
+- Observed problem (condensed): a gate on a tool's invocation left open what the tool does by
+  itself, and nothing in `docs/02` or `docs/03` covered it. The entry's own evidence named
+  git's configured textconv in 2026-09; v2.0.0 then met the class in the framework's own
+  gate ([[2026-10-12-prerequisites-1.6.0]]): gitleaks reads a `git diff` that the user's
+  colour, a textconv driver or an attribute empties or converts (H1, N1), that a
+  `diff.external` replaces before 8.18.2; and 8.0.0 to 8.1.3 write a `.gitleaks.toml` into
+  the project.
+- Decision (the user, 2026-10-13 — [[2026-10-13-gate-lenses-2.1.0]]): one principle with
+  IMP-084 and IMP-087, the gate and the test look at the real path; its text in `docs/03`
+  only.
+- Applied in v2.1.0 ([[2026-10-13-gate-lenses-2.1.0]]): `docs/03`'s second lens, *The real
+  path* — a gate on an external tool covers what the tool does by itself, what its
+  configuration makes it do and what it updates, writes or fetches unasked, read at its
+  source or in its documentation; each such path closed by the tool's off-switch,
+  compensated, or declared as a known limit. `/security-review`'s check 11 recalls both
+  lenses.
+- Uncovered: a behaviour neither documented nor read at the source stays unseen, and a new
+  release of the tool can add one.
 
 ## Deferred (not rejected — resumed at the right time)
 

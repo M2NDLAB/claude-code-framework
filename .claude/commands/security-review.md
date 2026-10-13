@@ -21,8 +21,8 @@ stack-agnostic — adapt/extend those specific to your technology
 9. **Management/diagnostics surface** (admin, actuator, debug endpoints) exposed
    without authentication or on a public surface.
 10. **New dependencies**: check the licence and known CVEs.
-11. **The lenses of the gate** — *Claims, not only actions*: apply it as `docs/03` (*The lenses
-    of the gate*) words it.
+11. **The lenses of the gate** — *Claims, not only actions* and *The real path*: apply both as
+    `docs/03` (*The lenses of the gate*) words them.
 
 Report: severity table (CRITICAL/HIGH/MEDIUM/LOW) + proposed fix for each
 finding. Remember how the gate works (docs/03): HIGH/CRITICAL resolved before the
