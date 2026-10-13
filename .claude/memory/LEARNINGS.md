@@ -638,6 +638,10 @@ tags: [improvement]
   together.
 - Expected benefit / risk: a claim of coverage that holds. Risk: more cases to write and
   keep.
+- An occurrence in bash, from v2.1.0's review ([[2026-10-13-gate-lenses-2.1.0]], L6, read at the guard's
+  source): the guard passes git inside an unquoted heredoc's `$(…)` or backticks, which bash
+  expands; a function defined with the `function` keyword; a `coproc`; and a command name
+  held in a variable (`$GIT`) — its comment says it does no expansion, `docs/04` does not.
 
 ### IMP-080 — A guard against uncommitted changes must see what git hides from its diff
 - Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro), recorded at
@@ -782,6 +786,155 @@ tags: [improvement]
   over every version of those files costs time on a long history.
 - Resumption trigger: the first graft into a project whose `.gitattributes` marks key files
   as binary.
+- Two more gaps of the same scan, from v2.1.0's review ([[2026-10-13-gate-lenses-2.1.0]], L5, read at
+  gitleaks' source): it runs `git log -p` without a `--diff-merges` form, so what a merge's
+  own resolution introduced is never read; and 8.30.1 adds `--diff-filter=tuxdb`, leaving
+  out type changes.
+
+### IMP-090 — The hooks go inert when a hook manager takes core.hooksPath after the install
+- Date: 2026-10-13 | Origin: v2.1.0's review, its HIGH H1 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem: `hooks-install.sh` checks `core.hooksPath` at install time only; a hook
+  manager sets it again at its next run — husky 9.1.7 at every install it runs, from the
+  project's `prepare` script at each `npm install`, unless `HUSKY=0` (read at its source) —,
+  and git then reads another directory: the pre-commit's scan and the push boundary stop,
+  and nothing says so (measured: a commit holding a key goes through). v2.1.0 declared the
+  route and made the installer's refusal say it (`b7e3f09`); the failure stays silent at use
+  time. `repo-snapshot.sh`'s list of what it fingerprints reads as complete and leaves out
+  the configuration, the hooks, `.git/info`, the staged state and ignored files (L17): H1's
+  route leaves its fingerprint unchanged.
+- Proposal: NOT decided — make the failure visible: the SessionStart hook warns when
+  `core.hooksPath` is set, or when the common hooks directory's pre-push lacks the
+  generator's marker; `repo-snapshot.sh` fingerprints `core.hooksPath` and the hooks'
+  checksums, or declares what it leaves out.
+- Expected benefit / risk: the boundary's loss shows at the next session. Risk: an edit to
+  `.claude/settings.json`, a boundary file.
+
+### IMP-091 — The commits git creates itself skip the pre-commit
+- Date: 2026-10-13 | Origin: v2.1.0's review, M1 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem: git runs the pre-commit only from `git commit`. A rebase's `--continue`
+  commits a conflict's resolution through the sequencer with `-n` (measured: a key pasted
+  into the resolution is committed; git's sequencer.c read by the reviewer); `git am` runs
+  pre-applypatch instead; a cherry-pick or a revert commits in-process. The framework's
+  own merge step resolves conflicts in `git rebase origin/<integration>` (`docs/04`,
+  `/integrate`'s block 1). `docs/03`'s baseline — "on every commit … always, without
+  exceptions" — and `CLAUDE.md`'s rule 1 claim more.
+- Proposal: NOT decided — narrow the claims (the scan runs on `git commit`; the commits git
+  creates itself are not scanned) in `docs/03`, `CLAUDE.md` and `SETUP.md`'s known limits;
+  weigh compensating at publication — gitleaks over the range about to go public, in
+  `/integrate`'s block 1 or in the pre-push.
+- Expected benefit / risk: the baseline says what it covers; a compensation would close the
+  route. Risk: a scan at publication repeats work on every push.
+
+### IMP-092 — Claude Code's permission flow can replace the guard's verdict and the ask rules
+- Date: 2026-10-13 | Origin: v2.1.0's review, M2 and I1 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem (read by the reviewer in Claude Code's documentation, 2026-10-13): a mod
+  that handles `tool.check` — mods are on by default — answers after the rules and the
+  PreToolUse hooks and can approve a call a hook blocked, unless the hook sits in managed
+  settings, and what an ask rule would prompt for; a PermissionRequest hook can answer an
+  ask prompt; `disableAllHooks: true`, the switch the documentation gives for stopping mods,
+  also stops the guard and the SessionStart hook. `docs/04` says the guard's verdict "always
+  stands" and that the boundary's files "always" ask. I1: a command hook's
+  `"onFailure": "block"` (Claude Code 2.1.295 or later) now offers the off-switch for the
+  fail-open `docs/04` declares, and would block the main session too on any failure, which
+  `docs/04`'s design avoids.
+- Proposal: NOT decided — declare the three routes in `docs/04` (the fail-closed bullet,
+  the ask bullet, the guard's row); weigh `"disableAllHooks": false` in the project's
+  `settings.json`, which overrides a user's `true`; weigh `onFailure` at a retro.
+- Expected benefit / risk: the boundary's claims hold against Claude Code's own extension
+  points. Risk: pinning a setting the user may have chosen.
+
+### IMP-093 — Delegated agents can write git state outside the guard's matcher
+- Date: 2026-10-13 | Origin: v2.1.0's review, M3 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem (read in Claude Code's documentation by the reviewer): the
+  EnterWorktree tool, available to subagents, creates a worktree on a new branch in the
+  shared repository, and ExitWorktree with `remove` deletes the worktree and its branch; a
+  project's MCP git server (commit, checkout, reset) is the same class. The guard matches
+  `Bash|PowerShell|Monitor`; none of these is blocked or declared.
+- Proposal: NOT decided — extend the matcher to `EnterWorktree|ExitWorktree` and refuse them
+  for an input with `agent_id`, or declare them, with MCP git tools, in `docs/04`'s "Outside
+  this layer".
+- Expected benefit / risk: the read-only rule holds for the tools Claude Code gives
+  delegated agents. Risk: a matcher to keep in step with Claude Code's tools.
+
+### IMP-094 — reset-task.sh leaves a staged change in the working tree, and reports success
+- Date: 2026-10-13 | Origin: v2.1.0's review, M4 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem: `git restore .` restores the working tree FROM THE INDEX, and only then
+  does `git restore --staged .` reset the index: a staged change survives as an unstaged
+  one, yet the script reports the task discarded (measured: staged B, then C in the working
+  tree; afterwards ` M f`, the file holding B). Both restores swallow their errors, and no
+  self-test covers the script; `docs/01`'s manual form leaves staged changes staged.
+- Proposal: NOT decided — `git restore --source=HEAD --staged --worktree -- .`, errors not
+  swallowed, a self-test with a staged change, `docs/01`'s manual form corrected.
+- Expected benefit / risk: a resumption restarts from a clean task, as `docs/01` promises.
+  Risk: none.
+
+### IMP-095 — The pre-commit's scan apart has three gaps of its own
+- Date: 2026-10-13 | Origin: v2.1.0's review, L2, L3 and L4 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem: (1) in directory mode gitleaks skips a file whose first bytes match an
+  application's signature (`MZ`, `BZh`, `{\rtf`, `%PDF`, …), logged at debug level only —
+  read at its source by the reviewer; (2) gitleaks reads `GITLEAKS_CONFIG_TOML` before the
+  project's `.gitleaks.toml`, while the scan apart passes `--config` unless
+  `GITLEAKS_CONFIG` is set — read at its source; (3) `--diff-filter=ACM` leaves out a type
+  change — measured: a symlink turned into a key file marked binary goes through.
+- Proposal: NOT decided — a line of text before each copy, so no signature sits at offset 0,
+  or the limit declared; `-z "${GITLEAKS_CONFIG_TOML:-}"` with the other condition;
+  `--diff-filter=ACMT`.
+- Expected benefit / risk: the scan apart reads what it promises. Risk: none.
+
+### IMP-096 — A clean filter's content is not scanned, and a pre-push.local can be skipped silently
+- Date: 2026-10-13 | Origin: v2.1.0's review, L1 and L16 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem: a clean filter rewrites the content before it reaches the index, so the
+  scan reads the filter's output — under git-lfs, which the framework anticipates
+  (`pre-push.local`), a pointer, while the content goes to the LFS store unscanned
+  (measured with an LFS-like filter). And the generated pre-push skips a `pre-push.local`
+  that is not executable without a word; if it is git-lfs's, LFS objects are never
+  uploaded.
+- Proposal: NOT decided — declare the filter's limit in `SETUP.md`'s known limits, and weigh
+  scanning LFS-tracked paths apart; say so, or fail, when `pre-push.local` exists and is not
+  executable.
+- Expected benefit / risk: the known limits are complete for LFS projects. Risk: none.
+
+### IMP-097 — The pre-push's CLAUDECODE fallback refuses the human in an IDE terminal
+- Date: 2026-10-13 | Origin: v2.1.0's review, L7 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem: Claude Code's environment-variable reference (read on 2026-10-13) says
+  IDE extensions set `CLAUDECODE` in their integrated terminals: a human pushing from VS
+  Code's terminal is refused, the refusal naming a Claude Code session. The same reference
+  documents `CLAUDE_CODE_CHILD_SESSION`, set for the Bash, PowerShell and Monitor tools and
+  hook commands, not for IDE terminals nor stdio MCP servers.
+- Proposal: NOT decided — name the IDE terminal in `docs/04` and in the refusal, with how the
+  human pushes from it; or weigh `CLAUDE_CODE_CHILD_SESSION` as the fallback, which loses
+  stdio MCP servers.
+- Expected benefit / risk: the human is not refused as an agent. Risk: a marker that covers
+  less.
+
+### IMP-098 — A second re-run of the installer overwrites the .bak
+- Date: 2026-10-13 | Origin: v2.1.0's review, L9 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem: `cp "${target}" "${target}.bak"` overwrites a `.bak` left by an earlier
+  re-run: a customisation saved once is lost the next time the hook differs.
+- Proposal: NOT decided — never overwrite an existing `.bak`: number the copies, or keep the
+  old one and say where it is.
+- Expected benefit / risk: a saved customisation survives. Risk: `.bak` files accumulate.
+
+### IMP-099 — The platform the check names as verified is wider than the CI's images
+- Date: 2026-10-13 | Origin: v2.1.0's review, L13 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem: `check-prerequisites.sh` calls any non-WSL Linux on x86_64 a platform the
+  CI verifies; the CI runs Ubuntu 24.04 only, and `SETUP.md` says other distributions are not
+  verified. The same holds for other macOS and Windows versions against the named images.
+- Proposal: NOT decided — name what was verified ("x86_64, verified on Ubuntu 24.04"), or
+  read `/etc/os-release`; the self-test changes with it.
+- Expected benefit / risk: the line claims what the CI shows. Risk: none.
+
+### IMP-100 — Two latent hardenings: the upgrade check's colour, make's YES
+- Date: 2026-10-13 | Origin: v2.1.0's review, L14 and L15 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem: (1) `tools/upgrade-check.sh` forces `color.ui` off, which is only
+  `color.diff`'s default: a user's `color.diff=always` still colours patch output — latent,
+  no check parses a patch today; (2) make imports every environment variable and `$(if)` is
+  true for any non-empty value: an exported `YES`, even `0` or `no`, runs `reset-task`
+  without its prompt.
+- Proposal: NOT decided — `-c color.diff=false`, or `--no-color`; pass `--yes` only for
+  `YES=1` given on the command line.
+- Expected benefit / risk: a comment that is true, a prompt that cannot be skipped by
+  accident. Risk: none.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>

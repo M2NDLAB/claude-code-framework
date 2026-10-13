@@ -113,9 +113,9 @@ tags: [session, security-gate, docs, imp, plan]
 - [x] 6. Apply IMP-059: the second lens, *The real path*; `/security-review`'s line recalls both — commit: 9575569
 - [x] 7. Apply IMP-087: `docs/02`'s *Tests that demonstrate* gets the tests' line — cases under the users' real configurations — commit: a6f6463
 - [x] 8. Apply IMP-084: the same line — each case checks that its datum reaches the program before it counts — commit: d35fc6c
-- [ ] 9. `hooks-install.sh` says what it measures — the hook differs from the one this version generates —; `scripts/README.md` and `SETUP.md` stop inferring a customisation; a case of its self-test red first — commit: —
-- [ ] 10. The CI's rounds (block 0, the user's pushes): what fails, fixed with new commits, until green on the three — commit: —
-- [ ] 11. ONE reviewer, read-only on git, the snapshot before and after, applying the two lenses to the framework's payload: HIGHs fixed here, MEDIUMs and LOWs recorded as IMPs, trivial text fixed; the gate's verdict written — commit: —
+- [x] 9. `hooks-install.sh` says what it measures — the hook differs from the one this version generates —; `scripts/README.md` and `SETUP.md` stop inferring a customisation; a case of its self-test red first — commit: bf3879b
+- [x] 10. The CI's rounds (block 0, the user's pushes): what fails, fixed with new commits, until green on the three — commit: none to fix — round 1 green on `bf3879b` (run 38412448958), recorded with task 11
+- [x] 11. ONE reviewer, read-only on git, the snapshot before and after, applying the two lenses to the framework's payload: HIGHs fixed here, MEDIUMs and LOWs recorded as IMPs, trivial text fixed; the gate's verdict written — commit: b7e3f09, 56099e3, and the record of the review (its own sha cannot be written in it)
 - [ ] 12. `/retro` and `/checkpoint`: the upgrade 2.0.0 → 2.1.0 rehearsed on the final payload — commit: —
 - [ ] 13. `/integrate`: the CHANGELOG 2.1.0 entry, claiming only what was measured; the bump computed again against the expected MINOR; the final block 0 green on the three, then blocks 1 and 2 — commit: the CHANGELOG commit (its own sha cannot be written in it)
 
@@ -150,6 +150,57 @@ CI; each round needs the user's push.
   warning over an unchanged hook. `scripts/README.md` and `SETUP.md`'s Step 4 stop inferring
   a customisation.
 
+## The CI's rounds (task 10)
+Round 1, the branch's first push: `bf3879b`, run 38412448958, green on the three jobs —
+Ubuntu in 81 s, macOS in 241 s, Windows in 685 s. Read in the log: `make test-scripts` 29
+PASS on Ubuntu and macOS, 28 and the dangling-symlink SKIP on Windows, the new re-run case
+passing on the three; docs-check 0 FAIL, 0 CHECK; the real hooks' PASS line on the three.
+
+## The review (task 11) — one reviewer, read-only on git
+One agent, run as a workflow, with the two lenses of `docs/03` as its mandate over the whole
+payload, not only the diff, and the user's limit; its sandbox a clone at `9debae4` and a
+throwaway project with the generated hooks, made by the main session. The repository's
+snapshot, its tracked files, its three hooks and its `.git/config` identical before and
+after. Its findings: 1 HIGH, 4 MEDIUM, 17 LOW (four marked trivial text), 1 INFO.
+
+**The main session's measures** (throwaway repositories; the reviewer's probes):
+- H1: with the hooks in place a commit holding a key is refused; after
+  `git config core.hooksPath .husky/_`, as husky sets it, the same commit goes through.
+  The push part of the probe was not run — a `git push` is denied to the agent, even to a
+  throwaway remote —: the pre-push goes inert by the same lookup. husky 9.1.7's source sets
+  `core.hooksPath` unless `HUSKY=0` (read).
+- M1: a rebase stopped on a conflict, a key pasted into the resolution, `--continue`: exit
+  0, the key committed. M4: `reset-task.sh --yes` with a staged change: ` M f` afterwards,
+  the staged content in the working tree. L4: a symlink turned into a key file marked
+  binary: the pre-commit exits 0. L1: under an LFS-like clean filter the index holds the
+  pointer, the pre-commit exits 0, the store holds the key.
+- L8 and L7: Claude Code's environment-variable reference documents `CLAUDECODE`, set in
+  IDE terminals too, and `CLAUDE_CODE_CHILD_SESSION` (read on 2026-10-13).
+
+**Within the user's limit:**
+- H1, HIGH — fixed, `b7e3f09`: the route declared where the claims were made (`docs/04`'s
+  table, `docs/03`'s baseline, the READMEs), the installer's refusal saying that a hook
+  manager sets `core.hooksPath` again, integrating into it being the durable choice — the
+  outcome *The real path* names for a path that cannot be closed. A new case of the
+  self-test, case 8, red first; a mutant without the refusal caught. Detection at use time
+  recorded (IMP-090).
+- The four trivial texts — fixed, `56099e3`: `CLAUDECODE` documented (`docs/04`, the
+  generated pre-push's comment); "another release's" for "an earlier release's"; the scan
+  apart's directory gone "a SIGKILL apart"; `docs/00`'s cycle and `/security-review`'s
+  opening following the gate's trigger and perimeter.
+- Recorded, the user's limit: M1 to M4 as IMP-091 to IMP-094; L2–L4 as IMP-095; L1 and L16
+  as IMP-096; L7 as IMP-097; L9 as IMP-098; L13 as IMP-099; L14 and L15 as IMP-100; L17
+  with IMP-090; L5 with IMP-089; L6 as IMP-079's occurrence; I1 with IMP-092.
+
+**The gate's verdict (`docs/03`):** HIGH H1 resolved, `b7e3f09`, its detection IMP-090.
+MEDIUM M1 to M4 accepted as recorded debt by the user's limit for this release, each with
+its IMP — M1's and M2's claims, in `docs/03` and `docs/04`, stay wider than the code until
+their IMPs are decided. LOW: four fixed, the rest recorded. INFO recorded.
+
 ## Resumption notes
-- The branch is local until task 10's first block 0; from then on it is public, and no
-  commit is rewritten.
+- The branch is public since round 1 (`bf3879b`): no commit is rewritten. The last green
+  run is round 1's; `9debae4`, `b7e3f09`, `56099e3` and this record reach the CI through the
+  next block 0.
+- Next: task 12 — `/retro` and `/checkpoint`, the shas of the seven applied entries written
+  into their headings, the upgrade 2.0.0 → 2.1.0 rehearsed on the final payload (the
+  generated pre-push changes: its comment). Then task 13, the bump computed on the content.
