@@ -36,6 +36,13 @@ This repo applies to itself the method it describes (`.claude/docs/`):
   The CI runs `bash tools/test-upgrade-check.sh` on every push too, after
   `make test-scripts` (*The CI, before the merge*, below): it fails when a payload file has
   no class.
+- **Every commit is gated on the suite, in the same command**:
+  `make test-scripts && bash tools/test-upgrade-check.sh && git commit …` — the self-tests,
+  the documentation check and the upgrade check's self-test, not only the test of the file
+  touched; the generated hooks with the real tools (`tools/test-real-hooks.sh`) run in the
+  CI. The one exception is the `chore: wip` commit `docs/04` allows on a feature branch
+  before a session closes. The suite reads the working tree, not the index: a commit of
+  part of the tree is green only if the rest is too.
 
 ## This repo's git model (a declared exception)
 

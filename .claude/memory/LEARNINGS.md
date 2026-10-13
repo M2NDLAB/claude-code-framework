@@ -23,28 +23,6 @@ tags: [improvement]
 
 ## OPEN proposals (awaiting the user's decision)
 
-### IMP-082 — The whole suite before each commit, the documentation check included
-- Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro), recorded at
-  the user's request in [[2026-10-12-prerequisites-1.6.0]]
-- Observed problem: a prose edit in `SETUP.md` passed the self-test that reads its block and
-  failed the documentation check — caught after the commit, amended while it was still
-  local.
-- Proposal: NOT decided. Before each commit of the framework the whole suite runs —
-  `make test-scripts`, the documentation check included, and the upgrade check's
-  self-test —, not only the self-test of the file touched. The candidate place:
-  `CONTRIBUTING.md`, *This repo's workflow*.
-- Expected benefit / risk: no commit that the CI or the next commit finds red. Risk: a few
-  minutes per commit.
-- An occurrence in v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]): two commits that moved
-  IMPs to Applied went in after the documentation check alone; the check's self-test,
-  whose plant was anchored on a line the move dropped, failed, and the checkpoint's commit
-  followed, its command not gated on the suite's exit. All local: rebuilt, each after a
-  green suite. Gating the commit on the suite in the same command (`make test-scripts &&
-  git commit …`) would have stopped it.
-- Status: APPROVED on 2026-10-13 (the retro over the backlog) — for v2.2.0: a line in
-  `CONTRIBUTING.md`, the commit gated on the suite in the same command — the practice of
-  v2.1.0.
-
 ### IMP-086 — The framework repository's visibility, and what its memory holds
 - Date: 2026-10-13 | Origin: the user's decision, 2026-10-13 — at the end of the cycle the
   framework's repository becomes PRIVATE, for personal use; recorded in
@@ -1652,6 +1630,19 @@ line on; older entries are not backfilled.
   framework on 2026-10-13: one has no deploy; the other builds its services' container
   images with the repository's root as the build context, copying specific paths — the
   check runs at its upgrade.
+
+### IMP-082 — The whole suite before each commit, the documentation check included → applied on 2026-10-14
+- Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro) — a prose edit in `SETUP.md` passed
+  the self-test that reads its block and failed the documentation check, caught after the
+  commit; in v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]) two commits went in after the
+  documentation check alone and broke its self-test, the checkpoint's commit following
+  because its command was not gated on the suite.
+- Applied: `CONTRIBUTING.md`, *This repo's workflow* — every commit is gated on the suite in
+  the same command, `make test-scripts && bash tools/test-upgrade-check.sh && git commit …`;
+  the real-hook tests run in the CI; a `chore: wip` commit is the one exception; the suite
+  reads the working tree, so a partial commit is green only if the rest is too.
+- Verified: every commit of v2.2.0 so far ran in that form ([[2026-10-13-backlog-retro-2.2.0]]),
+  and none went in on a red suite.
 
 ## Deferred (not rejected — resumed at the right time)
 
