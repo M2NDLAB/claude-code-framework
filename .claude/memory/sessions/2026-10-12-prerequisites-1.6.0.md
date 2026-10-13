@@ -4,7 +4,7 @@ task: v1.6.0 — prerequisites and versions (IMP-070 point 7, IMP-076, IMP-077) 
 branch: feat/prerequisites-1.6.0
 status: in-progress
 model: 'claude-opus-5-5'
-turns: 3
+turns: 4
 tags: [session, prerequisites, ci, tools, imp, plan]
 ---
 # Session 2026-10-12 — v1.6.0: prerequisites and versions
@@ -18,7 +18,8 @@ tags: [session, prerequisites, ci, tools, imp, plan]
 ## The fields of this very note
 - `model: 'claude-opus-5-5'` — the main session.
 - `turns: 3` — the user's brief for v1.6.0, with v1.5.0 integrated and published; the
-  user's decisions on the plan; the user's decisions on the review.
+  user's decisions on the plan; the user's decisions on the review; the user's decision
+  on N1, with two IMPs to record.
 
 ## The brief — persisted so a /clear does not lose it
 v1.6.0, the EXPECTED bump a MINOR: `/integrate` computes it again from the commits and, if
@@ -125,7 +126,7 @@ after). Kept from their findings:
 - [x] 6. The CI per D3: gitleaks at a fixed version and checksum, verified before it runs; the four real-hook cases in `tools/`; the *Versions* step names gitleaks and npx; the real check on each runner; the prose on what the CI installs and runs — commit: 6212081
 - [x] 7. The upgrade 1.5.0 → 1.6.0 rehearsed in throwaway clones, LF and CRLF: the check from `T` before Step 4, the hooks regenerated; the Upgrading note drafted — commit: 3b0edca
 - [x] 8. The CI's rounds (block 0, the user's pushes): what fails, fixed with new commits, until green on the three — commit: the record of round 1 — green on `3b0edca` (run 38299497518), nothing to fix (its own sha cannot be written in it)
-- [ ] 9. ONE reviewer, read-only on git, snapshot before and after, with the security mandate on the hooks; the gate's verdict written; fixes — commit: —
+- [x] 9. ONE reviewer, read-only on git, snapshot before and after, with the security mandate on the hooks; the gate's verdict written; fixes — commit: a661b70 to bfd6c90, and the record of N1 (its own sha cannot be written in it)
 - [ ] 10. `/retro` and `/checkpoint`: the upgrade rehearsed again on the final payload; IMP-070 and IMP-076 applied, each in its `chore(claude): apply IMP-nnn` commit (`docs/06`); IMP-077 stays OPEN on its trigger (D1) — commit: —
 - [ ] 11. `/integrate`: the CHANGELOG 1.6.0 entry, claiming only what was measured (IMP-073); the bump computed again against the expected MINOR; the final block 0 green on the three, then blocks 1 and 2 — commit: the CHANGELOG commit (its own sha cannot be written in it)
 
@@ -450,7 +451,7 @@ confirmed: without it apt's 8.16.0 would pass with a warning.
 install another to adopt this release: `make hooks-install` refuses. The release is
 **v2.0.0**, not the expected MINOR: declared here, before the tag (IMP-074).
 
-**The gate's verdict (`docs/03`)** — final once N1 is decided:
+**The gate's verdict (`docs/03`)** — final, N1 decided and fixed below:
 - HIGH H1: resolved, `050b2f5`; its residual, an explicit `git -c color.diff=always`,
   recorded above.
 - MEDIUM M1: resolved by D5, `5f05004`. MEDIUM M2: resolved, `c3190c2`.
@@ -462,12 +463,68 @@ install another to adopt this release: `make hooks-install` refuses. The release
   measured by the review). I6 — this repository's hooks are v1.5.0's: the user regenerates
   them after the integration. I7 — gitleaks' releases are unsigned: the CI's SHA-256 pin is
   trust on first use.
-- N1: the user's decision.
+- HIGH N1, by the user's rating: resolved, `bfd6c90` — the next section.
+- Known limits, declared in `SETUP.md`: an explicit `git -c` naming the colour or a
+  textconv on a commit's command line (outside the threat model, the user's decision); a
+  file binary by its content; a SIGKILL during the scan apart; the history scan's files
+  marked binary.
+
+## N1, decided and fixed (task 9)
+**The user's decision (D6, 2026-10-13): A, in this release — N1 is HIGH, as H1.** Three
+conditions: (1) a temporary directory with the user's permissions only, removed ALWAYS — on
+an error or an interruption too —, its removal guaranteed at the hook's exit, and a test
+case that verifies it; (2) the pre-commit timed with a large binary file staged, and an
+explicit size limit, declared, only if one is needed; (3) the residual
+`git -c color.diff=always commit` stays out — an explicit `-c` is a deliberate choice,
+outside the threat model —, declared in `SETUP.md` as a known limit. A real case with a
+private key in a `*.key` marked binary, red first. v2.0.0 confirmed. Two OPEN IMPs, LOW,
+recorded with this note: IMP-085 and IMP-086.
+
+**Measured before writing it** (gitleaks 8.30.1, throwaway repositories):
+- `git diff --cached --numstat -z` marks a file git shows as binary `-`, `-`; `:0:<path>`
+  reads the staged blob of paths with spaces, colons and `^{tree}`; the NUL count of the
+  first 8000 bytes, git's own test, tells a key or a lockfile marked binary (0) from a real
+  binary (16 in 3000 random bytes);
+- `detect --no-git`, run from the directory, reports paths relative to the repository and
+  fingerprints in `protect`'s form, and a path allowlist of the project's `--config`
+  applies. 8.18.2 has `detect --no-git` and `--pipe`, but `--pipe` reads stdin in chunks of
+  10 KB scanned one by one: a key across two would be missed — a directory of files, then;
+- macOS's `mktemp -d` without a template ignores `TMPDIR` (three ways): the hook gives an
+  explicit template under `${TMPDIR:-/tmp}`; 0700 under both;
+- bash 3.2 runs the EXIT trap when it dies of INT, TERM or HUP, the signal sent to the
+  process group as a terminal sends it (exits 130, 143, 129): explicit signal traps were
+  untestable code, and were left out;
+- without its `|| true`, git dying of the closed pipe failed the hook with exit 141 on a
+  file larger than a pipe's buffer (a mutant);
+- the time of the whole pre-commit, one file staged:
+
+  | Staged | 10 MB | 50 MB |
+  | --- | --- | --- |
+  | a small text change | 0.08 s | 0.08 s |
+  | a real binary | 0.13 s | 0.10 s |
+  | text staged plain — `protect` scans it | 15.3 s | 114.6 s |
+  | the same text marked `-diff` — the scan apart | 2.2 s | 11.5 s |
+
+  and a real binary of 200 MB, 0.15 s. The scan apart costs a tenth of what the same text
+  costs staged plain, and a binary by content its first 8000 bytes: no size limit;
+- the history scan, `gitleaks detect`, misses a key committed in a `*.key binary` too (exit
+  0; found without the attribute): declared in the box of `SETUP.md`'s step 3, with
+  `gitleaks detect --no-git --source <path>` for the current content.
+
+**The commit, `bfd6c90`.** The real case 7 red first ("let the private key through"), the
+shipped self-test's case 6 red first ("not scanned apart"); seven mutants caught — no EXIT
+trap, no NUL check, no binary filter, the configuration ignoring `GITLEAKS_CONFIG`, no
+`.gitleaksignore`, no template, no SIGPIPE guard. Case 6 runs the hook with a stub gitleaks
+under a `TMPDIR` of its own: the directory 0700 (its mode not checked under Git Bash, whose
+`/tmp` is the user's own `%TEMP%`), the staged content, the arguments, and nothing left
+after a pass, a refusal or a Ctrl-C — INT to the hook's process group, job control on.
+`SETUP.md` §3 says what the scan reads, its measured cost and its known limits.
 
 ## Resumption notes
 - The branch is public since round 1 (`3b0edca`): no commit is rewritten, every fix is a
   new commit. Every commit after `3b0edca` reaches the CI through the next block 0; block 1
   waits for the final run's green on the three jobs.
-- The last green run is round 2's, on `5138f1f`. Next: the user's decision on N1; its
-  commits, or its record, reach the CI through the next block 0. The CHANGELOG draft in the
-  scratchpad is v2.0.0's, BREAKING first.
+- The last green run is round 2's, on `5138f1f`. `c810ac4`, `bfd6c90` and N1's record reach
+  the CI through the next block 0. Then task 10: `/retro` and `/checkpoint`, the upgrade
+  rehearsed again on the final payload — the pre-commit and the commit-msg change. The
+  CHANGELOG draft in the scratchpad is v2.0.0's, BREAKING first.

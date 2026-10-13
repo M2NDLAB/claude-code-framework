@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-10-11
+updated: 2026-10-13
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -908,6 +908,52 @@ tags: [improvement]
   under test, on the same path as the cases it vouches for. The candidate place:
   `docs/02`, *Tests that demonstrate*, with IMP-071.
 - Expected benefit / risk: a green that means what it says on every platform. Risk: none.
+
+### IMP-085 — The framework's files kept out of deploy artifacts
+- Date: 2026-10-13 | Origin: the user's question, 2026-10-13 — recorded in
+  [[2026-10-12-prerequisites-1.6.0]]
+- Priority: LOW (user decision, 2026-10-13).
+- Observed problem: the framework serves during development only, but its files —
+  `CLAUDE.md`, `.claude/` with the project's memory, the scripts, the `Makefile` — sit in
+  the project's repository. A deploy that copies the whole repository (a `COPY . .` into an
+  image, for one) carries them into production, the project's memory included.
+- The first check, made when recording it (2026-10-13): no page says it. `SETUP.md`,
+  `CLAUDE.md`, `.claude/docs/`, `README.md` and `CONTRIBUTING.md` searched for deploy,
+  production, docker, image, container, artifact and exclude: only the technical rules'
+  slot for the production artifact's format and `docs/02`'s Definition of Done, point 9,
+  neither about the framework's own files.
+- Proposal: NOT decided — and only because it is missing: one line of principle, agnostic
+  to the stack, in `SETUP.md` (its *Hardening* section, for one): keep the framework's
+  paths out of deploy artifacts with the stack's own mechanism; the list of those paths
+  derives from the class table (`tools/upgrade-check.sh classes <tag>`, `SETUP.md`, *The
+  mental model: the classes of file, and the graft state*). No exclusion file in the
+  payload: such files depend on the stack and stay the project's.
+- Expected benefit / risk: a project's memory and process files do not reach production
+  through a copy of the whole repository. Risk: none — a line of principle.
+- Resumption trigger: the next release that touches `SETUP.md`'s *Hardening*, or the
+  retrospective over the backlog.
+
+### IMP-086 — The framework repository's visibility, and what its memory holds
+- Date: 2026-10-13 | Origin: the user's decision, 2026-10-13 — at the end of the cycle the
+  framework's repository becomes PRIVATE, for personal use; recorded in
+  [[2026-10-12-prerequisites-1.6.0]]
+- Priority: LOW (user decision, 2026-10-13).
+- Observed problem: the switch changes conditions the repository relies on today, to be
+  handled at that moment:
+  - rulesets on GitHub's Free plan apply to public repositories only: Pro, or a
+    protection that is local only;
+  - the CI has 2,000 minutes a month, Windows counted twice and macOS ten times — the
+    user's proposal: drop macOS from the CI, already covered locally;
+  - the "Repository visibility" line of auto mode, in the user's `~/.claude/settings.json`,
+    to update;
+  - `README.md` and `CONTRIBUTING.md` must not present the repository as public.
+- The memory's hygiene, valid while private too: no names or details of the projects that
+  use the framework, no personal data, references in a neutral form — the practice since
+  v1.3.2. What has been public stays public: no rewriting of history.
+- Proposal: NOT decided — the list above, applied when the repository turns private.
+- Expected benefit / risk: the switch costs no protection and no CI coverage unknowingly.
+  Risk: without macOS in the CI, bash 3.2 and the BSD userland are verified only locally.
+- Resumption trigger: the switch of the repository to private, at the end of the cycle.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
