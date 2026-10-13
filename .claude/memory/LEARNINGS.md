@@ -764,28 +764,6 @@ tags: [improvement]
   Risk: without macOS in the CI, bash 3.2 and the BSD userland are verified only locally.
 - Resumption trigger: the switch of the repository to private, at the end of the cycle.
 
-### IMP-087 — A hermetic test cannot see the defects the user's configuration causes
-- Date: 2026-10-13 | Origin: the review of v2.0.0, its HIGH H1, and the main session's
-  measures of its family — [[2026-10-12-prerequisites-1.6.0]] (the retro)
-- Observed problem: `tools/test-real-hooks.sh` ran the generated hooks with the real
-  gitleaks and commitlint, the git configuration emptied for hermeticity
-  (`GIT_CONFIG_GLOBAL=/dev/null`), as every self-test of the framework does. A colour the
-  user's configuration forces had let every staged secret through the pre-commit since the
-  hook existed, and the test could not see it — nor a textconv driver, nor an attribute that
-  marks a text file binary: three silent bypasses, all from configuration the hermetic
-  setup removed. The reviewer found the first by reading gitleaks' source, the main session
-  the other two by measuring its family.
-- Proposal: NOT decided. A test of a tool that reads the user's configuration keeps its
-  hermetic baseline and adds cases under the configurations users have — each named, each
-  checked to take hold before the case counts, as the real-hook cases 5 to 7 check that git
-  does colour, mask or show the file as binary —, chosen from how the tool reads that
-  configuration (here, gitleaks reading `git diff`). The candidate place: `docs/02`, *Tests
-  that demonstrate*, with IMP-071 and IMP-084 — the family "verify that the check really
-  checked".
-- Expected benefit / risk: the defects that live in the configuration show in the tests.
-  Risk: the configurations users have are open-ended; the cases stay those observed or read
-  at the source.
-
 ### IMP-088 — A change next to a setup slot conflicts at every project's upgrade
 - Date: 2026-10-13 | Origin: task 10 of v2.0.0, the upgrade rehearsed on the final payload —
   [[2026-10-12-prerequisites-1.6.0]] (the retro)
@@ -1998,6 +1976,23 @@ line on; older entries are not backfilled.
   lenses.
 - Uncovered: a behaviour neither documented nor read at the source stays unseen, and a new
   release of the tool can add one.
+
+### IMP-087 — A hermetic test cannot see the defects the user's configuration causes → applied on 2026-10-13
+- Date: 2026-10-13 | Origin: the review of v2.0.0, its HIGH H1, and the main session's
+  measures of its family — [[2026-10-12-prerequisites-1.6.0]] (the retro)
+- Observed problem (condensed): the real-hook test emptied the git configuration for
+  hermeticity, as every self-test of the framework does, and could not see three silent
+  bypasses that live in the user's configuration — a forced colour, a textconv driver, an
+  attribute that marks a text file binary.
+- Decision (the user, 2026-10-13 — [[2026-10-13-gate-lenses-2.1.0]]): one principle with
+  IMP-059 and IMP-084, the gate and the test look at the real path; for the tests, one line
+  in `docs/02`, *Tests that demonstrate*.
+- Applied in v2.1.0 ([[2026-10-13-gate-lenses-2.1.0]]): *Tests that demonstrate* gets the
+  line — a test of what drives an external tool keeps its hermetic baseline and adds cases
+  under the configurations the users have. The framework's own instance: the real-hook
+  cases 5 to 7, from v2.0.0.
+- Uncovered: the configurations users have are open-ended; the cases stay those observed,
+  or read at the tool's source.
 
 ## Deferred (not rejected — resumed at the right time)
 

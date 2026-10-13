@@ -84,6 +84,9 @@ are stack-agnostic principles: the conventions specific to the chosen language g
   ALL entities, with an anti-vacuity check (it fails if the scanned set is empty).
   That way a future regression breaks the build by itself, instead of waiting for
   someone to remember to update the test.
+- A test of what drives an external tool keeps its hermetic baseline, and adds cases under
+  the configurations the users have — their git configuration, their attributes, their
+  platform: emptying the configuration for hermeticity also removes the defects it causes.
 
 ## Definition of Done for every task
 
