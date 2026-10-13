@@ -109,6 +109,8 @@ are stack-agnostic principles: the conventions specific to the chosen language g
    a multi-stage container image, non-root runtime, or the equivalent for your
    platform — [TO BE DEFINED AT SETUP]). This does NOT emerge from tests run in a
    development environment: it must be verified explicitly.
+10. The records claim no more than their data: a commit message, a changelog entry, the
+    Verified part of an applied IMP is written after the last measurement it cites.
 
 > The security gate for sensitive components is an ADDITIONAL requirement on top of
 > the Definition of Done: see `03-security-gate.md`.

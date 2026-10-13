@@ -527,40 +527,6 @@ tags: [improvement]
   closed pipe failed the pre-commit with 141 —, and the explicit signal traps proved
   redundant, since bash runs the EXIT trap on INT, TERM and HUP, and were left out.
 
-### IMP-073 — Write the record after the last measurement
-- Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at
-  the user's request in [[2026-10-11-multiplatform-1.5.0]]
-- Observed problem: a commit message and IMP-049's Verified part claimed a mutation
-  coverage not yet measured; with a wrong release in another message, they cost the replay
-  of four commits and two rewrites. The reviewer found them both times — as it found the
-  failure paths of v1.4.0, which the author's rehearsal had missed.
-- Proposal: NOT decided. A record that claims a result — a Verified part, a commit
-  message, a CHANGELOG line — is written after the last measurement it cites, never ahead
-  of it; a commit made before a measurement ends claims nothing about it. The candidate
-  place: the Definition of Done of `docs/02`.
-- Expected benefit / risk: no rewrite of history to correct a claim. Risk: none.
-- An occurrence in v1.5.0, recorded on 2026-10-12 ([[2026-10-12-prerequisites-1.6.0]]):
-  `7d2052b`'s message claims more than was measured — "so those greens proved nothing
-  about a \r" (whether the CRLF cases of rounds 3 to 5 carried their `\r` is not
-  established, IMP-084), and a diagnostic that "tells bash apart from what follows it" (it
-  measured bash's printf, the pipe and od together, on the check's path only). The commit
-  was public: the correction is this record.
-- An occurrence in v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]): `5f05004`'s message, and
-  the first wording of `SETUP.md` §0, of the check's comment, of IMP-077 and of the draft
-  CHANGELOG, said that before 8.18.2 a scan error ends in "no leaks found" and exit 0. The
-  source read showed it from 8.4.0 to 8.18.1 only — 8.0.0 and 8.3.0 end such an error
-  with `log.Fatal`. Found while checking the CHANGELOG's claims, the documents narrowed
-  before the tag; the commit was public: the correction is this record.
-- An occurrence in the product, reported by the user on 2026-10-13
-  ([[2026-10-13-gate-lenses-2.1.0]]): `hooks-install.sh` prints "<hook> contained local
-  changes" whenever the hook in place differs from the one it generates — also when that
-  hook is an earlier release's, untouched. v2.0.0's rehearsal measured both `.bak` files
-  byte-identical to v1.5.0's hooks, and the user met the message regenerating this
-  repository's hooks: the script measures a difference and claims its cause.
-  `scripts/README.md` ("if you have customised them") and `SETUP.md` ("a `.bak` of the
-  project's formatting block") repeat the inference. Decided: fixed in v2.1.0, the message
-  saying what it measures (the user's option a).
-
 ### IMP-074 — The bump is fixed by the brief before the content
 - Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — the user's brief; the
   reviewer's L1 in [[2026-10-10-upgrade-safety-1.3.3]] and L14 in
@@ -2028,6 +1994,24 @@ line on; older entries are not backfilled.
   the perimeter at the claim, not the diff — from these N to all, a list of exceptions that
   disappears, a range of versions —; the gate's first step points at it.
 - Uncovered: telling a widened claim from a narrow one stays a reading; no check finds it.
+
+### IMP-073 — Write the record after the last measurement → applied on 2026-10-13
+- Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at the
+  user's request in [[2026-10-11-multiplatform-1.5.0]]
+- Observed problem (condensed): records claimed results ahead of their measurement, or
+  wider than it — a commit message and IMP-049's Verified part in v1.4.1 (a replay of four
+  commits, two rewrites); `7d2052b` in v1.5.0; `5f05004` and four documents in v2.0.0, the
+  scan error's range widened ([[2026-10-12-prerequisites-1.6.0]]); and, in the product,
+  `hooks-install.sh`'s "contained local changes", a cause claimed from a difference
+  ([[2026-10-13-gate-lenses-2.1.0]]).
+- Decision (the user, 2026-10-13 — [[2026-10-13-gate-lenses-2.1.0]]): one principle with
+  IMP-056, IMP-058 and IMP-071, a claim covers exactly what a datum shows; for the records,
+  one line in `docs/02`'s Definition of Done.
+- Applied in v2.1.0 ([[2026-10-13-gate-lenses-2.1.0]]): the Definition of Done's point 10 —
+  a commit message, a changelog entry, an applied IMP's Verified part is written after the
+  last measurement it cites.
+- Uncovered: a public commit that claims too much stays as it is; its correction is a record,
+  as the occurrences were.
 
 ## Deferred (not rejected — resumed at the right time)
 
