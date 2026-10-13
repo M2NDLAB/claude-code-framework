@@ -253,41 +253,6 @@ tags: [improvement]
   not silent (Step 4's marker grep re-surfaces the slot, edge case 7 catches the filled
   one), but the project must then re-answer a slot the §2 checklist never lists.
 
-### IMP-056 — The security gate checks what the code does, not what the product claims
-- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
-  a presentation-only deliverable, behaviourally clean for both adversarial lenses,
-  still carried four truth defects in what it asserted
-- Observed problem (client-side, relayed): behaviourally the diff really was
-  presentation-only — both review lenses confirmed that consent, the dry-run branches,
-  dispatch and exit codes were intact. Yet it carried four TRUTH defects: an end-of-run
-  summary ATTESTED in the persistent session log that components without a dry-run
-  gate had "previewed, changed nothing" (false for two of them), and a disk line could
-  claim space freed on a cache that had grown. The author's reasoning was "the label
-  follows the contract, the bug is elsewhere (a known debt)" — but reality did not
-  honour the contract, and the user documentation just written turned the label into a
-  promise. (Client-side: the gate passed only after the four were fixed.)
-- On the framework's source: `docs/03` names only defects of ACTION ("a bypassed check,
-  a spoof, an exposed administrative endpoint") and `security-review.md` has no
-  truthfulness check: nothing covers the assertions a product emits.
-- Proposal (as relayed; NOT decided here — retro): an explicit lens in `docs/03`,
-  "claims, not only actions": when a deliverable produces ASSERTIONS about security
-  properties (badges, states, summaries, "nothing was changed" messages) — especially
-  when they end up in a persistent artifact (log, report, export) — each one is
-  verified against the REAL behaviour of the code it describes, not against the
-  contract that code is supposed to honour. Operating criterion: a string that asserts
-  something did NOT happen needs a datum that proves it, kept separate from the
-  classification it would otherwise be inferred from.
-- The mechanism to name: a known, accepted debt (`docs/03`, *After the review*) becomes
-  a written promise to the user through a label or a freshly written user doc.
-- Open for the retro: how the lens's trigger (a deliverable that emits security
-  assertions) meets `docs/03`'s sensitive-only scope (and `docs/00` step 2) — either
-  the lens carries its own trigger, or "sensitive" includes the surfaces that attest
-  security properties. Precedent here: IMP-020, the hook that exited 0 with a
-  misleading warning. Kin: IMP-058 (its perimeter), IMP-057.
-- Expected benefit / risk: a known, accepted debt can no longer become a written
-  promise unnoticed. Risk: none — one more lens, applied only where there are
-  assertions.
-
 ### IMP-057 — A test invariant over a known debt: a bidirectional allow-list, not an empty set
 - Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
   a class invariant made the honest declaration the only way to break the build
@@ -324,76 +289,6 @@ tags: [improvement]
   failing. Direction (b) proved itself at once: a mutation that silenced the language rule
   was caught on the unchanged repository, because the declared exceptions of the frozen
   memory stopped matching. The `docs/02` rule itself stays open.
-
-### IMP-058 — Widening a claim beyond the diff widens the gate's perimeter
-- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
-  a small fix attested as verified a claim over a whole registry, four entries of which
-  were false
-- Observed problem (client-side, relayed): the task closed two known violations, but to
-  do so it set every entry of an 18-entry registry to "compliant", added a class test
-  and rewrote the user doc from "these units do not honour the flag" to "every unit
-  stops at the preview". The diff touched 2 units; the CLAIM covered 18 — and four of
-  them were false, for defects the branch had not introduced (an implicit self-update of
-  an external tool — IMP-059 —, an ungated deletion, a check that executed untrusted
-  input). The branch broke nothing: it ATTESTED as verified what was only declared. A
-  review limited to the changed files — the normal practice — would never have seen it.
-- On the framework's source: the gate is diff-scoped — `docs/03` runs `/security-review`
-  "on the branch diff", `security-review.md` reviews "the modified files (`git diff`)";
-  the only check beyond the diff, the coherence review of `docs/01`, is scoped to
-  shared-code refactors and renamed titles (IMP-043).
-- Proposal (as relayed; NOT decided here — retro): next to IMP-056's lens, a BREADTH
-  criterion in `docs/03`: when a deliverable generalises a claim (from "these N" to
-  "all"), the perimeter of the gate is the CLAIM's, not the diff's. Triggers: a
-  registry/config value going from exception to uniformity; a test replacing point
-  cases with a loop over the whole set; a doc sentence losing its exceptions (an
-  "except…" that disappears).
-- Close kin of IMP-056 — **evaluate unification at the retro**: IMP-056 is the lens
-  (claims, not only actions), this entry its perimeter (the claim's set, not the diff's).
-- The framework's own occurrence, as a pattern: C11 ([[2026-09-24-third-upgrade-lessons]])
-  — decision 3 of the language deliverable scoped backward compatibility to the three
-  grep-coupled tokens ([[2026-07-20-language-rule-phase1]]), while the 1.1.0 CHANGELOG
-  sentence put five kinds of strings, the escalation delimiters included, under "Every
-  READER accepts the legacy Italian form as well"; `docs/05` never got a dual-form
-  reader. The defect is recorded there; the pattern was not. And `docs/02`'s
-  ALL-entities invariant is itself a widening trigger — with a known debt, its form is
-  IMP-057's.
-- Expected benefit / risk: catches the defect class where the code is correct and the
-  promise is false. Risk: a wider gate — to apply only when the claim really widens.
-
-### IMP-059 — Gating an external tool's invocation is not enough: check what the tool runs by itself
-- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
-  a dry-run gate that looked closed while the gated tool kept updating itself
-- Observed problem (client-side, relayed): putting a package manager's update behind
-  the dry-run gate seemed to close the issue. But the tool runs its own update
-  automatically before several of its subcommands, and not even the tool's own dry-run
-  flag stops it — the decision is taken before the arguments are read. A preview-only
-  session kept rewriting the tool's index through units that "only list" things: the
-  front door closed, the service door open — invisible to any test with a mock, because
-  a mock does not reproduce the real tool's implicit behaviour.
-- On the framework's source: nothing in `docs/02` (I/O, dependencies, *verify against
-  REAL artifacts*) or `docs/03` covers it; it extends the Definition of Done's "not
-  just isolated units with mocks" to the external tools a component drives.
-- Proposal (as relayed; NOT decided here — retro): in `docs/02` (or the technical-rules
-  template), when you gate the invocation of an external tool, check its source/docs
-  for paths where it re-runs the gated action implicitly, and use the official
-  off-switch (typically an environment variable). It applies to any tool with automatic
-  behaviours: package managers, git (hooks, auto-gc), CI runners, formatters with a
-  watch mode.
-- Evidence inside the framework (the verification's, not the lesson's): `git status` —
-  allowed as `Bash(git status)` by `settings.json`, a read-only inspection for
-  `docs/04` (*Permission configuration*) — writes `.git/index` by itself (an
-  optional-lock refresh); git documents the off-switch, `git --no-optional-locks` /
-  `GIT_OPTIONAL_LOCKS=0` (git-status(1)). Config-dependent: `status` runs a configured
-  fsmonitor, and `diff A B`, `show <commit>` and `log -p` run a configured textconv
-  (off-switch `--no-textconv`). Observed, not probed: the generated `commit-msg` hook
-  runs commitlint through `npx --yes` with unpinned packages, and an npm debug log of a
-  commit in a grafted project shows it contacting the package registry — an implicit
-  network step behind the commit gate.
-- Kin: IMP-054 — the same class, a different opener (there the CALLER reaches the
-  program through another syntax; here the TOOL reaches the effect by itself); IMP-020 —
-  a different mechanism with the same outcome, a false sense of security.
-- Expected benefit / risk: avoids gates that look closed and are not. Risk: none — a
-  one-off check per tool, usually a grep in its docs.
 
 ### IMP-060 — A delegation brief quotes the user's decisions verbatim; a multi-agent report declares its coverage gaps
 - Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
@@ -562,21 +457,6 @@ tags: [improvement]
 - Expected benefit / risk: the boundaries are known where they hold and where they do not.
   Risk: none for the investigation itself.
 
-### IMP-071 — A claim of coverage is a list that declares itself complete
-- Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at
-  the user's request in [[2026-10-11-multiplatform-1.5.0]]
-- Observed problem: "Every rule the check advertises has its defect here", the header of
-  the documentation check's self-test, had IMP-068's own shape — a list (the rules)
-  declaring itself complete against a source (the forms the check names) —, inside the
-  tool built to catch that shape. It was false twice, both times found by the reviewer,
-  never by the author.
-- Proposal: NOT decided. A claim of coverage — a self-test's header, a CHANGELOG line, an
-  applied entry's Verified part — is either held against its source, as IMP-068 does, or
-  narrowed to what was measured. Where to write it (`docs/02`, *Tests that demonstrate*,
-  is the candidate) is to be decided.
-- Expected benefit / risk: the records stop claiming more than was measured. Risk: none
-  beyond one more sentence in the rules.
-
 ### IMP-072 — Mutate the paths, not only the sites
 - Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at
   the user's request in [[2026-10-11-multiplatform-1.5.0]]
@@ -597,31 +477,6 @@ tags: [improvement]
   closed pipe failed the pre-commit with 141 —, and the explicit signal traps proved
   redundant, since bash runs the EXIT trap on INT, TERM and HUP, and were left out.
 
-### IMP-073 — Write the record after the last measurement
-- Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at
-  the user's request in [[2026-10-11-multiplatform-1.5.0]]
-- Observed problem: a commit message and IMP-049's Verified part claimed a mutation
-  coverage not yet measured; with a wrong release in another message, they cost the replay
-  of four commits and two rewrites. The reviewer found them both times — as it found the
-  failure paths of v1.4.0, which the author's rehearsal had missed.
-- Proposal: NOT decided. A record that claims a result — a Verified part, a commit
-  message, a CHANGELOG line — is written after the last measurement it cites, never ahead
-  of it; a commit made before a measurement ends claims nothing about it. The candidate
-  place: the Definition of Done of `docs/02`.
-- Expected benefit / risk: no rewrite of history to correct a claim. Risk: none.
-- An occurrence in v1.5.0, recorded on 2026-10-12 ([[2026-10-12-prerequisites-1.6.0]]):
-  `7d2052b`'s message claims more than was measured — "so those greens proved nothing
-  about a \r" (whether the CRLF cases of rounds 3 to 5 carried their `\r` is not
-  established, IMP-084), and a diagnostic that "tells bash apart from what follows it" (it
-  measured bash's printf, the pipe and od together, on the check's path only). The commit
-  was public: the correction is this record.
-- An occurrence in v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]): `5f05004`'s message, and
-  the first wording of `SETUP.md` §0, of the check's comment, of IMP-077 and of the draft
-  CHANGELOG, said that before 8.18.2 a scan error ends in "no leaks found" and exit 0. The
-  source read showed it from 8.4.0 to 8.18.1 only — 8.0.0 and 8.3.0 end such an error
-  with `log.Fatal`. Found while checking the CHANGELOG's claims, the documents narrowed
-  before the tag; the commit was public: the correction is this record.
-
 ### IMP-074 — The bump is fixed by the brief before the content
 - Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — the user's brief; the
   reviewer's L1 in [[2026-10-10-upgrade-safety-1.3.3]] and L14 in
@@ -640,6 +495,13 @@ tags: [improvement]
   the review's MEDIUM, decided by the user as a security minimum that refuses a gitleaks
   v1.5.0 accepted, made the release breaking. The bump was computed again by `docs/04`,
   declared a MAJOR before the tag, and confirmed by the user.
+- An occurrence in v2.1.0, pointed out by the user on 2026-10-13
+  ([[2026-10-13-gate-lenses-2.1.0]]): the commits that apply IMPs as `docs/06` says are typed
+  `chore`, and here they carry the new rules of `docs/02` and `docs/03` into the payload.
+  With the release's one `fix`, a bump computed from the types alone comes out a PATCH,
+  while by `docs/04`'s criteria a new rule in the payload is a MINOR. The user's instruction:
+  `/integrate` computes the bump on the content — the new rules in the payload —, not only on
+  the commits' types, and declares its reasoning before the tag; v2.1.0 expected.
 
 ### IMP-075 — Auto mode and the framework's boundaries
 - Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — the user ran
@@ -761,6 +623,9 @@ tags: [improvement]
 - A fifth time, in v2.0.0's review fixes ([[2026-10-12-prerequisites-1.6.0]]): "source:"
   opened a wrapped body line of the breaking commit; written again while still local, as
   `5f05004`.
+- A sixth time, in v2.1.0 ([[2026-10-13-gate-lenses-2.1.0]]): "diff:" opened a wrapped body line of task 3's
+  commit, written again while still local. From then on each message was checked before its
+  commit with a grep for a body line opening with a word and a colon.
 
 ### IMP-079 — A parser of another shell's syntax covers the forms it was held against, not the language
 - Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro), recorded at
@@ -776,6 +641,10 @@ tags: [improvement]
   together.
 - Expected benefit / risk: a claim of coverage that holds. Risk: more cases to write and
   keep.
+- An occurrence in bash, from v2.1.0's review ([[2026-10-13-gate-lenses-2.1.0]], L6, read at the guard's
+  source): the guard passes git inside an unquoted heredoc's `$(…)` or backticks, which bash
+  expands; a function defined with the `function` keyword; a `coproc`; and a command name
+  held in a variable (`$GIT`) — its comment says it does no expansion, `docs/04` does not.
 
 ### IMP-080 — A guard against uncommitted changes must see what git hides from its diff
 - Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro), recorded at
@@ -840,29 +709,6 @@ tags: [improvement]
 - Expected benefit / risk: a guard as large as its job. Risk: a form removed that a
   developer with the PowerShell tool on would use — the tool is off by default.
 
-### IMP-084 — A cross-platform test can pass vacuously when its datum does not reach the program under test intact
-- Date: 2026-10-12 | Origin: the CI's rounds 6 to 8 of v1.5.0, in the last section of
-  [[2026-10-11-multiplatform-1.5.0]] — the lesson in the user's words; recorded in
-  [[2026-10-12-prerequisites-1.6.0]]
-- Observed problem: on Windows the guard self-test's anti-vacuity check (`766365a`) failed
-  in round 6 (run 38173900708, on `7cb3bb7`) and in round 7 (run 38270936385, on
-  `7d2052b`): the `\r` of the check's own `$'…'` string did not reach node, nor, in round
-  7, `od`. The guard's CRLF cases had passed on Windows in rounds 3 to 5 through the same
-  transport, but the check wrote its `\r` differently from them — a literal inside `$(…)`,
-  theirs through a variable —, so their own path was never measured: whether those rounds
-  were vacuous is NOT established, and by the user's decision (2026-10-12) it is not
-  investigated further. The user's fix, `9fa2e9a`: the CRLF cases written as JSON escapes,
-  the form Claude Code sends — the test proves the real path, not Git Bash's behaviour, a
-  detail of the test environment —, and the anti-vacuity check moved to node itself, a
-  probe in the guard's place on the same wiring. Round 8 (run 38275935122) was green on
-  the three images.
-- Proposal: NOT decided. IMP-071's family — verify that the check really checked: (a) a
-  cross-platform test feeds its datum in the form the product receives, not in a form a
-  platform's shell must carry intact; (b) its anti-vacuity check looks at the program
-  under test, on the same path as the cases it vouches for. The candidate place:
-  `docs/02`, *Tests that demonstrate*, with IMP-071.
-- Expected benefit / risk: a green that means what it says on every platform. Risk: none.
-
 ### IMP-085 — The framework's files kept out of deploy artifacts
 - Date: 2026-10-13 | Origin: the user's question, 2026-10-13 — recorded in
   [[2026-10-12-prerequisites-1.6.0]]
@@ -909,28 +755,6 @@ tags: [improvement]
   Risk: without macOS in the CI, bash 3.2 and the BSD userland are verified only locally.
 - Resumption trigger: the switch of the repository to private, at the end of the cycle.
 
-### IMP-087 — A hermetic test cannot see the defects the user's configuration causes
-- Date: 2026-10-13 | Origin: the review of v2.0.0, its HIGH H1, and the main session's
-  measures of its family — [[2026-10-12-prerequisites-1.6.0]] (the retro)
-- Observed problem: `tools/test-real-hooks.sh` ran the generated hooks with the real
-  gitleaks and commitlint, the git configuration emptied for hermeticity
-  (`GIT_CONFIG_GLOBAL=/dev/null`), as every self-test of the framework does. A colour the
-  user's configuration forces had let every staged secret through the pre-commit since the
-  hook existed, and the test could not see it — nor a textconv driver, nor an attribute that
-  marks a text file binary: three silent bypasses, all from configuration the hermetic
-  setup removed. The reviewer found the first by reading gitleaks' source, the main session
-  the other two by measuring its family.
-- Proposal: NOT decided. A test of a tool that reads the user's configuration keeps its
-  hermetic baseline and adds cases under the configurations users have — each named, each
-  checked to take hold before the case counts, as the real-hook cases 5 to 7 check that git
-  does colour, mask or show the file as binary —, chosen from how the tool reads that
-  configuration (here, gitleaks reading `git diff`). The candidate place: `docs/02`, *Tests
-  that demonstrate*, with IMP-071 and IMP-084 — the family "verify that the check really
-  checked".
-- Expected benefit / risk: the defects that live in the configuration show in the tests.
-  Risk: the configurations users have are open-ended; the cases stay those observed or read
-  at the source.
-
 ### IMP-088 — A change next to a setup slot conflicts at every project's upgrade
 - Date: 2026-10-13 | Origin: task 10 of v2.0.0, the upgrade rehearsed on the final payload —
   [[2026-10-12-prerequisites-1.6.0]] (the retro)
@@ -947,6 +771,199 @@ tags: [improvement]
   slot's line, and the release's rehearsal stays the backstop.
 - Expected benefit / risk: the conflict shows at the commit that makes it. Risk: a fixture
   of answered slots to keep, or a rule no check holds.
+
+### IMP-089 — The history scan misses a key committed in a file marked binary
+- Date: 2026-10-13 | Origin: measured in [[2026-10-12-prerequisites-1.6.0]] (task 9, N1's
+  family); recorded at the user's request in [[2026-10-13-gate-lenses-2.1.0]]
+- Priority: LOW (user decision, 2026-10-13).
+- Observed problem: `gitleaks detect`, the one-off history scan of `SETUP.md`'s step 3,
+  reads `git log -p`, which shows a file marked `binary` or `-diff` as "Binary files
+  differ": a key committed in a `*.key binary` is not found (measured: exit 0, "no leaks
+  found"; found without the attribute). `gitleaks detect --no-git --source <path>`, which
+  step 3 names, covers only the current content: a key removed since, still in the
+  history, stays unseen.
+- Proposal: NOT decided — when the trigger comes, scan every committed version of the files
+  the project marks binary (their blobs, through `git rev-list --all -- <paths>` and
+  `git cat-file`), or say in step 3 how to.
+- Expected benefit / risk: a graft's baseline scan reads every committed key. Risk: a scan
+  over every version of those files costs time on a long history.
+- Resumption trigger: the first graft into a project whose `.gitattributes` marks key files
+  as binary.
+- Two more gaps of the same scan, from v2.1.0's review ([[2026-10-13-gate-lenses-2.1.0]], L5, read at
+  gitleaks' source): it runs `git log -p` without a `--diff-merges` form, so what a merge's
+  own resolution introduced is never read; and 8.30.1 adds `--diff-filter=tuxdb`, leaving
+  out type changes.
+
+### IMP-090 — The hooks go inert when a hook manager takes core.hooksPath after the install
+- Date: 2026-10-13 | Origin: v2.1.0's review, its HIGH H1 — [[2026-10-13-gate-lenses-2.1.0]]
+- Priority: MEDIUM (user decision, 2026-10-13).
+- Observed problem: `hooks-install.sh` checks `core.hooksPath` at install time only; a hook
+  manager sets it again at its next run — husky 9.1.7 at every install it runs, from the
+  project's `prepare` script at each `npm install`, unless `HUSKY=0` (read at its source) —,
+  and git then reads another directory: the pre-commit's scan and the push boundary stop,
+  and nothing says so (measured: a commit holding a key goes through). v2.1.0 declared the
+  route and made the installer's refusal say it (`b7e3f09`); the failure stays silent at use
+  time. `repo-snapshot.sh`'s list of what it fingerprints reads as complete and leaves out
+  the configuration, the hooks, `.git/info`, the staged state and ignored files (L17): H1's
+  route leaves its fingerprint unchanged.
+- Proposal: NOT decided — make the failure visible: the SessionStart hook warns when
+  `core.hooksPath` is set, or when the common hooks directory's pre-push lacks the
+  generator's marker; `repo-snapshot.sh` fingerprints `core.hooksPath` and the hooks'
+  checksums, or declares what it leaves out.
+- Expected benefit / risk: the boundary's loss shows at the next session. Risk: an edit to
+  `.claude/settings.json`, a boundary file.
+- Resumption trigger: the first project with a hook manager.
+- Verified by the user on 2026-10-13: on the user's machines, neither of the two projects
+  checked has `core.hooksPath` set or a hook manager configured — at the root or in a
+  subdirectory; husky, lefthook, simple-git-hooks.
+- A mitigation, the user's decision in v2.1.0, `3359003`: the graft's and the upgrade's
+  checklists (`SETUP.md`, *Inherited git hygiene* and Step 4) check `core.hooksPath` and look for a hook
+  manager, so the case shows at a graft or an upgrade; the detection at use time stays open.
+
+### IMP-091 — The commits git creates itself skip the pre-commit
+- Date: 2026-10-13 | Origin: v2.1.0's review, M1 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem: git runs the pre-commit only from `git commit`. A rebase's `--continue`
+  commits a conflict's resolution through the sequencer with `-n` (measured: a key pasted
+  into the resolution is committed; git's sequencer.c read by the reviewer); `git am` runs
+  pre-applypatch instead; a cherry-pick or a revert commits in-process. The framework's
+  own merge step resolves conflicts in `git rebase origin/<integration>` (`docs/04`,
+  `/integrate`'s block 1). `docs/03`'s baseline — "on every commit … always, without
+  exceptions" — and `CLAUDE.md`'s rule 1 claim more.
+- Proposal: NOT decided — narrow the claims (the scan runs on `git commit`; the commits git
+  creates itself are not scanned) in `docs/03`, `CLAUDE.md` and `SETUP.md`'s known limits;
+  weigh compensating at publication — gitleaks over the range about to go public, in
+  `/integrate`'s block 1 or in the pre-push.
+- Expected benefit / risk: the baseline says what it covers; a compensation would close the
+  route. Risk: a scan at publication repeats work on every push.
+- Partly applied on 2026-10-13, the user's decision after v2.1.0's review, `ee883ee`: the
+  claims narrowed — `docs/03`'s baseline says what the hook does and declares this limit,
+  `CLAUDE.md`'s rule 1 points to it. Measured then on git 2.54.0 with a marker hook: a
+  cherry-pick or a revert that applies cleanly, `git am` and a rebase's `--continue` after
+  a conflict do not run the pre-commit; a cherry-pick's `--continue` after a conflict and a
+  merge concluded by `git commit` do; a clean merge runs `pre-merge-commit` instead. Still
+  open: `SETUP.md`'s known limits and a compensation at publication.
+
+### IMP-092 — Claude Code's permission flow can replace the guard's verdict and the ask rules
+- Date: 2026-10-13 | Origin: v2.1.0's review, M2 and I1 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem (read by the reviewer in Claude Code's documentation, 2026-10-13): a mod
+  that handles `tool.check` — mods are on by default — answers after the rules and the
+  PreToolUse hooks and can approve a call a hook blocked, unless the hook sits in managed
+  settings, and what an ask rule would prompt for; a PermissionRequest hook can answer an
+  ask prompt; `disableAllHooks: true`, the switch the documentation gives for stopping mods,
+  also stops the guard and the SessionStart hook. `docs/04` says the guard's verdict "always
+  stands" and that the boundary's files "always" ask. I1: a command hook's
+  `"onFailure": "block"` (Claude Code 2.1.295 or later) now offers the off-switch for the
+  fail-open `docs/04` declares, and would block the main session too on any failure, which
+  `docs/04`'s design avoids.
+- Proposal: NOT decided — declare the three routes in `docs/04` (the fail-closed bullet,
+  the ask bullet, the guard's row); weigh `"disableAllHooks": false` in the project's
+  `settings.json`, which overrides a user's `true`; weigh `onFailure` at a retro.
+- Expected benefit / risk: the boundary's claims hold against Claude Code's own extension
+  points. Risk: pinning a setting the user may have chosen.
+
+### IMP-093 — Delegated agents can write git state outside the guard's matcher
+- Date: 2026-10-13 | Origin: v2.1.0's review, M3 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem (read in Claude Code's documentation by the reviewer): the
+  EnterWorktree tool, available to subagents, creates a worktree on a new branch in the
+  shared repository, and ExitWorktree with `remove` deletes the worktree and its branch; a
+  project's MCP git server (commit, checkout, reset) is the same class. The guard matches
+  `Bash|PowerShell|Monitor`; none of these is blocked or declared.
+- Proposal: NOT decided — extend the matcher to `EnterWorktree|ExitWorktree` and refuse them
+  for an input with `agent_id`, or declare them, with MCP git tools, in `docs/04`'s "Outside
+  this layer".
+- Expected benefit / risk: the read-only rule holds for the tools Claude Code gives
+  delegated agents. Risk: a matcher to keep in step with Claude Code's tools.
+
+### IMP-094 — reset-task.sh leaves a staged change in the working tree, and reports success
+- Date: 2026-10-13 | Origin: v2.1.0's review, M4 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem: `git restore .` restores the working tree FROM THE INDEX, and only then
+  does `git restore --staged .` reset the index: a staged change survives as an unstaged
+  one, yet the script reports the task discarded (measured: staged B, then C in the working
+  tree; afterwards ` M f`, the file holding B). Both restores swallow their errors, and no
+  self-test covers the script; `docs/01`'s manual form leaves staged changes staged.
+- Proposal: NOT decided — `git restore --source=HEAD --staged --worktree -- .`, errors not
+  swallowed, a self-test with a staged change, `docs/01`'s manual form corrected.
+- Expected benefit / risk: a resumption restarts from a clean task, as `docs/01` promises.
+  Risk: none.
+
+### IMP-095 — The pre-commit's scan apart has three gaps of its own
+- Date: 2026-10-13 | Origin: v2.1.0's review, L2, L3 and L4 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem: (1) in directory mode gitleaks skips a file whose first bytes match an
+  application's signature (`MZ`, `BZh`, `{\rtf`, `%PDF`, …), logged at debug level only —
+  read at its source by the reviewer; (2) gitleaks reads `GITLEAKS_CONFIG_TOML` before the
+  project's `.gitleaks.toml`, while the scan apart passes `--config` unless
+  `GITLEAKS_CONFIG` is set — read at its source; (3) `--diff-filter=ACM` leaves out a type
+  change — measured: a symlink turned into a key file marked binary goes through.
+- Proposal: NOT decided — a line of text before each copy, so no signature sits at offset 0,
+  or the limit declared; `-z "${GITLEAKS_CONFIG_TOML:-}"` with the other condition;
+  `--diff-filter=ACMT`.
+- Expected benefit / risk: the scan apart reads what it promises. Risk: none.
+
+### IMP-096 — A clean filter's content is not scanned, and a pre-push.local can be skipped silently
+- Date: 2026-10-13 | Origin: v2.1.0's review, L1 and L16 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem: a clean filter rewrites the content before it reaches the index, so the
+  scan reads the filter's output — under git-lfs, which the framework anticipates
+  (`pre-push.local`), a pointer, while the content goes to the LFS store unscanned
+  (measured with an LFS-like filter). And the generated pre-push skips a `pre-push.local`
+  that is not executable without a word; if it is git-lfs's, LFS objects are never
+  uploaded.
+- Proposal: NOT decided — declare the filter's limit in `SETUP.md`'s known limits, and weigh
+  scanning LFS-tracked paths apart; say so, or fail, when `pre-push.local` exists and is not
+  executable.
+- Expected benefit / risk: the known limits are complete for LFS projects. Risk: none.
+
+### IMP-097 — The pre-push's CLAUDECODE fallback refuses the human in an IDE terminal
+- Date: 2026-10-13 | Origin: v2.1.0's review, L7 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem: Claude Code's environment-variable reference (read on 2026-10-13) says
+  IDE extensions set `CLAUDECODE` in their integrated terminals: a human pushing from VS
+  Code's terminal is refused, the refusal naming a Claude Code session. The same reference
+  documents `CLAUDE_CODE_CHILD_SESSION`, set for the Bash, PowerShell and Monitor tools and
+  hook commands, not for IDE terminals nor stdio MCP servers.
+- Proposal: NOT decided — name the IDE terminal in `docs/04` and in the refusal, with how the
+  human pushes from it; or weigh `CLAUDE_CODE_CHILD_SESSION` as the fallback, which loses
+  stdio MCP servers.
+- Expected benefit / risk: the human is not refused as an agent. Risk: a marker that covers
+  less.
+
+### IMP-098 — A second re-run of the installer overwrites the .bak
+- Date: 2026-10-13 | Origin: v2.1.0's review, L9 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem: `cp "${target}" "${target}.bak"` overwrites a `.bak` left by an earlier
+  re-run: a customisation saved once is lost the next time the hook differs.
+- Proposal: NOT decided — never overwrite an existing `.bak`: number the copies, or keep the
+  old one and say where it is.
+- Expected benefit / risk: a saved customisation survives. Risk: `.bak` files accumulate.
+
+### IMP-099 — The platform the check names as verified is wider than the CI's images
+- Date: 2026-10-13 | Origin: v2.1.0's review, L13 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem: `check-prerequisites.sh` calls any non-WSL Linux on x86_64 a platform the
+  CI verifies; the CI runs Ubuntu 24.04 only, and `SETUP.md` says other distributions are not
+  verified. The same holds for other macOS and Windows versions against the named images.
+- Proposal: NOT decided — name what was verified ("x86_64, verified on Ubuntu 24.04"), or
+  read `/etc/os-release`; the self-test changes with it.
+- Expected benefit / risk: the line claims what the CI shows. Risk: none.
+
+### IMP-100 — Two latent hardenings: the upgrade check's colour, make's YES
+- Date: 2026-10-13 | Origin: v2.1.0's review, L14 and L15 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem: (1) `tools/upgrade-check.sh` forces `color.ui` off, which is only
+  `color.diff`'s default: a user's `color.diff=always` still colours patch output — latent,
+  no check parses a patch today; (2) make imports every environment variable and `$(if)` is
+  true for any non-empty value: an exported `YES`, even `0` or `no`, runs `reset-task`
+  without its prompt.
+- Proposal: NOT decided — `-c color.diff=false`, or `--no-color`; pass `--yes` only for
+  `YES=1` given on the command line.
+- Expected benefit / risk: a comment that is true, a prompt that cannot be skipped by
+  accident. Risk: none.
+
+### IMP-101 — Each new case of the hooks' self-test edits the documentation check's fixtures
+- Date: 2026-10-13 | Origin: v2.1.0's retro — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem: two fixtures of `tools/test-docs-check.sh` plant their defects by editing
+  the literal case count in `scripts/test-hooks-install.sh`'s header ("Six cases:" to "Seven
+  cases:") and expecting a message that names the counts. Every case added to that self-test
+  breaks both: five commits over v2.0.0 and v2.1.0 edited them (`77525a0`, `050b2f5`,
+  `bfd6c90`, `bf3879b`, `b7e3f09`), `050b2f5`'s after the suite ran red.
+- Proposal: NOT decided — the fixtures read the current count from the header and plant
+  count + 1, so a new case touches only the self-test it belongs to.
+- Expected benefit / risk: a new case is one change, not three. Risk: none.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
@@ -2034,6 +2051,147 @@ line on; older entries are not backfilled.
 - Uncovered: the pin fixes the two packages only; their dependencies follow the ranges they
   declare (`^21.2.3`, `yargs ^18.0.0`, …), fetched unhashed — `SETUP.md` §0 and the CI's
   statement say so. Raising the pin is a framework release's decision, and its cost.
+
+### IMP-056 — The security gate checks what the code does, not what the product claims → applied on 2026-10-13, commit 4937100
+- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — a presentation-only
+  deliverable, behaviourally clean for both lenses of its review, carried four truth defects
+  in what it asserted
+- Observed problem (condensed): `docs/03` named only defects of action, and
+  `/security-review` had no truthfulness check: nothing covered the assertions a product
+  emits. In the framework's own product, v2.0.0 met three ([[2026-10-12-prerequisites-1.6.0]]):
+  the pre-commit relayed gitleaks' "no leaks found" after "scanned ~0 bytes"; the
+  prerequisite check printed "OK gitleaks 2026"; `hooks-install.sh` claimed "local changes"
+  from a mere difference.
+- Decision (the user, 2026-10-13 — [[2026-10-13-gate-lenses-2.1.0]]): one principle with
+  IMP-058, IMP-071 and IMP-073, a claim covers exactly what a datum shows; its text in
+  `docs/03` only, `/security-review` recalling it in one line.
+- Applied in v2.1.0 ([[2026-10-13-gate-lenses-2.1.0]]): `docs/03`, *The lenses of the gate*,
+  its first lens, *Claims, not only actions* — an assertion about a security property
+  checked against the real behaviour, an assertion of absence backed by a datum kept apart
+  from its classification; a deliverable whose product asserts a security property is under
+  the gate for that alone, the trigger this entry left open. `/security-review`'s check 11
+  recalls it.
+- Verified ([[2026-10-13-gate-lenses-2.1.0]]): the lens's first use, v2.1.0's review of the whole payload,
+  found the hooks' coverage claimed wider than it is — the release's HIGH, fixed in
+  `b7e3f09` — and two MEDIUMs whose claims stay wider than the code, recorded as IMP-091 and
+  IMP-092; the main session measured the HIGH.
+- Uncovered: the lens is a discipline of reading; no mechanical check holds it.
+
+### IMP-058 — Widening a claim beyond the diff widens the gate's perimeter → applied on 2026-10-13, commit b9b003f
+- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — a small fix attested
+  as verified a claim over a whole registry, four entries of which were false
+- Observed problem (condensed): the gate was the diff's — `docs/03` ran `/security-review`
+  "on the branch diff" —, while a deliverable can widen a claim far beyond the files it
+  touches. In v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]) H1 lay outside the reviewed
+  range, the pre-commit's text unchanged, and was found because the user scoped the review
+  to the hooks; the scan error's claim widened from what was read, 8.4.0 to 8.18.1, to
+  "before 8.18.2", in five places.
+- Decision (the user, 2026-10-13 — [[2026-10-13-gate-lenses-2.1.0]]): IMP-056's lens at the
+  claim's perimeter — one principle with IMP-056, IMP-071 and IMP-073.
+- Applied in v2.1.0 ([[2026-10-13-gate-lenses-2.1.0]]): the claims lens of `docs/03` sets
+  the perimeter at the claim, not the diff — from these N to all, a list of exceptions that
+  disappears, a range of versions —; the gate's first step points at it.
+- Verified ([[2026-10-13-gate-lenses-2.1.0]]): in the review's first use of the lenses, the perimeter took it
+  beyond the diff — the HIGH lay in `docs/04`'s table and in the installer's install-time
+  check, neither touched by the release.
+- Uncovered: telling a widened claim from a narrow one stays a reading; no check finds it.
+
+### IMP-073 — Write the record after the last measurement → applied on 2026-10-13, commit 2f13de1
+- Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at the
+  user's request in [[2026-10-11-multiplatform-1.5.0]]
+- Observed problem (condensed): records claimed results ahead of their measurement, or
+  wider than it — a commit message and IMP-049's Verified part in v1.4.1 (a replay of four
+  commits, two rewrites); `7d2052b` in v1.5.0; `5f05004` and four documents in v2.0.0, the
+  scan error's range widened ([[2026-10-12-prerequisites-1.6.0]]); and, in the product,
+  `hooks-install.sh`'s "contained local changes", a cause claimed from a difference
+  ([[2026-10-13-gate-lenses-2.1.0]]).
+- Decision (the user, 2026-10-13 — [[2026-10-13-gate-lenses-2.1.0]]): one principle with
+  IMP-056, IMP-058 and IMP-071, a claim covers exactly what a datum shows; for the records,
+  one line in `docs/02`'s Definition of Done.
+- Applied in v2.1.0 ([[2026-10-13-gate-lenses-2.1.0]]): the Definition of Done's point 10 —
+  a commit message, a changelog entry, an applied IMP's Verified part is written after the
+  last measurement it cites.
+- Verified ([[2026-10-13-gate-lenses-2.1.0]]): applied to this release's own commits before their push, the
+  point narrowed three messages — a time ("a month before" for sixteen days), an attribution,
+  a clause about work not yet done —, each amended while still local.
+- Uncovered: a public commit that claims too much stays as it is; its correction is a record,
+  as the occurrences were.
+
+### IMP-071 — A claim of coverage is a list that declares itself complete → applied on 2026-10-13, commit 1278bf2
+- Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at the
+  user's request in [[2026-10-11-multiplatform-1.5.0]]
+- Observed problem (condensed): "Every rule the check advertises has its defect here", the
+  header of the documentation check's self-test, declared itself complete against the forms
+  the check names, IMP-068's own shape inside the tool built to catch it — false twice,
+  found both times by the reviewer.
+- Decision (the user, 2026-10-13 — [[2026-10-13-gate-lenses-2.1.0]]): in the principle of
+  IMP-056, IMP-058 and IMP-073; the records' line of `docs/02` says it.
+- Applied in v2.1.0 ([[2026-10-13-gate-lenses-2.1.0]]): the Definition of Done's point 10
+  goes on — no wider than the measurement: a list that declares itself complete is held
+  against its source, as IMP-068's check does, or narrowed to what was measured.
+- Uncovered: a list no program can extract stays a reading, IMP-068's own limit.
+
+### IMP-059 — Gating an external tool's invocation is not enough: check what the tool runs by itself → applied on 2026-10-13, commit 9575569
+- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — a dry-run gate that
+  looked closed while the gated tool kept updating itself
+- Observed problem (condensed): a gate on a tool's invocation left open what the tool does by
+  itself, and nothing in `docs/02` or `docs/03` covered it. The entry's own evidence named
+  git's configured textconv in 2026-09; v2.0.0 then met the class in the framework's own
+  gate ([[2026-10-12-prerequisites-1.6.0]]): gitleaks reads a `git diff` that the user's
+  colour, a textconv driver or an attribute empties or converts (H1, N1), that a
+  `diff.external` replaces before 8.18.2; and 8.0.0 to 8.1.3 write a `.gitleaks.toml` into
+  the project.
+- Decision (the user, 2026-10-13 — [[2026-10-13-gate-lenses-2.1.0]]): one principle with
+  IMP-084 and IMP-087, the gate and the test look at the real path; its text in `docs/03`
+  only.
+- Applied in v2.1.0 ([[2026-10-13-gate-lenses-2.1.0]]): `docs/03`'s second lens, *The real
+  path* — a gate on an external tool covers what the tool does by itself, what its
+  configuration makes it do and what it updates, writes or fetches unasked, read at its
+  source or in its documentation; each such path closed by the tool's off-switch,
+  compensated, or declared as a known limit. `/security-review`'s check 11 recalls both
+  lenses.
+- Verified ([[2026-10-13-gate-lenses-2.1.0]]): the lens's first use found a hook manager that takes
+  `core.hooksPath` back after the install — husky, at every `npm install` — and, among the
+  findings recorded, Claude Code's own extension points, the tools outside the guard's
+  matcher, a clean filter and gitleaks' type sniff (IMP-090, IMP-092, IMP-093, IMP-095,
+  IMP-096).
+- Uncovered: a behaviour neither documented nor read at the source stays unseen, and a new
+  release of the tool can add one.
+
+### IMP-087 — A hermetic test cannot see the defects the user's configuration causes → applied on 2026-10-13, commit a6f6463
+- Date: 2026-10-13 | Origin: the review of v2.0.0, its HIGH H1, and the main session's
+  measures of its family — [[2026-10-12-prerequisites-1.6.0]] (the retro)
+- Observed problem (condensed): the real-hook test emptied the git configuration for
+  hermeticity, as every self-test of the framework does, and could not see three silent
+  bypasses that live in the user's configuration — a forced colour, a textconv driver, an
+  attribute that marks a text file binary.
+- Decision (the user, 2026-10-13 — [[2026-10-13-gate-lenses-2.1.0]]): one principle with
+  IMP-059 and IMP-084, the gate and the test look at the real path; for the tests, one line
+  in `docs/02`, *Tests that demonstrate*.
+- Applied in v2.1.0 ([[2026-10-13-gate-lenses-2.1.0]]): *Tests that demonstrate* gets the
+  line — a test of what drives an external tool keeps its hermetic baseline and adds cases
+  under the configurations the users have. The framework's own instance: the real-hook
+  cases 5 to 7, from v2.0.0.
+- Uncovered: the configurations users have are open-ended; the cases stay those observed,
+  or read at the tool's source.
+
+### IMP-084 — A cross-platform test can pass vacuously when its datum does not reach the program under test intact → applied on 2026-10-13, commit d35fc6c
+- Date: 2026-10-12 | Origin: the CI's rounds 6 to 8 of v1.5.0, in the last section of
+  [[2026-10-11-multiplatform-1.5.0]] — the lesson in the user's words; recorded in
+  [[2026-10-12-prerequisites-1.6.0]]
+- Observed problem (condensed): on Windows the `\r` of the guard's CRLF cases, written
+  through Git Bash's `$'…'`, did not reach node; the anti-vacuity check caught it in rounds 6
+  and 7. Whether rounds 3 to 5 were vacuous is not established, by the user's decision. The
+  user's fix, `9fa2e9a`: the cases written as JSON escapes, the form Claude Code sends, and
+  the check moved to node itself.
+- Decision (the user, 2026-10-13 — [[2026-10-13-gate-lenses-2.1.0]]): one principle with
+  IMP-059 and IMP-087, the gate and the test look at the real path; the tests' line of
+  `docs/02` says it.
+- Applied in v2.1.0 ([[2026-10-13-gate-lenses-2.1.0]]): *Tests that demonstrate* — each
+  case under a configuration checks that its datum reaches the program under test, in the
+  form the program receives it, before it counts. The framework's instances: the guard's
+  CRLF cases since `9fa2e9a`, the real-hook cases 5 to 7 since v2.0.0.
+- Uncovered: rounds 3 to 5 of v1.5.0 stay not established.
 
 ## Deferred (not rejected — resumed at the right time)
 

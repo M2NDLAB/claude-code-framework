@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Self-test of scripts/hooks-install.sh. Six cases:
+# Self-test of scripts/hooks-install.sh. Eight cases:
 #   1. "dangling symlink + FORCE_OVERWRITE=1": a leftover link never aborts the install —
 #      below; skipped, said aloud, where `ln -s` cannot make a dangling link (Git Bash);
 #      the commit-msg hook it installs runs commitlint at the version
@@ -21,7 +21,14 @@
 #   6. the files git shows as binary although they hold text, scanned apart: copied from the
 #      index into a directory only the user can read, the project's gitleaks configuration
 #      passed on, a file binary by its content left out, and the directory gone when the hook
-#      ends — passing, refused, or stopped by a signal — see "Case 6" at the end.
+#      ends — passing, refused, or stopped by a signal — see "Case 6";
+#   7. a re-run: over its own hooks unchanged, nothing saved and nothing said; over a hook
+#      that differs — an earlier release's, untouched by the user — a .bak of it, and a
+#      message that says what was measured, a difference, not a local change — see "Case 7";
+#   8. core.hooksPath set — a hook manager's, husky's for one: the install stops before
+#      writing any hook, and its message says that such a manager sets it again at its next
+#      run, so integrating the commands into it is the durable choice — see "Case 8" at the
+#      end.
 #
 # Case 1.
 # Defect (RED, before the fix): in the FORCE_OVERWRITE=1 branch, a pre-existing hook that is a
@@ -489,3 +496,62 @@ run6 pass
 [[ ! -f "${PROBE6_LOG}" ]] || fail6 "a file binary by its content was scanned apart"
 
 echo "PASS (binary files): a file only an attribute makes binary is scanned apart — copied from the index into a directory of its own that only the user can read, the project's .gitleaks.toml and .gitleaksignore passed on —, a file binary by its content is not, and the directory is gone when the hook passes, refuses or is stopped by Ctrl-C."
+
+# --- Case 7 — a re-run over the hooks in place ---------------------------------------------
+# The installer cannot tell an earlier release's hook from one the user edited: both only
+# differ from what it generates. It saves the hook and says so — and claims no local change,
+# which it did not measure.
+fail7() {
+  echo "FAIL (re-run): $1" >&2
+  [[ -f "${workdir}/out7.log" ]] && { echo "--- script output ---" >&2; cat "${workdir}/out7.log" >&2; }
+  exit 1
+}
+rerun_repo="${workdir}/rerun-repo"
+git init -q "${rerun_repo}"
+mkdir -p "${rerun_repo}/scripts"
+cp "${HOOKS_INSTALL}" "${rerun_repo}/scripts/hooks-install.sh"
+cp "${CHECK_PREREQ}" "${rerun_repo}/scripts/check-prerequisites.sh"
+bash "${rerun_repo}/scripts/hooks-install.sh" >"${workdir}/out7.log" 2>&1 || fail7 "the first install failed"
+hooks7="${rerun_repo}/.git/hooks"
+bash "${rerun_repo}/scripts/hooks-install.sh" >"${workdir}/out7.log" 2>&1 || fail7 "a re-run over its own hooks failed"
+! grep -q '^WARNING' "${workdir}/out7.log" || fail7 "a re-run over its own unchanged hooks warned"
+! ls "${hooks7}"/*.bak >/dev/null 2>&1 || fail7 "a re-run over its own unchanged hooks saved a .bak"
+# An earlier release's commit-msg: the generated hook with another pin, nobody's edit.
+sed 's/@commitlint\/cli@[0-9.]*/@commitlint\/cli@20.0.0/' "${hooks7}/commit-msg" > "${workdir}/earlier-commit-msg"
+! cmp -s "${workdir}/earlier-commit-msg" "${hooks7}/commit-msg" || fail7 "the earlier hook was not made different"
+cp "${workdir}/earlier-commit-msg" "${hooks7}/commit-msg"
+bash "${rerun_repo}/scripts/hooks-install.sh" >"${workdir}/out7.log" 2>&1 || fail7 "a re-run over an earlier hook failed"
+cmp -s "${hooks7}/commit-msg.bak" "${workdir}/earlier-commit-msg" || fail7 "the .bak is not the earlier hook"
+grep -q '^WARNING: commit-msg differs from the hook this version generates' "${workdir}/out7.log" \
+  || fail7 "the message does not say what was measured, a difference from the generated hook"
+! grep -q 'local changes' "${workdir}/out7.log" || fail7 "the message claims local changes it did not measure"
+
+echo "PASS (re-run): over its own unchanged hooks a re-run saves and says nothing; over an earlier release's hook it saves a .bak and says the hook differs from the one it generates, claiming no local change."
+
+# --- Case 8 — core.hooksPath set, as a hook manager sets it --------------------------------
+# git then reads another directory, and the hooks written to .git/hooks would never run. The
+# install refuses, and since the check runs at install time only, its message must say that a
+# hook manager sets core.hooksPath again at its next run: removing it and re-running lasts
+# until then.
+fail8() {
+  echo "FAIL (core.hooksPath): $1" >&2
+  [[ -f "${workdir}/out8.log" ]] && { echo "--- script output ---" >&2; cat "${workdir}/out8.log" >&2; }
+  exit 1
+}
+hp_repo="${workdir}/hookspath-repo"
+git init -q "${hp_repo}"
+mkdir -p "${hp_repo}/scripts"
+cp "${HOOKS_INSTALL}" "${hp_repo}/scripts/hooks-install.sh"
+cp "${CHECK_PREREQ}" "${hp_repo}/scripts/check-prerequisites.sh"
+git -C "${hp_repo}" config core.hooksPath .husky/_
+set +e
+bash "${hp_repo}/scripts/hooks-install.sh" >"${workdir}/out8.log" 2>&1
+rc=$?
+set -e
+[[ ${rc} -ne 0 ]] || fail8 "core.hooksPath set: the install went on"
+[[ ! -e "${hp_repo}/.git/hooks/pre-commit" ]] || fail8 "core.hooksPath set: a hook was written where git does not read it"
+grep -q "core.hooksPath is set to '.husky/_'" "${workdir}/out8.log" || fail8 "the refusal does not name the setting"
+grep -q 'sets core.hooksPath again at its next run' "${workdir}/out8.log" \
+  || fail8 "the message does not say that a hook manager sets core.hooksPath again"
+
+echo "PASS (core.hooksPath): with core.hooksPath set the install stops before writing a hook, and says a hook manager sets it again at its next run, the durable choice being to integrate the commands into it."

@@ -29,8 +29,9 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
 
 ## Non-negotiable global rules (process)
 1. **No secrets in plaintext** in the code or in committed config — only a secret
-   manager or environment variables. The gitleaks hook blocks commits that violate
-   this rule (it is the baseline; see also the security gate, rule 8).
+   manager or environment variables. The gitleaks hook refuses a `git commit` when it
+   finds a secret in the staged changes (it is the baseline, with the limits that
+   03-security-gate.md declares; see also the security gate, rule 8).
 2. **Code quality** per 02-code-quality.md: the WHY in comments, no swallowed
    exceptions, validation at the edge, Definition of Done respected.
 3. **Git** per 04-git-workflow.md: a branch for every feature, commits at logical

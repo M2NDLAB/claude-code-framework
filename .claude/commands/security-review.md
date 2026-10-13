@@ -1,9 +1,9 @@
 ---
 description: Security review of the modified code
 ---
-Run a security review of the modified files (`git diff`). Minimum checks,
-stack-agnostic — adapt/extend those specific to your technology
-(see @.claude/docs/03-security-gate.md):
+Run a security review of the branch's changes, and of the set a widened claim names
+(check 11). Minimum checks, stack-agnostic — adapt/extend those specific to your
+technology (see @.claude/docs/03-security-gate.md):
 
 1. **Secrets** hardcoded or in committed config (including base64-encoded ones).
 2. **Injection** (SQL/NoSQL/command/template): queries or commands built by
@@ -21,6 +21,8 @@ stack-agnostic — adapt/extend those specific to your technology
 9. **Management/diagnostics surface** (admin, actuator, debug endpoints) exposed
    without authentication or on a public surface.
 10. **New dependencies**: check the licence and known CVEs.
+11. **The lenses of the gate** — *Claims, not only actions* and *The real path*: apply both as
+    `docs/03` (*The lenses of the gate*) words them.
 
 Report: severity table (CRITICAL/HIGH/MEDIUM/LOW) + proposed fix for each
 finding. Remember how the gate works (docs/03): HIGH/CRITICAL resolved before the

@@ -80,12 +80,16 @@ fi
 # --- Guards for a repo with pre-existing hooks (graft onto an existing project) --
 # 1. core.hooksPath active (e.g. husky): git does NOT read .git/hooks, so the hooks
 #    written below would NEVER run — installed but inert. Better to stop and let the
-#    user decide than to give false confidence.
+#    user decide than to give false confidence. This check runs at install time only: a
+#    hook manager sets core.hooksPath again at its next run (husky at every npm install,
+#    unless HUSKY=0), and the hooks then stop running without a word (docs/04).
 hooks_path="$(git -C "${REPO_ROOT}" config --get core.hooksPath || true)"
 if [[ -n "${hooks_path}" ]]; then
   echo "ERROR: core.hooksPath is set to '${hooks_path}': git ignores .git/hooks," >&2
   echo "  so the framework hooks would never run. Choose one:" >&2
-  echo "  - integrate these hooks' commands into your hook manager (e.g. husky), or" >&2
+  echo "  - integrate these hooks' commands into your hook manager (e.g. husky) — the durable" >&2
+  echo "    choice: a hook manager sets core.hooksPath again at its next run (husky at every" >&2
+  echo "    npm install, unless HUSKY=0), and from then on these hooks do not run; or" >&2
   echo "  - remove the override and re-run. FIRST find out where it comes from (local," >&2
   echo "    global or system): git config --show-origin --get core.hooksPath" >&2
   echo "    then: git config --unset core.hooksPath   (add --global if it comes from there)" >&2
@@ -140,14 +144,15 @@ done
 mkdir -p "${HOOKS_DIR}"
 
 # Installs a generated hook: if the target exists (it is necessarily OURS, foreign
-# ones are handled above) but the content differs, it contains local customisations
-# (e.g. the adapted formatting block, as the hook's own comments ask for):
-# a .bak of it is saved before rewriting, so that a re-run does not destroy them.
+# ones are handled above) but the content differs, it is either another release's hook
+# or one customised locally (e.g. the adapted formatting block, as the hook's own comments
+# ask for) — a difference this script measures, and cannot tell the cause of. A .bak of it
+# is saved before rewriting, so that a re-run destroys no customisation.
 install_generated() {
   local target="$1"
   if [[ -f "${target}" ]] && ! cmp -s "${target}" "${target}.new"; then
     cp "${target}" "${target}.bak"
-    echo "WARNING: ${target##*/} contained local changes: saved to ${target}.bak before rewriting." >&2
+    echo "WARNING: ${target##*/} differs from the hook this version generates (another release's, or a local change): saved to ${target}.bak before rewriting." >&2
   fi
   mv "${target}.new" "${target}"
   chmod +x "${target}"
@@ -282,8 +287,8 @@ cat > "${HOOKS_DIR}/pre-push.new" <<'HOOK'
 # is the human's. A push launched from a Claude Code session is refused, whatever form
 # it took (git -C, an alias, sh -c, a script, a make target): the session's markers are
 # inherited by every process the agent starts. AGENT_GIT_BOUNDARY is set by the `env`
-# key of .claude/settings.json; CLAUDECODE, set by Claude Code itself but undocumented,
-# is the fallback. Deliberate evasion (--no-verify, hooks disabled, plumbing) is outside
+# key of .claude/settings.json; CLAUDECODE, set by Claude Code itself and documented in its
+# environment-variable reference, is the fallback. Deliberate evasion (--no-verify, hooks disabled, plumbing) is outside
 # this layer's threat model. A project's own pre-push (e.g. git-lfs's) lives in
 # pre-push.local, next to this file: it runs after the check, with the same arguments
 # and stdin.

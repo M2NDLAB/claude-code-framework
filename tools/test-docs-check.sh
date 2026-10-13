@@ -440,14 +440,14 @@ edit "${c}/SETUP.md" 'These eight cases' 'These seven cases'
 edit "${c}/SETUP.md" 'It installs three hooks' 'It installs four hooks'
 edit "${c}/SETUP.md" 'the four guide READMEs' 'the five guide READMEs'
 edit "${c}/README.md" '\+ 4 subfolders' '+ 5 subfolders'
-edit "${c}/scripts/test-hooks-install.sh" 'Six cases:' 'Seven cases:'
+edit "${c}/scripts/test-hooks-install.sh" 'Eight cases:' 'Nine cases:'
 run 1 "${c}"
 nfails 5
 has '"These seven cases", but the numbered edge cases are 8'
 has '"It installs four hooks"'
 has '"the five guide READMEs"'
 has '"+ 5 subfolders"'
-has 'the header says "seven cases"'
+has 'the header says "nine cases"'
 c="$(copy list-setup)"
 edit "${c}/SETUP.md" '`CLAUDE\.md`, `\.claude/settings\.json`, `scripts/hooks-install\.sh`' '`.claude/settings.json`, `scripts/hooks-install.sh`'
 edit "${c}/SETUP.md" 'CLAUDE\.md scripts Makefile commitlint' 'CLAUDE.md scripts commitlint'
@@ -492,7 +492,7 @@ edit "${c}/scripts/test-hooks-install.sh" '^# --- Case 3 — .*\n' ''
 run 1 "${c}"
 has "the METHOD bullet names CLAUDE.md, which classify() puts in HYBRID"
 has 'edge case 3 is numbered "9."'
-has "the header lists 6 cases, the file marks 5"
+has "the header lists 8 cases, the file marks 7"
 c="$(copy list-sources)"
 edit "${c}/tools/upgrade-check.sh" '^#   classes <rev>' '#   kinds <rev>  '
 edit "${c}/tools/upgrade-check.sh" 'usage: upgrade-check\.sh classes\|' 'usage: upgrade-check.sh '

@@ -2,13 +2,16 @@
 
 Security has two levels in this framework:
 
-1. **An always-on baseline** — the pre-commit hook runs secret scanning (gitleaks)
-   on every commit: no secret in plaintext enters the repo (rule 1 of `CLAUDE.md`).
-   It holds for everything, always, without exceptions. The hook protects commits
-   from the moment it is installed: on a repo with PRE-EXISTING history (grafting the
-   framework onto an existing project) the baseline is COMPLETED by a one-off scan of
-   the whole history — `gitleaks detect` — as a setup step (step 3 of the framework's
-   `SETUP.md`).
+1. **An automatic baseline** — the pre-commit hook runs secret scanning (gitleaks)
+   on the changes staged for a `git commit`, and refuses the commit when it finds a
+   secret (rule 1 of `CLAUDE.md`), from the moment it is installed and while git reads
+   it. Its limits include the commits git creates itself — a rebase's `--continue`,
+   `git am`, a cherry-pick or a revert that applies cleanly —, which do not run it, and
+   a hook manager that sets `core.hooksPath` after the install, which takes it out
+   (`04-git-workflow.md`, *Enforcement of the execution boundary*). On a repo with
+   PRE-EXISTING history (grafting the framework onto an existing project) the baseline
+   is COMPLETED by a one-off scan of the whole history — `gitleaks detect` — as a setup
+   step (step 3 of the framework's `SETUP.md`).
    Findings on the history are the user's decisions: a secret that has already been
    pushed must be rotated/revoked anyway; rewriting history is a different matter and
    is not done lightly.
@@ -30,7 +33,8 @@ behalf of a client (e.g. a tool/automation server).
 On top of the Definition of Done (`02-code-quality.md`), BEFORE the merge request
 (PR) towards the integration branch of a sensitive component:
 
-1. **`/security-review`** run on the branch diff.
+1. **`/security-review`** run on the branch diff — and on the set a widened claim names
+   (*The lenses of the gate*).
 2. **HIGH/CRITICAL findings → RESOLVED** before the PR. Non-negotiable.
 3. **MEDIUM findings → resolved**, or **explicitly accepted** as known debt in
    `memory/STATE.md`, with the reason for accepting them.
@@ -40,6 +44,28 @@ The gate is a GATE, not an optional activity: a component that is "complete" and
 green functional tests can still carry security defects the tests cannot see (a
 bypassed check, a spoof, an exposed administrative endpoint). Only a dedicated review
 finds them before they reach integration.
+
+## The lenses of the gate
+
+A review that reads only what the code DOES can miss what the product SAYS, and the path a
+tool takes to its effect. Every review of the gate applies the two lenses below, and a
+deliverable whose product asserts a security property is under the gate for that alone.
+
+- **Claims, not only actions.** Every assertion the product makes about a security property
+  — a status, a badge, a summary, an "OK", "nothing changed", "no leaks found" — is checked
+  against what the code really does, not against the contract it is meant to honour. An
+  assertion that something did NOT happen needs a datum that shows it — what was read, and
+  how much —, kept apart from the classification it would otherwise be inferred from. A
+  debt accepted below (*After the review*) turns into a broken promise the moment a label
+  or a freshly written document asserts the contrary. The perimeter is the claim's, not the
+  diff's: when a change widens a claim — from these N to all, a list of exceptions that
+  disappears, a range of versions —, the review covers the set the claim names, beyond the
+  files the change touched.
+- **The real path.** A gate on an external tool covers what the tool does by itself on the
+  way to its effect: what its configuration — the user's included — makes it do, and what it
+  updates, writes or fetches unasked, read at its source or in its documentation. Each such
+  path is closed by the tool's own off-switch, compensated, or declared as a known limit; a
+  path left unread is a gap of the gate.
 
 ## When the review must be adversarial (author ≠ judge)
 

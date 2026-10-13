@@ -84,6 +84,11 @@ are stack-agnostic principles: the conventions specific to the chosen language g
   ALL entities, with an anti-vacuity check (it fails if the scanned set is empty).
   That way a future regression breaks the build by itself, instead of waiting for
   someone to remember to update the test.
+- A test of what drives an external tool keeps its hermetic baseline, and adds cases under
+  the configurations the users have — their git configuration, their attributes, their
+  platform: emptying the configuration for hermeticity also removes the defects it causes.
+  Each such case checks that its datum reaches the program under test — in the form the
+  program receives it, the configuration taking hold, the byte arriving — before it counts.
 
 ## Definition of Done for every task
 
@@ -109,6 +114,10 @@ are stack-agnostic principles: the conventions specific to the chosen language g
    a multi-stage container image, non-root runtime, or the equivalent for your
    platform — [TO BE DEFINED AT SETUP]). This does NOT emerge from tests run in a
    development environment: it must be verified explicitly.
+10. The records claim no more than their data: a commit message, a changelog entry, the
+    Verified part of an applied IMP is written after the last measurement it cites, and no
+    wider than it — a list that declares itself complete is held against its source, or
+    narrowed to what was measured.
 
 > The security gate for sensitive components is an ADDITIONAL requirement on top of
 > the Definition of Done: see `03-security-gate.md`.

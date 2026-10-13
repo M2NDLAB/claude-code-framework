@@ -38,7 +38,7 @@ components the task touches.
   (SessionStart hook)  (heavy? → PLAN)   (per task)    │
         │                                             ▼
         │   END-OF-DELIVERABLE CYCLE (in order):
-        │     1. /security-review — only if sensitive (gate)
+        │     1. /security-review — only if under the gate
         │     2. /retro           — reflect, record IMPs
         │     3. /checkpoint      — align memory/docs with reality
         │     4. /integrate       — merge+tag, then push: 2 blocks, human
@@ -73,11 +73,12 @@ Definition of Done and the commit are enough.
    everything else: the deliverable builds and the tests pass. If you get stuck here,
    leave through the escalation (`/sos`, `05-escalation-protocol.md`): it is not a
    step of the sequence, it is the way out.
-2. **`/security-review` — CONDITIONAL: only if the deliverable is sensitive.**
-   Sensitive = auth/authz, payments/money, personal data, the enforcement edge,
-   surfaces that act on behalf of a client (`03-security-gate.md`; the concrete list
-   is `[TO BE DEFINED AT SETUP]`). If it is sensitive this is a GATE: HIGH/CRITICAL
-   findings are resolved BEFORE going on. If it is not sensitive, skip it.
+2. **`/security-review` — CONDITIONAL: only if the deliverable is under the gate.**
+   Under the gate = sensitive — auth/authz, payments/money, personal data, the
+   enforcement edge, surfaces that act on behalf of a client (the concrete list is
+   `[TO BE DEFINED AT SETUP]`) —, or a deliverable whose product asserts a security
+   property (`03-security-gate.md`, *The lenses of the gate*). Under the gate this is a
+   GATE: HIGH/CRITICAL findings are resolved BEFORE going on. Otherwise, skip it.
 3. **`/retro` — end-of-deliverable reflection (FIXED).** Was there friction? A
    rule or a doc that would have helped? → record the proposals as IMPs in
    `LEARNINGS.md` (`06-self-improvement.md`). It is lightweight: with no friction it
@@ -95,7 +96,7 @@ Definition of Done and the commit are enough.
    the only step that leaves the agent's control.
 
 > In short: FIXED steps 1·3·4·5; CONDITIONAL step 2 (`/security-review`, only if
-> sensitive). The order is not arbitrary — `/retro` before `/checkpoint` so that the
+> under the gate). The order is not arbitrary — `/retro` before `/checkpoint` so that the
 > checkpoint persists the IMPs just recorded; `/integrate` last because it is the
 > only one that touches shared state, and only once memory and docs are aligned.
 
