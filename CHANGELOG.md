@@ -44,6 +44,11 @@ SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
   push to the human, and the installer's refusal when `core.hooksPath` is set says that a hook
   manager sets it again, integrating the framework's commands into it being the durable
   choice.
+- **The baseline claimed every commit.** `docs/03` and `CLAUDE.md`'s rule 1 now say what the
+  pre-commit does — it refuses a `git commit` when gitleaks finds a secret in the staged
+  changes —, and `docs/03` declares its limits, among them the commits git creates itself: a
+  rebase's `--continue`, `git am`, a cherry-pick or a revert that applies cleanly do not run
+  it (measured on git 2.54).
 - `docs/04` and the generated pre-push's comment no longer call `CLAUDECODE` undocumented:
   Claude Code's environment-variable reference documents it.
 
@@ -54,7 +59,8 @@ Step 2 of the upgrade says how they combine):
   `.claude/docs/04-git-workflow.md`, `.claude/commands/security-review.md`,
   `scripts/README.md`, `scripts/test-hooks-install.sh`.
 - HYBRID files (3-way): `scripts/hooks-install.sh` (the re-run's message, the refusal when
-  `core.hooksPath` is set, the pre-push's comment). Rehearsed on a project with every setup
+  `core.hooksPath` is set, the pre-push's comment) and `CLAUDE.md` (rule 1's sentence on the
+  hook, three lines). `scripts/hooks-install.sh` rehearsed on a project with every setup
   answer in place, the pre-commit's formatting slot among them: the merge clean, with LF and
   with CRLF line ends.
 - **`make hooks-install`**: the generated pre-push's comment changes, so the re-run saves the

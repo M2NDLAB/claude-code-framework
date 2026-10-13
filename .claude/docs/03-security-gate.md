@@ -2,15 +2,16 @@
 
 Security has two levels in this framework:
 
-1. **An always-on baseline** — the pre-commit hook runs secret scanning (gitleaks)
-   on every commit: no secret in plaintext enters the repo (rule 1 of `CLAUDE.md`).
-   It holds for everything, always, without exceptions. The hook protects commits
-   from the moment it is installed, while git reads it — a hook manager that later sets
-   `core.hooksPath` takes it out (`04-git-workflow.md`, *Enforcement of the execution
-   boundary*): on a repo with PRE-EXISTING history (grafting the
-   framework onto an existing project) the baseline is COMPLETED by a one-off scan of
-   the whole history — `gitleaks detect` — as a setup step (step 3 of the framework's
-   `SETUP.md`).
+1. **An automatic baseline** — the pre-commit hook runs secret scanning (gitleaks)
+   on the changes staged for a `git commit`, and refuses the commit when it finds a
+   secret (rule 1 of `CLAUDE.md`), from the moment it is installed and while git reads
+   it. Its limits include the commits git creates itself — a rebase's `--continue`,
+   `git am`, a cherry-pick or a revert that applies cleanly —, which do not run it, and
+   a hook manager that sets `core.hooksPath` after the install, which takes it out
+   (`04-git-workflow.md`, *Enforcement of the execution boundary*). On a repo with
+   PRE-EXISTING history (grafting the framework onto an existing project) the baseline
+   is COMPLETED by a one-off scan of the whole history — `gitleaks detect` — as a setup
+   step (step 3 of the framework's `SETUP.md`).
    Findings on the history are the user's decisions: a secret that has already been
    pushed must be rotated/revoked anyway; rewriting history is a different matter and
    is not done lightly.

@@ -827,6 +827,13 @@ tags: [improvement]
   `/integrate`'s block 1 or in the pre-push.
 - Expected benefit / risk: the baseline says what it covers; a compensation would close the
   route. Risk: a scan at publication repeats work on every push.
+- Partly applied on 2026-10-13, the user's decision after v2.1.0's review: the claims
+  narrowed — `docs/03`'s baseline says what the hook does and declares this limit,
+  `CLAUDE.md`'s rule 1 points to it. Measured then on git 2.54.0 with a marker hook: a
+  cherry-pick or a revert that applies cleanly, `git am` and a rebase's `--continue` after
+  a conflict do not run the pre-commit; a cherry-pick's `--continue` after a conflict and a
+  merge concluded by `git commit` do; a clean merge runs `pre-merge-commit` instead. Still
+  open: `SETUP.md`'s known limits and a compensation at publication.
 
 ### IMP-092 — Claude Code's permission flow can replace the guard's verdict and the ask rules
 - Date: 2026-10-13 | Origin: v2.1.0's review, M2 and I1 — [[2026-10-13-gate-lenses-2.1.0]]
