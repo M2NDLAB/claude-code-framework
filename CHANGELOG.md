@@ -36,14 +36,15 @@ SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
   one this version generates, and saves it as `.bak` as before. The user met it regenerating
   this repository's hooks after 2.0.0's integration.
 - **The hooks' coverage was claimed wider than it is** — the HIGH of this release's review. A
-  hook manager sets `core.hooksPath` again at its next run — husky does, from the `prepare`
-  script its setup writes, at every `npm install`, unless `HUSKY=0` —, and from then on the
-  pre-commit's scan and the push boundary do not run, without a word: with `core.hooksPath`
-  set after the install, a commit holding a key goes through (measured). `docs/04`, `docs/03`
-  and `scripts/README.md` now say so, `README.md` no longer says the pre-push leaves every
-  push to the human, and the installer's refusal when `core.hooksPath` is set says that a hook
-  manager sets it again, integrating the framework's commands into it being the durable
-  choice.
+  hook manager that uses `core.hooksPath` sets it again at its next run — husky does, from
+  the `prepare` script its setup writes, at every `npm install`, unless `HUSKY=0` —, and from
+  then on the pre-commit's scan and the push boundary do not run, without a word: with
+  `core.hooksPath` set after the install, a commit holding a key goes through (measured).
+  `docs/04`, `docs/03` and `scripts/README.md` now say so, `README.md` no longer says the
+  pre-push leaves every push to the human, and the installer's refusal when `core.hooksPath`
+  is set says that a hook manager sets it again, integrating the framework's commands into it
+  being the durable choice. The graft's and the upgrade's checklists in `SETUP.md` now look
+  for `core.hooksPath` and for a hook manager, husky, lefthook or simple-git-hooks.
 - **The baseline claimed every commit.** `docs/03` and `CLAUDE.md`'s rule 1 now say what the
   pre-commit does — it refuses a `git commit` when gitleaks finds a secret in the staged
   changes —, and `docs/03` declares its limits, among them the commits git creates itself: a

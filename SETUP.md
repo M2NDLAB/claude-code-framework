@@ -393,6 +393,18 @@ On a pre-existing git history, before adopting the flow of `docs/04`:
 
 - [ ] **History scanned**: a one-off `gitleaks detect` over the whole history (see the
       box in step 3) — the hook only protects future commits.
+- [ ] **Hook managers**: a hook manager — husky, lefthook, simple-git-hooks — sets up its
+      own hooks when it runs: husky sets `core.hooksPath` at every `npm install`, unless
+      `HUSKY=0`, and from then on git reads none of the hooks of step 3, without a word
+      (`docs/04`, *Enforcement of the execution boundary*). If the host has one, at the
+      root or in a subdirectory, integrate the hooks' commands into it — the durable
+      choice. The three commands print nothing when there is none:
+
+  ```bash
+  git config --show-origin --get core.hooksPath
+  git ls-files | grep -E '(^|/)(\.husky/|\.?lefthook\.|\.?simple-git-hooks\.)'
+  git grep -l -E '"(husky|lefthook|simple-git-hooks)"' -- '*package.json'
+  ```
 - [ ] **Audit of inherited tags**: `git cat-file -t <tag>` on each one (`tag` =
       annotated, `commit` = lightweight). The regime of `docs/04` (*Versioning*)
       creates annotated SemVer tags: work out which SemVer base the versioning
@@ -935,6 +947,10 @@ check, and a re-run leaves it alone. Real verification:
   version: they pass with an older `pre-commit` and `commit-msg` still installed, and
   none of them reaches the `pre-push` — whose behaviour `make test-scripts` proves in a
   throwaway repository (a push from the session is refused by design: never attempt one).
+- **No hook manager in the way**: the three commands of the graft's check (*Inherited git
+  hygiene*, *Hook managers*) print nothing. `make hooks-install` stops in front of a manager
+  that has run — `core.hooksPath` set, or a pre-commit, commit-msg or pre-push without the
+  generator's marker —, not in front of one configured since the graft and not yet run.
 - A fake secret blocked by gitleaks, a non-conventional message rejected by commitlint.
 - `make test-scripts` green. It also checks `.claude/settings.json` against the guard:
   the wiring of `scripts/agent-git-guard.mjs` on Bash, PowerShell and Monitor, the

@@ -796,6 +796,7 @@ tags: [improvement]
 
 ### IMP-090 — The hooks go inert when a hook manager takes core.hooksPath after the install
 - Date: 2026-10-13 | Origin: v2.1.0's review, its HIGH H1 — [[2026-10-13-gate-lenses-2.1.0]]
+- Priority: MEDIUM (user decision, 2026-10-13).
 - Observed problem: `hooks-install.sh` checks `core.hooksPath` at install time only; a hook
   manager sets it again at its next run — husky 9.1.7 at every install it runs, from the
   project's `prepare` script at each `npm install`, unless `HUSKY=0` (read at its source) —,
@@ -811,6 +812,13 @@ tags: [improvement]
   checksums, or declares what it leaves out.
 - Expected benefit / risk: the boundary's loss shows at the next session. Risk: an edit to
   `.claude/settings.json`, a boundary file.
+- Resumption trigger: the first project with a hook manager.
+- Verified by the user on 2026-10-13: on the user's machines, neither of the two projects
+  checked has `core.hooksPath` set or a hook manager configured — at the root or in a
+  subdirectory; husky, lefthook, simple-git-hooks.
+- A mitigation, the user's decision in v2.1.0: the graft's and the upgrade's checklists
+  (`SETUP.md`, *Inherited git hygiene* and Step 4) check `core.hooksPath` and look for a hook
+  manager, so the case shows at a graft or an upgrade; the detection at use time stays open.
 
 ### IMP-091 — The commits git creates itself skip the pre-commit
 - Date: 2026-10-13 | Origin: v2.1.0's review, M1 — [[2026-10-13-gate-lenses-2.1.0]]
