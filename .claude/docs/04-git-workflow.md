@@ -55,11 +55,16 @@ feat(<area>): add a compensation step to flow X
 
 The flow left a resource locked when step Y timed out.
 Added an idempotent compensation step.
+
 Refs: #123
 ```
 
 The format is checked by the `commit-msg` hook (commitlint) and defined in
-`commitlint.config.cjs`.
+`commitlint.config.cjs`. The footer follows a blank line, and no line of the body — a
+wrapped one included — begins with a single word followed by a colon or by " #"
+(`measured: …`, `issue #12 …`): commitlint's parser reads such a line as the first line of
+the footer and cuts the body there, and the hook only warns ("footer must have leading
+blank line").
 
 **Shared history = forever.** In messages destined for the shared history (commits,
 merges, tags) there must be no reference to instances EXTERNAL to the project — names

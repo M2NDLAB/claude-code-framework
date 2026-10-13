@@ -98,47 +98,6 @@ tags: [improvement]
 - Status: APPROVED on 2026-10-13 (the retro over the backlog) — for v2.2.0, IMP-065
   included.
 
-### IMP-078 — commitlint reads a body line that starts with "word:" as the footer
-- Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — observed four times
-- Priority: LOW (user decision, 2026-10-11).
-- Observed problem: twice a commit's body had a line that began with a single word and a
-  colon — "repository:" in the CHANGELOG commit of v1.4.1, amended while it was still
-  local ([[2026-10-11-payload-purity-1.4.1]]), and "measured:" in `e6597f1` of v1.5.0,
-  left as it is because the branch was public — and a third time on the same day, while
-  this entry was being written: "was:" in a commit of the CI's second round, written
-  again while it was still local. Each time the commit-msg hook warned "footer must have
-  leading blank line". How commitlint recognises a footer, checked:
-  its documentation and its parser's (the README and the API page of
-  conventional-commits-parser) list `noteKeywords`, `referenceActions`, `issuePrefixes`
-  and `fieldPattern` without saying when a line opens the footer; the parser's source
-  does — conventional-commits-parser 7.1.3, the version the hook's npx fetched,
-  `dist/regex.js`, `getFooterTokenRegex`: "Footers follow the git trailer convention: the
-  token starts at the beginning of the line, indented `key: value` lines are not
-  footers", the pattern `^(?:BREAKING CHANGE|[\w-]+)(?::\s+|\s+#).+`, case-insensitive;
-  from that line on, everything is footer. Measured with that parser: "measured: …" and
-  "repository: …" open the footer and cut the body there; "the step: …" (two words), an
-  indented line and "measured:" without a space do not. `@commitlint/config-conventional`
-  21.2.3 sets `footer-leading-blank` to a warning, which `commitlint.config.cjs` does not
-  override.
-- Proposal: NOT decided — two options: (a) one line in `docs/04`, *Commit format*: in the
-  body, no line begins with a single word and a colon; (b) `commitlint.config.cjs`:
-  `footer-leading-blank` raised to an error, so the hook refuses such a commit while it
-  is still local and its message can still be written again.
-- Expected benefit / risk: the body stays whole in the parsed history, and no published
-  commit carries the warning. Risk of (b): an error in every project's commit-msg hook
-  where a warning was — for a footer typed without its blank line too.
-- A fourth time, at v1.5.0's checkpoint: "projects:" opened a wrapped body line; the
-  commit was written again while still local.
-- A fifth time, in v2.0.0's review fixes ([[2026-10-12-prerequisites-1.6.0]]): "source:"
-  opened a wrapped body line of the breaking commit; written again while still local, as
-  `5f05004`.
-- A sixth time, in v2.1.0 ([[2026-10-13-gate-lenses-2.1.0]]): "diff:" opened a wrapped body line of task 3's
-  commit, written again while still local. From then on each message was checked before its
-  commit with a grep for a body line opening with a word and a colon.
-- Status: APPROVED on 2026-10-13 (the retro over the backlog) — for v2.2.0, option (a): one
-  line in `docs/04`'s *Commit format*. Option (b) would make the hook refuse messages 2.1.0
-  accepts — breaking, by the criterion v2.0.0 applied when it refused an older gitleaks.
-
 ### IMP-082 — The whole suite before each commit, the documentation check included
 - Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro), recorded at
   the user's request in [[2026-10-12-prerequisites-1.6.0]]
@@ -1741,6 +1700,23 @@ line on; older entries are not backfilled.
   ([[2026-10-13-backlog-retro-2.2.0]]) followed (a) and (b) before they were written: its
   four read-only agents got the user's decisions verbatim and each returned its coverage
   gaps; the snapshot was unchanged after them.
+
+### IMP-078 — commitlint reads a body line that starts with "word:" as the footer → applied on 2026-10-14
+- Origin: [[2026-10-11-multiplatform-1.5.0]] — a body line that began with a single word and
+  a colon opened the footer and cut the body there, the hook only warning "footer must have
+  leading blank line": six times from v1.4.1 to v2.1.0, all in the agent's own messages, one
+  left in a public commit (`e6597f1`). Read at the parser's source
+  (conventional-commits-parser 7.1.3, `getFooterTokenRegex`): a line matching
+  `^(?:BREAKING CHANGE|[\w-]+)(?::\s+|\s+#).+` opens the footer, a hyphenated word counting
+  as one word.
+- Applied (option (a)): `docs/04`, *Commit format*, says the footer follows a blank line and
+  no body line, a wrapped one included, begins with a single word followed by a colon or by
+  " #", and why. Its own example, whose footer followed the body with no blank line, gains
+  the blank line. Option (b), the warning raised to an error, is not adopted: the hook would
+  refuse messages 2.1.0 accepts — breaking, by the criterion v2.0.0 applied to gitleaks.
+- Verified: the documentation check passes, its Types line untouched. In this release the
+  messages were checked before each commit with a grep for such a line: it stopped three of
+  them, rewrapped while still uncommitted ([[2026-10-13-backlog-retro-2.2.0]]).
 
 ## Deferred (not rejected — resumed at the right time)
 
