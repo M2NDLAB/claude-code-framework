@@ -290,41 +290,6 @@ tags: [improvement]
   was caught on the unchanged repository, because the declared exceptions of the frozen
   memory stopped matching. The `docs/02` rule itself stays open.
 
-### IMP-058 — Widening a claim beyond the diff widens the gate's perimeter
-- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
-  a small fix attested as verified a claim over a whole registry, four entries of which
-  were false
-- Observed problem (client-side, relayed): the task closed two known violations, but to
-  do so it set every entry of an 18-entry registry to "compliant", added a class test
-  and rewrote the user doc from "these units do not honour the flag" to "every unit
-  stops at the preview". The diff touched 2 units; the CLAIM covered 18 — and four of
-  them were false, for defects the branch had not introduced (an implicit self-update of
-  an external tool — IMP-059 —, an ungated deletion, a check that executed untrusted
-  input). The branch broke nothing: it ATTESTED as verified what was only declared. A
-  review limited to the changed files — the normal practice — would never have seen it.
-- On the framework's source: the gate is diff-scoped — `docs/03` runs `/security-review`
-  "on the branch diff", `security-review.md` reviews "the modified files (`git diff`)";
-  the only check beyond the diff, the coherence review of `docs/01`, is scoped to
-  shared-code refactors and renamed titles (IMP-043).
-- Proposal (as relayed; NOT decided here — retro): next to IMP-056's lens, a BREADTH
-  criterion in `docs/03`: when a deliverable generalises a claim (from "these N" to
-  "all"), the perimeter of the gate is the CLAIM's, not the diff's. Triggers: a
-  registry/config value going from exception to uniformity; a test replacing point
-  cases with a loop over the whole set; a doc sentence losing its exceptions (an
-  "except…" that disappears).
-- Close kin of IMP-056 — **evaluate unification at the retro**: IMP-056 is the lens
-  (claims, not only actions), this entry its perimeter (the claim's set, not the diff's).
-- The framework's own occurrence, as a pattern: C11 ([[2026-09-24-third-upgrade-lessons]])
-  — decision 3 of the language deliverable scoped backward compatibility to the three
-  grep-coupled tokens ([[2026-07-20-language-rule-phase1]]), while the 1.1.0 CHANGELOG
-  sentence put five kinds of strings, the escalation delimiters included, under "Every
-  READER accepts the legacy Italian form as well"; `docs/05` never got a dual-form
-  reader. The defect is recorded there; the pattern was not. And `docs/02`'s
-  ALL-entities invariant is itself a widening trigger — with a known debt, its form is
-  IMP-057's.
-- Expected benefit / risk: catches the defect class where the code is correct and the
-  promise is false. Risk: a wider gate — to apply only when the claim really widens.
-
 ### IMP-059 — Gating an external tool's invocation is not enough: check what the tool runs by itself
 - Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
   a dry-run gate that looked closed while the gated tool kept updating itself
@@ -2047,6 +2012,22 @@ line on; older entries are not backfilled.
   the gate for that alone, the trigger this entry left open. `/security-review`'s check 11
   recalls it.
 - Uncovered: the lens is a discipline of reading; no mechanical check holds it.
+
+### IMP-058 — Widening a claim beyond the diff widens the gate's perimeter → applied on 2026-10-13
+- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — a small fix attested
+  as verified a claim over a whole registry, four entries of which were false
+- Observed problem (condensed): the gate was the diff's — `docs/03` ran `/security-review`
+  "on the branch diff" —, while a deliverable can widen a claim far beyond the files it
+  touches. In v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]) H1 lay outside the reviewed
+  range, the pre-commit's text unchanged, and was found because the user scoped the review
+  to the hooks; the scan error's claim widened from what was read, 8.4.0 to 8.18.1, to
+  "before 8.18.2", in five places.
+- Decision (the user, 2026-10-13 — [[2026-10-13-gate-lenses-2.1.0]]): IMP-056's lens at the
+  claim's perimeter — one principle with IMP-056, IMP-071 and IMP-073.
+- Applied in v2.1.0 ([[2026-10-13-gate-lenses-2.1.0]]): the claims lens of `docs/03` sets
+  the perimeter at the claim, not the diff — from these N to all, a list of exceptions that
+  disappears, a range of versions —; the gate's first step points at it.
+- Uncovered: telling a widened claim from a narrow one stays a reading; no check finds it.
 
 ## Deferred (not rejected — resumed at the right time)
 

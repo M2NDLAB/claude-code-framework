@@ -30,7 +30,8 @@ behalf of a client (e.g. a tool/automation server).
 On top of the Definition of Done (`02-code-quality.md`), BEFORE the merge request
 (PR) towards the integration branch of a sensitive component:
 
-1. **`/security-review`** run on the branch diff.
+1. **`/security-review`** run on the branch diff — and on the set a widened claim names
+   (*The lenses of the gate*).
 2. **HIGH/CRITICAL findings → RESOLVED** before the PR. Non-negotiable.
 3. **MEDIUM findings → resolved**, or **explicitly accepted** as known debt in
    `memory/STATE.md`, with the reason for accepting them.
@@ -53,7 +54,10 @@ property is under the gate for that alone.
   assertion that something did NOT happen needs a datum that shows it — what was read, and
   how much —, kept apart from the classification it would otherwise be inferred from. A
   debt accepted below (*After the review*) turns into a broken promise the moment a label
-  or a freshly written document asserts the contrary.
+  or a freshly written document asserts the contrary. The perimeter is the claim's, not the
+  diff's: when a change widens a claim — from these N to all, a list of exceptions that
+  disappears, a range of versions —, the review covers the set the claim names, beyond the
+  files the change touched.
 
 ## When the review must be adversarial (author ≠ judge)
 
