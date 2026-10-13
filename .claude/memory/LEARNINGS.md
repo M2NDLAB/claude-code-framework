@@ -495,6 +495,13 @@ tags: [improvement]
   the review's MEDIUM, decided by the user as a security minimum that refuses a gitleaks
   v1.5.0 accepted, made the release breaking. The bump was computed again by `docs/04`,
   declared a MAJOR before the tag, and confirmed by the user.
+- An occurrence in v2.1.0, pointed out by the user on 2026-10-13
+  ([[2026-10-13-gate-lenses-2.1.0]]): the commits that apply IMPs as `docs/06` says are typed
+  `chore`, and here they carry the new rules of `docs/02` and `docs/03` into the payload.
+  With the release's one `fix`, a bump computed from the types alone comes out a PATCH,
+  while by `docs/04`'s criteria a new rule in the payload is a MINOR. The user's instruction:
+  `/integrate` computes the bump on the content — the new rules in the payload —, not only on
+  the commits' types, and declares its reasoning before the tag; v2.1.0 expected.
 
 ### IMP-075 — Auto mode and the framework's boundaries
 - Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — the user ran

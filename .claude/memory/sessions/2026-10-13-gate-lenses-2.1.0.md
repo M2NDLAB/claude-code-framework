@@ -4,7 +4,7 @@ task: v2.1.0 — the gate's lenses (IMP-056, IMP-058, IMP-059, IMP-071, IMP-073,
 branch: feat/gate-lenses-2.1.0
 status: in-progress
 model: 'claude-opus-5-5'
-turns: 2
+turns: 3
 tags: [session, security-gate, docs, imp, plan]
 ---
 # Session 2026-10-13 — v2.1.0: the gate's lenses
@@ -15,7 +15,8 @@ tags: [session, security-gate, docs, imp, plan]
 
 ## The fields of this very note
 - `model: 'claude-opus-5-5'` — the main session.
-- `turns: 2` — the user's brief for phase 1, with v2.0.0 integrated; the user's decisions.
+- `turns: 3` — the user's brief for phase 1, with v2.0.0 integrated; the user's decisions;
+  the user's follow-ups on the gate's trigger and the bump.
 
 ## The brief — persisted so a /clear does not lose it
 - v2.0.0 integrated and published by the user (`b6035c3`, the tag v2.0.0 signed, the branch
@@ -93,6 +94,15 @@ tags: [session, security-gate, docs, imp, plan]
 - **The first commit:** the pending registrations. Then the usual flow: a dedicated branch,
   block 0 with the CI green on the three on every pushed state, ONE reviewer, `/checkpoint`,
   blocks 1 and 2 with the tested tip checked and the branch deleted locally and on GitHub.
+
+**The user's follow-ups (2026-10-13), on the pushed tasks 1 to 9:**
+- The gate's trigger as written in the lens — a deliverable whose product asserts a
+  security property is under the gate for that alone — is kept.
+- The bump: the new rules of `docs/02` and `docs/03` sit in commits typed `chore`, as
+  `docs/06` has the applying commits. Computed from the types alone it comes out a PATCH;
+  by `docs/04`'s criteria a new rule in the payload is a MINOR. `/integrate` computes it on
+  the CONTENT — the new rules in the payload —, not only on the types, and declares its
+  reasoning before the tag: v2.1.0 expected. Recorded as an occurrence of IMP-074.
 
 ## Plan (one commit per task)
 - [x] 1. The registrations — IMP-089, the history scan's limit; the product's "contained local changes" as IMP-073's occurrence — and this note with its plan; then the agent's persistent memory emptied — commit: 6d7844a
