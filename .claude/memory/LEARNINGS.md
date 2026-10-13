@@ -695,29 +695,6 @@ tags: [improvement]
 - Expected benefit / risk: a guard as large as its job. Risk: a form removed that a
   developer with the PowerShell tool on would use — the tool is off by default.
 
-### IMP-084 — A cross-platform test can pass vacuously when its datum does not reach the program under test intact
-- Date: 2026-10-12 | Origin: the CI's rounds 6 to 8 of v1.5.0, in the last section of
-  [[2026-10-11-multiplatform-1.5.0]] — the lesson in the user's words; recorded in
-  [[2026-10-12-prerequisites-1.6.0]]
-- Observed problem: on Windows the guard self-test's anti-vacuity check (`766365a`) failed
-  in round 6 (run 38173900708, on `7cb3bb7`) and in round 7 (run 38270936385, on
-  `7d2052b`): the `\r` of the check's own `$'…'` string did not reach node, nor, in round
-  7, `od`. The guard's CRLF cases had passed on Windows in rounds 3 to 5 through the same
-  transport, but the check wrote its `\r` differently from them — a literal inside `$(…)`,
-  theirs through a variable —, so their own path was never measured: whether those rounds
-  were vacuous is NOT established, and by the user's decision (2026-10-12) it is not
-  investigated further. The user's fix, `9fa2e9a`: the CRLF cases written as JSON escapes,
-  the form Claude Code sends — the test proves the real path, not Git Bash's behaviour, a
-  detail of the test environment —, and the anti-vacuity check moved to node itself, a
-  probe in the guard's place on the same wiring. Round 8 (run 38275935122) was green on
-  the three images.
-- Proposal: NOT decided. IMP-071's family — verify that the check really checked: (a) a
-  cross-platform test feeds its datum in the form the product receives, not in a form a
-  platform's shell must carry intact; (b) its anti-vacuity check looks at the program
-  under test, on the same path as the cases it vouches for. The candidate place:
-  `docs/02`, *Tests that demonstrate*, with IMP-071.
-- Expected benefit / risk: a green that means what it says on every platform. Risk: none.
-
 ### IMP-085 — The framework's files kept out of deploy artifacts
 - Date: 2026-10-13 | Origin: the user's question, 2026-10-13 — recorded in
   [[2026-10-12-prerequisites-1.6.0]]
@@ -1993,6 +1970,24 @@ line on; older entries are not backfilled.
   cases 5 to 7, from v2.0.0.
 - Uncovered: the configurations users have are open-ended; the cases stay those observed,
   or read at the tool's source.
+
+### IMP-084 — A cross-platform test can pass vacuously when its datum does not reach the program under test intact → applied on 2026-10-13
+- Date: 2026-10-12 | Origin: the CI's rounds 6 to 8 of v1.5.0, in the last section of
+  [[2026-10-11-multiplatform-1.5.0]] — the lesson in the user's words; recorded in
+  [[2026-10-12-prerequisites-1.6.0]]
+- Observed problem (condensed): on Windows the `\r` of the guard's CRLF cases, written
+  through Git Bash's `$'…'`, did not reach node; the anti-vacuity check caught it in rounds 6
+  and 7. Whether rounds 3 to 5 were vacuous is not established, by the user's decision. The
+  user's fix, `9fa2e9a`: the cases written as JSON escapes, the form Claude Code sends, and
+  the check moved to node itself.
+- Decision (the user, 2026-10-13 — [[2026-10-13-gate-lenses-2.1.0]]): one principle with
+  IMP-059 and IMP-087, the gate and the test look at the real path; the tests' line of
+  `docs/02` says it.
+- Applied in v2.1.0 ([[2026-10-13-gate-lenses-2.1.0]]): *Tests that demonstrate* — each
+  case under a configuration checks that its datum reaches the program under test, in the
+  form the program receives it, before it counts. The framework's instances: the guard's
+  CRLF cases since `9fa2e9a`, the real-hook cases 5 to 7 since v2.0.0.
+- Uncovered: rounds 3 to 5 of v1.5.0 stay not established.
 
 ## Deferred (not rejected — resumed at the right time)
 

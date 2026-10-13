@@ -87,6 +87,8 @@ are stack-agnostic principles: the conventions specific to the chosen language g
 - A test of what drives an external tool keeps its hermetic baseline, and adds cases under
   the configurations the users have — their git configuration, their attributes, their
   platform: emptying the configuration for hermeticity also removes the defects it causes.
+  Each such case checks that its datum reaches the program under test — in the form the
+  program receives it, the configuration taking hold, the byte arriving — before it counts.
 
 ## Definition of Done for every task
 
