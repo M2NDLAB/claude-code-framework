@@ -8,7 +8,8 @@ Claude Code **does not push and does not merge** — that is a human action (see
 @.claude/docs/04-git-workflow.md). Here it COLLECTS the state with read-only commands
 and PRODUCES two blocks of exact commands, ready to paste. Run ONLY the read commands of
 steps 1-2, the CHANGELOG update of step 3 if the project keeps one (a local commit) and
-the read-only computations of step 4; everything else must be PRINTED, not executed.
+the read-only computations of step 4, its failure path included (*When the user reports a
+failed check*); everything else must be PRINTED, not executed.
 
 ## 1. Collect the state (read-only)
 - Current branch (feature): `git branch --show-current`.
@@ -106,8 +107,8 @@ Then the line, as plain text OUTSIDE any code block, with the real values:
 
 > Copy block 2 only if block 1 printed `block 1: merged and tagged`, `tag on <integration>:
 > OK`, `count: OK (<N>)` and `signature: OK` (the last only if SIGNED). If any is
-> missing, do not publish: repair what failed, then run `/integrate` again — it
-> recomputes the blocks.
+> missing, do not publish: report which line is missing — the repair comes then, from the
+> state it finds, and a destructive line only if that state needs one.
 
 Block 2 — publication, YOU run it: the branch and the tag in ONE atomic push — the remote
 takes both or neither, so a tag never goes public on a commit the remote branch lacks —
@@ -121,11 +122,19 @@ git branch -d <feature>
 With "no tag": block 1 without the `git tag -a` line, its marker `block 1: merged`, and
 neither the tag nor the signature check; block 2 `git push origin <integration> &&
 git branch -d <feature>`; the line names the marker and the count.
+### When the user reports a failed check
+The blocks above hold no destructive line, not even in a block of its own under its
+condition: a condition written above a copyable block is not a condition — pasted out of
+inertia, the block runs (docs/04, "Execution boundary and blocks for the user"). A recovery
+block is produced here only: after the user reports that block 1 did not print one of its
+lines, and once read-only commands have shown the state it repairs — `git log --oneline -3`
+on the integration branch, `git rev-parse -q --verify 'refs/tags/v<X.Y.Z>^{commit}'`, and
+`git ls-remote --tags origin v<X.Y.Z>`, which tells whether the tag is published.
 
 If (and ONLY if) the tag exists but `tag on <integration>: OK` did not appear — a tag
 left by an earlier, failed paste — ALSO print this recovery block, SEPARATE from the ones
-above (docs/04, "Execution boundary and blocks for the user"): never `tag -d` on a sound
-tag.
+above, and only while that tag is local: `git ls-remote` printed nothing. A tag already
+published is never deleted, whatever it points at; nor is a sound one.
 ```
 git tag -d v<X.Y.Z>
 ```
@@ -149,8 +158,9 @@ verifies only with `gpg.ssh.allowedSignersFile` configured.
   becomes public) and its count against `N`, each printing its fixed line;
 - block 2 holds only the atomic push and the branch deletion, and the line before it,
   outside the blocks, names every line block 1 must have printed;
-- every destructive command (e.g. `tag -d`) is in a SEPARATE block with its
-  condition, never inline (docs/04, "Execution boundary and blocks for the user").
+- no destructive line in the printed blocks, not even in a block of its own: a recovery
+  block comes only from step 4's failure path, after the user reports a failed check
+  (docs/04, "Execution boundary and blocks for the user").
 
 ## Release variant (1.0.0 and post-1.0)
 For the `<integration>`→`<stable>` promotion the two blocks are the same, on the stable

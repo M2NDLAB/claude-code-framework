@@ -177,8 +177,8 @@ on WHICH BRANCH the tag lives:
   spaces copied from an editor corrupt the command in obscure ways.
 - Before pushing a tag: ALWAYS verify that it points at the commit meant —
   `git rev-parse '<tag>^{commit}'` equals the tip of the branch just merged. `git tag -d`
-  is used ONLY if that verification fails — never on a healthy tag, and never inline
-  with the constructive commands (see "Execution boundary").
+  is given ONLY after that verification has failed — never printed in advance, never on
+  a healthy tag, never on a tag already published (see "Execution boundary").
 - Where the repository signs its tags (`tag.gpgSign` true, in its config or the global
   one), verify the signature too, `git tag -v <tag>`, and never publish a tag whose
   signature does not verify. Signing stays optional: a project that does not sign has no
@@ -240,11 +240,13 @@ Rules for every command block meant for manual execution by the user:
 2. **Placeholders for the executor ≠ commands for the user.** The placeholders in
    commands that Claude Code runs (the executor resolves them itself) are NEVER
    passed to the user: the user must not have to resolve anything.
-3. **Destructive commands never inline.** `tag -d`, `branch -D`, `reset --hard`,
-   `push --force`, `rm`: never in the same copy-paste block as the constructive
-   commands. They go in a SEPARATE block, preceded by the EXACT condition that
-   justifies them ("only if `<command>` fails") — never executable out of inertia
-   while scrolling through the sequence.
+3. **Destructive commands never in advance.** `tag -d`, `branch -D`, `reset --hard`,
+   `push --force`, `rm`: never in a block of the sequence, not even in a separate block
+   under the condition that would justify them ("only if `<command>` fails") — for a
+   destructive line, a condition written above a copyable block is not a condition:
+   pasted out of inertia, the block runs. Such a command is given only once its
+   condition holds — the user has reported the failure it repairs, and read-only
+   commands have shown the state —, alone in its block, never with constructive ones.
 4. **Publishing goes in a block of its own.** A sequence that ends by publishing is
    printed as TWO blocks: the first does everything local and ends with the checks;
    the second only publishes (the push, then the cleanup), introduced by one line
@@ -257,7 +259,8 @@ Rules for every command block meant for manual execution by the user:
    a block (in zsh's default configuration a `#` at the prompt is a command, and in a
    chain it breaks the chain); a publication that moves several refs is atomic
    (`git push --atomic`). A failure in the first block leaves only local state to
-   repair, and the missing lines show it before anything leaves the machine.
+   repair, and the missing lines show it before anything leaves the machine; the repair
+   is given then, once the user reports them (rule 3).
 
 ## Enforcement of the execution boundary
 

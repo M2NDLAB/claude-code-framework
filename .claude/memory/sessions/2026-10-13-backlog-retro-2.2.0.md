@@ -88,7 +88,7 @@ tags: [session, retro, imp, plan, security-gate]
   advance.
 
 ## Plan (one commit per IMP applied)
-- [ ] 1. The retro's registrations — the 45 outcomes in `LEARNINGS.md`, IMP-102 and IMP-103, what the user verified on the two projects — and this note with its plan — commit: —
+- [x] 1. The retro's registrations — the 45 outcomes in `LEARNINGS.md`, IMP-102 and IMP-103, what the user verified on the two projects — and this note with its plan — commit: 5ddaa56
 - [ ] 2. `/integrate` and the cycle's close: apply IMP-102 (the recovery block produced only after a failed check is reported; `docs/04`'s rule 3), IMP-074 (the bump computed on the content), IMP-051 (the reconciliation after a merge is the next deliverable's first step) — commit: —
 - [ ] 3. Resumption: apply IMP-094 (`reset-task.sh`: the fix, a self-test red first, `docs/01`'s manual form) and IMP-052 (verify before continuing) — commit: —
 - [ ] 4. Process: apply IMP-053 (the gate's verdict always written), IMP-057 (an invariant over a known debt), IMP-060 with IMP-063 (delegation), IMP-078 (a body line read as the footer), IMP-103 (a LOW finding declared as a limit) — commit: —

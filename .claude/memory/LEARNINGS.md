@@ -592,29 +592,6 @@ tags: [improvement]
   — one place — instead of written by hand, so the claim stays true whatever IMP-086 decides
   on the CI.
 
-### IMP-102 — The recovery block printed in advance is run after a successful integration
-- Date: 2026-10-13 | Origin: [[2026-10-13-backlog-retro-2.2.0]] — the integration of v2.1.0,
-  reported by the user
-- Observed problem: with blocks 1 and 2 of v2.1.0's integration the agent printed a third
-  block, `git tag -d v2.1.0`, under a line naming its condition — only if block 1 had not
-  printed `tag on main: OK`. The user ran it after an integration that had succeeded: the
-  local tag was deleted, then recovered with `git fetch` — no damage, a ruleset protects the
-  remote tag. `/integrate` already printed that block only "if (and ONLY if) the tag exists
-  but `tag on <integration>: OK` did not appear"; the tag was free when the blocks were
-  printed (checked), so the condition was false and the block should not have been printed:
-  the agent followed its own precedent of v2.0.0 instead of the command's text. And
-  `docs/04`'s rule 3 of the blocks for the user still allows a destructive command printed
-  in advance, "in a SEPARATE block, preceded by the EXACT condition". A condition written
-  above a copyable block does not work as a condition — IMP-069's lesson, which covered the
-  pause before the push and left this block out.
-- Proposal (the user's): the fix is structural, not only textual. In its normal sequence
-  `/integrate` does not print the recovery block; it produces it only when the user reports
-  a failed check. `docs/04`'s rule 3 is aligned: a destructive command is never printed in
-  advance under its condition; it is given once the condition holds.
-- Expected benefit / risk: no destructive command waits on the screen for a paste out of
-  inertia. Risk: one more exchange when a check fails — the one case that needs it.
-- Status: APPROVED on 2026-10-13 (the retro over the backlog) — for v2.2.0.
-
 ### IMP-103 — A LOW finding that a line of text does not close becomes a declared limit, not an IMP
 - Date: 2026-10-13 | Origin: [[2026-10-13-backlog-retro-2.2.0]] — the retro over the
   backlog, on the data of v2.1.0's review ([[2026-10-13-gate-lenses-2.1.0]])
@@ -1857,6 +1834,27 @@ line on; older entries are not backfilled.
   form the program receives it, before it counts. The framework's instances: the guard's
   CRLF cases since `9fa2e9a`, the real-hook cases 5 to 7 since v2.0.0.
 - Uncovered: rounds 3 to 5 of v1.5.0 stay not established.
+
+### IMP-102 — The recovery block printed in advance is run after a successful integration → applied on 2026-10-14
+- Origin: [[2026-10-13-backlog-retro-2.2.0]] — at v2.1.0's integration the agent printed
+  `git tag -d v2.1.0` under its condition next to blocks 1 and 2, against `/integrate`'s own
+  "if (and ONLY if)": the tag was free when the blocks were printed. The user ran it after an
+  integration that had succeeded; the local tag was deleted and recovered with `git fetch`. A
+  condition written above a copyable block is not a condition — IMP-069's lesson, which had
+  covered the pause before the push only.
+- Applied (the user's form, structural): `/integrate`'s normal sequence holds no destructive
+  line. Its step 4 gains *When the user reports a failed check*, the one place a recovery
+  block is produced — after the report, once read-only commands have shown the state, and
+  only while the tag is local (`git ls-remote` prints nothing); the line between the blocks
+  and step 5's checklist follow. `docs/04`'s rule 3 of the blocks for the user becomes
+  *Destructive commands never in advance*: given once the condition holds, alone in its
+  block; the tag hygiene and rule 4 follow. The upgrade's abort block in `SETUP.md` loses the
+  comment line inside it, which rule 4 forbids, and says it runs only then.
+- Verified: `integrate.md` merges three ways cleanly against a copy whose branch placeholders
+  are answered, with LF and with CRLF line ends (git 2.54.0, `git merge-file`). The new
+  section starts right under the paragraph above it: with a blank line in between, git
+  aligned the section against the answered line below it and the merge conflicted
+  (measured). The behaviour itself shows at this release's own `/integrate`.
 
 ## Deferred (not rejected — resumed at the right time)
 

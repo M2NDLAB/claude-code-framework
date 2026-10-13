@@ -1116,11 +1116,11 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    `pre-push` that a `vX` before v1.3.0 never had; a `vX` from v0.3.0 to v1.0.0 refuses
    the hooks that carry the English marker; `FORCE_OVERWRITE=1` replaces the pre-upgrade
    `.bak` with the new hook; and a `pre-push` renamed to `pre-push.local` at Step 4 stays
-   renamed. The way back is Step 1's photograph. If you abort the upgrade after Step 4,
-   run this — in a block of its own, as `docs/04` wants for destructive lines:
+   renamed. The way back is Step 1's photograph. If you abort the upgrade after Step 4 —
+   only then —, run this, alone in its block as `docs/04` wants for destructive lines: it
+   puts back the hooks photographed at Step 1.
 
    ```bash
-   # ONLY if the upgrade is aborted after Step 4: put back the hooks photographed at Step 1.
    H="$(git rev-parse --path-format=absolute --git-common-dir)/hooks"
    test -d "${T:?}/hooks-before" && test ! -e "${T:?}/hooks-aborted" \
      && mv "$H" "${T:?}/hooks-aborted" \
