@@ -226,6 +226,21 @@ rejected; a file with a fake secret must be blocked by gitleaks; `make test-scri
 pass — it proves the pre-push on a throwaway repository and the delegated agents' guard on
 the command forms. A pre-push of your own (git-lfs's, for one): see Step 4 of the upgrade.
 
+**What the pre-commit's scan reads.** gitleaks scans the staged changes as `git diff` shows
+them. The hook turns git's colour off and reads each textconv driver as `cat` for it, so a
+configuration that would empty or convert that output hides no secret. A file git shows as
+binary although it holds text — the attribute `binary` or `-diff`, a diff driver's
+`binary = true` — is copied from the index into a directory only the user can read, under
+`TMPDIR`, and scanned apart; the hook removes the directory when it ends, on an error or a
+Ctrl-C too. Measured on an arm64 Mac: 50 MB of such text adds about 12 s, a tenth of what
+the scan takes on the same text staged plain, and a file binary by its content costs its
+first 8000 bytes — so no size limit. Known limits: a file binary by its content (a NUL in
+its first 8000 bytes) is not scanned, as gitleaks reads text; a `git -c` naming the colour
+or a textconv on a commit's command line wins over the hook's settings — a deliberate
+choice, outside the threat model (`docs/04`, *Enforcement of the execution boundary*); a
+SIGKILL during the scan, which no process can catch, leaves its directory behind, in the
+user's own temporary directory.
+
 > **Does the repo already have a history?** (a graft onto an existing project) The hook
 > only protects commits from now on: complete the baseline with a one-off scan of the
 > ENTIRE history, from the repo root:
@@ -239,8 +254,11 @@ the command forms. A pre-push of your own (git-lfs's, for one): see Step 4 of th
 > read, and it reports a clean history. If `git config --get-regexp '^diff\..*\.textconv$'`
 > lists a textconv driver, gitleaks reads that driver's conversion instead of what was
 > committed: add one pair per driver, `GIT_CONFIG_COUNT=2` with
-> `GIT_CONFIG_KEY_1=diff.<driver>.textconv GIT_CONFIG_VALUE_1=cat`. Assess every finding
-> BEFORE going on: a secret in pushed history stays exposed even if you remove it from the
+> `GIT_CONFIG_KEY_1=diff.<driver>.textconv GIT_CONFIG_VALUE_1=cat`. The scan does not read
+> what the history shows as binary (measured: a key committed in a `*.key binary` is not
+> found): if the project marks text files `binary` or `-diff`, scan their current content as
+> files too, `gitleaks detect --no-git --source <path>`. Assess every finding BEFORE going
+> on: a secret in pushed history stays exposed even if you remove it from the
 > current files — rotate/revoke it immediately; rewriting the history is a separate
 > operation, to be decided with judgement (`docs/03`, baseline).
 

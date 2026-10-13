@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Self-test of scripts/hooks-install.sh. Five cases:
+# Self-test of scripts/hooks-install.sh. Six cases:
 #   1. "dangling symlink + FORCE_OVERWRITE=1": a leftover link never aborts the install —
 #      below; skipped, said aloud, where `ln -s` cannot make a dangling link (Git Bash);
 #      the commit-msg hook it installs runs commitlint at the version
@@ -17,7 +17,11 @@
 #   5. the git gitleaks reads through the generated pre-commit: the colour off and each
 #      textconv driver turned into `cat`, after the caller's own environment configuration,
 #      which stays; a GIT_CONFIG_COUNT that is not a number stops the hook before gitleaks —
-#      see "Case 5" at the end.
+#      see "Case 5";
+#   6. the files git shows as binary although they hold text, scanned apart: copied from the
+#      index into a directory only the user can read, the project's gitleaks configuration
+#      passed on, a file binary by its content left out, and the directory gone when the hook
+#      ends — passing, refused, or stopped by a signal — see "Case 6" at the end.
 #
 # Case 1.
 # Defect (RED, before the fix): in the FORCE_OVERWRITE=1 branch, a pre-existing hook that is a
@@ -355,3 +359,133 @@ grep -q 'GIT_CONFIG_COUNT is not a number' "${workdir}/out5.log" \
   || fail5 "a GIT_CONFIG_COUNT that is not a number: gitleaks ran anyway"
 
 echo "PASS (pre-commit environment): gitleaks' git reads the colour off and each textconv as cat, after the caller's own environment configuration, which stays; a GIT_CONFIG_COUNT that is not a number stops the hook before gitleaks."
+
+# --- Case 6 — the files git shows as binary, scanned apart ----------------------------------
+# A file only an attribute makes binary still holds text, and `git diff` shows it gitleaks as
+# "Binary files differ". The generated pre-commit copies it from the index into a directory of
+# its own and runs `gitleaks detect --no-git` there. A stub gitleaks reports what it finds;
+# TMPDIR is the case's own, so that a directory left behind shows. k.key is larger than a
+# pipe's buffer, so that git dies of the closed pipe after the first 8000 bytes.
+fail6() {
+  echo "FAIL (binary files): $1" >&2
+  local f
+  for f in "${workdir}/out6.log" "${workdir}/probe6.log"; do
+    if [[ -f "${f}" ]]; then echo "--- ${f##*/} ---" >&2; cat "${f}" >&2; fi
+  done
+  exit 1
+}
+probe6="${workdir}/probe6-bin"
+mkdir -p "${probe6}"
+cat > "${probe6}/gitleaks" <<'STUB'
+#!/usr/bin/env bash
+case "${1:-}" in
+  --version) echo "gitleaks version 8.30.1" ;;
+  version) echo 8.30.1 ;;
+  detect)
+    {
+      echo "cwd=${PWD}"
+      echo "mode=$(ls -ld . | cut -c1-10)"
+      echo "files=$(find . -type f | sort | tr '\n' ' ')"
+      echo "k.key=$(cksum < k.key 2>/dev/null || true)"
+      echo "args=$*"
+    } > "${PROBE6_LOG}"
+    case "${PROBE6_MODE}" in
+      leak) exit 1 ;;
+      hang)
+        echo "$$ ${PPID}" > "${PROBE6_PIDS}"
+        exec sleep 30 ;;
+    esac ;;
+esac
+exit 0
+STUB
+chmod +x "${probe6}/gitleaks"
+bin_repo="${workdir}/bin-repo"
+git init -q "${bin_repo}"
+mkdir -p "${bin_repo}/scripts"
+cp "${HOOKS_INSTALL}" "${bin_repo}/scripts/hooks-install.sh"
+cp "${CHECK_PREREQ}" "${bin_repo}/scripts/check-prerequisites.sh"
+bash "${bin_repo}/scripts/hooks-install.sh" >"${workdir}/out6.log" 2>&1 || fail6 "the hooks were not installed"
+printf '*.key binary\n' > "${bin_repo}/.gitattributes"
+{ printf 'a key file, text\n'; head -c 204800 /dev/zero | tr '\000' 'k'; printf '\n'; } > "${bin_repo}/k.key"
+printf 'a\000binary\000file\n' > "${bin_repo}/real.bin"
+git -C "${bin_repo}" add .gitattributes k.key real.bin
+[[ "$(git -C "${bin_repo}" diff --staged --numstat -- k.key)" == $'-\t-\tk.key' ]] \
+  || fail6 "k.key is not shown as binary, so the case would prove nothing"
+staged_sum="$(git -C "${bin_repo}" cat-file blob :0:k.key | cksum)"
+scan_tmp="${workdir}/tmp6"
+mkdir -p "${scan_tmp}"
+export PROBE6_LOG="${workdir}/probe6.log" PROBE6_PIDS="${workdir}/probe6.pids"
+# run6 <mode>: the hook, the stub first on PATH, TMPDIR the case's own.
+run6() {
+  rm -f "${PROBE6_LOG}"
+  set +e
+  (cd "${bin_repo}" && PROBE6_MODE="$1" TMPDIR="${scan_tmp}" PATH="${probe6}:${PATH}" \
+    bash .git/hooks/pre-commit) >"${workdir}/out6.log" 2>&1
+  rc=$?
+  set -e
+}
+left_behind() { [[ -n "$(ls -A "${scan_tmp}")" ]]; }
+run6 pass
+[[ ${rc} -eq 0 ]] || fail6 "a scan that finds nothing: the hook refused, exit ${rc}"
+[[ -f "${PROBE6_LOG}" ]] || fail6 "the file only an attribute makes binary was not scanned apart"
+cwd6="$(sed -n 's/^cwd=//p' "${PROBE6_LOG}")"
+[[ "${cwd6}" == "${scan_tmp}"/* ]] || fail6 "the scan did not run in a directory of its own under TMPDIR: ${cwd6}"
+grep -qx 'files=./k.key ' "${PROBE6_LOG}" \
+  || fail6 "the scan directory does not hold k.key alone — a file binary by its content was copied, or nothing"
+grep -qxF "k.key=${staged_sum}" "${PROBE6_LOG}" || fail6 "the file scanned is not the staged content"
+grep -qxF "args=detect --no-git --source . --redact -v --gitleaks-ignore-path ${bin_repo}" "${PROBE6_LOG}" \
+  || fail6 "gitleaks was not run as detect --no-git on the directory, with the project's .gitleaksignore"
+case "$(uname -s)" in
+  MINGW* | MSYS*)
+    echo "NOTE (binary files): the directory's mode is not checked under Git Bash, whose /tmp — the user's own %TEMP% — shows no POSIX modes" ;;
+  *)
+    grep -qx 'mode=drwx------' "${PROBE6_LOG}" || fail6 "the scan directory can be read by others than the user" ;;
+esac
+! left_behind || fail6 "a scan that finds nothing: the scan directory was left behind"
+# The project's .gitleaks.toml goes to the scan, as protect reads it — unless GITLEAKS_CONFIG
+# names another configuration, which gitleaks then reads itself.
+printf '[extend]\nuseDefault = true\n' > "${bin_repo}/.gitleaks.toml"
+run6 pass
+grep -qxF "args=detect --no-git --source . --redact -v --gitleaks-ignore-path ${bin_repo} --config ${bin_repo}/.gitleaks.toml" \
+  "${PROBE6_LOG}" || fail6 "the project's .gitleaks.toml was not passed to the scan"
+export GITLEAKS_CONFIG="${workdir}/elsewhere.toml"
+run6 pass
+unset GITLEAKS_CONFIG
+grep -qxF "args=detect --no-git --source . --redact -v --gitleaks-ignore-path ${bin_repo}" "${PROBE6_LOG}" \
+  || fail6 "with GITLEAKS_CONFIG set, the scan was given another configuration"
+rm "${bin_repo}/.gitleaks.toml"
+run6 leak
+[[ ${rc} -ne 0 ]] || fail6 "a scan that finds a leak: the hook let the commit through"
+! left_behind || fail6 "a scan that finds a leak: the scan directory was left behind"
+# Stopped by Ctrl-C while gitleaks runs: INT to the hook's process group, as a terminal sends
+# it. Job control gives the background hook a group of its own, where it does not ignore INT,
+# as a script's background job otherwise does. The stub records the hook's pid, and waits.
+rm -f "${PROBE6_PIDS}"
+set +e
+(
+  set -m
+  (cd "${bin_repo}" && PROBE6_MODE=hang TMPDIR="${scan_tmp}" PATH="${probe6}:${PATH}" \
+    exec bash .git/hooks/pre-commit) >"${workdir}/out6.log" 2>&1 &
+  hook=$!
+  for _ in $(seq 1 100); do
+    [[ -s "${PROBE6_PIDS}" ]] && break
+    sleep 0.1
+  done
+  [[ -s "${PROBE6_PIDS}" ]] || exit 3
+  read -r _ parent < "${PROBE6_PIDS}"
+  [[ "${parent}" == "${hook}" ]] || exit 4
+  kill -INT -- "-${hook}"
+  wait "${hook}"
+) 2>"${workdir}/jobs6.log"
+rc=$?
+set -e
+[[ ${rc} -ne 3 ]] || fail6 "the stub's scan never started"
+[[ ${rc} -ne 4 ]] || fail6 "the scan's parent is not the hook"
+[[ ${rc} -eq 130 ]] || fail6 "stopped by Ctrl-C: expected exit 130, got ${rc}"
+! left_behind || fail6 "stopped by Ctrl-C: the scan directory was left behind"
+# Nothing shown as binary but a file binary by its content: no scan apart.
+git -C "${bin_repo}" rm -q --cached k.key
+run6 pass
+[[ ! -f "${PROBE6_LOG}" ]] || fail6 "a file binary by its content was scanned apart"
+
+echo "PASS (binary files): a file only an attribute makes binary is scanned apart — copied from the index into a directory of its own that only the user can read, the project's .gitleaks.toml and .gitleaksignore passed on —, a file binary by its content is not, and the directory is gone when the hook passes, refuses or is stopped by Ctrl-C."

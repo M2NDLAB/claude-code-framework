@@ -187,6 +187,42 @@ while IFS= read -r -d '' key; do
 done < <(git config -z --name-only --get-regexp '^diff\..*\.textconv$' || true)
 gitleaks protect --staged --redact -v
 
+#    The files git shows as binary reach gitleaks as "Binary files differ", unread. One binary
+#    by its content stays unread: gitleaks reads text. One that only an attribute or a diff
+#    driver makes binary (`binary`, `-diff`, `binary = true`) still holds text — a private key
+#    in a `*.key binary`, for one —, and is scanned apart, as a file: copied from the index,
+#    what is committed, into a directory only the user can read, removed when the hook ends.
+#    bash runs the EXIT trap on an error and on Ctrl-C, TERM or HUP alike; only a SIGKILL,
+#    which no process can catch, leaves the directory behind. It is made under TMPDIR, or
+#    /tmp, by an explicit template: without one, macOS's mktemp ignores TMPDIR.
+tmp_root="${TMPDIR:-/tmp}"
+scan_dir=''
+remove_scan_dir() { if [[ -n "${scan_dir}" ]]; then rm -rf -- "${scan_dir}"; fi; }
+trap remove_scan_dir EXIT
+while IFS= read -r -d '' entry; do
+  [[ "${entry}" == $'-\t-\t'* ]] || continue
+  path="${entry#$'-\t-\t'}"
+  # Binary by its content, as git judges it: a NUL in the first 8000 bytes. git may die of
+  # the pipe closed after them, which is no error.
+  nuls="$({ git cat-file blob ":0:${path}" || true; } | head -c 8000 | LC_ALL=C tr -dc '\000' | wc -c)"
+  [[ "${nuls}" -eq 0 ]] || continue
+  if [[ -z "${scan_dir}" ]]; then scan_dir="$(mktemp -d "${tmp_root%/}/pre-commit-scan.XXXXXXXX")"; fi
+  mkdir -p "${scan_dir}/$(dirname "${path}")"
+  git cat-file blob ":0:${path}" > "${scan_dir}/${path}"
+done < <(git diff --cached --numstat -z --no-renames --diff-filter=ACM)
+if [[ -n "${scan_dir}" ]]; then
+  # The project's .gitleaks.toml and .gitleaksignore, as protect reads them from the top
+  # level — unless GITLEAKS_CONFIG names the configuration, which gitleaks reads itself.
+  top="${PWD}"
+  if [[ -z "${GITLEAKS_CONFIG:-}" && -f "${top}/.gitleaks.toml" ]]; then
+    (cd "${scan_dir}" && exec gitleaks detect --no-git --source . --redact -v \
+      --gitleaks-ignore-path "${top}" --config "${top}/.gitleaks.toml")
+  else
+    (cd "${scan_dir}" && exec gitleaks detect --no-git --source . --redact -v \
+      --gitleaks-ignore-path "${top}")
+  fi
+fi
+
 # 2. AUTOMATIC FORMATTING — [TO BE DEFINED AT SETUP].
 #    Uncomment and adapt to the project's language(s). The idea: apply the formatter
 #    to the staged files ONLY and re-stage them, so no drift accumulates and no

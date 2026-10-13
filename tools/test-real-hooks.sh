@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # The generated hooks, run with the REAL tools — this repository's own test, outside the
-# payload: the self-tests that ship with scripts/ stub gitleaks and npx. Six cases: the
+# payload: the self-tests that ship with scripts/ stub gitleaks and npx. Seven cases: the
 # user's four, and one for each defect observed since, none more without one
 # (tools/README.md):
 #   1. the pre-commit hook refuses a staged secret — one built at run time, so that no file
@@ -12,8 +12,10 @@
 #   5. the pre-commit hook refuses the secret when the user's git config forces colour, which
 #      left gitleaks an empty diff to scan;
 #   6. it refuses the secret when a textconv driver, assigned in .gitattributes, masks the
-#      values in what `git diff` shows gitleaks.
-# The git configuration is emptied below; cases 5 and 6 set theirs, each checked to take hold.
+#      values in what `git diff` shows gitleaks;
+#   7. it refuses a private key in a file .gitattributes marks binary, which `git diff` shows
+#      gitleaks as "Binary files differ".
+# The git configuration is emptied below; cases 5 to 7 set theirs, each checked to take hold.
 # Each hook runs as git runs it, from the repository's root, so a case fails for its own hook
 # only. It needs gitleaks, Node.js with npx, and the network the first time npx fetches
 # commitlint. The CI installs gitleaks at a fixed version, its archive checked against a
@@ -123,5 +125,21 @@ git -C "${repo}" diff --staged -- leak.txt | grep -q '^+aws_access_key_id = \*\*
 run_hook pre-commit
 [[ ${rc} -ne 0 ]] || fail "a masking textconv: the pre-commit hook let the staged secret through"
 grep -q 'leaks found: [1-9]' "${out}" || fail "a masking textconv: the refusal is not gitleaks' finding"
+git -C "${repo}" rm -q --cached leak.txt
 
-echo "PASS (real hooks): with gitleaks ${version} and commitlint ${pin}, the pre-commit hook refuses a staged secret — also with a colour the user's git config forces and behind a textconv that masks it — and lets a clean change through; the commit-msg hook accepts a conforming message and refuses one without a type."
+# --- Case 7 — a private key in a file .gitattributes marks binary -----------------------------
+# `*.key binary` guards key files against line-end conversion, and makes `git diff` show them
+# as "Binary files differ": gitleaks read nothing of the key. Its body is random hex, put
+# together here with the header, so that no file of this repository holds a key.
+printf '*.key binary\n' > "${repo}/.gitattributes"
+body="$(od -An -tx1 -N 600 /dev/urandom | tr -d ' \n' | fold -w 64)"
+printf -- '-----BEGIN %s-----\n%s\n-----END %s-----\n' "RSA PRIVATE KEY" "${body}" "RSA PRIVATE KEY" \
+  > "${repo}/server.key"
+git -C "${repo}" add .gitattributes server.key
+[[ "$(git -C "${repo}" diff --staged --numstat -- server.key)" == $'-\t-\tserver.key' ]] \
+  || fail "a key file marked binary: git diff does not show it as binary, so the case would prove nothing"
+run_hook pre-commit
+[[ ${rc} -ne 0 ]] || fail "a key file marked binary: the pre-commit hook let the private key through"
+grep -q 'leaks found: [1-9]' "${out}" || fail "a key file marked binary: the refusal is not gitleaks' finding"
+
+echo "PASS (real hooks): with gitleaks ${version} and commitlint ${pin}, the pre-commit hook refuses a staged secret — also with a colour the user's git config forces, behind a textconv that masks it, and in a key file marked binary — and lets a clean change through; the commit-msg hook accepts a conforming message and refuses one without a type."

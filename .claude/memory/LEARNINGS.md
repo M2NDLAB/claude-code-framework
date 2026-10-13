@@ -767,7 +767,9 @@ tags: [improvement]
   `gitleaks git --pre-commit --staged` too) and PR #2284 (open). The switch does not cure
   it: the hook's environment block — the colour off and each textconv read as `cat`, by
   `GIT_CONFIG_COUNT` — and the prefix of `SETUP.md`'s history scan move with it, until a
-  gitleaks release passes `--no-color` itself.
+  gitleaks release passes `--no-color` itself. So does the hook's scan apart of the text git
+  shows as binary (D6, 2026-10-13): `gitleaks git --pre-commit` reads `git diff` too, and
+  "Binary files differ" hides a key in a `*.key binary` from it as from `protect`.
 - Decided again (the user, 2026-10-12, D5 on the review's MEDIUM —
   [[2026-10-12-prerequisites-1.6.0]]): the declared minimum becomes 8.18.2, a SECURITY
   minimum — the prerequisite check FAILS below it, or when it cannot read gitleaks'
