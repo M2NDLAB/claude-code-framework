@@ -50,27 +50,6 @@ tags: [improvement]
   applying on the Free plan —, and macOS out of the CI. IMP-099's platform claim no longer
   depends on the second (see there).
 
-### IMP-088 — A change next to a setup slot conflicts at every project's upgrade
-- Date: 2026-10-13 | Origin: task 10 of v2.0.0, the upgrade rehearsed on the final payload —
-  [[2026-10-12-prerequisites-1.6.0]] (the retro)
-- Observed problem: the block that scans the text git shows as binary was inserted right
-  after the pre-commit's protect line, and ended next to the formatting slot's line, which
-  every project answers at setup: the 3-way merge of `hooks-install.sh` conflicted, 41 of
-  311 lines, for every such project. Only the release's rehearsal found it, after three
-  green CI rounds: the upgrade check measures the 3-way at a project's upgrade, nothing at
-  the framework's commit.
-- Proposal: NOT decided. At each commit that touches a HYBRID file, measure its 3-way merge
-  from the latest tag against a copy whose every slot is answered — the slots the
-  documentation check already knows, `SETUP.md` §2 —, in the framework's own checks; or,
-  lighter, a rule in `CONTRIBUTING.md`: a change keeps unchanged lines between itself and a
-  slot's line, and the release's rehearsal stays the backstop.
-- Expected benefit / risk: the conflict shows at the commit that makes it. Risk: a fixture
-  of answered slots to keep, or a rule no check holds.
-- Status: APPROVED on 2026-10-13 (the retro over the backlog) — for v2.2.0, the lighter
-  form: the rule in `CONTRIBUTING.md`, and the upgrade rehearsed at each release that touches
-  a HYBRID file, as v2.0.0 and v2.1.0 did. The mechanical check is not adopted: a fixture of
-  answered slots to keep.
-
 ### IMP-099 — The platform the check names as verified is wider than the CI's images
 - Date: 2026-10-13 | Origin: v2.1.0's review, L13 — [[2026-10-13-gate-lenses-2.1.0]]
 - Observed problem: `check-prerequisites.sh` calls any non-WSL Linux on x86_64 a platform the
@@ -1643,6 +1622,22 @@ line on; older entries are not backfilled.
   reads the working tree, so a partial commit is green only if the rest is too.
 - Verified: every commit of v2.2.0 so far ran in that form ([[2026-10-13-backlog-retro-2.2.0]]),
   and none went in on a red suite.
+
+### IMP-088 — A change next to a setup slot conflicts at every project's upgrade → applied on 2026-10-14
+- Origin: task 10 of v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]) — a block inserted next to
+  the formatting slot's line made `hooks-install.sh`'s 3-way merge conflict, 41 of 311
+  lines, for every project that answered it; only the release's rehearsal found it.
+- Applied (the lighter form): `CONTRIBUTING.md`, *This repo's workflow* — a change to a
+  HYBRID file keeps at least one unchanged line between itself and a line a project answers
+  at setup; where it must land on one, the CHANGELOG's *Upgrading* note names the conflict;
+  every release that changes a HYBRID file rehearses the upgrade with every setup answer in
+  place, LF and CRLF. The mechanical check is not adopted: a fixture of answered slots to
+  keep.
+- Verified: measured before writing it, with `git merge-file` on git 2.54.0 — a change on the
+  line next to an answered one conflicts, after one unchanged line it merges cleanly
+  ([[2026-10-13-backlog-retro-2.2.0]]). The same release found the blank line's weakness:
+  `integrate.md`'s new section, inserted after a blank line, was aligned by the diff against
+  the answered line below and conflicted until it sat right under the paragraph above.
 
 ## Deferred (not rejected — resumed at the right time)
 

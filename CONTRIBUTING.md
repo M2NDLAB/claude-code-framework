@@ -43,6 +43,17 @@ This repo applies to itself the method it describes (`.claude/docs/`):
   CI. The one exception is the `chore: wip` commit `docs/04` allows on a feature branch
   before a session closes. The suite reads the working tree, not the index: a commit of
   part of the tree is green only if the rest is too.
+- **A change to a HYBRID file keeps away from the slots** (the classes: `SETUP.md`, *The
+  mental model: the classes of file, and the graft state*). Between the lines a change
+  touches and a line a project answers at setup — a `[TO BE DEFINED AT SETUP]` marker, a
+  placeholder setup replaces, an answer with no marker (`SETUP.md` §2) — at least one line
+  stays unchanged: a change on the adjacent line conflicts in every project's 3-way merge,
+  one unchanged line in between merges cleanly (measured with `git merge-file`, git 2.54.0).
+  A blank line is a weak separator, which the diff may align on either side of a change.
+  Where a change must land on such a line, the CHANGELOG's *Upgrading* note names the
+  conflict and its resolution. Every release that changes a HYBRID file rehearses the
+  upgrade before `/integrate`, on a project with every setup answer in place, with LF and
+  with CRLF line ends.
 
 ## This repo's git model (a declared exception)
 
