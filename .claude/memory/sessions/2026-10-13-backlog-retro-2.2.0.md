@@ -290,7 +290,16 @@ request expected: v2.2.0 from v2.1.0, the merge typed `feat`.
 
 **The CHANGELOG's 2.2.0 entry** written from the draft, claiming what was measured — the
 rehearsal's clean merges, the hooks unchanged, the self-test red first, the CI's assertion on
-the images — and naming as read, not measured, what rests on Claude Code's documentation.
+the images — and naming as read, not measured, what rests on Claude Code's documentation —
+`3e6b6ca`. Its message's first draft held a body line that began "expected:", stopped by the
+grep before the commit.
+
+**The upgrade rehearsed again, on `3e6b6ca`** with the entry, tagged v2.2.0 in a clone only,
+the same project and answers, LF and CRLF: `inventory` printed the entry's *Upgrading from
+2.1.0* paragraph whole, 0 FAIL and the two CHECKs of edge case 7; every 3-way at 0 conflicts;
+the answers kept and the new texts present; the hooks unchanged, no `.bak`; a fake secret
+and a message without a type refused; the project's `make test-scripts` green; `make
+reset-task` left the tree clean; `invariant` 0/0, `post` 0 FAIL once the pin read v2.2.0.
 
 ## Security gate
 - Under the gate: the release asserts security properties — the boundary's declarations in
@@ -329,7 +338,6 @@ the images — and naming as read, not measured, what rests on Claude Code's doc
 - The payload names no IMP number: the documentation check's `imp-number` refuses one; the
   why goes in prose.
 - Delegated agents read only: the snapshot before and after each delegation.
-- Next: the upgrade rehearsed again on the tip with the entry, its *Upgrading* note read by
-  `inventory`; the final block 0 — the checkpoint, the entry and its record pushed, the CI
-  green on the three —, then blocks 1 and 2 without a recovery block in advance, run by the
-  user; the next deliverable's first `/checkpoint` reconciles the merge.
+- Next: the final block 0 — the compensation, the checkpoint, the entry and this record
+  pushed, the CI green on the three —, then blocks 1 and 2 without a recovery block in
+  advance, run by the user; the next deliverable's first `/checkpoint` reconciles the merge.
