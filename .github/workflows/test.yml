@@ -21,7 +21,8 @@ jobs:
   test:
     name: ${{ matrix.os }}
     # Named images, never -latest: the platforms the documentation names are the ones
-    # verified here, and moving to a new image is a deliberate change.
+    # verified here, and moving to a new image is a deliberate change. The prerequisite
+    # check carries the same list, CI_IMAGES: the documentation check fails when they differ.
     strategy:
       fail-fast: false
       matrix:
@@ -109,10 +110,26 @@ jobs:
         if: ${{ !cancelled() }}
         run: bash tools/test-upgrade-check.sh
       # The shipped check against the runner's real tools: a tool missing or not starting
-      # fails the step.
+      # fails the step. On its own image it must name the image — verified on Linux and macOS,
+      # named on Windows —, so its reading of sw_vers and os-release is proven on the images.
       - name: The prerequisite check
         if: ${{ !cancelled() }}
-        run: bash scripts/check-prerequisites.sh
+        env:
+          IMAGE: ${{ matrix.os }}
+        run: |
+          out="$(bash scripts/check-prerequisites.sh)" || { printf '%s\n' "${out}"; exit 1; }
+          printf '%s\n' "${out}"
+          case "${RUNNER_OS}" in
+            Windows) want="the framework's CI runs" ;;
+            *) want="verified by the framework's CI on" ;;
+          esac
+          line="${out%%$'\n'*} "
+          case "${line}" in
+            *"not verified"*) ;;
+            *"${want} "*"${IMAGE} "*) echo "the platform line names ${IMAGE}: OK"; exit 0 ;;
+          esac
+          echo "::error::the platform line does not name ${IMAGE} as its image: ${line}"
+          exit 1
       - name: The generated hooks with the real tools
         if: ${{ !cancelled() }}
         run: bash tools/test-real-hooks.sh

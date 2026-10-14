@@ -38,7 +38,8 @@
 #      1 and the "Outside the upgrade payload" box say is not copied, the counts and
 #      numberings in prose, the sections of the backlog, the subcommands wherever listed,
 #      the copy list, the commit types, the title and label tables, a minimum or
-#      commitlint's pin written otherwise than the prerequisite check defines it: each fails
+#      commitlint's pin written otherwise than the prerequisite check defines it, the CI's
+#      images the prerequisite check carries otherwise than the workflow's matrix: each fails
 #      when out of step, and so does a list the check can no longer find;
 #   8. language — Italian prose (by its words, or by its accents alone), an Italian file
 #      name, guillemets, an Italian commit message and a legacy form declared but gone
@@ -138,6 +139,7 @@ floor 'N cited paths' 300
 floor 'N section titles' 40
 floor 'the class table at N tags' 19
 floor 'N written minimums' 10
+floor 'N CI images' 3
 floor 'N text units' 3000
 cp "${out}" "${workdir}/plain.log"
 hostile="${workdir}/hostile.gitconfig"
@@ -542,7 +544,27 @@ edit "${c}/scripts/check-prerequisites.sh" '^COMMITLINT=[0-9.]*$' 'COMMITLINT=21
 run 1 "${c}"
 nfails 1
 has "no commitlint pin read from PREREQUISITES and COMMITLINT: the extraction is wrong"
-echo "PASS (docs-check, lists): §2 and the slots, the class table and its bullets, Step 2, what is not copied, the counts, the sections, the subcommands, the copy list, the types, the format tables and the written minimums fail when out of step."
+# The images the prerequisite check carries, against the workflow's matrix: an image of
+# either list missing from the other fails, the workflow moved alone too.
+c="$(copy list-images)"
+edit "${c}/scripts/check-prerequisites.sh" "^CI_IMAGES='(.*)macos-[0-9]+" "CI_IMAGES='\$1macos-15"
+run 1 "${c}"
+nfails 2
+has "CI_IMAGES lacks macos-26 (the matrix of .github/workflows/test.yml)"
+has "CI_IMAGES names macos-15, which is not in the matrix of .github/workflows/test.yml"
+c="$(copy list-images-matrix)"
+edit "${c}/.github/workflows/test.yml" '^(\s+os: \[.*)windows-2025\]' '$1windows-2022]'
+run 1 "${c}"
+nfails 2
+has "CI_IMAGES lacks windows-2022"
+has "CI_IMAGES names windows-2025, which is not in the matrix"
+c="$(copy list-images-source)"
+edit "${c}/scripts/check-prerequisites.sh" '^CI_IMAGES=' 'IMAGES='
+edit "${c}/.github/workflows/test.yml" '^(\s+)os: \[' '$1runner: ['
+run 1 "${c}"
+has "no images read from CI_IMAGES: the extraction is wrong"
+has "no images read from the matrix's os: line: the extraction is wrong"
+echo "PASS (docs-check, lists): §2 and the slots, the class table and its bullets, Step 2, what is not copied, the counts, the sections, the subcommands, the copy list, the types, the format tables, the CI's images and the written minimums fail when out of step."
 
 # --- Case 8: language -----------------------------------------------------------------------
 c="$(copy lang-prose)"

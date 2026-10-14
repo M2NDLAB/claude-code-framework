@@ -78,7 +78,10 @@ Definition of Done and the commit are enough.
    enforcement edge, surfaces that act on behalf of a client (the concrete list is
    `[TO BE DEFINED AT SETUP]`) —, or a deliverable whose product asserts a security
    property (`03-security-gate.md`, *The lenses of the gate*). Under the gate this is a
-   GATE: HIGH/CRITICAL findings are resolved BEFORE going on. Otherwise, skip it.
+   GATE: HIGH/CRITICAL findings are resolved BEFORE going on. Otherwise, skip it — and
+   write the verdict anyway, one line with its reason, in the session note
+   (`.claude/memory/sessions/README.md`, *Format*): a gate skipped and a gate forgotten
+   must not look the same.
 3. **`/retro` — end-of-deliverable reflection (FIXED).** Was there friction? A
    rule or a doc that would have helped? → record the proposals as IMPs in
    `LEARNINGS.md` (`06-self-improvement.md`). It is lightweight: with no friction it
@@ -98,7 +101,10 @@ Definition of Done and the commit are enough.
 > In short: FIXED steps 1·3·4·5; CONDITIONAL step 2 (`/security-review`, only if
 > under the gate). The order is not arbitrary — `/retro` before `/checkpoint` so that the
 > checkpoint persists the IMPs just recorded; `/integrate` last because it is the
-> only one that touches shared state, and only once memory and docs are aligned.
+> only one that touches shared state, and only once memory and docs are aligned. The
+> merge it prints happens after the checkpoint, outside the session: the memory lags it
+> by one step until the next deliverable, whose first `/checkpoint` reconciles it — not a
+> commit of its own after the merge, one more to push.
 
 > **And `/lint-memory`?** It is not a step of the end-of-deliverable cycle: it is a
 > PERIODIC health-check. It is typically run together with the periodic retrospective
@@ -124,6 +130,15 @@ Definition of Done and the commit are enough.
   implementations, security reviews, adversarial analysis. For reading, structured
   writing over decisions already taken, and chores, the standard level is enough. It
   is a principle, not a rigid rule: tools change, proportionality does not.
+- **Delegate with the user's words, and say what was not covered.** A brief for a
+  delegated agent — a subagent, a workflow agent — quotes the user's decisions and
+  constraints verbatim, or points at the record that holds them verbatim: a paraphrase
+  drops what the agents then treat as undecided. One independent agent first; a fan-out —
+  several agents, then verifiers — only where the consequences of being wrong warrant it,
+  with a stall budget fixed before the run: past it the run is stopped, and what it did
+  not cover is declared. A report built from several agents names its gaps — the agents
+  that stalled or were skipped, the items left uncovered — and those items are checked by
+  hand or reported as not covered.
 
 ## Process principles (in priority order)
 

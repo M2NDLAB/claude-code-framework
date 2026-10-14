@@ -23,716 +23,6 @@ tags: [improvement]
 
 ## OPEN proposals (awaiting the user's decision)
 
-### IMP-048 — Classify file content before rewriting it (prose / values / code-read strings)
-- Date: 2026-09-23 | Origin: no session note in this repo (the trigger, the upgrade of a
-  client project to v1.2.0, is recorded in that project) — the prose / values /
-  code-read strings distinction had to be re-derived a second time
-- Observed problem: when a file is REWRITTEN (a translation, a refactor, a renaming of
-  sections), its content is not all of the same nature, and treating it uniformly breaks
-  things. It happened twice: (1) the full translation of the framework, v1.1.0
-  (IMP-041; [[2026-07-20-language-rule-phase1]], decision 3) — solved ad hoc with the
-  "backward-compatible readers" task for the behavior-bearing strings (`[task 2/13]`,
-  `91f0ca7`), but the distinction was never formalised as a rule; (2) the upgrade of a
-  client project to v1.2.0, where the same distinction was re-derived from scratch.
-  The distinction is not ABSENT from the method: it exists FRAGMENTED in four places,
-  never as one rule — `SETUP.md` Step 3 (re-apply the project's setup answers on the
-  hybrids), `SETUP.md` §2 *Convention (grep visibility)* (a slot on one physical line),
-  Step 4's dual-form marker grep, and the coherence review of `docs/01` (section titles
-  cited by name are a textual shared contract, IMP-043).
-- Nature of the proposal (it changes what the retro decides): UNIFY existing pieces
-  into one discipline — not add a rule from scratch.
-- Proposal: before rewriting a file, classify its content into three levels and treat
-  each one differently:
-  1. PROSE (explanations, comments, rationales) → rewritten/translated freely.
-  2. VALUES (the answers filled into the setup markers, names and identifiers,
-     public-contract entries) → they stay identical; you rewrite the prose AROUND the
-     datum, not the datum.
-  3. STRINGS READ BY CODE (sentinels, markers, grep patterns, keys) → BYTE-IDENTICAL,
-     or you prove on the source that the reader accepts both forms BEFORE changing them.
-- Why level 3 is critical: a modified sentinel breaks the mechanism SILENTLY — no error,
-  no red test, just a function that stops working (e.g. the command that harvests the
-  marked proposals no longer finds them). The same class of silent failure as IMP-020
-  (the decorative hook), IMP-031 (the broken markers) and IMP-036 (the 3-way from the
-  wrong base).
-- Close kin of IMP-043 — to be evaluated at the retro: two faces of the same problem,
-  "when you rewrite, some parts of the text are referenced by something else" — IMP-043
-  by DOCUMENTS (section titles cited by name), IMP-048 by CODE (strings read by a grep).
-  At the retro, EVALUATE WHETHER TO UNIFY them into a single discipline ("before
-  rewriting, map what is referenced — by docs and by code") instead of two separate
-  rules that say similar things. For that evaluation: IMP-043's first version, a
-  MAINTAINED canonical map, was rejected as ceremony ("the map is a grep away"); what
-  was applied is a grep in the coherence review.
-- Likely placement (to be decided at the retro, not now): `docs/01`, in the discipline
-  of the cross-module refactor — where IMP-043 already landed — or the upgrade
-  procedure in `SETUP.md`. Both already host one of the fragments above.
-- Conditional, not a ritual: it must fire only when a piece of work REWRITES files that
-  contain strings read by code, not at every deliverable.
-- Expected benefit / risk: the third occurrence starts from ONE written rule instead of
-  re-deriving it from four fragments, and a code-read string is checked BEFORE it
-  changes instead of breaking the mechanism silently. Risk: a classification step turned
-  into a ritual on every rewrite — the conditional trigger above guards it.
-- **Evidence from a client harvest — for the unification question** (annotation
-  2026-09-26, [[2026-09-26-client-harvest-registration]]; the lesson cites IMP-043 and
-  this entry, and IMP-043 is Applied, so it lands here): the translation release broke
-  the section titles cited by name between the method and a memory that keeps its
-  original language. Verified at v1.2.1: 13 citation sites of the `STATE.md` and
-  `LEARNINGS.md` headings in the payload (8 and 5; 19 title mentions), the one with the
-  highest stakes being `/checkpoint`'s critical-debt check ("Caution & open issues");
-  the 1.1.0 CHANGELOG lists no heading among its behaviour-bearing strings (C12 of
-  [[2026-09-24-third-upgrade-lessons]] records that effect). New for the retro:
-  1. The reader is the AGENT: every site is prose, and no code greps a memory heading —
-     IMP-043's class (cited by documents), not level 3 of this entry; the failure is an
-     agent that does not find a heading, not a mechanism that stops silently. The field
-     labels `/harvest-framework` collects by name (Origin, Observed problem, …) are the
-     same class.
-  2. Why IMP-043's check cannot catch it: its old/new grep (`docs/01`, cross-module
-     refactor) runs inside the repo being rewritten — at v1.1.0 it would have been
-     green, and it only entered in v1.2.0. The broken side is the PROJECT-MEMORY of
-     already-grafted projects, across a repository boundary.
-  3. The memory invariant forbids the migration: edge case 3 allows only the repair of
-     pointers after a doc rename, and Step 5 treats any other memory diff as a bug — so
-     a renamed heading cannot be followed inside the memory (a link to IMP-046).
-  4. The reverse direction: the project's memory cites METHOD section titles by name,
-     nearly all renamed at v1.1.0 (`docs/04`'s *Merge* is the exception); edge case 3, Step 5's lint bullet and `/lint-memory` check 7
-     cover renamed files and wikilinks, never titles.
-  5. The client's answer — a title map in the technical rules of `CLAUDE.md` (English
-     cited name → local heading, the headings frozen as identifiers) — is NOT IMP-043's
-     rejected canonical map: "the map is a `grep` away" fails across languages, where
-     the two sides share no string. Offering it as the standard answer depends on B8
-     (same note): rule 9 lists the memory among the artifacts that are always English.
-  Relayed proposal, for the upgrade procedure: (1) the old/new title grep in BOTH
-  directions, the project's memory included — `SETUP.md` is already a candidate home
-  above; (2) the title map when the memory keeps another language; (3) declaring the
-  rebuild — already IMP-050 point 3.
-- **Note — moving an answer means checking every entry point** (a lesson of
-  [[2026-10-09-quick-fixes-1.3.2]], recorded here at the user's request on 2026-10-10,
-  [[2026-10-10-upgrade-safety-1.3.3]]): when a setup answer moves — v1.3.2 moved `reset-task.sh`'s
-  protected branches into the `Makefile` — every way of reaching it needs its own check:
-  the script run directly, the `make` target, the unattended form an agent uses
-  (`YES=1`), the docs that name the command. The reviewer found the third. It is this
-  entry's discipline seen from the readers' side: before moving a VALUE (level 2), list
-  who reads it. Its upgrade side lands in v1.3.3: a slot that moves to another file
-  becomes an edge case of the upgrade.
-- **Decision 2026-10-10 on the relayed title map above** ([[2026-10-10-upgrade-safety-1.3.3]], user
-  decision 2): NO map. A map is a configurable legacy reader that every present and future
-  command would have to consult — permanent complexity against a one-off cost. The section
-  titles the commands look up are FORMAT, and format is method: the rename is mandatory at
-  the upgrade (edge case 3 (b)), and rule 9 says so from v1.3.3. A project's own tests
-  that cite the titles are updated in the same commit, by the project. Relayed proposal
-  (1), the title grep in both directions, goes to v1.4.0's verification script (IMP-037).
-- **Decision 2026-10-10 on the field labels** ([[2026-10-10-integrate-two-blocks-1.3.4]]): the IMP field
-  labels ("Origin", "Observed problem", …) are FORMAT, like the titles — renamed at the
-  upgrade with the same table. In v1.4.0, with a constraint on IMP-046's checks: the
-  "LEARNINGS body unchanged" comparison runs AFTER normalising the labels by the table,
-  or the mandatory rename makes it fail. To measure first, on the client project
-  (read-only): how many label lines are involved.
-- **Applied in v1.4.0** ([[2026-10-10-upgrade-verification-1.4.0]]): rule 9 names the section titles AND the
-  field labels as format; edge case 3 (b) of `SETUP.md` carries both tables; the
-  verification script compares the LEARNINGS entries after normalising them (56 label
-  lines measured on the client project). The rest of this entry — the classification
-  before a rewrite, as one discipline — stays open.
-
-### IMP-051 — The memory lags one merge: `/checkpoint` runs before the merge
-- Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — a post-merge
-  reconciliation commit keeps reappearing, and each one is one more local commit to push
-- Observed problem: the end-of-deliverable cycle runs `/checkpoint` (step 4) BEFORE
-  `/integrate` (step 5), and the merge happens outside the session. So the memory
-  records the PRE-merge state ("awaiting merge + tag + push"); `/checkpoint` itself says
-  STATE "can be stale" because merges happen outside the session; and the fix is an
-  optional later `/checkpoint` (`integrate.md`) — itself a new local commit, one more
-  push. Recurring:
-  - the client project: 5 reconcile-after-merge commits on its main, and its STATE on
-    main is one merge behind TODAY — each reconcile goes through a branch + merge, which
-    is again unrecorded, so the lag regresses by one step;
-  - this repo (`git log --first-parent main`): four dedicated post-integration
-    checkpoints made directly on `main` — `95e43bd` (v0.6.0), `d8d4036` (v0.6.1),
-    `b576f37` (v0.6.2), `21ab017` (v1.0.0) — each written with main == origin/main, so
-    each left `main` one commit ahead (`d8d4036` records `95e43bd` being pushed with the
-    next deliverable); plus the v0.3.0 trailing note (`eaefae3`, merged by `ec59010`)
-    and the v1.1.0 CHANGELOG promoted after the merge (`48fe236`). Here it is not STATE
-    that lags (a clean template, hybrid regime) but the session notes: their
-    "Follow-up: /integrate" is rewritten after the fact — or never, when the next
-    deliverable's note absorbs the outcome and the pre-merge follow-up stays as written.
-- Already declined once: the v0.3.0 note
-  ([[2026-07-17-audit-preintegrate-closeout-v0.3.0]], "Process note (not an IMP)")
-  called the trailing note "execution discipline, not a doc gap". The new fact is the
-  recurrence — 4 dedicated post-integration checkpoints here since that note (6
-  trailing commits in all), and 5 reconcile commits in the client — which makes it
-  structural rather than a slip.
-- Proposal: NOT decided here (retro). Directions to evaluate: the pre-merge checkpoint
-  records the state as it will be once the user runs the printed block (with what to do
-  if the user deviates); or `/integrate` puts the reconcile commit INSIDE the user's
-  block, so it is pushed with the merge; or the reconcile is declared the FIRST step of
-  the next deliverable — the de-facto practice here — so the lag is explicit and bounded.
-- Expected benefit / risk: no trailing commit to push after every integration, and a
-  memory that is true right after the merge. Risk: recording as done a merge the user has
-  not run yet — the recorded state must say it is conditional on the block.
-
-### IMP-052 — Resumption after an abrupt interruption: verify before continuing
-- Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — resuming after a
-  session limit or a machine sleep, the protocol says WHERE to resume, not WHETHER the
-  resumed state holds
-- Observed problem: `docs/01` puts interruptions explicitly in scope (usage limits,
-  crashes — and rule 7), and its RESUMPTION reads the plan, confirms the committed tasks
-  with `git log` and DISCARDS a dirty tree (`scripts/reset-task.sh`). Missing before
-  continuing: a syntax/build check, a test run of the resumed state, a comparison with
-  the design or the recorded decision. Committed tasks are verified by construction
-  (PHASE 3 verifies before each commit); the unverified window is the uncommitted
-  half-task and the plan tick, which may land "right after" its commit. Two gaps
-  besides: (a) "verify, then continue" implies KEEPING the half-done work, while step 3
-  discards it — the rule has to say when each applies; (b) scope: RESUMPTION runs "at
-  the start of EVERY session" and the Cleanup section "if a session dies"; an
-  interruption INSIDE the same session (a usage-limit reset or a sleep, then the
-  conversation goes on) triggers neither, and for a task without a plan the only rule
-  is Cleanup's discard-everything-uncommitted. Evidence in the client project: a
-  deliverable with no plan was resumed after a usage limit from the dirty working tree,
-  and a wiring gap — all tests green — was "found by comparing the diff with the
-  design, not by a test".
-- Placement: `docs/01` RESUMPTION, not `/sos` — an escalation that ends in STOP and is
-  triggered by being stuck (`docs/05`, *WHEN to produce a report*), not by an
-  interruption. A precedent exists: `docs/03` already asks to check COMPLETENESS
-  "especially after interruptions or resumes" — for reviews only.
-- Proposal: NOT decided here (retro): a short verify-before-continuing step in
-  RESUMPTION — `git status`, the build/syntax check, the tests of the touched area, a
-  reading of the diff against the design — valid with or without a plan, plus the rule
-  for keeping vs discarding the half-done work.
-- Expected benefit / risk: a resumed session does not build on a state nobody checked,
-  and the wiring gaps that green tests miss are looked for at the moment they are most
-  likely. Risk: ceremony on trivial resumptions — scale the check to the size of the
-  uncommitted work (none → nothing to verify).
-- **Evidence relayed from a client project** (annotation 2026-09-26,
-  [[2026-09-26-client-harvest-registration]]): after a resumption, a branch was created
-  from the wrong base. Relayed by the user together with the harvest; not found in the
-  client's records read for this deliverable (a read-only search of its memory and of
-  its commit subjects), so it is recorded as relayed, with no cause attributed. For the
-  direction above: RESUMPTION confirms the committed tasks with `git log` on the branch,
-  but nothing checks the branch's BASE — a candidate item of the verify-before-
-  continuing step (e.g. the branch's merge-base against the base the plan or the
-  recorded decision expects).
-
-### IMP-053 — The security-gate verdict is always written, "not applicable" included
-- Date: 2026-09-24 | Origin: [[2026-09-24-third-upgrade-lessons]] — a skipped gate and a
-  forgotten gate look the same in the memory
-- Observed problem: `docs/00` (end-of-deliverable step 2) says "If it is not sensitive,
-  skip it"; `docs/03` scopes the gate to sensitive components; `/checkpoint`,
-  `/integrate` and the session-note format carry no gate line. The practice is
-  inconsistent: 4 of the 13 session notes of this repo before this one record "Security
-  gate: not sensitive → skipped", the other 9 are silent (the v1.0.0, v1.1.0 and v1.2.0
-  notes included). In the client project one note records a not-applicable verdict —
-  and one deliverable that touched components on its sensitive list has no gate record
-  at all: the memory cannot tell a forgotten review from an inapplicable one, which is
-  the case that matters.
-- Proposal: NOT decided here (retro): the verdict is written every time, one line with
-  the reason — "Security gate: not applicable — <reason>", or the outcome. Natural
-  places: the Format block of `sessions/README.md`, the memory step of `/checkpoint`,
-  and `docs/00` step 2 ("skip it, and write the one-line verdict").
-- Expected benefit / risk: an absent verdict means a forgotten one, by construction, for
-  one line per note. Risk: a boilerplate line written without thinking — the mandatory
-  reason is what keeps it honest.
-- **Evidence from a client harvest — the upgrade** (annotation 2026-09-26,
-  [[2026-09-26-client-harvest-registration]]; recorded here and not as an entry of its
-  own — the reason is in the note): an upgrade rewrites the security BASELINE —
-  `hooks-install.sh` (the gitleaks hook), `settings.json` (the permissions),
-  `reset-task.sh` (a destructive guard) — none of them a sensitive component, and the
-  upgrade section of `SETUP.md` never names `/security-review` or a verdict: Step 6
-  closes with `/checkpoint` and `/integrate` only, skipping steps 2-3 of `docs/00`'s
-  cycle. Client-side, relayed: the notes of its two earlier upgrades carry no gate line
-  — this entry's skipped-or-forgotten ambiguity. New for the direction above: (1) the
-  upgrade (`SETUP.md` Step 5 or 6) as one more place for the one-line verdict; (2) the
-  content of its reason, a diff of the EXECUTABLE lines of the baseline scripts —
-  measured v1.0.0→v1.2.1: the generated hooks' executable lines identical,
-  `hooks-install.sh` changing messages and the hook-ownership test, `reset-task.sh`
-  messages only, the allow/deny lists of `settings.json` unchanged — which must keep
-  the code-read strings that live in COMMENTS: the hooks' ownership marker is a comment,
-  it changed Italian→English, and stripping comments hides exactly the change behind
-  IMP-050 point 5's rollback defect (IMP-048, level 3). As a mechanical check it
-  belongs with IMP-050 (points 3-4)'s Step 5 inputs. (3) Not a gate matter — a factual
-  defect listed in the note for the user's decision: `reset-task.sh` is filed METHOD
-  while it carries a setup slot (the protected branches) whose natural answer is
-  inline, a predictable hybrid like the setup-customised commands. A plain overwrite is
-  not silent (Step 4's marker grep re-surfaces the slot, edge case 7 catches the filled
-  one), but the project must then re-answer a slot the §2 checklist never lists.
-
-### IMP-057 — A test invariant over a known debt: a bidirectional allow-list, not an empty set
-- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
-  a class invariant made the honest declaration the only way to break the build
-- Observed problem (client-side, relayed): after the last two known violations of a
-  capability registry were fixed, an invariant was added that scanned the registry and
-  FAILED whenever an entry was declared as not honouring the capability. It looked like
-  the natural strengthening of "close the class", but it made the honest declaration
-  the only move that breaks the build: for a new unit without the capability, the
-  fastest way to green is not to fix it but to declare it compliant and mention the
-  flag in a comment (the other check was a grep on the file). The test pushed towards
-  the lie exactly where the code needs the truth — a summary attests "nothing changed"
-  on that very data (IMP-056).
-- On the framework's source: `docs/02` (*Tests that demonstrate*) prescribes invariants
-  "re-applied BY CONSTRUCTION" — a property over ALL entities, with an anti-vacuity
-  check — and says nothing about known exceptions. The lesson QUALIFIES that example:
-  when the property is an entity's self-declared flag, introspection over all entities
-  measures the declaration.
-- Proposal (as relayed; NOT decided here — retro): in `docs/02`, an invariant over a
-  set with a KNOWN debt is written as a BIDIRECTIONAL ALLOW-LIST, not as an empty-set
-  assertion: (a) an unlisted member that violates the property fails → the debt cannot
-  grow silently; (b) a listed member that no longer violates it fails → an exemption
-  cannot outlive its fix. General rule: if declaring the truth breaks the build, the
-  test is badly designed — it measures the declaration, not the behaviour.
-- For the retro: to be reconciled with `docs/02`'s "not as assertions about the state
-  known today" — check (b) makes the list a shrink-only register of exemptions, the
-  mirror of the anti-vacuity guard (that one guards the scanned set, (b) the list).
-  Kin: the bidirectional set comparison of IMP-038 (`/lint-memory` check 11); debts
-  kept with their reason (`docs/03`).
-- Expected benefit / risk: removes the incentive to lie in the registries that security
-  assertions rely on. Risk: an allow-list can become a comfortable parking lot —
-  mitigated by check (b) and by a recorded reason for every entry.
-- **First use, 2026-10-11** ([[2026-10-11-payload-purity-1.4.1]]): the documentation
-  check of v1.4.1 keeps its exceptions this way, each with its reason, an unused one
-  failing. Direction (b) proved itself at once: a mutation that silenced the language rule
-  was caught on the unchanged repository, because the declared exceptions of the frozen
-  memory stopped matching. The `docs/02` rule itself stays open.
-
-### IMP-060 — A delegation brief quotes the user's decisions verbatim; a multi-agent report declares its coverage gaps
-- Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project:
-  agents re-opened an already-decided point as "undecided, blocking" because the brief
-  paraphrased the decisions
-- Observed problem (client-side, relayed): the brief given to the review agents of a
-  multi-agent assessment paraphrased only one of the user's decisions and left out
-  another one already taken. Several agents and verifiers then treated that decided
-  point as "undecided, blocking", and the finding had to be retracted in the report.
-  The same run lost 2 of 27 agents to stalls: declaring the uncovered items explicitly,
-  and re-checking them by hand, kept the report honest.
-- On the framework's source: (a) is absent — `docs/00` (*Scope and session hygiene*)
-  has no delegation bullet (the nearest is the effort one), and `docs/05`'s self-sufficient report is the outward
-  analogue; (b) exists IN PART — `docs/03`, *Before acting on the findings* (Applied
-  IMP-016), is a reader-side completeness check, for reviews only. New: the writer-side
-  declaration of the stalled or skipped agents and of the items they left uncovered,
-  the re-check by hand, and the extension beyond reviews. The framework practised it
-  once without writing it down ([[2026-07-14-registrazione-imp-innesto-brownfield]]).
-  A kin case of its own: a brief that carried a wrong factual premise
-  ([[2026-09-24-third-upgrade-lessons]], *Problems encountered*, 1) — both show that
-  agents take the brief as ground truth.
-- Proposal (as relayed — (b)'s placement corrected by the verification, the client put
-  both halves in `docs/00`; NOT decided here — retro): (a) a brief for delegated agents
-  quotes the user's decisions and constraints VERBATIM, never summarised — a new bullet
-  in `docs/00` (*Scope and session hygiene*), or one delegation paragraph shared with
-  IMP-055; (b) a multi-agent report declares its coverage gaps explicitly — `docs/03`,
-  *Before acting on the findings*, generalised beyond reviews.
-- Expected benefit / risk: fewer false findings and no silent coverage holes. Risk:
-  longer briefs.
-
-### IMP-061 — `/harvest-framework` re-prints entries already carried upstream: double counts at recording time
-- Date: 2026-09-27 | Origin: [[2026-09-26-client-harvest-registration]] — recording a
-  client project's harvest, re-harvested lessons were counted twice until the pre-commit
-  review caught it
-- Observed problem: `/harvest-framework` prints EVERY entry marked
-  `Destination: framework`, in any section (step 2: the default perimeter is the whole
-  backlog), whether or not it was already carried upstream, and by design it marks
-  nothing (step 5): de-duplication is left to human curation (narrow with `$ARGUMENTS`,
-  or annotate by hand). The printed block carries no provenance the framework can match
-  against what it already recorded: the Origin is anonymised to a generic context. In
-  the recording of 2026-09-26, seven of the fifteen harvested entries repeated, in whole
-  or in part, lessons already relayed on 2026-09-24 from the same upgrade session;
-  nothing in the block said so, and the draft counted three of them as "independent" or
-  "second" occurrences — a double count the retro would have inherited — until the
-  review caught it ([[2026-09-26-client-harvest-registration]], *Retro* and *Problems
-  encountered*, 3). That client's backlog already holds more marked entries than the
-  fifteen: a default harvest there re-prints the fifteen with them, unless the human
-  narrows it or has annotated them.
-- Proposal: NOT decided here (retro). Directions raised in the origin note, to evaluate:
-  (a) a "carried upstream" mark on the client's entry (e.g. a line added by the human
-  after the transfer, which the default perimeter then skips — the command itself stays
-  read-only, IMP-033's boundary); (b) a matchable provenance in the printed block (the
-  source session's date, the client's entry number), still anonymous; (c) on the
-  framework side, a "count once" check at recording time against the lessons already
-  recorded — practised by hand on 2026-09-26, written nowhere.
-- Expected benefit / risk: a re-harvested lesson is recognised as such, so the retro
-  weighs each lesson once. Risk: (a) adds a line to the IMP format, a backlog-format
-  change that reaches client projects only through the upgrade — and the format comment
-  of `LEARNINGS.md` sits under IMP-046's contradiction; (b) must stay anonymous
-  (`docs/04`, shared history).
-
-### IMP-062 — Cover remote writes through `gh` in the agent boundary
-- Date: 2026-10-07 | Origin: [[2026-09-27-imp-054-055-agent-git-boundary]] — the push
-  boundary of IMP-054 stops every `git push` born from the agent's process, not the remote
-  writes that bypass git
-- Observed problem: `gh` changes shared state without `git push`: `gh api` with a writing
-  method (any `-f`/`-F` field switches it to POST; `-X PUT …/contents/<path>` creates a
-  commit; `PATCH …/git/refs/<ref>` moves a ref, force included), `gh pr merge` (a merge onto
-  the integration branch; `--delete-branch` also deletes the remote branch),
-  `gh release create` (creates the tag when it is missing), `gh repo sync <remote>`. The
-  `pre-push` never sees them — git runs it for `git push` only — and the deny list does not
-  name them. Logged in with the owner's credential (`repo` scope in this repo), an agent
-  using `gh` acts as the owner: the forge cannot tell them apart, and the same credential
-  can remove the rulesets.
-- Why not now (user decision 2026-10-07, D3): this layer's threat model is the agent's
-  ACCIDENTAL errors with ordinary commands, no flow of the framework uses `gh`, and the
-  hook of IMP-054/055 must stay small (delegated agents' read-only git only).
-- Proposal: NOT decided. Direction: the PreToolUse hook refuses, in every session, the
-  writing `gh` forms (`api` with a non-GET method or a body field, `pr merge`,
-  `release create|edit|delete|upload`, `repo sync <remote>`) — sketched in the phase-1
-  prototype, never tested. Alternative: a read-only token for the agent through
-  `GH_TOKEN`, which narrows rather than seals (the stored credential stays reachable).
-- Resumption trigger: the first use of `gh` in the framework's flows (a command, a doc
-  step, an `/integrate` variant), or the first incident of an agent writing to the remote
-  through `gh`.
-- Expected benefit / risk: closes the non-git route to shared history for accidental use.
-  Risk: a larger hook — the size the user chose to avoid now.
-
-### IMP-063 — A fan-out has a stall cost: one independent reviewer first
-- Date: 2026-10-07 | Origin: [[2026-09-27-imp-054-055-agent-git-boundary]] — the
-  multi-agent review runs were the block's costliest failures, while one reviewer found a
-  HIGH the prototype phase had missed
-- Observed problem: in phase 1 the pre-note review workflow (3 reviewers, then 3
-  skeptics) stalled: its agents were interrupted and restarted repeatedly, and after about
-  an hour 0 of 3 reviewers had returned; it was stopped and the proposal reached the user
-  with that coverage gap declared. The user then capped the block: one reviewer, "non un
-  workflow grande: due workflow in questo blocco si sono già bloccati" (the note records
-  one outright stall; the user's count is two). In phase 2 ONE reviewer returned in about
-  20 minutes with 1 HIGH and 5 MEDIUM, all reproduced. `docs/03` says WHEN the verifier
-  must not be the author and how to reconcile a multi-agent review's counts; nothing says
-  how many agents, nor what to do when they stall.
-- Proposal: NOT decided here (retro). Direction: `docs/03` (or the delegation bullet of
-  IMP-060 (a)) — one independent reviewer first; a fan-out only where the blast radius
-  warrants it, with an explicit stall budget (a time after which the run is stopped and
-  its gap declared — IMP-060 (b)).
-- Expected benefit / risk: fewer hours lost to stalled runs. Risk: one reviewer brings one
-  lens — the fan-out stays available, budgeted.
-
-### IMP-064 — Probing Claude Code's permissions in an untrusted workspace measures the wrong thing
-- Date: 2026-10-07 | Origin: [[2026-09-27-imp-054-055-agent-git-boundary]] — the first
-  phase-1 probe matrix would have "proved" a deny rule effective
-- Observed problem: a `claude -p` session started in a directory never trusted
-  interactively IGNORES the project's `permissions.allow` (stderr: "Ignoring N
-  permissions.allow entries from .claude/settings.json: this workspace has not been
-  trusted"), while deny rules and hooks stay active. The first matrix showed every push
-  form denied — as NOT ALLOWED, not by the deny rule — and only the denial messages and
-  stderr told the two apart. Fixed by putting the allow in `settings.local.json`, which is
-  honoured.
-- Proposal: NOT decided here (retro). Direction: wherever the method verifies permissions
-  or hooks with nested sessions (a boundary's end-to-end check, an upgrade's), the probe
-  declares its trust shape — the allow in `settings.local.json` — classifies each denial
-  (rule match, not allowed, hook) and reads stderr. Home: `docs/02` (*Tests that
-  demonstrate*) or `docs/03`.
-- Expected benefit / risk: a permission probe cannot pass for the wrong reason. Risk: none.
-
-### IMP-065 — Edit the method's own files with the file tools, so the checkpoints that guard them apply
-- Date: 2026-10-07 | Origin: [[2026-09-27-imp-054-055-agent-git-boundary]] — the session
-  edited `.claude/` both with the file tools and through Python one-offs
-- Observed problem: `.claude/` is a protected path for Claude Code's file tools (writes are
-  never auto-approved: prompted, or routed to the classifier in auto mode), and since
-  v1.3.0 `ask` rules guard `settings.json` and `scripts/agent-git-guard.mjs` — both apply
-  to the built-in file tools only. In the IMP-054/055 block some `.claude/` edits went
-  through Python one-offs (IMP-061; the review's `docs/04` fixes; the LEARNINGS move; parts
-  of the session note), which no checkpoint sees. Nothing went wrong — the writes were the
-  requested work — but the same habit on `settings.json` or on the guard would skip the
-  very checkpoint D6 added. Contributing factor: the auto-mode instruction to prefer the
-  shell for file changes.
-- Proposal: NOT decided here (retro). Direction: one line in `docs/04` (*Permission
-  configuration*, next to the `ask` bullet) or `docs/02`: the method's own files are edited
-  with the file tools; a shell write to them is a slip to report.
-- Expected benefit / risk: the checkpoints guard what they claim to. Risk: more prompts in
-  auto mode.
-
-### IMP-067 — The framework in headless mode (`claude -p`, CI) and via the Claude Agent SDK
-- Date: 2026-10-09 | Origin: [[2026-10-09-quick-fixes-1.3.2]] — user request; evidence
-  from phase 1 of [[2026-09-27-imp-054-055-agent-git-boundary]]
-- Priority: MEDIUM (user decision, 2026-10-09) — the retro's process block.
-- Observed problem: the framework presupposes interactive Claude Code — `CLAUDE.md`, the
-  slash commands, `.claude/settings.json` (permissions, `env`, hooks), the hook input's
-  `agent_id`. Which of these load in headless mode and in the Agent SDK is not verified,
-  nor which boundaries of `docs/04` fall there. What is known: with `--bare`, Claude Code
-  loads no hooks (CLI help and docs, checked by the adversarial documentation pass of that
-  phase — documented, NOT measured by a probe), so the delegated-agent boundary does not
-  exist there; plain `claude -p` DID load the PreToolUse hook and carried `agent_id` to
-  subagents and workflow agents (measured, 2.1.283); in a workspace never trusted
-  interactively, `claude -p` ignored the project's `permissions.allow` while deny rules
-  and hooks applied (measured — IMP-064).
-- Proposal: NOT decided. First step: an investigation with real probes, as for IMP-054,
-  in throwaway repositories, measuring for each mode (`claude -p`, `--bare`, `--safe-mode`,
-  CI without a TTY, the Agent SDK) what loads and what does not: `CLAUDE.md`, the
-  commands, settings and their `env`, the hooks (SessionStart, PreToolUse), the `pre-push`
-  markers. The results go into `docs/04` and `SETUP.md` as "what holds in headless"; no new
-  mechanism before the measurement.
-- Out of scope: projects that USE the Messages API as a component (that is the project's
-  stack; the framework stays agnostic), and harnesses other than Claude Code.
-- Expected benefit / risk: the boundaries are known where they hold and where they do not.
-  Risk: none for the investigation itself.
-
-### IMP-072 — Mutate the paths, not only the sites
-- Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro), recorded at
-  the user's request in [[2026-10-11-multiplatform-1.5.0]]
-- Observed problem: a mutation campaign that disabled each of the 75 report sites of the
-  documentation check read as exhaustive and was not: a detection path that feeds a site
-  another planted defect already reaches survives unseen. Eight did, found by the
-  reviewer's second pass; an inventory of the forms the check's comments name then found
-  nineteen more that no case planted.
-- Proposal: NOT decided. Where a test claims to cover a rule's forms, each form is mutated
-  — each alternative of a detection pattern, each branch —, not only each report site; the
-  inventory of the forms the code advertises is the campaign's input. The candidate place:
-  `docs/02`, *Tests that demonstrate*.
-- Expected benefit / risk: a green campaign means what it says. Risk: campaigns cost more
-  runs.
-- In v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]) the mutants of the review's fixes settled
-  which guards to keep: two proved needed — without the check of `GIT_CONFIG_COUNT`, bash
-  3.2 went on past an arithmetic error in an `export`; without `|| true`, git dying of a
-  closed pipe failed the pre-commit with 141 —, and the explicit signal traps proved
-  redundant, since bash runs the EXIT trap on INT, TERM and HUP, and were left out.
-
-### IMP-074 — The bump is fixed by the brief before the content
-- Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — the user's brief; the
-  reviewer's L1 in [[2026-10-10-upgrade-safety-1.3.3]] and L14 in
-  [[2026-10-11-payload-purity-1.4.1]]
-- Priority: MEDIUM (user decision, 2026-10-11) — the process block.
-- Observed problem: v1.3.3 and v1.4.1 brought new rules into the payload — MINORs by the
-  criteria of `docs/04`, *Versioning* — and shipped as PATCHes, because the user's brief
-  had fixed the bump before the content existed. The reviewer flagged it both times; both
-  times the brief prevailed, and the version undersold what the release did.
-- Proposal (the user's): the brief states the EXPECTED bump; `/integrate` computes it again
-  from the commits with the criteria of `docs/04`; where the two diverge, the criteria of
-  `docs/04` win, and `/integrate` says so before the tag and asks the user to confirm.
-- Expected benefit / risk: the version says what the release does. Risk: a brief's
-  expectation overridden — by design, and never without the user's confirmation.
-- In practice, v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]): the brief expected a MINOR;
-  the review's MEDIUM, decided by the user as a security minimum that refuses a gitleaks
-  v1.5.0 accepted, made the release breaking. The bump was computed again by `docs/04`,
-  declared a MAJOR before the tag, and confirmed by the user.
-- An occurrence in v2.1.0, pointed out by the user on 2026-10-13
-  ([[2026-10-13-gate-lenses-2.1.0]]): the commits that apply IMPs as `docs/06` says are typed
-  `chore`, and here they carry the new rules of `docs/02` and `docs/03` into the payload.
-  With the release's one `fix`, a bump computed from the types alone comes out a PATCH,
-  while by `docs/04`'s criteria a new rule in the payload is a MINOR. The user's instruction:
-  `/integrate` computes the bump on the content — the new rules in the payload —, not only on
-  the commits' types, and declares its reasoning before the tag; v2.1.0 expected.
-
-### IMP-075 — Auto mode and the framework's boundaries
-- Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — the user ran
-  `/auto-mode-setup` on 2026-10-11
-- Priority: MEDIUM (user decision, 2026-10-11).
-- Observed problem: from Claude Code's documentation (https://code.claude.com/docs/en/auto-mode-config,
-  read on 2026-10-11): auto mode allows pushes to any branch of the working repository,
-  the default branch included; content-scoped `permissions.ask` rules are evaluated before
-  the classifier and always prompt, but a push written another way (`git -C <dir> push`,
-  `git -c <key>=<value> push`) does not match them; the classifier reads `autoMode` only
-  from the user's and the managed settings (and `--settings`), never from a project's
-  `.claude/settings.json` or `settings.local.json`. So `/auto-mode-setup`, run in a
-  repository, drafts entries from that repository and writes them into
-  `~/.claude/settings.json`, which holds for every project. Observed: the trusted
-  repository and the framework's visibility applied to all projects, and a false
-  statement about the classic protection of `main`; the user corrected the file.
-- Proposal (the user's): in `docs/04` and in *Hardening* of the framework's `SETUP.md` —
-  (1) the `pre-push` stays the boundary on the push in auto mode too; (2) a recipe of ask
-  rules as a net for the common case, with its limit; (3) a warning: auto mode's
-  environment is per user, to be written in a form true for every repository.
-- Weighed against IMP-067: kept apart. IMP-067 measures which of the framework's
-  mechanisms LOAD in non-interactive modes (`claude -p`, `--bare`, CI, the Agent SDK);
-  this one states what HOLDS in an interactive permission mode, from the documentation,
-  with a text ready. They meet in one place — the Agent SDK and `--settings` carry
-  `autoMode` inline —, which IMP-067's probes should cover.
-- Expected benefit / risk: a user of auto mode knows which boundary stops a push, and
-  writes an environment that does not leak one repository's facts into the others. Risk:
-  none.
-
-### IMP-077 — gitleaks `protect` is deprecated
-- Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — phase 1's inventory of
-  the prerequisites
-- Observed problem: the pre-commit hook runs `gitleaks protect --staged --redact -v`.
-  gitleaks' README: "v8.19.0 introduced a change that deprecated `detect` and `protect`.
-  Those commands are still available but are hidden in the `--help` menu." 8.30.1, the
-  latest release (2026-03-21), still runs it and hides it from `--help` (both measured).
-  A later release may drop it, and every project's commits would stop with it.
-- Proposal: NOT decided — weigh in v1.6.0 the replacement form, verified on gitleaks'
-  current documentation: its own pre-commit hook definition (`.pre-commit-hooks.yaml`)
-  runs `gitleaks git --pre-commit --redact --staged --verbose`, and 8.30.1's
-  `gitleaks git --help` documents `--pre-commit` ("scan using git diff") and `--staged`
-  ("scan staged commits (good for pre-commit)"). The switch's minimum, for the
-  prerequisites to state and v1.6.0's prerequisite check to verify, is 8.20.0 (corrected
-  below; first recorded as 8.19.0).
-- Decided (the user, 2026-10-12, v1.6.0's D1 — [[2026-10-12-prerequisites-1.6.0]]): the
-  hook keeps `protect`, and gitleaks' declared minimum is 8.0.0, where `protect --staged`,
-  `--redact` and `-v` exist; `detect` stays with it. The entry stays OPEN on its trigger.
-- Resumption trigger (the deadline): gitleaks announces the removal of `protect`. Then the
-  hook moves to `gitleaks git --pre-commit --redact --staged --verbose`, with 8.20.0 as the
-  minimum — 8.19.x's `--staged` defect —, and `detect` to `gitleaks git` wherever the
-  history scan is written (`SETUP.md`'s step 3 and brownfield checklist, `docs/03`,
-  `SECURITY.md`).
-- Expected benefit / risk: the hook does not depend on a hidden command. Risk: an older
-  gitleaks stops working with the switched hook, and 8.19.x would scan the history in
-  silence, missing the staged changes. The prerequisite check fails below gitleaks'
-  security minimum (D5, below) only when the hooks are installed: at the switch that
-  minimum becomes 8.20.0, and the switched hook refuses a gitleaks below it by itself — the
-  check at every commit, D5's option B, kept for the switch.
-- Corrected on 2026-10-12 ([[2026-10-12-prerequisites-1.6.0]]), from gitleaks' source at
-  each tag: `gitleaks git` exists from 8.19.0, but in 8.19.0 to 8.19.3 it ignores
-  `--pre-commit` and `--staged` — it scans the history and misses the staged changes
-  (issue #1522, fixed by #1533 in 8.20.0). `protect --staged` reads the staged diff
-  through its own code in every release from 8.0.0 to 8.30.1, hidden from 8.19.0.
-- Added on 2026-10-12 (v1.6.0's review, its HIGH — [[2026-10-12-prerequisites-1.6.0]]):
-  gitleaks runs its `git diff` and `git log -p` without `--no-color` in every release up to
-  8.30.1, so a colour the user's git configuration forces to "always" leaves it nothing to
-  scan, and a textconv driver shows it a conversion instead of what is committed — both
-  measured through real commits. Upstream: gitleaks#2281 (open, filed against
-  `gitleaks git --pre-commit --staged` too) and PR #2284 (open). The switch does not cure
-  it: the hook's environment block — the colour off and each textconv read as `cat`, by
-  `GIT_CONFIG_COUNT` — and the prefix of `SETUP.md`'s history scan move with it, until a
-  gitleaks release passes `--no-color` itself. So does the hook's scan apart of the text git
-  shows as binary (D6, 2026-10-13): `gitleaks git --pre-commit` reads `git diff` too, and
-  "Binary files differ" hides a key in a `*.key binary` from it as from `protect`.
-- Decided again (the user, 2026-10-12, D5 on the review's MEDIUM —
-  [[2026-10-12-prerequisites-1.6.0]]): the declared minimum becomes 8.18.2, a SECURITY
-  minimum — the prerequisite check FAILS below it, or when it cannot read gitleaks'
-  version, and the install stops. Read at gitleaks' source: before 8.18.2 the staged scan
-  runs `git diff` without `--no-ext-diff`, so a configured external diff replaces what it
-  reads; from 8.4.0 to 8.18.1 a scan error ends in "no leaks found" and exit 0; 8.0.0 to
-  8.1.3 also write a
-  `.gitleaks.toml` into the project, which later releases load instead of their own rules.
-  Debian 13 and Ubuntu 24.04 package 8.16.0 (their archives, read on 2026-10-12); Debian's
-  build rules set no version, so its binary names none, and the check fails it either way —
-  unread, or below. `protect` stays, as D1 decided. Refusing an older gitleaks breaks the
-  compatibility v1.5.0 kept: the release is v2.0.0.
-
-### IMP-078 — commitlint reads a body line that starts with "word:" as the footer
-- Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — observed four times
-- Priority: LOW (user decision, 2026-10-11).
-- Observed problem: twice a commit's body had a line that began with a single word and a
-  colon — "repository:" in the CHANGELOG commit of v1.4.1, amended while it was still
-  local ([[2026-10-11-payload-purity-1.4.1]]), and "measured:" in `e6597f1` of v1.5.0,
-  left as it is because the branch was public — and a third time on the same day, while
-  this entry was being written: "was:" in a commit of the CI's second round, written
-  again while it was still local. Each time the commit-msg hook warned "footer must have
-  leading blank line". How commitlint recognises a footer, checked:
-  its documentation and its parser's (the README and the API page of
-  conventional-commits-parser) list `noteKeywords`, `referenceActions`, `issuePrefixes`
-  and `fieldPattern` without saying when a line opens the footer; the parser's source
-  does — conventional-commits-parser 7.1.3, the version the hook's npx fetched,
-  `dist/regex.js`, `getFooterTokenRegex`: "Footers follow the git trailer convention: the
-  token starts at the beginning of the line, indented `key: value` lines are not
-  footers", the pattern `^(?:BREAKING CHANGE|[\w-]+)(?::\s+|\s+#).+`, case-insensitive;
-  from that line on, everything is footer. Measured with that parser: "measured: …" and
-  "repository: …" open the footer and cut the body there; "the step: …" (two words), an
-  indented line and "measured:" without a space do not. `@commitlint/config-conventional`
-  21.2.3 sets `footer-leading-blank` to a warning, which `commitlint.config.cjs` does not
-  override.
-- Proposal: NOT decided — two options: (a) one line in `docs/04`, *Commit format*: in the
-  body, no line begins with a single word and a colon; (b) `commitlint.config.cjs`:
-  `footer-leading-blank` raised to an error, so the hook refuses such a commit while it
-  is still local and its message can still be written again.
-- Expected benefit / risk: the body stays whole in the parsed history, and no published
-  commit carries the warning. Risk of (b): an error in every project's commit-msg hook
-  where a warning was — for a footer typed without its blank line too.
-- A fourth time, at v1.5.0's checkpoint: "projects:" opened a wrapped body line; the
-  commit was written again while still local.
-- A fifth time, in v2.0.0's review fixes ([[2026-10-12-prerequisites-1.6.0]]): "source:"
-  opened a wrapped body line of the breaking commit; written again while still local, as
-  `5f05004`.
-- A sixth time, in v2.1.0 ([[2026-10-13-gate-lenses-2.1.0]]): "diff:" opened a wrapped body line of task 3's
-  commit, written again while still local. From then on each message was checked before its
-  commit with a grep for a body line opening with a word and a colon.
-
-### IMP-079 — A parser of another shell's syntax covers the forms it was held against, not the language
-- Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro), recorded at
-  the user's request in [[2026-10-12-prerequisites-1.6.0]]
-- Observed problem: v1.5.0's task 5 taught the guard PowerShell's syntax. Its mutants
-  proved each piece of the reading (8 of 8); none could prove its coverage, and the
-  reviewer got 15 of 19 ordinary forms through — an assignment, a script block, a
-  here-string. IMP-071's shape, a new occurrence: "ordinary forms" claimed against the
-  cases written, not against the language.
-- Proposal: NOT decided. Before a parser of another language's syntax claims a coverage,
-  its cases are held against the language's own list of constructs, the claim's source.
-  IMP-083 pulls the other way — which forms the guard must know at all —: weigh the two
-  together.
-- Expected benefit / risk: a claim of coverage that holds. Risk: more cases to write and
-  keep.
-- An occurrence in bash, from v2.1.0's review ([[2026-10-13-gate-lenses-2.1.0]], L6, read at the guard's
-  source): the guard passes git inside an unquoted heredoc's `$(…)` or backticks, which bash
-  expands; a function defined with the `function` keyword; a `coproc`; and a command name
-  held in a variable (`$GIT`) — its comment says it does no expansion, `docs/04` does not.
-
-### IMP-080 — A guard against uncommitted changes must see what git hides from its diff
-- Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro), recorded at
-  the user's request in [[2026-10-12-prerequisites-1.6.0]]
-- Observed problem: the line-end step of `SETUP.md` was to refuse a change not yet
-  committed, never erase it (the user's request in v1.5.0). `git diff --quiet HEAD` cannot
-  see an edit behind `assume-unchanged`, nor stop `git rm --cached` halfway on a
-  `skip-worktree` entry. The review found both, the probes measured them, and `4f9f9ef`
-  fixed them with `git ls-files -v`.
-- Proposal: NOT decided. A step that refuses to overwrite uncommitted work reads the
-  index's marks (`git ls-files -v`: a lowercase tag for assume-unchanged, `S` for
-  skip-worktree) as well as the diff. Where to write it — the conventions of the
-  framework's procedures, or `docs/02` — is to be decided.
-- Expected benefit / risk: no step erases what it promised to keep. Risk: none.
-
-### IMP-081 — On Git Bash, git counts line ends, not grep
-- Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro), recorded at
-  the user's request in [[2026-10-12-prerequisites-1.6.0]]
-- Observed problem: in the CI's fourth round a grep for a line-ending `\r` counted no CRLF
-  file on Git Bash; in the fifth, git counted them in the same kind of clone
-  (`core.autocrlf=true`). The red was the test's, not the product's: `b8ccbe0` moved the
-  count to `git ls-files --eol`.
-- Proposal: NOT decided. A test that must know a file's line ends asks git
-  (`git ls-files --eol`) or reads the bytes, never greps for `\r$`. The candidate place:
-  the conventions of the framework's self-tests (`scripts/README.md`, `tools/README.md`).
-- Expected benefit / risk: line-end tests that mean the same on every platform. Risk:
-  none.
-
-### IMP-082 — The whole suite before each commit, the documentation check included
-- Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro), recorded at
-  the user's request in [[2026-10-12-prerequisites-1.6.0]]
-- Observed problem: a prose edit in `SETUP.md` passed the self-test that reads its block and
-  failed the documentation check — caught after the commit, amended while it was still
-  local.
-- Proposal: NOT decided. Before each commit of the framework the whole suite runs —
-  `make test-scripts`, the documentation check included, and the upgrade check's
-  self-test —, not only the self-test of the file touched. The candidate place:
-  `CONTRIBUTING.md`, *This repo's workflow*.
-- Expected benefit / risk: no commit that the CI or the next commit finds red. Risk: a few
-  minutes per commit.
-- An occurrence in v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]): two commits that moved
-  IMPs to Applied went in after the documentation check alone; the check's self-test,
-  whose plant was anchored on a line the move dropped, failed, and the checkpoint's commit
-  followed, its command not gated on the suite's exit. All local: rebuilt, each after a
-  green suite. Gating the commit on the suite in the same command (`make test-scripts &&
-  git commit …`) would have stopped it.
-
-### IMP-083 — The guard grows beyond its threat model
-- Date: 2026-10-12 | Origin: the user's request at v1.5.0's integration (2026-10-11), from
-  [[2026-10-11-multiplatform-1.5.0]]; recorded in [[2026-10-12-prerequisites-1.6.0]]
-- Priority: MEDIUM (user decision, 2026-10-11) — the process block.
-- Observed problem: in v1.5.0 the guard learned non-ordinary PowerShell forms —
-  here-strings, block comments, `${name}` — while the PowerShell tool is off by
-  `CLAUDE_CODE_USE_POWERSHELL_TOOL=0`; v1.3.0's threat model covers an agent's accidental
-  errors made with ordinary commands (`docs/04`, *Enforcement of the execution boundary*).
-  `scripts/agent-git-guard.mjs` counts 234 lines at v1.3.0, 238 at v1.3.1, 239 from v1.3.2
-  to v1.4.1 and 309 at v1.5.0 (`db1fc77` +35 −21, the review's fix `ceac061` +69 −13).
-- Proposal (the user's): at a retro, review each form the guard recognises against that
-  criterion, remove what is not needed, and fix an admission rule for future forms: only
-  forms observed, or ordinary ones. Weigh it with IMP-079, which asks the opposite of a
-  parser's claim of coverage.
-- Expected benefit / risk: a guard as large as its job. Risk: a form removed that a
-  developer with the PowerShell tool on would use — the tool is off by default.
-
-### IMP-085 — The framework's files kept out of deploy artifacts
-- Date: 2026-10-13 | Origin: the user's question, 2026-10-13 — recorded in
-  [[2026-10-12-prerequisites-1.6.0]]
-- Priority: LOW (user decision, 2026-10-13).
-- Observed problem: the framework serves during development only, but its files —
-  `CLAUDE.md`, `.claude/` with the project's memory, the scripts, the `Makefile` — sit in
-  the project's repository. A deploy that copies the whole repository (a `COPY . .` into an
-  image, for one) carries them into production, the project's memory included.
-- The first check, made when recording it (2026-10-13): no page says it. `SETUP.md`,
-  `CLAUDE.md`, `.claude/docs/`, `README.md` and `CONTRIBUTING.md` searched for deploy,
-  production, docker, image, container, artifact and exclude: only the technical rules'
-  slot for the production artifact's format and `docs/02`'s Definition of Done, point 9,
-  neither about the framework's own files.
-- Proposal: NOT decided — and only because it is missing: one line of principle, agnostic
-  to the stack, in `SETUP.md` (its *Hardening* section, for one): keep the framework's
-  paths out of deploy artifacts with the stack's own mechanism; the list of those paths
-  derives from the class table (`tools/upgrade-check.sh classes <tag>`, `SETUP.md`, *The
-  mental model: the classes of file, and the graft state*). No exclusion file in the
-  payload: such files depend on the stack and stay the project's.
-- Expected benefit / risk: a project's memory and process files do not reach production
-  through a copy of the whole repository. Risk: none — a line of principle.
-- Resumption trigger: the next release that touches `SETUP.md`'s *Hardening*, or the
-  retrospective over the backlog.
-
 ### IMP-086 — The framework repository's visibility, and what its memory holds
 - Date: 2026-10-13 | Origin: the user's decision, 2026-10-13 — at the end of the cycle the
   framework's repository becomes PRIVATE, for personal use; recorded in
@@ -754,216 +44,66 @@ tags: [improvement]
 - Expected benefit / risk: the switch costs no protection and no CI coverage unknowingly.
   Risk: without macOS in the CI, bash 3.2 and the BSD userland are verified only locally.
 - Resumption trigger: the switch of the repository to private, at the end of the cycle.
+- Status: APPROVED on 2026-10-13 (the retro over the backlog) — applied at its trigger, the
+  switch, not in v2.2.0. Two decisions are the user's then: GitHub Pro or a protection that
+  is local only — the ruleset that protects the remote tags is one of those that stop
+  applying on the Free plan —, and macOS out of the CI. IMP-099's platform claim no longer
+  depends on the second (see there).
 
-### IMP-088 — A change next to a setup slot conflicts at every project's upgrade
-- Date: 2026-10-13 | Origin: task 10 of v2.0.0, the upgrade rehearsed on the final payload —
-  [[2026-10-12-prerequisites-1.6.0]] (the retro)
-- Observed problem: the block that scans the text git shows as binary was inserted right
-  after the pre-commit's protect line, and ended next to the formatting slot's line, which
-  every project answers at setup: the 3-way merge of `hooks-install.sh` conflicted, 41 of
-  311 lines, for every such project. Only the release's rehearsal found it, after three
-  green CI rounds: the upgrade check measures the 3-way at a project's upgrade, nothing at
-  the framework's commit.
-- Proposal: NOT decided. At each commit that touches a HYBRID file, measure its 3-way merge
-  from the latest tag against a copy whose every slot is answered — the slots the
-  documentation check already knows, `SETUP.md` §2 —, in the framework's own checks; or,
-  lighter, a rule in `CONTRIBUTING.md`: a change keeps unchanged lines between itself and a
-  slot's line, and the release's rehearsal stays the backstop.
-- Expected benefit / risk: the conflict shows at the commit that makes it. Risk: a fixture
-  of answered slots to keep, or a rule no check holds.
+### IMP-104 — Mechanical detection of a session started outside the repository's root
+- Date: 2026-10-14 | Origin: v2.2.0's review, H1 — [[2026-10-13-backlog-retro-2.2.0]]
+- Priority: LOW (user decision, 2026-10-14).
+- Observed problem: Claude Code reads the project's settings from the session's primary
+  working directory only, with no parent-directory fallback: a session started in a
+  subdirectory, or moved there with `/cd`, runs without the guard, the `deny` and `ask`
+  rules, the session marker and the SessionStart hook, and nothing says so. v2.2.0 declares
+  it in `docs/04` and `SETUP.md`, and `CLAUDE.md` — which loads from the directories above —
+  tells the agent to say so when `STATE.md` was not injected: an instruction, read by the
+  agent, not a mechanism.
+- Proposal: a SessionStart hook in the USER's settings (`~/.claude/settings.json`), which
+  load from any folder: it checks whether the session is inside a repository that carries
+  the framework but not at its root, and warns. It is the machine's configuration, not the
+  payload's: `SETUP.md` would document it as optional hardening.
+- Expected benefit / risk: the slip caught by the machine rather than by the agent's
+  reading of an instruction. Risk: a hook in the user's settings runs in every project and
+  every folder; it must stay cheap, and silent where it has nothing to say.
+- Resumption trigger: the first time a session starts from a subfolder without
+  `CLAUDE.md`'s instruction catching it.
 
-### IMP-089 — The history scan misses a key committed in a file marked binary
-- Date: 2026-10-13 | Origin: measured in [[2026-10-12-prerequisites-1.6.0]] (task 9, N1's
-  family); recorded at the user's request in [[2026-10-13-gate-lenses-2.1.0]]
-- Priority: LOW (user decision, 2026-10-13).
-- Observed problem: `gitleaks detect`, the one-off history scan of `SETUP.md`'s step 3,
-  reads `git log -p`, which shows a file marked `binary` or `-diff` as "Binary files
-  differ": a key committed in a `*.key binary` is not found (measured: exit 0, "no leaks
-  found"; found without the attribute). `gitleaks detect --no-git --source <path>`, which
-  step 3 names, covers only the current content: a key removed since, still in the
-  history, stays unseen.
-- Proposal: NOT decided — when the trigger comes, scan every committed version of the files
-  the project marks binary (their blobs, through `git rev-list --all -- <paths>` and
-  `git cat-file`), or say in step 3 how to.
-- Expected benefit / risk: a graft's baseline scan reads every committed key. Risk: a scan
-  over every version of those files costs time on a long history.
-- Resumption trigger: the first graft into a project whose `.gitattributes` marks key files
-  as binary.
-- Two more gaps of the same scan, from v2.1.0's review ([[2026-10-13-gate-lenses-2.1.0]], L5, read at
-  gitleaks' source): it runs `git log -p` without a `--diff-merges` form, so what a merge's
-  own resolution introduced is never read; and 8.30.1 adds `--diff-filter=tuxdb`, leaving
-  out type changes.
+### IMP-105 — The real path starts where the tool reads its configuration
+- Date: 2026-10-14 | Origin: v2.2.0's retro — its review's H1 and the re-reading of task 6
+  — [[2026-10-13-backlog-retro-2.2.0]]
+- Observed problem: two releases in a row, the review's only HIGH was a configuration the
+  boundary relies on, silently not in effect — in v2.1.0 a hook manager that sets
+  `core.hooksPath` after the install (IMP-090), in v2.2.0 a session that did not load the
+  project's settings. `docs/03`'s *The real path* asks what a tool's configuration makes it
+  do, not where and when the tool reads it. In the same release four statements about
+  Claude Code, written from WebFetch's answers about its pages — a model's reading, of the
+  first part only of a long page — and compressed in the writing, said more or other than
+  the pages' own text: the re-reading from the pages' Markdown, at the user's request, found
+  them.
+- Proposal: *The real path* gains (a) where and when the tool reads the configuration the
+  gate relies on — the files, the directory it starts from, the flags and settings that
+  skip them —, and (b) a statement about an external tool rests on the source's own text,
+  its passage quoted in the record, never on a summary of it.
+- Expected benefit / risk: the family of the last two HIGHs looked for by name, and a claim
+  checked against a quote rather than a paraphrase. Risk: a longer lens, and readings that
+  cost more.
 
-### IMP-090 — The hooks go inert when a hook manager takes core.hooksPath after the install
-- Date: 2026-10-13 | Origin: v2.1.0's review, its HIGH H1 — [[2026-10-13-gate-lenses-2.1.0]]
-- Priority: MEDIUM (user decision, 2026-10-13).
-- Observed problem: `hooks-install.sh` checks `core.hooksPath` at install time only; a hook
-  manager sets it again at its next run — husky 9.1.7 at every install it runs, from the
-  project's `prepare` script at each `npm install`, unless `HUSKY=0` (read at its source) —,
-  and git then reads another directory: the pre-commit's scan and the push boundary stop,
-  and nothing says so (measured: a commit holding a key goes through). v2.1.0 declared the
-  route and made the installer's refusal say it (`b7e3f09`); the failure stays silent at use
-  time. `repo-snapshot.sh`'s list of what it fingerprints reads as complete and leaves out
-  the configuration, the hooks, `.git/info`, the staged state and ignored files (L17): H1's
-  route leaves its fingerprint unchanged.
-- Proposal: NOT decided — make the failure visible: the SessionStart hook warns when
-  `core.hooksPath` is set, or when the common hooks directory's pre-push lacks the
-  generator's marker; `repo-snapshot.sh` fingerprints `core.hooksPath` and the hooks'
-  checksums, or declares what it leaves out.
-- Expected benefit / risk: the boundary's loss shows at the next session. Risk: an edit to
-  `.claude/settings.json`, a boundary file.
-- Resumption trigger: the first project with a hook manager.
-- Verified by the user on 2026-10-13: on the user's machines, neither of the two projects
-  checked has `core.hooksPath` set or a hook manager configured — at the root or in a
-  subdirectory; husky, lefthook, simple-git-hooks.
-- A mitigation, the user's decision in v2.1.0, `3359003`: the graft's and the upgrade's
-  checklists (`SETUP.md`, *Inherited git hygiene* and Step 4) check `core.hooksPath` and look for a hook
-  manager, so the case shows at a graft or an upgrade; the detection at use time stays open.
-
-### IMP-091 — The commits git creates itself skip the pre-commit
-- Date: 2026-10-13 | Origin: v2.1.0's review, M1 — [[2026-10-13-gate-lenses-2.1.0]]
-- Observed problem: git runs the pre-commit only from `git commit`. A rebase's `--continue`
-  commits a conflict's resolution through the sequencer with `-n` (measured: a key pasted
-  into the resolution is committed; git's sequencer.c read by the reviewer); `git am` runs
-  pre-applypatch instead; a cherry-pick or a revert commits in-process. The framework's
-  own merge step resolves conflicts in `git rebase origin/<integration>` (`docs/04`,
-  `/integrate`'s block 1). `docs/03`'s baseline — "on every commit … always, without
-  exceptions" — and `CLAUDE.md`'s rule 1 claim more.
-- Proposal: NOT decided — narrow the claims (the scan runs on `git commit`; the commits git
-  creates itself are not scanned) in `docs/03`, `CLAUDE.md` and `SETUP.md`'s known limits;
-  weigh compensating at publication — gitleaks over the range about to go public, in
-  `/integrate`'s block 1 or in the pre-push.
-- Expected benefit / risk: the baseline says what it covers; a compensation would close the
-  route. Risk: a scan at publication repeats work on every push.
-- Partly applied on 2026-10-13, the user's decision after v2.1.0's review, `ee883ee`: the
-  claims narrowed — `docs/03`'s baseline says what the hook does and declares this limit,
-  `CLAUDE.md`'s rule 1 points to it. Measured then on git 2.54.0 with a marker hook: a
-  cherry-pick or a revert that applies cleanly, `git am` and a rebase's `--continue` after
-  a conflict do not run the pre-commit; a cherry-pick's `--continue` after a conflict and a
-  merge concluded by `git commit` do; a clean merge runs `pre-merge-commit` instead. Still
-  open: `SETUP.md`'s known limits and a compensation at publication.
-
-### IMP-092 — Claude Code's permission flow can replace the guard's verdict and the ask rules
-- Date: 2026-10-13 | Origin: v2.1.0's review, M2 and I1 — [[2026-10-13-gate-lenses-2.1.0]]
-- Observed problem (read by the reviewer in Claude Code's documentation, 2026-10-13): a mod
-  that handles `tool.check` — mods are on by default — answers after the rules and the
-  PreToolUse hooks and can approve a call a hook blocked, unless the hook sits in managed
-  settings, and what an ask rule would prompt for; a PermissionRequest hook can answer an
-  ask prompt; `disableAllHooks: true`, the switch the documentation gives for stopping mods,
-  also stops the guard and the SessionStart hook. `docs/04` says the guard's verdict "always
-  stands" and that the boundary's files "always" ask. I1: a command hook's
-  `"onFailure": "block"` (Claude Code 2.1.295 or later) now offers the off-switch for the
-  fail-open `docs/04` declares, and would block the main session too on any failure, which
-  `docs/04`'s design avoids.
-- Proposal: NOT decided — declare the three routes in `docs/04` (the fail-closed bullet,
-  the ask bullet, the guard's row); weigh `"disableAllHooks": false` in the project's
-  `settings.json`, which overrides a user's `true`; weigh `onFailure` at a retro.
-- Expected benefit / risk: the boundary's claims hold against Claude Code's own extension
-  points. Risk: pinning a setting the user may have chosen.
-
-### IMP-093 — Delegated agents can write git state outside the guard's matcher
-- Date: 2026-10-13 | Origin: v2.1.0's review, M3 — [[2026-10-13-gate-lenses-2.1.0]]
-- Observed problem (read in Claude Code's documentation by the reviewer): the
-  EnterWorktree tool, available to subagents, creates a worktree on a new branch in the
-  shared repository, and ExitWorktree with `remove` deletes the worktree and its branch; a
-  project's MCP git server (commit, checkout, reset) is the same class. The guard matches
-  `Bash|PowerShell|Monitor`; none of these is blocked or declared.
-- Proposal: NOT decided — extend the matcher to `EnterWorktree|ExitWorktree` and refuse them
-  for an input with `agent_id`, or declare them, with MCP git tools, in `docs/04`'s "Outside
-  this layer".
-- Expected benefit / risk: the read-only rule holds for the tools Claude Code gives
-  delegated agents. Risk: a matcher to keep in step with Claude Code's tools.
-
-### IMP-094 — reset-task.sh leaves a staged change in the working tree, and reports success
-- Date: 2026-10-13 | Origin: v2.1.0's review, M4 — [[2026-10-13-gate-lenses-2.1.0]]
-- Observed problem: `git restore .` restores the working tree FROM THE INDEX, and only then
-  does `git restore --staged .` reset the index: a staged change survives as an unstaged
-  one, yet the script reports the task discarded (measured: staged B, then C in the working
-  tree; afterwards ` M f`, the file holding B). Both restores swallow their errors, and no
-  self-test covers the script; `docs/01`'s manual form leaves staged changes staged.
-- Proposal: NOT decided — `git restore --source=HEAD --staged --worktree -- .`, errors not
-  swallowed, a self-test with a staged change, `docs/01`'s manual form corrected.
-- Expected benefit / risk: a resumption restarts from a clean task, as `docs/01` promises.
-  Risk: none.
-
-### IMP-095 — The pre-commit's scan apart has three gaps of its own
-- Date: 2026-10-13 | Origin: v2.1.0's review, L2, L3 and L4 — [[2026-10-13-gate-lenses-2.1.0]]
-- Observed problem: (1) in directory mode gitleaks skips a file whose first bytes match an
-  application's signature (`MZ`, `BZh`, `{\rtf`, `%PDF`, …), logged at debug level only —
-  read at its source by the reviewer; (2) gitleaks reads `GITLEAKS_CONFIG_TOML` before the
-  project's `.gitleaks.toml`, while the scan apart passes `--config` unless
-  `GITLEAKS_CONFIG` is set — read at its source; (3) `--diff-filter=ACM` leaves out a type
-  change — measured: a symlink turned into a key file marked binary goes through.
-- Proposal: NOT decided — a line of text before each copy, so no signature sits at offset 0,
-  or the limit declared; `-z "${GITLEAKS_CONFIG_TOML:-}"` with the other condition;
-  `--diff-filter=ACMT`.
-- Expected benefit / risk: the scan apart reads what it promises. Risk: none.
-
-### IMP-096 — A clean filter's content is not scanned, and a pre-push.local can be skipped silently
-- Date: 2026-10-13 | Origin: v2.1.0's review, L1 and L16 — [[2026-10-13-gate-lenses-2.1.0]]
-- Observed problem: a clean filter rewrites the content before it reaches the index, so the
-  scan reads the filter's output — under git-lfs, which the framework anticipates
-  (`pre-push.local`), a pointer, while the content goes to the LFS store unscanned
-  (measured with an LFS-like filter). And the generated pre-push skips a `pre-push.local`
-  that is not executable without a word; if it is git-lfs's, LFS objects are never
-  uploaded.
-- Proposal: NOT decided — declare the filter's limit in `SETUP.md`'s known limits, and weigh
-  scanning LFS-tracked paths apart; say so, or fail, when `pre-push.local` exists and is not
-  executable.
-- Expected benefit / risk: the known limits are complete for LFS projects. Risk: none.
-
-### IMP-097 — The pre-push's CLAUDECODE fallback refuses the human in an IDE terminal
-- Date: 2026-10-13 | Origin: v2.1.0's review, L7 — [[2026-10-13-gate-lenses-2.1.0]]
-- Observed problem: Claude Code's environment-variable reference (read on 2026-10-13) says
-  IDE extensions set `CLAUDECODE` in their integrated terminals: a human pushing from VS
-  Code's terminal is refused, the refusal naming a Claude Code session. The same reference
-  documents `CLAUDE_CODE_CHILD_SESSION`, set for the Bash, PowerShell and Monitor tools and
-  hook commands, not for IDE terminals nor stdio MCP servers.
-- Proposal: NOT decided — name the IDE terminal in `docs/04` and in the refusal, with how the
-  human pushes from it; or weigh `CLAUDE_CODE_CHILD_SESSION` as the fallback, which loses
-  stdio MCP servers.
-- Expected benefit / risk: the human is not refused as an agent. Risk: a marker that covers
-  less.
-
-### IMP-098 — A second re-run of the installer overwrites the .bak
-- Date: 2026-10-13 | Origin: v2.1.0's review, L9 — [[2026-10-13-gate-lenses-2.1.0]]
-- Observed problem: `cp "${target}" "${target}.bak"` overwrites a `.bak` left by an earlier
-  re-run: a customisation saved once is lost the next time the hook differs.
-- Proposal: NOT decided — never overwrite an existing `.bak`: number the copies, or keep the
-  old one and say where it is.
-- Expected benefit / risk: a saved customisation survives. Risk: `.bak` files accumulate.
-
-### IMP-099 — The platform the check names as verified is wider than the CI's images
-- Date: 2026-10-13 | Origin: v2.1.0's review, L13 — [[2026-10-13-gate-lenses-2.1.0]]
-- Observed problem: `check-prerequisites.sh` calls any non-WSL Linux on x86_64 a platform the
-  CI verifies; the CI runs Ubuntu 24.04 only, and `SETUP.md` says other distributions are not
-  verified. The same holds for other macOS and Windows versions against the named images.
-- Proposal: NOT decided — name what was verified ("x86_64, verified on Ubuntu 24.04"), or
-  read `/etc/os-release`; the self-test changes with it.
-- Expected benefit / risk: the line claims what the CI shows. Risk: none.
-
-### IMP-100 — Two latent hardenings: the upgrade check's colour, make's YES
-- Date: 2026-10-13 | Origin: v2.1.0's review, L14 and L15 — [[2026-10-13-gate-lenses-2.1.0]]
-- Observed problem: (1) `tools/upgrade-check.sh` forces `color.ui` off, which is only
-  `color.diff`'s default: a user's `color.diff=always` still colours patch output — latent,
-  no check parses a patch today; (2) make imports every environment variable and `$(if)` is
-  true for any non-empty value: an exported `YES`, even `0` or `no`, runs `reset-task`
-  without its prompt.
-- Proposal: NOT decided — `-c color.diff=false`, or `--no-color`; pass `--yes` only for
-  `YES=1` given on the command line.
-- Expected benefit / risk: a comment that is true, a prompt that cannot be skipped by
-  accident. Risk: none.
-
-### IMP-101 — Each new case of the hooks' self-test edits the documentation check's fixtures
-- Date: 2026-10-13 | Origin: v2.1.0's retro — [[2026-10-13-gate-lenses-2.1.0]]
-- Observed problem: two fixtures of `tools/test-docs-check.sh` plant their defects by editing
-  the literal case count in `scripts/test-hooks-install.sh`'s header ("Six cases:" to "Seven
-  cases:") and expecting a message that names the counts. Every case added to that self-test
-  breaks both: five commits over v2.0.0 and v2.1.0 edited them (`77525a0`, `050b2f5`,
-  `bfd6c90`, `bf3879b`, `b7e3f09`), `050b2f5`'s after the suite ran red.
-- Proposal: NOT decided — the fixtures read the current count from the header and plant
-  count + 1, so a new case touches only the self-test it belongs to.
-- Expected benefit / risk: a new case is one change, not three. Risk: none.
+### IMP-106 — The snapshot's difference when the user pushes during a delegated run
+- Date: 2026-10-14 | Origin: v2.2.0's retro — [[2026-10-13-backlog-retro-2.2.0]]
+- Observed problem: in this repository block 0 runs while a reviewer works, and the user's
+  push moves `refs/remotes/origin/<branch>`, which the snapshot records: the comparison after
+  the review showed a difference no agent made. `docs/04` says any difference stops the
+  session, to be reported; the main session read the ref's reflog — "update by push", at the
+  time of the user's push — and went on with the review's fixes before reporting it, which
+  the rule's letter does not allow.
+- Proposal: `docs/04`'s *Snapshot before, check after* names the case — a remote-tracking
+  ref whose reflog says "update by push" at the user's push is the user's, reported with the
+  result rather than stopped for —, or the snapshot before is taken after the user's push.
+- Expected benefit / risk: the rule stays strict where an agent could have moved shared
+  state, and the expected case no longer invites a deviation. Risk: none known — an agent's
+  push is refused by the `pre-push` before any ref moves.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
@@ -2193,16 +1333,431 @@ line on; older entries are not backfilled.
   CRLF cases since `9fa2e9a`, the real-hook cases 5 to 7 since v2.0.0.
 - Uncovered: rounds 3 to 5 of v1.5.0 stay not established.
 
-## Deferred (not rejected — resumed at the right time)
+### IMP-102 — The recovery block printed in advance is run after a successful integration → applied on 2026-10-14, commits 2d82446, 559541c
+- Origin: [[2026-10-13-backlog-retro-2.2.0]] — at v2.1.0's integration the agent printed
+  `git tag -d v2.1.0` under its condition next to blocks 1 and 2, against `/integrate`'s own
+  "if (and ONLY if)": the tag was free when the blocks were printed. The user ran it after an
+  integration that had succeeded; the local tag was deleted and recovered with `git fetch`. A
+  condition written above a copyable block is not a condition — IMP-069's lesson, which had
+  covered the pause before the push only.
+- Applied (the user's form, structural): `/integrate`'s normal sequence holds no destructive
+  line. Its step 4 gains *When the user reports a failed check*, the one place a recovery
+  block is produced — after the report, once read-only commands have shown the state, and
+  only while the tag is local (`git ls-remote` prints nothing); the line between the blocks
+  and step 5's checklist follow. `docs/04`'s rule 3 of the blocks for the user becomes
+  *Destructive commands never in advance*: given once the condition holds, alone in its
+  block; the tag hygiene and rule 4 follow. The upgrade's abort block in `SETUP.md` loses the
+  comment line inside it, which rule 4 forbids, and is run or given only once the user has
+  decided to abort — it had claimed docs/04's form while printed under its condition (the
+  review, M1). The failure path's recovery block is printed alone, never beside blocks 1 and
+  2, which come again after the repair (the review, L1: a phrase left from 2.1.0's text).
+- Verified: `integrate.md` merges three ways cleanly against a copy whose branch placeholders
+  are answered, with LF and with CRLF line ends (git 2.54.0, `git merge-file`). The new
+  section starts right under the paragraph above it: with a blank line in between, git
+  aligned the section against the answered line below it and the merge conflicted
+  (measured). The behaviour itself shows at this release's own `/integrate`.
 
-### IMP-023 — CODE_OF_CONDUCT.md and .github/ templates → deferred on 2026-07-11
-- User decision: DEFER. Without a real flow of external contributions they are
-  ceremony (the anti-hype filter); they are created on the spot when needed (low cost).
-  On resumption: CODE_OF_CONDUCT = Contributor Covenant v2.1 with a placeholder
-  contact; `.github/` with minimal issue/PR templates aligned with Conventional Commits
-  and the end-of-deliverable cycle.
-- Resumption trigger: the first issue/PR from a real external contributor, or the
-  user's decision to publicise the repo.
+### IMP-074 — The bump is fixed by the brief before the content → applied on 2026-10-14, commits a25e17e, 559541c
+- Origin: [[2026-10-11-multiplatform-1.5.0]], the user's brief; the reviewer's L1 in
+  [[2026-10-10-upgrade-safety-1.3.3]] and L14 in [[2026-10-11-payload-purity-1.4.1]] — v1.3.3
+  and v1.4.1 brought new rules into the payload, MINORs by `docs/04`'s criteria, and shipped
+  as PATCHes, the brief having fixed the bump before the content existed. In v2.1.0
+  ([[2026-10-13-gate-lenses-2.1.0]]) the applying commits, typed `chore` as `docs/06` says,
+  carried new rules: by the types alone a PATCH, by the content a MINOR — the user's
+  instruction was to compute it on the content and declare the reasoning before the tag.
+  v2.0.0 had shown the other direction: a brief's MINOR became a MAJOR, declared and
+  confirmed ([[2026-10-12-prerequisites-1.6.0]]).
+- Applied (the user's proposal): `docs/04`, *Versioning*, gains *The type suggests; the
+  content decides* — a `docs` or `chore` commit that brings a new rule or command into what
+  the project ships is a MINOR, a `fix` that breaks the contract a MAJOR. `/integrate`'s
+  step 2 weighs the content after the types, states the bump with its reasoning above the
+  blocks, names the bump the request expected if it named one, and where the two differ says
+  so and waits for the user's confirmation before step 3's commit; its documentation-is-the-
+  product exception and step 5's checklist follow, and its "no tag" bullet yields to the
+  content weighed above it (the review, L4: as first written it contradicted it).
+- Verified: `integrate.md`'s 3-way merge against a copy with the branch placeholders answered
+  stays clean, with LF and with CRLF line ends. The rule itself is exercised at this
+  release's own `/integrate`, which expects a MINOR.
+
+### IMP-051 — The memory lags one merge: `/checkpoint` runs before the merge → applied on 2026-10-14, commit 8c58dc0
+- Origin: [[2026-09-24-third-upgrade-lessons]] — the cycle runs `/checkpoint` before
+  `/integrate`, and the merge happens outside the session, so the memory records the state
+  awaiting the merge, and the fix was an optional later `/checkpoint`: one more commit to
+  push. Recurring: 5 reconcile commits in the client project, 6 trailing commits here since
+  v0.3.0 — structural rather than a slip, though v0.3.0 had called it execution discipline.
+- Applied (direction (c), the de-facto practice here): the reconciliation after a merge is
+  the next deliverable's first `/checkpoint`. The memory never records a merge not yet run,
+  and no commit of its own follows the merge. `/integrate`'s closing paragraph, `/checkpoint`'s
+  step 7 and `docs/00`'s summary of the cycle say so; `/checkpoint`'s step 3 already holds
+  the reconciliation with git.
+- Verified: `integrate.md` and `checkpoint.md`, both HYBRID, merge three ways cleanly against
+  copies with their placeholders answered and `checkpoint.md`'s setup paragraph deleted, with
+  LF and with CRLF line ends. Read in `SETUP.md`: an upgrade's first `/checkpoint` is its
+  Step 6, after Step 5's invariant on the memory, which the rule leaves as it was.
+
+### IMP-094 — reset-task.sh leaves a staged change in the working tree, and reports success → applied on 2026-10-14, commits 2cb04dd, 559541c
+- Origin: v2.1.0's review, M4 ([[2026-10-13-gate-lenses-2.1.0]]) — `git restore .` restores
+  the working tree from the INDEX, and only then did `git restore --staged .` reset the
+  index: a staged change survived as an unstaged one while the script reported the task
+  discarded; both restores swallowed their errors, no self-test covered the script, and
+  `docs/01`'s manual forms had the same defect.
+- Applied: `reset-task.sh` restores the index and the working tree from HEAD in one step
+  (`git restore --source=HEAD --staged --worktree -- .`), reports a step git refuses as a
+  failure, and says the task is discarded only once the tree reads clean and HEAD has not
+  moved. Found while mapping it ([[2026-10-13-backlog-retro-2.2.0]]): in bash 3.2 `cd ""`
+  succeeds and stays put, so outside a repository the script went on and reported a discard;
+  the top level is now resolved in its own step. `docs/01`'s two manual forms are corrected;
+  the new self-test, `scripts/test-reset-task.sh`, is wired in the `Makefile`'s
+  `test-scripts`, `CLAUDE.md`'s list, `scripts/README.md`'s table and the upgrade check's
+  classes.
+- Verified: the self-test, red first against the script as committed — case 1 left
+  ` M both.txt` and ` M staged.txt`; alone, case 2 (the index's lock held) and case 3
+  (outside a repository) each exited 0 saying "Half-done task discarded" — and green after
+  the fix, case 4 under `core.autocrlf` true included (macOS, bash 3.2). The `Makefile` and
+  `CLAUDE.md`, HYBRID, merge three ways cleanly against copies with their setup answers in
+  place, with LF and with CRLF line ends.
+- Declared where its claim lives, `docs/01` and the script's header (the review, L2; not
+  measured): a merge, rebase or cherry-pick in progress, whose state survives the restore;
+  a detached HEAD, where the guard on protected branches has no branch to compare. The
+  self-test does not reach the check that the tree reads clean after the restore (the
+  review, I1, from reading): no case makes it fail.
+
+### IMP-052 — Resumption after an abrupt interruption: verify before continuing → applied on 2026-10-14, commits 14d09fc, 559541c
+- Origin: [[2026-09-24-third-upgrade-lessons]] — `docs/01`'s RESUMPTION said WHERE to resume,
+  not WHETHER the resumed state held: it confirmed the committed tasks and discarded a dirty
+  tree, at the start of a session only. In the client project a deliverable without a plan
+  was resumed after a usage limit from its dirty tree, and a wiring gap, all tests green,
+  was found by reading the diff against the design; a branch was created from the wrong
+  base after a resumption (relayed, [[2026-09-26-client-harvest-registration]]).
+- Applied: RESUMPTION covers a pause inside a session too (a usage limit, a machine's
+  sleep). Its new step 3 verifies before continuing, with or without a plan, scaled to what
+  is not committed: always `git status`, the plan's ticks against the commits and the
+  branch's base — `git log <integration branch>..HEAD` lists only the deliverable's own
+  commits —; with uncommitted work, the build or syntax check, the touched area's tests and
+  the diff read against the plan or the decision. Step 4 says what happens to the half-done
+  work: discarded in a new session, whose context is gone; kept in the same session after a
+  pause if step 3 holds; a `chore: wip` commit verified the same way and never undone
+  without the user.
+- Verified: the documentation check resolves the sections it cites. Rule 7 of `CLAUDE.md`
+  said "if a session is interrupted … discard only the uncommitted half-done task", which a
+  pause inside a session now contradicted (the review, L5): it reads "if a session dies
+  mid-task", as `docs/01`'s cleanup section does, and `CLAUDE.md` merges three ways cleanly
+  with it. The base check reads `origin/<integration branch>` where a remote exists (the
+  review, L6), and the manual form of step 4 is the user's: the agent's `deny` rules refuse
+  `git clean` in a compound command (the review, I5).
+
+### IMP-053 — The security-gate verdict is always written, "not applicable" included → applied on 2026-10-14, commit 8cf45b1
+- Origin: [[2026-09-24-third-upgrade-lessons]] — a skipped gate and a forgotten one looked
+  the same in the memory: 4 of this repository's 13 notes before it recorded "not
+  sensitive → skipped", 9 were silent, and in the client project a deliverable that touched
+  components on its sensitive list had no gate record at all. An upgrade, which rewrites the
+  security baseline, never named a verdict ([[2026-09-26-client-harvest-registration]]).
+- Applied: the session-note format gains a `## Security gate` line and a section that says
+  when it is written — the note that closes a deliverable, always, with its reason: the
+  outcome, or "not applicable" and why, naming the trigger, a sensitive component or a
+  security property the product asserts; a closing note without it is a forgotten gate, and
+  older notes stay valid. `/checkpoint`'s step 3 writes it at a deliverable's last
+  checkpoint, `docs/00`'s step 2 asks for it when the review is skipped, and the upgrade's
+  checkpoint in `SETUP.md` carries it. The cycle's summaries in `README.md`,
+  `CONTRIBUTING.md` and `SETUP.md` said "[if sensitive]", narrower than the gate since
+  v2.1.0: "[if under the gate]".
+- Verified: `checkpoint.md` (HYBRID) and `docs/00` with its slot answered inline merge three
+  ways cleanly, with LF and with CRLF line ends; nothing that reads the memory checks the
+  session-note format, so no older note fails. Not adopted from the annotation: a diff of
+  the baseline's executable lines as the upgrade's reason — outside the approved form.
+
+### IMP-057 — A test invariant over a known debt: a bidirectional allow-list, not an empty set → applied on 2026-10-14, commit 3bfc446
+- Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project: once
+  the last known violations of a capability registry were fixed, an invariant failed
+  whenever an entry declared it did not honour the capability, so the fastest way to green
+  for a new unit without it was to declare it compliant. The test pushed towards the lie
+  exactly where the code needed the truth.
+- Applied: `docs/02`, *Tests that demonstrate*, gains the rule — an invariant over a set
+  with a known debt is a bidirectional allow-list: an unlisted member that violates the
+  property fails, a listed one that no longer does fails, each entry with its reason; the
+  list is reconciled with "not assertions about the state known today", since (b) breaks it
+  the day that state changes, as the anti-vacuity check guards the scanned set; and a test
+  that the truth breaks measures the declaration — the test is what to fix.
+- Verified: the documentation check passes. Its own exceptions follow the rule since
+  v1.4.1, where direction (b) caught a mutation on the unchanged repository
+  ([[2026-10-11-payload-purity-1.4.1]]).
+
+### IMP-060 — A delegation brief quotes the user's decisions verbatim; a multi-agent report declares its coverage gaps → applied on 2026-10-14, commit 85c7fbe
+- Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project: a brief
+  that paraphrased the user's decisions, and left one out, made several agents treat a
+  decided point as "undecided, blocking"; the same run lost 2 of 27 agents to stalls, and
+  declaring what they left uncovered kept the report honest. Merged in: IMP-063, from
+  [[2026-09-27-imp-054-055-agent-git-boundary]] — a review workflow of 3 reviewers and 3
+  skeptics stalled for an hour, while one reviewer returned in about 20 minutes with 1 HIGH
+  and 5 MEDIUM, all reproduced.
+- Applied: `docs/00`, *Scope and session hygiene*, gains the delegation bullet — the brief
+  quotes the user's decisions and constraints verbatim, or points at the record that holds
+  them; one independent agent first, a fan-out only where the consequences of being wrong
+  warrant it, with a stall budget fixed before the run; a report built from several agents
+  names its gaps, checked by hand or reported as not covered. `docs/03`'s section on
+  adversarial reviews applies it to the reviewers. The verbatim quote is for the brief: a
+  record persisted in the memory follows rule 9 and is English.
+- Verified: the documentation check resolves the cited section. This release's mapping
+  ([[2026-10-13-backlog-retro-2.2.0]]) followed (a) and (b) before they were written: its
+  four read-only agents got the user's decisions verbatim and each returned its coverage
+  gaps; the snapshot was unchanged after them.
+
+### IMP-078 — commitlint reads a body line that starts with "word:" as the footer → applied on 2026-10-14, commit c62e58d
+- Origin: [[2026-10-11-multiplatform-1.5.0]] — a body line that began with a single word and
+  a colon opened the footer and cut the body there, the hook only warning "footer must have
+  leading blank line": six times from v1.4.1 to v2.1.0, all in the agent's own messages, one
+  left in a public commit (`e6597f1`). Read at the parser's source
+  (conventional-commits-parser 7.1.3, `getFooterTokenRegex`): a line matching
+  `^(?:BREAKING CHANGE|[\w-]+)(?::\s+|\s+#).+` opens the footer, a hyphenated word counting
+  as one word.
+- Applied (option (a)): `docs/04`, *Commit format*, says the footer follows a blank line and
+  no body line, a wrapped one included, begins with a single word followed by a colon or by
+  " #", and why. Its own example, whose footer followed the body with no blank line, gains
+  the blank line. Option (b), the warning raised to an error, is not adopted: the hook would
+  refuse messages 2.1.0 accepts — breaking, by the criterion v2.0.0 applied to gitleaks.
+- Verified: the documentation check passes, its Types line untouched. In this release the
+  messages were checked before each commit with a grep for such a line: it stopped four of
+  them, rewrapped while still uncommitted ([[2026-10-13-backlog-retro-2.2.0]]).
+
+### IMP-103 — A LOW finding that a line of text does not close becomes a declared limit, not an IMP → applied on 2026-10-14, commit 29cccab
+- Origin: [[2026-10-13-backlog-retro-2.2.0]] — the retro over the backlog, on the data of
+  v2.1.0's review ([[2026-10-13-gate-lenses-2.1.0]]): 6 of the 11 IMPs that review opened came
+  from LOW findings, IMP-095 to IMP-100, while `docs/03` asked only that LOW/INFO findings
+  be "at least recorded", and the framework now wants a small backlog, grown from the
+  projects' real use.
+- Applied (the agent's proposal at the retro, adopted by the user): `docs/03`'s point 4 of
+  *How the gate works* — a LOW/INFO finding that a line of text closes, a claim narrowed to
+  what the code does, is closed in the release; one it does not close becomes a known limit,
+  declared where the claim it concerns lives, not a proposal in the backlog; a lesson about
+  the process still becomes one. `/security-review`'s closing line follows. `CLAUDE.md`'s
+  rule 8, "LOW at least recorded", stays true of a declared limit and is not touched.
+- Verified: the documentation check passes.
+
+### IMP-061 — `/harvest-framework` re-prints entries already carried upstream: double counts at recording time → applied on 2026-10-14, commit 4fe4e26
+- Origin: [[2026-09-26-client-harvest-registration]] — `/harvest-framework` prints every
+  marked entry, carried upstream or not, with no provenance the framework could match: in
+  the recording of 2026-09-26, seven of fifteen harvested entries repeated lessons relayed
+  two days before, and the draft counted three of them as independent occurrences until the
+  review caught it.
+- Applied (directions (b) and (c)): the command collects, beside the entry's number, the
+  date of the session note its Origin cites — the date only, never the note's name, whose
+  slug can name the project — and prints both in each entry's heading; its closing step
+  says a lesson harvested twice is counted once by the framework, and drops the advice to
+  annotate the project's entries by hand, so a project's `LEARNINGS.md` keeps its format.
+  `docs/06`'s bridge and `SETUP.md`'s pointer say a repeat is evidence on the entry it
+  repeats; `CONTRIBUTING.md`, *In practice, for a proposed change*, says how the framework
+  counts once: the pair matched against the recordings' session notes, a neutral label for
+  the project, its number written as "the project's entry 012", never as an IMP number.
+- Verified: the documentation check passes; the command cannot run in this repository,
+  where no entry is marked, so its first use is the next harvest from a project.
+
+### IMP-092 — Claude Code's permission flow can replace the guard's verdict and the ask rules → applied on 2026-10-14, commits b408a71, 9d75a78, 0c0d7c2, 559541c, 39ade72
+- Origin: v2.1.0's review, M2 and I1, *The real path* ([[2026-10-13-gate-lenses-2.1.0]]) —
+  `docs/04` said the guard's verdict "always stands" and the boundary's files "always" ask,
+  while Claude Code's own extension points can answer in their place. Merged in: IMP-093,
+  M3 — tools that write git state outside the guard's matcher.
+- Applied, as declarations: `docs/04` gains *What Claude Code can put above the guard and
+  the rules* — a mod the user installs that handles `tool.check` can approve a call the
+  guard blocked, one an `ask` rule would prompt for and one a `deny` rule refuses, except
+  where managed settings or a Team or Enterprise plan hold deny rules over it, by default;
+  a PermissionRequest hook can answer a prompt in the user's place; `"disableAllHooks":
+  true`, the documented switch for every installed mod in every session, turns off the
+  project's hooks too, and a `--safe-mode` session loads none of them, with none of the
+  wiring's notices; `"onFailure": "block"` would close the fail-open in the main session
+  too, so it is not set. The fail-closed bullet says the wiring never
+  changes the guard's verdict; the guard's and the deny rules' rows name what is outside
+  them; the read-only bullet and the ask bullet are narrowed to match. IMP-093's tools —
+  EnterWorktree, which creates a worktree on a new branch with no prompt, and a git MCP
+  server — are declared outside the guard. IMP-097's IDE terminal is declared in the bullet
+  on where the human pushes; its code waits with IMP-095. The worktree-isolation bullet
+  gains what the reading found besides: a fresh worktree fetches the default branch when
+  the repository was not fetched for 24 hours, which moves a ref the snapshot sees, and
+  falls back to the local HEAD without a remote. `SETUP.md`, `scripts/README.md` and the
+  README follow. `"disableAllHooks": false` is not adopted: it pins a choice of the user's.
+- Verified: each sentence against Claude Code's documentation as read on 2026-10-14 —
+  *Configure permissions* (*Extend permissions with hooks*), *Hooks reference*, *Mods
+  overview*, the environment-variable reference, the tools reference and *Run parallel
+  sessions with worktrees* — read, not measured; `docs/04` with its slots answered inline
+  merges three ways cleanly, with LF and with CRLF line ends. Re-read the same day at the
+  user's request, against the pages' text and with the *Settings reference*
+  (`disableAllHooks`) and the *CLI reference* (`--safe-mode`) besides
+  ([[2026-10-13-backlog-retro-2.2.0]]): four statements narrowed — the deny rules' exception
+  holds by default and the organization can change it, and the deny row had left out Team
+  and Enterprise plans; `disableAllHooks` is one of the documented switches, not the only
+  one; the `/hooks` menu shows a notice when hooks are off; the Desktop app's version —, and
+  `--safe-mode`, which loads no hook of the project, declared with `disableAllHooks`.
+- The guard's own comments follow, edited with the user present (an ask-protected file):
+  Bash, PowerShell and Monitor are the shell tools its wiring matches, and EnterWorktree and
+  a git MCP server write git state outside it.
+- The release's review found the route all these declarations had missed, the HIGH of v2.2.0
+  (H1): Claude Code reads `.claude/settings.json` from the session's primary working
+  directory, with no parent-directory fallback — *Settings* and *Configure permissions*, read
+  on 2026-10-14, not measured —, so a session started in a subdirectory, or moved there with
+  `/cd`, has no guard, no `deny` or `ask` rule, no `AGENT_GIT_BOUNDARY` and no SessionStart
+  hook, while `CLAUDE.md` still loads; `--setting-sources` without `project` and managed
+  `allowManagedHooksOnly` do the same. `docs/04` gains *Only a session that loads the
+  project's settings has the wiring* and its rows and `ask` bullet follow; `SETUP.md`'s
+  *Hardening* gains *Start Claude Code at the repository's root*; the README,
+  `scripts/README.md` and the guard's comment follow. The `pre-push` still refuses such a
+  session's push, on `CLAUDECODE`. The compensation, the user's decision of 2026-10-14:
+  `CLAUDE.md`, which loads from the directories above, tells the agent that a session
+  whose `STATE.md` was not injected did not load the settings, to say so before anything
+  else and to advise a restart from the repository's root — an instruction, not a
+  mechanism, which IMP-104 proposes. With it: ExitWorktree, whose `remove` deletes a worktree
+  and its branch with no permission asked (L3), joins EnterWorktree; dontAsk refuses an
+  `ask` rule's call instead of asking (I2); a fresh worktree falls back to the local HEAD
+  when `origin/HEAD` is neither cached nor fetchable, and the `worktree-agent-<id>` branch
+  was measured for the Agent tool only (I6).
+
+### IMP-083 — The guard grows beyond its threat model → applied on 2026-10-14, commits d49e54e, 9d75a78
+- Origin: the user's request at v1.5.0's integration ([[2026-10-11-multiplatform-1.5.0]]) —
+  in v1.5.0 the guard learned non-ordinary PowerShell forms for a tool the framework keeps
+  off, growing from 239 to 309 lines. Merged in: IMP-079 — a parser's coverage holds for the
+  forms it was held against, not for the language: v1.5.0's reviewer got 15 of 19 ordinary
+  PowerShell forms through, and v2.1.0's review (L6, [[2026-10-13-gate-lenses-2.1.0]]) found
+  bash forms the guard passes.
+- Applied (reduced, as approved): `docs/04`'s guard row covers the forms its self-test holds
+  it to, not "ordinary forms", and its *Outside this layer* names L6's forms — git in an
+  unquoted heredoc's `$(…)` or backticks, a function declared with `function` and no
+  parentheses, a `coproc`, a command name in a variable. *Proven, not assumed* says the
+  cases are the guard's coverage and states the admission rule: a form joins them only when
+  an agent was seen writing it, or it is an ordinary form of the shell's own documentation,
+  never because the parser could read it. `SETUP.md` and `scripts/README.md` narrow their
+  coverage claims the same way. No form is pruned: the rule stops the growth. The guard's own
+  comments follow: its scope names L6's forms and calls its self-test's forms its coverage,
+  no longer "deliberate evasion"; its splitter says an unquoted heredoc runs its `$(…)`; its
+  wrapper list says how it differs from the wrappers Claude Code strips.
+- Verified: the forms `scripts/README.md` now names — git after its global options, spelled
+  `git.exe`, `Git` or a Windows path — are cases of `scripts/test-agent-git-guard.sh`
+  (read); the documentation check passes. The forms the guard's scope names, run through it
+  on 2026-10-14: each goes through unblocked, while `exec`, `nice`, `nohup` and `xargs -n1`
+  before a git write are blocked ([[2026-10-13-backlog-retro-2.2.0]]); its comments changed,
+  no line of its code.
+
+### IMP-075 — Auto mode and the framework's boundaries → applied on 2026-10-14, commit 4c03a05
+- Origin: [[2026-10-11-multiplatform-1.5.0]] — the user ran `/auto-mode-setup` on 2026-10-11:
+  it drafted entries from this repository into `~/.claude/settings.json`, which holds for
+  every project — the trusted repository, the framework's visibility, and a false
+  statement about the protection of `main` —, and the user corrected the file. Merged in:
+  IMP-065 ([[2026-09-27-imp-054-055-agent-git-boundary]]) — the `ask` rules on the boundary's
+  files cover the file tools only, and some `.claude/` edits had gone through shell
+  one-offs, auto mode's preference for the shell a contributing factor.
+- Applied (the user's proposal): `docs/04` gains *In auto mode too* — auto mode allows
+  pushes to any branch, the default one included, and a push written another way matches
+  no rule, so the `pre-push` stays the boundary; its local-file bullet says `autoMode` is
+  read only from the user's settings, the managed ones and `--settings`, so what the setup
+  command drafts from one repository is written true for all of them; its `ask` bullet
+  says the method's own files are edited with the file tools, a shell write to them a slip
+  to report, a procedure that writes them by design excepted. `SETUP.md`'s *Hardening*
+  gains *In auto mode*: the boundary, the documentation's `ask` recipe as a net for the
+  usual spelling in the user's own settings — `Bash(git push *)`, `Bash(gh pr create *)`,
+  commands that begin that way only, a framework project's `deny` answering first —, and
+  the per-user environment.
+- Verified: each sentence against Claude Code's *Configure auto mode*, read on 2026-10-14
+  (*Common boundaries*, *Add a human checkpoint*, *Where the classifier reads
+  configuration*, *Generate environment entries*) — read, not measured; `docs/04` merges
+  three ways cleanly with its slots answered inline, with LF and with CRLF line ends.
+- Kept apart from IMP-067, deferred: that one measures what loads in non-interactive modes.
+
+### IMP-091 — The commits git creates itself skip the pre-commit → applied on 2026-10-14, commit 3db3233
+- Origin: v2.1.0's review, M1, *Claims* ([[2026-10-13-gate-lenses-2.1.0]]) — git runs the
+  pre-commit only from `git commit`, so a key pasted into a rebase conflict's resolution was
+  committed (measured), while `docs/03`'s baseline and `CLAUDE.md`'s rule 1 claimed every
+  commit. v2.1.0 narrowed those two claims (`ee883ee`), measured on git 2.54.0 which commits
+  run the hook and which do not.
+- Applied, the rest of the text: the known limits of `SETUP.md`'s *What the pre-commit's scan
+  reads* gain the commits git creates itself, as measured, and, under IMP-103, the limits of
+  the hooks' group whose code is deferred: the scan apart passes over a file that starts with
+  an application's signature and over a type change, reads the project's `.gitleaks.toml`
+  where `protect` would read `GITLEAKS_CONFIG_TOML` first (IMP-095), and a clean filter shows
+  it git-lfs's pointer, not the content (IMP-096). The same rule puts each other limit where
+  its claim lives: a `pre-push.local` that is not executable is skipped without a word
+  (`docs/04`, `SETUP.md`'s Step 4, `scripts/README.md`); a re-run writes its `.bak` over the
+  one an earlier run left (IMP-098, `SETUP.md`'s Step 4, `scripts/README.md`); the history
+  scan reads neither a merge's own resolution nor a type change (IMP-089, `SETUP.md`'s box).
+  `docs/03`'s baseline points at the list, and `scripts/README.md`'s claim on the scan apart
+  names it. The compensation at publication is not adopted: a scan at every push, for a
+  route that needs a secret pasted into a conflict's resolution.
+- Verified: the documentation check passes; each declared limit cites its own datum —
+  measured, or read at gitleaks' source — as recorded in IMP-095, IMP-096, IMP-098 and IMP-089.
+
+### IMP-085 — The framework's files kept out of deploy artifacts → applied on 2026-10-14, commit 249e7af
+- Origin: the user's question, 2026-10-13 ([[2026-10-12-prerequisites-1.6.0]]) — the framework
+  serves development only, but its files, the project's memory among them, sit in the
+  repository, and a deploy that copies the whole repository carries them into production;
+  no page said so.
+- Applied: `SETUP.md`'s *Hardening* gains *Keep the framework out of what you deploy* — keep
+  the framework's files out with the stack's own mechanism, `.claude/` whole, `CLAUDE.md`, the
+  framework's scripts, `commitlint.config.cjs`, the files the project also owns being its own
+  call; a build from a working tree also carries what git ignores there; the class table
+  names every framework file; no ignore file in the payload. The upgrade's Step 5 gains the
+  check: no framework path in a deploy artifact, the paths `vY` adds above all.
+- Verified: the documentation check passes. The user verified the two projects using the
+  framework on 2026-10-13: one has no deploy; the other builds its services' container
+  images with the repository's root as the build context, copying specific paths — the
+  check runs at its upgrade.
+
+### IMP-082 — The whole suite before each commit, the documentation check included → applied on 2026-10-14, commit 0cf77df
+- Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro) — a prose edit in `SETUP.md` passed
+  the self-test that reads its block and failed the documentation check, caught after the
+  commit; in v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]) two commits went in after the
+  documentation check alone and broke its self-test, the checkpoint's commit following
+  because its command was not gated on the suite.
+- Applied: `CONTRIBUTING.md`, *This repo's workflow* — every commit is gated on the suite in
+  the same command, `make test-scripts && bash tools/test-upgrade-check.sh && git commit …`;
+  the real-hook tests run in the CI; a `chore: wip` commit is the one exception; the suite
+  reads the working tree, so a partial commit is green only if the rest is too.
+- Verified: every commit of v2.2.0 so far ran in that form ([[2026-10-13-backlog-retro-2.2.0]]),
+  and none went in on a red suite.
+
+### IMP-088 — A change next to a setup slot conflicts at every project's upgrade → applied on 2026-10-14, commit 7b0c4fc
+- Origin: task 10 of v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]) — a block inserted next to
+  the formatting slot's line made `hooks-install.sh`'s 3-way merge conflict, 41 of 311
+  lines, for every project that answered it; only the release's rehearsal found it.
+- Applied (the lighter form): `CONTRIBUTING.md`, *This repo's workflow* — a change to a
+  HYBRID file keeps at least one unchanged line between itself and a line a project answers
+  at setup; where it must land on one, the CHANGELOG's *Upgrading* note names the conflict;
+  every release that changes a HYBRID file rehearses the upgrade with every setup answer in
+  place, LF and CRLF. The mechanical check is not adopted: a fixture of answered slots to
+  keep.
+- Verified: measured before writing it, with `git merge-file` on git 2.54.0 — a change on the
+  line next to an answered one conflicts, after one unchanged line it merges cleanly
+  ([[2026-10-13-backlog-retro-2.2.0]]). The same release found the blank line's weakness:
+  `integrate.md`'s new section, inserted after a blank line, was aligned by the diff against
+  the answered line below and conflicted until it sat right under the paragraph above.
+
+### IMP-099 — The platform the check names as verified is wider than the CI's images → applied on 2026-10-14, commit 07b8abd
+- Origin: v2.1.0's review, L13 ([[2026-10-13-gate-lenses-2.1.0]]) — `check-prerequisites.sh`
+  called any macOS on arm64, any Linux but WSL on x86_64 and any Windows on x86_64 through
+  Git Bash a platform the framework's CI verifies; the CI runs one release of each.
+- Decided (the user, 2026-10-14, of two designs): the workflow is not in the payload and the
+  check runs in the projects, so the check carries the CI's images in one line, `CI_IMAGES`,
+  and the documentation check fails when that line differs from the workflow's matrix; on
+  Windows the check names the image without declaring a match. Whatever IMP-086 decides on
+  the matrix, the line follows it.
+- Applied: the check reads macOS's release from `sw_vers` and Linux's from `/etc/os-release`
+  — read as data, never sourced —, and says "verified" only for the major release of a
+  `macos-` image on arm64 or the release of an `ubuntu-` image on x86_64; anything else is
+  "not verified", with the images listed; on Windows through Git Bash on x86_64 it names the
+  `windows-` images and says it does not tell Windows releases apart — Git Bash's `uname`
+  gives a build, not an edition. `SETUP.md`'s table names each image's release, and its "Not
+  verified" line the releases left out. The CI's step asserts that the check, run on each
+  image, names that image — verified on Linux and macOS, named on Windows —, so its reading
+  of `sw_vers` and os-release is held to the images themselves.
+- Verified, red first ([[2026-10-13-backlog-retro-2.2.0]]): the committed check called macOS
+  27 and 15, Debian 12, Ubuntu 16.04 and a Windows 11 build "a platform the framework's CI
+  verifies", and the new self-test case failed against it, then passed (macOS, bash 3.2); the
+  committed documentation check let a planted `macos-15` through, the new one fails it both
+  ways; the CI step's assertion, simulated on six platform lines, passed the three right ones
+  and failed the three wrong ones. On the images themselves, the CI's run on `493a4e1`: the
+  check read "Linux, ubuntu 24.04 (x86_64), verified by the framework's CI on
+  ubuntu-24.04", "macOS 26.6.2 (arm64), verified by the framework's CI on macos-26", and on
+  Windows named `windows-2025` with no verdict; the step's assertion passed on the three.
+- Uncovered: the check reads the images in the forms GitHub names them today —
+  `macos-<release>`, `ubuntu-<release>`, `windows-<year>` —; an image named otherwise, with an
+  `-arm` or `-intel` suffix, verifies nothing until the check learns its form.
+
+## Deferred (not rejected — resumed at the right time)
 
 ### IMP-026 — Claude Code skills as a managed artifact → deferred on 2026-07-11
 - Terminological note (IMP-035): "skill" is overloaded — "command" = a file in `.claude/commands/` (what the repo uses); this IMP concerns the `.claude/skills/` FEATURE (not adopted); the harness calls commands "skills" too (platform naming). Do not conflate them.
@@ -2215,15 +1770,11 @@ line on; older entries are not backfilled.
   becoming the primary vehicle for project procedures in Claude Code. On resumption: a
   minimal agnostic convention (`.claude/skills/README.md` + hooks into `/checkpoint` and
   `/lint-memory`), NEVER a library of concrete skills.
-
-### IMP-027 (the `graft.sh` option) — automated graft script → deferred on 2026-07-14
-- User decision: the rest of IMP-027 is APPLIED (see Applied); the script that automates
-  the graft (copying the right subset, zeroing LEARNINGS/sessions, the one-off
-  `gitleaks detect`, hook handling) is NOT done now — the anti-hype filter: collisions
-  are human decisions (the script can only detect them) and the brownfield section of
-  `SETUP.md` must be tried in the field first.
-- Resumption trigger: after 2-3 real brownfield grafts, when the common pattern is
-  distillable from the tested text.
+- Retro of 2026-10-13 (the user's decision): DEFER confirmed, the trigger narrowed to its
+  observable clause — at least 2 recurring operational procedures in a project with no
+  natural home, neither `CLAUDE.md`'s technical rules nor a command, reaching the framework
+  through a harvest. The clause on Skills becoming the primary vehicle is dropped: it cannot
+  be verified.
 
 ### IMP-037 (option a) — The `/upgrade-framework` read-and-print command (the inverse twin of `/harvest-framework`) → deferred on 2026-07-17, again on 2026-10-10
 - **Re-deferred on 2026-10-10** ([[2026-10-10-upgrade-safety-1.3.3]]): the count trigger below fired;
@@ -2271,16 +1822,10 @@ line on; older entries are not backfilled.
   `/harvest-framework`: the project does not know where the framework repo lives).
   `git -C "$FW"` tag reads cross it: whether reads are allowed is an open question for
   that retro. All three upgrades hit IMP-046.
-
-### IMP-042 — `/change-language` (an automated translation command) → deferred on 2026-07-20
-- User decision (language deliverable, phase 1): DEFER — the same anti-hype filter as
-  IMP-027 (`graft.sh`) and IMP-037 (`/upgrade-framework`). A command that automates
-  switching a project's artifact language (or grafting the framework into a
-  non-English context) is premature with a single manual translation behind us: the
-  common pattern is not yet distillable.
-- Resumption trigger: after 2-3 real manual uses (full translations or language switches
-  performed by hand), when the repeatable steps are distillable from practice. The
-  framework's own translation (IMP-041) is case #1, now completed.
+- Retro of 2026-10-13 (the user's decision): DEFER confirmed. The trigger — the first upgrade
+  of a second project — is expected among the upgrades of the two projects using the
+  framework that follow v2.2.0; the entry is decided at the retro after them, on the
+  friction observed there.
 
 ### IMP-045 — A `turns` threshold as a /retro input → deferred on 2026-09-23
 - Date: 2026-09-22 | Origin: [[2026-09-23-memory-model-turns]] — high-friction work is
@@ -2302,6 +1847,259 @@ line on; older entries are not backfilled.
 - On resumption: decide whether the rule looks at a single note or at the sum of the
   notes of the same deliverable; and the framework repo's own notes are process work, so
   check N against the notes of at least one client project before fixing it.
+- Retro of 2026-10-13: DEFER confirmed; the helper counts 13 deliverables with `turns`, of
+  the ~20 the trigger needs.
+
+### IMP-062 — Cover remote writes through `gh` in the agent boundary → deferred on 2026-10-13
+- Date: 2026-10-07 | Origin: [[2026-09-27-imp-054-055-agent-git-boundary]] — the push
+  boundary of IMP-054 stops every `git push` born from the agent's process, not the remote
+  writes that bypass git
+- Observed problem: `gh` changes shared state without `git push`: `gh api` with a writing
+  method (any `-f`/`-F` field switches it to POST; `-X PUT …/contents/<path>` creates a
+  commit; `PATCH …/git/refs/<ref>` moves a ref, force included), `gh pr merge` (a merge onto
+  the integration branch; `--delete-branch` also deletes the remote branch),
+  `gh release create` (creates the tag when it is missing), `gh repo sync <remote>`. The
+  `pre-push` never sees them — git runs it for `git push` only — and the deny list does not
+  name them. Logged in with the owner's credential (`repo` scope in this repo), an agent
+  using `gh` acts as the owner: the forge cannot tell them apart, and the same credential
+  can remove the rulesets.
+- Why not now (user decision 2026-10-07, D3): this layer's threat model is the agent's
+  ACCIDENTAL errors with ordinary commands, no flow of the framework uses `gh`, and the
+  hook of IMP-054/055 must stay small (delegated agents' read-only git only).
+- Proposal: NOT decided. Direction: the PreToolUse hook refuses, in every session, the
+  writing `gh` forms (`api` with a non-GET method or a body field, `pr merge`,
+  `release create|edit|delete|upload`, `repo sync <remote>`) — sketched in the phase-1
+  prototype, never tested. Alternative: a read-only token for the agent through
+  `GH_TOKEN`, which narrows rather than seals (the stored credential stays reachable).
+- Resumption trigger: the first use of `gh` in the framework's flows (a command, a doc
+  step, an `/integrate` variant), or the first incident of an agent writing to the remote
+  through `gh`.
+- Expected benefit / risk: closes the non-git route to shared history for accidental use.
+  Risk: a larger hook — the size the user chose to avoid now.
+- Deferred on 2026-10-13 (the retro over the backlog, the user's decision): no flow of the
+  framework uses `gh`, D3 still holds, and the trigger above is verifiable as it stands.
+
+### IMP-067 — The framework in headless mode (`claude -p`, CI) and via the Claude Agent SDK → deferred on 2026-10-13
+- Date: 2026-10-09 | Origin: [[2026-10-09-quick-fixes-1.3.2]] — user request; evidence
+  from phase 1 of [[2026-09-27-imp-054-055-agent-git-boundary]]
+- Priority: MEDIUM (user decision, 2026-10-09) — the retro's process block.
+- Observed problem: the framework presupposes interactive Claude Code — `CLAUDE.md`, the
+  slash commands, `.claude/settings.json` (permissions, `env`, hooks), the hook input's
+  `agent_id`. Which of these load in headless mode and in the Agent SDK is not verified,
+  nor which boundaries of `docs/04` fall there. What is known: with `--bare`, Claude Code
+  loads no hooks (CLI help and docs, checked by the adversarial documentation pass of that
+  phase — documented, NOT measured by a probe), so the delegated-agent boundary does not
+  exist there; plain `claude -p` DID load the PreToolUse hook and carried `agent_id` to
+  subagents and workflow agents (measured, 2.1.283); in a workspace never trusted
+  interactively, `claude -p` ignored the project's `permissions.allow` while deny rules
+  and hooks applied (measured — IMP-064).
+- Proposal: NOT decided. First step: an investigation with real probes, as for IMP-054,
+  in throwaway repositories, measuring for each mode (`claude -p`, `--bare`, `--safe-mode`,
+  CI without a TTY, the Agent SDK) what loads and what does not: `CLAUDE.md`, the
+  commands, settings and their `env`, the hooks (SessionStart, PreToolUse), the `pre-push`
+  markers. The results go into `docs/04` and `SETUP.md` as "what holds in headless"; no new
+  mechanism before the measurement.
+- Out of scope: projects that USE the Messages API as a component (that is the project's
+  stack; the framework stays agnostic), and harnesses other than Claude Code.
+- Expected benefit / risk: the boundaries are known where they hold and where they do not.
+  Risk: none for the investigation itself.
+- Merged on 2026-10-13 (the retro over the backlog — how this investigation's probes are
+  run): IMP-064 — Probing Claude Code's permissions in an untrusted workspace measures the
+  wrong thing (2026-10-07, [[2026-09-27-imp-054-055-agent-git-boundary]]). A `claude -p`
+  session started in a directory never trusted interactively ignores the project's
+  `permissions.allow` while deny rules and hooks stay active: the first probe matrix showed
+  every push form denied as not allowed, not by the deny rule, and only the denial messages
+  and stderr told the two apart. The probes declare their trust shape — the allow in
+  `settings.local.json` —, classify each denial (a rule's match, not allowed, a hook) and
+  read stderr.
+- Deferred on 2026-10-13 (the retro over the backlog, the user's decision): an expensive
+  investigation that no project's use asks for yet, and from this cycle on the framework
+  develops from real use. Its MEDIUM priority holds when the trigger comes.
+- Resumption trigger: the first project that runs Claude Code non-interactively — `claude
+  -p`, a CI job or the Agent SDK — on a repository with the framework. Verified by the user on
+  2026-10-13: neither of the two projects using the framework does.
+
+### IMP-077 — gitleaks `protect` is deprecated → deferred on 2026-10-13
+- Date: 2026-10-11 | Origin: [[2026-10-11-multiplatform-1.5.0]] — phase 1's inventory of
+  the prerequisites
+- Observed problem: the pre-commit hook runs `gitleaks protect --staged --redact -v`.
+  gitleaks' README: "v8.19.0 introduced a change that deprecated `detect` and `protect`.
+  Those commands are still available but are hidden in the `--help` menu." 8.30.1, the
+  latest release (2026-03-21), still runs it and hides it from `--help` (both measured).
+  A later release may drop it, and every project's commits would stop with it.
+- Proposal: NOT decided — weigh in v1.6.0 the replacement form, verified on gitleaks'
+  current documentation: its own pre-commit hook definition (`.pre-commit-hooks.yaml`)
+  runs `gitleaks git --pre-commit --redact --staged --verbose`, and 8.30.1's
+  `gitleaks git --help` documents `--pre-commit` ("scan using git diff") and `--staged`
+  ("scan staged commits (good for pre-commit)"). The switch's minimum, for the
+  prerequisites to state and v1.6.0's prerequisite check to verify, is 8.20.0 (corrected
+  below; first recorded as 8.19.0).
+- Decided (the user, 2026-10-12, v1.6.0's D1 — [[2026-10-12-prerequisites-1.6.0]]): the
+  hook keeps `protect`, and gitleaks' declared minimum is 8.0.0, where `protect --staged`,
+  `--redact` and `-v` exist; `detect` stays with it. The entry stays OPEN on its trigger.
+- Resumption trigger (the deadline): gitleaks announces the removal of `protect`. Then the
+  hook moves to `gitleaks git --pre-commit --redact --staged --verbose`, with 8.20.0 as the
+  minimum — 8.19.x's `--staged` defect —, and `detect` to `gitleaks git` wherever the
+  history scan is written (`SETUP.md`'s step 3 and brownfield checklist, `docs/03`,
+  `SECURITY.md`).
+- Expected benefit / risk: the hook does not depend on a hidden command. Risk: an older
+  gitleaks stops working with the switched hook, and 8.19.x would scan the history in
+  silence, missing the staged changes. The prerequisite check fails below gitleaks'
+  security minimum (D5, below) only when the hooks are installed: at the switch that
+  minimum becomes 8.20.0, and the switched hook refuses a gitleaks below it by itself — the
+  check at every commit, D5's option B, kept for the switch.
+- Corrected on 2026-10-12 ([[2026-10-12-prerequisites-1.6.0]]), from gitleaks' source at
+  each tag: `gitleaks git` exists from 8.19.0, but in 8.19.0 to 8.19.3 it ignores
+  `--pre-commit` and `--staged` — it scans the history and misses the staged changes
+  (issue #1522, fixed by #1533 in 8.20.0). `protect --staged` reads the staged diff
+  through its own code in every release from 8.0.0 to 8.30.1, hidden from 8.19.0.
+- Added on 2026-10-12 (v1.6.0's review, its HIGH — [[2026-10-12-prerequisites-1.6.0]]):
+  gitleaks runs its `git diff` and `git log -p` without `--no-color` in every release up to
+  8.30.1, so a colour the user's git configuration forces to "always" leaves it nothing to
+  scan, and a textconv driver shows it a conversion instead of what is committed — both
+  measured through real commits. Upstream: gitleaks#2281 (open, filed against
+  `gitleaks git --pre-commit --staged` too) and PR #2284 (open). The switch does not cure
+  it: the hook's environment block — the colour off and each textconv read as `cat`, by
+  `GIT_CONFIG_COUNT` — and the prefix of `SETUP.md`'s history scan move with it, until a
+  gitleaks release passes `--no-color` itself. So does the hook's scan apart of the text git
+  shows as binary (D6, 2026-10-13): `gitleaks git --pre-commit` reads `git diff` too, and
+  "Binary files differ" hides a key in a `*.key binary` from it as from `protect`.
+- Decided again (the user, 2026-10-12, D5 on the review's MEDIUM —
+  [[2026-10-12-prerequisites-1.6.0]]): the declared minimum becomes 8.18.2, a SECURITY
+  minimum — the prerequisite check FAILS below it, or when it cannot read gitleaks'
+  version, and the install stops. Read at gitleaks' source: before 8.18.2 the staged scan
+  runs `git diff` without `--no-ext-diff`, so a configured external diff replaces what it
+  reads; from 8.4.0 to 8.18.1 a scan error ends in "no leaks found" and exit 0; 8.0.0 to
+  8.1.3 also write a
+  `.gitleaks.toml` into the project, which later releases load instead of their own rules.
+  Debian 13 and Ubuntu 24.04 package 8.16.0 (their archives, read on 2026-10-12); Debian's
+  build rules set no version, so its binary names none, and the check fails it either way —
+  unread, or below. `protect` stays, as D1 decided. Refusing an older gitleaks breaks the
+  compatibility v1.5.0 kept: the release is v2.0.0.
+- Deferred on 2026-10-13 (the retro over the backlog, the user's decision): decided already
+  (D1); its trigger above is read in gitleaks' release notes.
+
+### IMP-089 — The history scan misses a key committed in a file marked binary → deferred on 2026-10-13
+- Date: 2026-10-13 | Origin: measured in [[2026-10-12-prerequisites-1.6.0]] (task 9, N1's
+  family); recorded at the user's request in [[2026-10-13-gate-lenses-2.1.0]]
+- Priority: LOW (user decision, 2026-10-13).
+- Observed problem: `gitleaks detect`, the one-off history scan of `SETUP.md`'s step 3,
+  reads `git log -p`, which shows a file marked `binary` or `-diff` as "Binary files
+  differ": a key committed in a `*.key binary` is not found (measured: exit 0, "no leaks
+  found"; found without the attribute). `gitleaks detect --no-git --source <path>`, which
+  step 3 names, covers only the current content: a key removed since, still in the
+  history, stays unseen.
+- Proposal: NOT decided — when the trigger comes, scan every committed version of the files
+  the project marks binary (their blobs, through `git rev-list --all -- <paths>` and
+  `git cat-file`), or say in step 3 how to.
+- Expected benefit / risk: a graft's baseline scan reads every committed key. Risk: a scan
+  over every version of those files costs time on a long history.
+- Resumption trigger: the first graft into a project whose `.gitattributes` marks key files
+  as binary.
+- Two more gaps of the same scan, from v2.1.0's review ([[2026-10-13-gate-lenses-2.1.0]], L5, read at
+  gitleaks' source): it runs `git log -p` without a `--diff-merges` form, so what a merge's
+  own resolution introduced is never read; and 8.30.1 adds `--diff-filter=tuxdb`, leaving
+  out type changes.
+- Deferred on 2026-10-13 (the retro over the backlog, the user's decision): the trigger is
+  verifiable, and the two projects using the framework are grafted already.
+
+### IMP-090 — The hooks go inert when a hook manager takes core.hooksPath after the install → deferred on 2026-10-13
+- Date: 2026-10-13 | Origin: v2.1.0's review, its HIGH H1 — [[2026-10-13-gate-lenses-2.1.0]]
+- Priority: MEDIUM (user decision, 2026-10-13).
+- Observed problem: `hooks-install.sh` checks `core.hooksPath` at install time only; a hook
+  manager sets it again at its next run — husky 9.1.7 at every install it runs, from the
+  project's `prepare` script at each `npm install`, unless `HUSKY=0` (read at its source) —,
+  and git then reads another directory: the pre-commit's scan and the push boundary stop,
+  and nothing says so (measured: a commit holding a key goes through). v2.1.0 declared the
+  route and made the installer's refusal say it (`b7e3f09`); the failure stays silent at use
+  time. `repo-snapshot.sh`'s list of what it fingerprints reads as complete and leaves out
+  the configuration, the hooks, `.git/info`, the staged state and ignored files (L17): H1's
+  route leaves its fingerprint unchanged.
+- Proposal: NOT decided — make the failure visible: the SessionStart hook warns when
+  `core.hooksPath` is set, or when the common hooks directory's pre-push lacks the
+  generator's marker; `repo-snapshot.sh` fingerprints `core.hooksPath` and the hooks'
+  checksums, or declares what it leaves out.
+- Expected benefit / risk: the boundary's loss shows at the next session. Risk: an edit to
+  `.claude/settings.json`, a boundary file.
+- Resumption trigger: the first project with a hook manager.
+- Verified by the user on 2026-10-13: on the user's machines, neither of the two projects
+  checked has `core.hooksPath` set or a hook manager configured — at the root or in a
+  subdirectory; husky, lefthook, simple-git-hooks.
+- A mitigation, the user's decision in v2.1.0, `3359003`: the graft's and the upgrade's
+  checklists (`SETUP.md`, *Inherited git hygiene* and Step 4) check `core.hooksPath` and look for a hook
+  manager, so the case shows at a graft or an upgrade; the detection at use time stays open.
+- Deferred on 2026-10-13 (the retro over the backlog, the user's decision): neither project
+  using the framework has a hook manager, and the checklists above show the case when one
+  appears.
+
+### IMP-095 — The pre-commit's scan apart has three gaps of its own → deferred on 2026-10-13
+- Date: 2026-10-13 | Origin: v2.1.0's review, L2, L3 and L4 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem: (1) in directory mode gitleaks skips a file whose first bytes match an
+  application's signature (`MZ`, `BZh`, `{\rtf`, `%PDF`, …), logged at debug level only —
+  read at its source by the reviewer; (2) gitleaks reads `GITLEAKS_CONFIG_TOML` before the
+  project's `.gitleaks.toml`, while the scan apart passes `--config` unless
+  `GITLEAKS_CONFIG` is set — read at its source; (3) `--diff-filter=ACM` leaves out a type
+  change — measured: a symlink turned into a key file marked binary goes through.
+- Proposal: NOT decided — a line of text before each copy, so no signature sits at offset 0,
+  or the limit declared; `-z "${GITLEAKS_CONFIG_TOML:-}"` with the other condition;
+  `--diff-filter=ACMT`.
+- Expected benefit / risk: the scan apart reads what it promises. Risk: none.
+- Merged on 2026-10-13 (the retro over the backlog — the hooks' LOW findings, applied
+  together):
+  - IMP-096 — A clean filter's content is not scanned, and a pre-push.local can be skipped
+    silently (v2.1.0's review, L1 and L16). A clean filter rewrites the content before it
+    reaches the index, so the scan reads the filter's output — under git-lfs a pointer,
+    while the content goes to the LFS store unscanned (measured with an LFS-like filter);
+    and the generated pre-push skips a `pre-push.local` that is not executable without a
+    word — if it is git-lfs's, LFS objects are never uploaded. Direction: say so, or fail,
+    when `pre-push.local` exists and is not executable; weigh scanning LFS-tracked paths
+    apart.
+  - IMP-097 — The pre-push's CLAUDECODE fallback refuses the human in an IDE terminal
+    (L7). Claude Code's environment-variable reference (read on 2026-10-13): IDE extensions
+    set `CLAUDECODE` in their integrated terminals, so a human pushing from one is refused
+    as a Claude Code session; `CLAUDE_CODE_CHILD_SESSION` is set for the Bash, PowerShell
+    and Monitor tools and hook commands, not for IDE terminals nor stdio MCP servers.
+    Direction: name the IDE terminal in the refusal, with how the human pushes from it, or
+    weigh `CLAUDE_CODE_CHILD_SESSION` as the fallback, which loses stdio MCP servers.
+  - IMP-098 — A second re-run of the installer overwrites the .bak (L9). `cp "${target}"
+    "${target}.bak"` overwrites the `.bak` an earlier re-run left — which happens only when
+    a generated hook changes again. Direction: never overwrite an existing `.bak`; number
+    the copies, or keep the old one and say where.
+  - IMP-101 — Each new case of the hooks' self-test edits the documentation check's
+    fixtures (v2.1.0's retro). Two fixtures of `tools/test-docs-check.sh` plant their
+    defects by editing the literal case count in `scripts/test-hooks-install.sh`'s header;
+    five commits over v2.0.0 and v2.1.0 edited them (`77525a0`, `050b2f5`, `bfd6c90`,
+    `bf3879b`, `b7e3f09`). Direction: the fixtures read the current count and plant
+    count + 1.
+- Deferred on 2026-10-13 (the retro over the backlog, the user's decision), as one group:
+  the code waits for the next change of a generated hook, so the projects regenerate their
+  hooks once; meanwhile v2.2.0 declares the limits where their claims live — the scan's in
+  `SETUP.md`'s known limits, a `pre-push.local` that is not executable and the `.bak` a re-run
+  writes over (IMP-091), the IDE terminal in `docs/04` (IMP-092). In the group IMP-101 goes
+  first: the others add cases to the hooks' self-test.
+- Resumption trigger: the first of — a release that changes a generated hook (pre-commit,
+  commit-msg or pre-push); a human push refused in an IDE's integrated terminal; a project
+  that tracks files with git-lfs. Verified by the user on 2026-10-13: git-lfs is absent from
+  both projects using the framework; the IDE terminal is to be confirmed — the user pushes
+  from macOS's Terminal.
+
+### IMP-100 — Two latent hardenings: the upgrade check's colour, make's YES → deferred on 2026-10-13
+- Date: 2026-10-13 | Origin: v2.1.0's review, L14 and L15 — [[2026-10-13-gate-lenses-2.1.0]]
+- Observed problem: (1) `tools/upgrade-check.sh` forces `color.ui` off, which is only
+  `color.diff`'s default: a user's `color.diff=always` still colours patch output — latent,
+  no check parses a patch today; (2) make imports every environment variable and `$(if)` is
+  true for any non-empty value: an exported `YES`, even `0` or `no`, runs `reset-task`
+  without its prompt.
+- Proposal: NOT decided — `-c color.diff=false`, or `--no-color`; pass `--yes` only for
+  `YES=1` given on the command line.
+- Expected benefit / risk: a comment that is true, a prompt that cannot be skipped by
+  accident. Risk: none.
+- Deferred on 2026-10-13 (the retro over the backlog, the user's decision): both latent, each
+  waits for the change that makes it bite.
+- Resumption trigger: (1) the first check of `tools/upgrade-check.sh` that reads patch
+  output; (2) the next change to the `Makefile`'s reset-task line. The `Makefile` is HYBRID:
+  that line sits three lines below the `PROTECTED_BRANCHES` slot, and the comment on `YES` is
+  the line right above the slot — the change keeps both as they are (IMP-088).
 
 ## Rejected (with the reason — so they are not re-proposed)
 
@@ -2311,3 +2109,63 @@ line on; older entries are not backfilled.
   infrastructure time, not effort — an illusion of measurement; `files_touched` — git
   already knows it; `difficulty`/`complexity` — `turns` is already the objective proxy,
   and a subjective field would be the invented version of the same datum.
+
+### IMP-023 — CODE_OF_CONDUCT.md and .github/ templates → rejected on 2026-10-13
+- Deferred on 2026-07-11: without a real flow of external contributions they were ceremony;
+  the trigger was the first issue or PR from a real external contributor, or the decision to
+  publicise the repository.
+- Rejected on 2026-10-13 (the retro over the backlog, the user's decision): at the end of this
+  cycle the repository becomes private and for personal use (IMP-086), which excludes the
+  trigger.
+
+### IMP-027 (the `graft.sh` option) — automated graft script → rejected on 2026-10-13
+- Deferred on 2026-07-14: a script automating the graft was premature — collisions are human
+  decisions, and the brownfield section of `SETUP.md` had to be tried in the field first; the
+  trigger was 2-3 real brownfield grafts.
+- Rejected on 2026-10-13 (the retro over the backlog, the user's decision): with the
+  repository for personal use, grafts will be rare and the brownfield section is enough; an
+  automation would have no cases to distil.
+
+### IMP-042 — `/change-language` (an automated translation command) → rejected on 2026-10-13
+- Deferred on 2026-07-20: a command switching a project's artifact language was premature
+  with one manual translation behind; the trigger was 2-3 real manual uses.
+- Rejected on 2026-10-13 (the retro over the backlog, the user's decision): superseded by
+  rule 9 (IMP-040, 2026-07-21) — the artifacts are always English and what exists is never
+  bulk-translated, so no artifact language is left to switch.
+
+### IMP-048 — Classify file content before rewriting it (prose / values / code-read strings) → rejected on 2026-10-13
+- Date: 2026-09-23 | Origin: the upgrade of a client project to v1.2.0 — the distinction
+  between prose, values and strings read by code had to be derived a second time, after the
+  translation of v1.1.0 (IMP-041).
+- Applied in part in v1.4.0 ([[2026-10-10-upgrade-verification-1.4.0]]): rule 9 names the
+  section titles and the field labels as format, `SETUP.md`'s edge case 3 (b) carries both
+  tables, and the verification script compares the entries after normalising the labels.
+- Rejected on 2026-10-13 (the retro over the backlog, the user's decision): its two observed
+  cases are covered — by v1.4.0's part, and by the coherence review's grep of the old and the
+  new wording (IMP-043) —, and the general discipline left open has had no occurrence since
+  2026-09-23. A third occurrence comes back through a harvest.
+
+### IMP-072 — Mutate the paths, not only the sites → rejected on 2026-10-13
+- Date: 2026-10-11 | Origin: [[2026-10-11-payload-purity-1.4.1]] (its retro) — a mutation
+  campaign over the 75 report sites of the documentation check read as exhaustive: eight
+  detection paths survived unseen, and nineteen more forms the check's comments name were
+  never planted.
+- Rejected on 2026-10-13 (the retro over the backlog, the user's decision): covered by the
+  Definition of Done's point 10 (IMP-071, v2.1.0) — a list that declares itself complete is
+  held against its source, and a campaign's coverage is such a list; v2.1.0 had already left
+  this entry out.
+
+### IMP-080 — A guard against uncommitted changes must see what git hides from its diff → rejected on 2026-10-13
+- Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro) — in the
+  line-end step of `SETUP.md`, `git diff --quiet HEAD` could not see an edit behind
+  `assume-unchanged` nor stop `git rm --cached` on a `skip-worktree` entry; `4f9f9ef` fixed
+  both with `git ls-files -v`.
+- Rejected on 2026-10-13 (the retro over the backlog, the user's decision): its one site is
+  fixed and tested; a general convention with a single occurrence is not motivated.
+
+### IMP-081 — On Git Bash, git counts line ends, not grep → rejected on 2026-10-13
+- Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro) — in the CI's
+  fourth round a grep for a line-ending `\r` counted no CRLF file on Git Bash; `b8ccbe0`
+  moved the count to `git ls-files --eol`, green at the fifth.
+- Rejected on 2026-10-13 (the retro over the backlog, the user's decision): the CI on Windows
+  caught it and the next round held the fix; a convention adds little.

@@ -97,8 +97,10 @@ command **only reads and prints**: it does not clone, does not copy files betwee
 repos, does not run git/push towards the framework. The transfer is **human
 curation**: whoever runs it pastes the block, **anonymises** it (no name of this
 project/client/environment in the framework's shared history —
-`04-git-workflow.md`) and records it as a new proposal in the framework, where it will
-be assessed like any other contribution (the framework's `CONTRIBUTING.md`).
+`04-git-workflow.md`) and records it in the framework — a new proposal, or evidence on the
+one it repeats: each entry carries its number and its source note's date, so a lesson
+harvested twice counts once —, where it will be assessed like any other contribution (the
+framework's `CONTRIBUTING.md`).
 
 **Why this boundary.** A command that actually wrote into the framework repo would
 violate two rules at once: the execution boundary — shared history is moved by the

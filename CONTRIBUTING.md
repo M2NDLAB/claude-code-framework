@@ -18,7 +18,7 @@ This repo applies to itself the method it describes (`.claude/docs/`):
   `commitlint.config.cjs`, format and rules in
   `.claude/docs/04-git-workflow.md`. Install the hooks with `make hooks-install`
   (requires gitleaks and Node.js).
-- **End-of-deliverable cycle** (`.claude/docs/00-overview.md`): [if sensitive]
+- **End-of-deliverable cycle** (`.claude/docs/00-overview.md`): [if under the gate]
   `/security-review` → `/retro` → `/checkpoint` → `/integrate`.
 - **Changes to the RULES go through an IMP proposal** in
   `.claude/memory/LEARNINGS.md` (`.claude/docs/06-self-improvement.md`): first the
@@ -36,6 +36,24 @@ This repo applies to itself the method it describes (`.claude/docs/`):
   The CI runs `bash tools/test-upgrade-check.sh` on every push too, after
   `make test-scripts` (*The CI, before the merge*, below): it fails when a payload file has
   no class.
+- **Every commit is gated on the suite, in the same command**:
+  `make test-scripts && bash tools/test-upgrade-check.sh && git commit …` — the self-tests,
+  the documentation check and the upgrade check's self-test, not only the test of the file
+  touched; the generated hooks with the real tools (`tools/test-real-hooks.sh`) run in the
+  CI. The one exception is the `chore: wip` commit `docs/04` allows on a feature branch
+  before a session closes. The suite reads the working tree, not the index: a commit of
+  part of the tree is green only if the rest is too.
+- **A change to a HYBRID file keeps away from the slots** (the classes: `SETUP.md`, *The
+  mental model: the classes of file, and the graft state*). Between the lines a change
+  touches and a line a project answers at setup — a `[TO BE DEFINED AT SETUP]` marker, a
+  placeholder setup replaces, an answer with no marker (`SETUP.md` §2) — at least one line
+  stays unchanged: a change on the adjacent line conflicts in every project's 3-way merge,
+  one unchanged line in between merges cleanly (measured with `git merge-file`, git 2.54.0).
+  A blank line is a weak separator, which the diff may align on either side of a change.
+  Where a change must land on such a line, the CHANGELOG's *Upgrading* note names the
+  conflict and its resolution. Every release that changes a HYBRID file rehearses the
+  upgrade before `/integrate`, on a project with every setup answer in place, with LF and
+  with CRLF line ends.
 
 ## This repo's git model (a declared exception)
 
@@ -158,6 +176,13 @@ project**: there the lesson is marked `Destination: framework` and
 `/harvest-framework` produces a copyable block (already anonymised) to bring here
 (see `.claude/docs/06-self-improvement.md`, *"The bridge to the framework"*).
 Either way it becomes an IMP entry in `LEARNINGS.md`.
+
+**A harvested lesson counts once.** Each entry of the block carries the project's entry
+number and its source note's date. Before recording it, look for that pair among the
+lessons already received — the session notes of earlier recordings list them, with a
+neutral label for the project, never its name: a repeat is evidence on the existing entry,
+never a new entry nor a second occurrence. The project's number is written as "the
+project's entry 012", never as an IMP number, which would collide with this backlog's.
 
 1. Open a feature branch from `main`.
 2. Conventional commits, hooks installed, no secrets (gitleaks blocks them anyway).

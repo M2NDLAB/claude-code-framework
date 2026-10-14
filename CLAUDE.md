@@ -22,6 +22,10 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
   task actually touches; read TREE.md before exploring the filesystem by hand. Check
   whether an in-progress plan exists in .claude/memory/plans/ for the requested
   prompt (see rule 7).
+- If STATE.md was NOT injected at the start, the project's settings did not load — the
+  session started outside the repository's root —, or its hooks are off: the boundary's
+  wiring does not run (04-git-workflow.md). Say so to the user before anything else, and
+  advise restarting Claude Code from the repository's root.
 - AT THE END of a task: session note in memory/sessions/, update the components/
   notes you touched, rewrite STATE.md, regenerate TREE.md if the structure changed.
   **A task without updated memory is NOT done.**
@@ -53,7 +57,7 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
 7. **Task planning** per 01-task-planning.md: at the start of EVERY prompt judge its
    heaviness yourself; if it is heavy, produce a PLAN of atomic tasks in
    .claude/memory/plans/, commit it, then run ONE COMMIT PER TASK (`[task N/T]` in
-   the message) ticking the plan as you go. If a session is interrupted: do NOT
+   the message) ticking the plan as you go. If a session dies mid-task: do NOT
    start over and do NOT delete the branch — discard only the uncommitted half-done
    task (`make reset-task`) and resume from the first unticked task. The commits
    of completed tasks are never touched.
@@ -86,7 +90,7 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
 - Slash commands: `/checkpoint`, `/integrate`, `/sos`, `/retro`, `/security-review`,
   `/new-component`, `/lint-memory`, `/harvest-framework`
 - `make hooks-install` — install the git hooks (gitleaks + commitlint + the pre-push push boundary)
-- `make test-scripts` — self-test of the framework scripts (hooks-install, the agent git guard, repo-snapshot, the prerequisite check)
+- `make test-scripts` — self-test of the framework scripts (hooks-install, the agent git guard, repo-snapshot, the prerequisite check, reset-task)
 - `make reset-task` — discard the interrupted half-done task (keeps commits; the
   protected branches are the Makefile's `PROTECTED_BRANCHES`; `YES=1` without asking)
 

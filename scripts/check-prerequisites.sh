@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # The framework's prerequisites, checked. Each tool is RUN, not only found — a tool can be
 # installed and still not start —, its version compared with the minimum below, the platform
-# named, and the line ends git would give the framework's files looked at.
+# named and held against the images the framework's CI runs, and the line ends git would give
+# the framework's files looked at.
 #
 #   bash scripts/check-prerequisites.sh
 #   bash scripts/check-prerequisites.sh --hooks                (what the hooks need: no make)
@@ -49,6 +50,10 @@ NOT_FOR_HOOKS='make'
 # in silence, what it exists to refuse. Below it, or with a version that cannot be read, so
 # that the minimum cannot be confirmed, the check FAILS — and hooks-install.sh stops.
 SECURITY_MINIMUMS='gitleaks'
+# The images the framework's CI runs: the matrix of the framework's own workflow,
+# .github/workflows/test.yml, which setup does not copy — the framework's documentation check
+# fails when the two lists differ. platform(), below, reads each image as GitHub names it.
+CI_IMAGES='ubuntu-24.04 macos-26 windows-2025'
 
 skip=''
 case "$*" in
@@ -168,33 +173,73 @@ check_userland() {
   fi
 }
 
-# The platform, and whether the framework's CI verifies it: macOS on arm64, Linux on x86_64
-# (WSL excluded), Windows on x86_64 through Git Bash.
+# The os-release file a Linux release is read from; the self-test points CHECK_OS_RELEASE at
+# a file of its own.
+OS_RELEASE_FILE="${CHECK_OS_RELEASE:-/etc/os-release}"
+
+# os_release <key>: the key's value in the os-release file, its quotes removed; nothing when
+# the file or the key is absent. Read, never sourced: the file is data, not a script.
+os_release() {
+  local line value
+  [[ -r "${OS_RELEASE_FILE}" ]] || return 0
+  while IFS= read -r line || [[ -n "${line}" ]]; do
+    [[ "${line}" == "$1="* ]] || continue
+    value="${line#*=}"
+    case "${value}" in
+      \"*\" | \'*\') value="${value:1:${#value}-2}" ;;
+    esac
+    printf '%s\n' "${value}"
+    return 0
+  done < "${OS_RELEASE_FILE}"
+}
+
+# The platform, and whether the framework's CI verifies it: this machine against CI_IMAGES.
+# macos-<release> is that major release of macOS on arm64, read from sw_vers; ubuntu-<release>
+# is that release of Ubuntu on x86_64, WSL excluded, read from os-release; nothing else is a
+# match. On Windows through Git Bash the windows-<year> images are named, never matched: Git
+# Bash's uname gives a build number, not the edition an image runs (Windows Server).
 platform() {
-  local os arch name verified=no
+  local os arch name release id image match='' windows=''
   os="$(uname -s 2>/dev/null || echo unknown)"
   arch="$(uname -m 2>/dev/null || echo unknown)"
   case "${os}" in
     Darwin)
-      name=macOS
-      if [[ "${arch}" == arm64 ]]; then verified=yes; fi ;;
+      release="$(first_line "$(sw_vers -productVersion 2>/dev/null || true)")"
+      name="macOS${release:+ ${release}}"
+      if [[ "${arch}" == arm64 && -n "${release}" ]]; then
+        for image in ${CI_IMAGES}; do
+          if [[ "${image}" == "macos-${release%%.*}" ]]; then match="${image}"; fi
+        done
+      fi ;;
     Linux)
       case "$(uname -r 2>/dev/null || true)" in
         *[Mm]icrosoft*) name="Linux under WSL" ;;
         *)
-          name=Linux
-          if [[ "${arch}" == x86_64 ]]; then verified=yes; fi ;;
+          id="$(os_release ID)"
+          release="$(os_release VERSION_ID)"
+          name="Linux${id:+, ${id}}${release:+ ${release}}"
+          if [[ "${arch}" == x86_64 && "${id}" == ubuntu && -n "${release}" ]]; then
+            for image in ${CI_IMAGES}; do
+              if [[ "${image}" == "ubuntu-${release}" ]]; then match="${image}"; fi
+            done
+          fi ;;
       esac ;;
     MINGW* | MSYS*)
       name="Windows, Git Bash"
-      if [[ "${arch}" == x86_64 ]]; then verified=yes; fi ;;
+      if [[ "${arch}" == x86_64 ]]; then
+        for image in ${CI_IMAGES}; do
+          if [[ "${image}" =~ ^windows-[0-9]+$ ]]; then windows="${windows:+${windows} }${image}"; fi
+        done
+      fi ;;
     CYGWIN*) name="Windows, Cygwin" ;;
     *) name="${os}" ;;
   esac
-  if [[ "${verified}" == yes ]]; then
-    echo "check-prerequisites: ${name} (${arch}), a platform the framework's CI verifies"
+  if [[ -n "${match}" ]]; then
+    echo "check-prerequisites: ${name} (${arch}), verified by the framework's CI on ${match}"
+  elif [[ -n "${windows}" ]]; then
+    echo "check-prerequisites: ${name} (${arch}): the framework's CI runs ${windows} — this check does not tell Windows releases apart"
   else
-    echo "check-prerequisites: ${name} (${arch}), not a platform the framework's CI verifies"
+    echo "check-prerequisites: ${name} (${arch}), not verified by the framework's CI, which runs ${CI_IMAGES}"
   fi
 }
 

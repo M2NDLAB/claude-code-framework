@@ -135,7 +135,7 @@ classify() {
     scripts/repo-snapshot.sh | scripts/test-hooks-install.sh | \
     scripts/test-agent-git-guard.sh | scripts/test-repo-snapshot.sh | \
     scripts/check-prerequisites.sh | scripts/test-check-prerequisites.sh | \
-    commitlint.config.cjs)
+    scripts/test-reset-task.sh | commitlint.config.cjs)
       echo METHOD ;;
     *) echo NONE ;;
   esac

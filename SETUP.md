@@ -39,8 +39,10 @@ The tools, by name; how to install each one depends on your platform.
 **Check them** with `bash scripts/check-prerequisites.sh` — without make, from the
 framework's clone or from the project once step 1 has copied `scripts/`. It runs each tool
 above and compares its version with the minimum, names the platform and whether the CI
-below verifies it, and warns when `core.autocrlf` is true and nothing holds the
-framework's files to LF (run from the project's root, it reads the project's). It fails
+below verifies it — the release and the architecture of one of its images; on Windows it
+names the image and says no more, Git Bash's `uname` giving a build, not an edition —, and
+warns when `core.autocrlf` is true and nothing holds the framework's files to LF (run from
+the project's root, it reads the project's). It fails
 for a tool missing or one that does not start, and for gitleaks below its security minimum
 or with a version it cannot read; any other version below its minimum is a warning. It
 installs nothing.
@@ -48,13 +50,14 @@ installs nothing.
 **The platforms verified.** The framework's repository runs `make test-scripts`, the
 upgrade check's self-test, the prerequisite check and the generated hooks with the real
 gitleaks and commitlint at every push, on three GitHub-hosted images — its own
-`.github/workflows/test.yml`, which setup does not copy:
+`.github/workflows/test.yml`, which setup does not copy; the prerequisite check carries the
+same list of images, which the framework's documentation check holds to the workflow's:
 
 | Platform | Image | bash | Node.js |
 | --- | --- | --- | --- |
-| macOS, arm64 | `macos-26` | 3.2, the system's `/bin/bash` | 24 |
-| Linux, x64 | `ubuntu-24.04` | 5.2 | 22 |
-| Windows, x64 | `windows-2025` | 5.3, Git Bash | 22 |
+| macOS 26, arm64 | `macos-26` | 3.2, the system's `/bin/bash` | 24 |
+| Ubuntu 24.04, x64 | `ubuntu-24.04` | 5.2 | 22 |
+| Windows Server 2025, x64 | `windows-2025` | 5.3, Git Bash | 22 |
 
 - The images bring their own tools; the CI installs GNU make on Windows and gitleaks on
   the three, each at a fixed version — gitleaks' archive checked against a fixed SHA-256
@@ -66,8 +69,9 @@ gitleaks and commitlint at every push, on three GitHub-hosted images — its own
 - On Windows, `core.autocrlf` is `true`, as Git for Windows sets it, and `.gitattributes`
   keeps the framework's files LF; the hooks' self-test skips its dangling-symlink case,
   which Git Bash cannot plant.
-- Not verified: WSL, Linux or Windows on arm64, macOS on Intel, other Linux
-  distributions.
+- Not verified: another release of macOS or Ubuntu than the images', other Linux
+  distributions, WSL, Linux or Windows on arm64, macOS on Intel; nor another Windows
+  release, which the prerequisite check cannot tell from the image's.
 
 ## 1. Copy the template into the new project
 
@@ -224,7 +228,7 @@ boundary (pre-push: a push launched from a Claude Code session is refused — th
 pushes from their own terminal). Check: a commit with a non-conventional message must be
 rejected; a file with a fake secret must be blocked by gitleaks; `make test-scripts` must
 pass — it proves the pre-push on a throwaway repository and the delegated agents' guard on
-the command forms. A pre-push of your own (git-lfs's, for one): see Step 4 of the upgrade.
+the command forms its cases list. A pre-push of your own (git-lfs's, for one): see Step 4 of the upgrade.
 
 **What the pre-commit's scan reads.** gitleaks scans the staged changes as `git diff` shows
 them. The hook turns git's colour off and reads each textconv driver as `cat` for it, so a
@@ -239,7 +243,16 @@ its first 8000 bytes) is not scanned, as gitleaks reads text; a `git -c` naming 
 or a textconv on a commit's command line wins over the hook's settings — a deliberate
 choice, outside the threat model (`docs/04`, *Enforcement of the execution boundary*); a
 SIGKILL during the scan, which no process can catch, leaves its directory behind, in the
-user's own temporary directory.
+user's own temporary directory; the commits git creates itself — a rebase's `--continue`,
+`git am`, a cherry-pick or a revert that applies cleanly — run no pre-commit at all, while a
+cherry-pick's `--continue` after a conflict and a merge concluded by `git commit` do
+(measured on git 2.54.0); the scan apart passes over a file whose first bytes are an
+application's signature (`MZ`, `%PDF`, …) and over a type change — a symlink turned into a
+key file marked binary goes through (measured) —, and with `GITLEAKS_CONFIG_TOML` set it
+still reads the project's `.gitleaks.toml`, which `gitleaks protect` reads only after that
+variable (read at gitleaks' source); a clean filter rewrites what is staged before the scan
+sees it — under git-lfs a pointer, the content reaching the LFS store unscanned (measured
+with a filter like git-lfs's).
 
 > **Does the repo already have a history?** (a graft onto an existing project) The hook
 > only protects commits from now on: complete the baseline with a one-off scan of the
@@ -257,7 +270,8 @@ user's own temporary directory.
 > `GIT_CONFIG_KEY_1=diff.<driver>.textconv GIT_CONFIG_VALUE_1=cat`. The scan does not read
 > what the history shows as binary (measured: a key committed in a `*.key binary` is not
 > found): if the project marks text files `binary` or `-diff`, scan their current content as
-> files too, `gitleaks detect --no-git --source <path>`. Assess every finding BEFORE going
+> files too, `gitleaks detect --no-git --source <path>`. Nor does it read what a merge's own
+> resolution introduced, or a type change (read at gitleaks' source). Assess every finding BEFORE going
 > on: a secret in pushed history stays exposed even if you remove it from the
 > current files — rotate/revoke it immediately; rewriting the history is a separate
 > operation, to be decided with judgement (`docs/03`, baseline).
@@ -283,7 +297,7 @@ Open Claude Code in the project root and give it a command like this one:
 From here on the cycle is the one in `.claude/docs/00-overview.md` (see "The
 end-of-deliverable cycle"). For every heavy prompt Claude Code will produce a plan in
 `.claude/memory/plans/`; at the end of a deliverable it will follow the sequence [if
-sensitive] `/security-review` → `/retro` → `/checkpoint` → `/integrate`; when it gets
+under the gate] `/security-review` → `/retro` → `/checkpoint` → `/integrate`; when it gets
 stuck, `/sos`. The periodic review of the IMP backlog stays `/retro` over the whole
 `LEARNINGS.md`.
 
@@ -297,7 +311,8 @@ the README's *Philosophy*.
 In practice: mark those IMPs with the line `- Destination: framework` (IMP format in
 the format comment of `LEARNINGS.md`), then run `/harvest-framework` — it collects the
 marked entries and prints a copyable block for them, ready to be anonymised and
-re-proposed as an IMP in the framework repo (`CONTRIBUTING.md`). The command only reads and
+re-proposed in the framework repo (`CONTRIBUTING.md`), where a lesson already received
+counts once. The command only reads and
 prints: the transfer stays your explicit gesture. Details in
 `.claude/docs/06-self-improvement.md`, *"The bridge to the framework"*.
 
@@ -309,13 +324,33 @@ commands — the kind every real incident was. Deliberate evasion (disabling a h
 unsetting the session marker, writing to the forge with the owner's credential) is
 outside it: only the forge's rules or the operating system stop it.
 
+**Start Claude Code at the repository's root.** Claude Code reads `.claude/settings.json`
+from the session's working directory only, with no fallback to the directories above: a
+session started in a subdirectory, or moved there with `/cd`, runs without the guard, the
+`deny` and `ask` rules, the session marker and the SessionStart hook, and nothing says so —
+only the `pre-push` still refuses its push (`docs/04`, *Enforcement of the execution
+boundary*). A session that opens without `STATE.md` injected loaded no settings, or runs
+no hook.
+
 **On Windows, Git Bash.** The method's layer is wired for the Bash tool, which on Windows
 runs in Git Bash (Git for Windows, a prerequisite); Claude Code runs the hooks there too.
 Its PowerShell tool is kept off by `CLAUDE_CODE_USE_POWERSHELL_TOOL=0` in
 `.claude/settings.json`: with the tool on, Claude takes PowerShell as its primary shell, and
 a `bash` called from PowerShell can be WSL's. A developer who turns it on keeps the guard —
-it reads PowerShell's commands too, in their ordinary forms — and the `pre-push`; the
+it reads PowerShell's commands too, in the forms its self-test lists — and the `pre-push`; the
 `deny` rules, Bash rules, do not reach it.
+
+**In auto mode.** The method's layer holds there too: auto mode allows pushes to any branch
+of the working repository, the default branch included, and the `pre-push` is what stops a
+push from the session, however it is spelled (`docs/04`, *Enforcement of the execution
+boundary*). As a net for the usual spelling in the repositories without the framework, the
+`ask` rules Claude Code's documentation suggests — `Bash(git push *)` and
+`Bash(gh pr create *)`, in your own `~/.claude/settings.json` — prompt even in auto mode, for
+commands that begin that way only; in a framework project the `deny` on `Bash(git push:*)`
+answers first. And auto mode's own settings are read only from `~/.claude/settings.json`,
+managed settings and `--settings`: what its setup command drafts from one repository — a
+trusted repository, a visibility — holds for every project, so write it in a form true for
+all of them.
 
 Two layers beyond the method, neither switched on by the template:
 
@@ -341,6 +376,18 @@ Two layers beyond the method, neither switched on by the template:
   sandboxed, not the file tools or MCP servers; Linux and WSL2 need bubblewrap and socat,
   native Windows is unsupported; and the unsandboxed retry must be switched off
   (`allowUnsandboxedCommands: false`), or a failing command can be retried outside it.
+
+**Keep the framework out of what you deploy.** The framework serves development only, but its
+files sit in the repository: a build that copies the whole repository — a container image
+built with `COPY . .` from the root, for one — carries them into production, the project's
+memory included, and from a working tree also what git ignores there, such as
+`settings.local.json` and the agents' worktrees. Keep them out with your stack's own
+mechanism — the build context's ignore file, or an explicit list of what is copied: the
+`.claude/` directory whole, `CLAUDE.md`, the framework's scripts, `commitlint.config.cjs`;
+the files the project also owns — the `Makefile`, `.gitignore`, `.gitattributes` — stay its
+own call. The class table names every framework file (`tools/upgrade-check.sh classes <tag>`,
+*The mental model: the classes of file, and the graft state*). The framework ships no ignore
+file for this: such files depend on the stack.
 
 ---
 
@@ -905,12 +952,14 @@ from a hand-written list; the memory's titles and field labels to rename; and th
 > Nor does it WRITE in the framework repo: no checkout, switch, stash, `worktree add` or
 > commit there — it only reads it by tag (*Precondition*). Only the MAIN session
 > writes: delegated agents — subagents, workflow agents — are read-only on git, which the
-> guard enforces from v1.3.0 (`docs/04`, *Delegated agents and the shared working
-> tree*). The READING can be spread across them (inventories, diffs by tag, a review);
+> guard enforces on the shell tools from v1.3.0 (`docs/04`, *Delegated agents and the
+> shared working tree*). The READING can be spread across them (inventories, diffs by tag, a review);
 > the branch, `git merge-file`, the commits and any throwaway clone for a dry run stay
 > with the main session. An edit to `.claude/settings.json` or
 > `scripts/agent-git-guard.mjs` through the file tools asks the human (the `ask` rules),
-> auto mode included; the shell commands of Step 3 do not. Where `vY` changes a
+> auto mode included, unless a mod or a PermissionRequest hook answers in the user's place,
+> in a session started at the project's root (`docs/04`); the shell commands of Step 3 do
+> not. Where `vY` changes a
 > RULE (rather than being a factual correction), Level 2 of `docs/06` kicks in: it is
 > PROPOSED, not applied silently — *"Never rewrite your own rules on your own
 > initiative"* (`CLAUDE.md`, rule 6).
@@ -918,7 +967,8 @@ from a hand-written list; the memory's titles and field labels to rename; and th
 ### Step 4 — Re-sync the hooks and audit the markers
 
 `make hooks-install` (idempotent; a hook that differs from the one it generates — another
-release's, or one with the project's formatting block — is saved as a `.bak` first).
+release's, or one with the project's formatting block — is saved as a `.bak` first, over the
+`.bak` an earlier run left: compare each `.bak`, then remove it, before the next upgrade).
 It installs into the repository's COMMON git directory, which all its worktrees share:
 run from the upgrade's own worktree, `vY`'s hooks reach the main worktree too, still on
 `vX` until the merge — expected. (Until v1.3.2 the script aborted from a linked worktree
@@ -926,7 +976,8 @@ with `mkdir: … Not a directory`.) From v1.3.0 it also installs the `pre-push` 
 boundary: if the project already has a `pre-push` of its own (git-lfs's, for one), the
 script stops — rename it to `pre-push.local` in the same hooks directory (the path the
 script prints; `$H` below) and re-run: the generated pre-push runs it after the boundary
-check, and a re-run leaves it alone. Real verification:
+check, if it is executable — one that is not is skipped without a word —, and a re-run
+leaves it alone. Real verification:
 
 - **Every hook the script generates is installed and carries the generator's marker.**
   The list is read from the script's own loop, so a hook added to it is checked too:
@@ -987,6 +1038,10 @@ Italian one.
   renamed/moved docs, STATE vs git, `LEARNINGS`↔`STATE` coherence, orphan pages).
 - The project's build/tests green (even if the upgrade is process-only, confirm the
   project still builds and commits).
+- **No framework file in a deploy artifact.** If the project builds one from the repository —
+  a container image from its root, for one —, check that no framework path reaches it, the
+  paths `vY` adds above all (the files `inventory` marks `A`): an explicit exclusion list does
+  not know them yet (*Hardening*, *Keep the framework out of what you deploy*).
 
 ### Step 6 — Closing and hand-off
 
@@ -1002,8 +1057,9 @@ certain; unknown `grafted` → `n/a (retrofit YYYY-MM-DD)`. The pin lives outsid
 `.claude/memory/`: the closed list of Step 5 needs no entry for it.
 
 `/checkpoint` (the upgrade's session note — `vX→vY`, what was reconciled, what the user
-decided; `STATE.md` with the updated framework version; `TREE.md` if the structure
-changed). Then `/integrate`: a process-only upgrade of the project does NOT bring
+decided, and its security-gate line with the reason, since an upgrade rewrites the security
+baseline: the hooks, the permissions, a destructive guard; `STATE.md` with the updated
+framework version; `TREE.md` if the structure changed). Then `/integrate`: a process-only upgrade of the project does NOT bring
 product features/fixes → bump **"no tag"** (`chore`, internal work, not a release):
 declare it and omit the tag. The merge of the upgrade branch and the push are HUMAN
 actions. If something does not add up at review time, the branch is thrown away: the
@@ -1116,11 +1172,11 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    `pre-push` that a `vX` before v1.3.0 never had; a `vX` from v0.3.0 to v1.0.0 refuses
    the hooks that carry the English marker; `FORCE_OVERWRITE=1` replaces the pre-upgrade
    `.bak` with the new hook; and a `pre-push` renamed to `pre-push.local` at Step 4 stays
-   renamed. The way back is Step 1's photograph. If you abort the upgrade after Step 4,
-   run this — in a block of its own, as `docs/04` wants for destructive lines:
+   renamed. The way back is Step 1's photograph. Once the user has decided to abort the
+   upgrade after Step 4 — never before, and never printed with another block —, the session
+   runs or gives this alone: it puts back the hooks photographed at Step 1.
 
    ```bash
-   # ONLY if the upgrade is aborted after Step 4: put back the hooks photographed at Step 1.
    H="$(git rev-parse --path-format=absolute --git-common-dir)/hooks"
    test -d "${T:?}/hooks-before" && test ! -e "${T:?}/hooks-aborted" \
      && mv "$H" "${T:?}/hooks-aborted" \

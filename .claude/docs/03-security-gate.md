@@ -8,7 +8,8 @@ Security has two levels in this framework:
    it. Its limits include the commits git creates itself — a rebase's `--continue`,
    `git am`, a cherry-pick or a revert that applies cleanly —, which do not run it, and
    a hook manager that sets `core.hooksPath` after the install, which takes it out
-   (`04-git-workflow.md`, *Enforcement of the execution boundary*). On a repo with
+   (`04-git-workflow.md`, *Enforcement of the execution boundary*); the scan's own limits
+   are listed in the framework's `SETUP.md`, *What the pre-commit's scan reads*. On a repo with
    PRE-EXISTING history (grafting the framework onto an existing project) the baseline
    is COMPLETED by a one-off scan of the whole history — `gitleaks detect` — as a setup
    step (step 3 of the framework's `SETUP.md`).
@@ -38,7 +39,11 @@ On top of the Definition of Done (`02-code-quality.md`), BEFORE the merge reques
 2. **HIGH/CRITICAL findings → RESOLVED** before the PR. Non-negotiable.
 3. **MEDIUM findings → resolved**, or **explicitly accepted** as known debt in
    `memory/STATE.md`, with the reason for accepting them.
-4. **LOW/INFO findings → at least recorded** (debt or backlog).
+4. **LOW/INFO findings → closed, or declared.** One that a line of text closes — a claim
+   narrowed to what the code does — is closed in the release. One that it does not close
+   becomes a known limit, declared where the claim it concerns lives — the document, the
+   comment or the message that states what the code does —, not a proposal in the
+   backlog; a lesson about the process still becomes one (*After the review*).
 
 The gate is a GATE, not an optional activity: a component that is "complete" and has
 green functional tests can still carry security defects the tests cannot see (a
@@ -77,6 +82,10 @@ The criterion is not nominal severity but the **blast radius** of the defect:
   own work tends to re-read their own assumptions.
 - **Author-verifies** — sufficient (and adversarial review is overhead): for factual
   reconnaissance and inspectable local fixes, with zero blast radius.
+
+One independent reviewer comes first; a fan-out of reviewers, then verifiers, only where
+the blast radius warrants it, with a stall budget fixed before the run — and its report
+names what it did not cover (`00-overview.md`, *Scope and session hygiene*).
 
 **Before acting on the findings.** In a multi-agent review — especially after
 interruptions or resumes — check COMPLETENESS against the right numbers: the

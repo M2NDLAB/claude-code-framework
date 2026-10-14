@@ -26,4 +26,5 @@ technology (see @.claude/docs/03-security-gate.md):
 
 Report: severity table (CRITICAL/HIGH/MEDIUM/LOW) + proposed fix for each
 finding. Remember how the gate works (docs/03): HIGH/CRITICAL resolved before the
-PR, MEDIUM resolved or accepted in STATE.md, LOW at least recorded.
+PR, MEDIUM resolved or accepted in STATE.md, LOW closed by a line of text or declared as a
+known limit where its claim lives.

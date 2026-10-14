@@ -20,6 +20,8 @@ values, then deletes this paragraph: [TO BE DEFINED AT SETUP].
      resumption; on a later write: the value before this session's first write + all
      of this session's messages, never counting a message twice). Never backfill
      notes that predate these fields;
+   - at a deliverable's last checkpoint, the note's security-gate line
+     (`sessions/README.md`, *Format*): the outcome, or "not applicable" with its reason;
    - update the components/ notes of the components touched;
    - rewrite STATE.md with the current state; AFTER the rewrite check that the
      pre-existing entries of "Caution & open issues" are still present or
@@ -43,7 +45,9 @@ values, then deletes this paragraph: [TO BE DEFINED AT SETUP].
 5. EXPLICIT `git add` of the relevant files (never `git add .`), memory and doc included.
 6. Commit with a Conventional Commit: correct type and scope, body with the WHY.
 7. Show the commit created. Do NOT push: the push is the user's decision. At the end
-   of a deliverable, for the merge + tag commands ready to paste use `/integrate`.
+   of a deliverable, for the merge + tag commands ready to paste use `/integrate`. The
+   merge it prints happens outside the session: the next deliverable's first checkpoint
+   reconciles it, at step 3 — never a commit of its own after the merge.
 
 If the code does not compile or the tests fail: commit as `chore: wip …` ONLY if we are
 on a feature branch (`wip` is not a commit type: the commit-msg hook rejects a `wip:`

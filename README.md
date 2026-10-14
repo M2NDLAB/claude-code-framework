@@ -27,7 +27,8 @@ back up to the template through the project→framework bridge (`/harvest-framew
 - **Security gate & git workflow** — mandatory review on sensitive components,
 conventional commits, SemVer versioning on annotated tags, a paste-ready "ready for
 integration" block, git hooks (secret scan, formatting, and a pre-push that refuses an
-agent session's push), delegated agents kept read-only on git.
+agent session's push), delegated agents kept read-only on git through the shell, in a
+session started at the repository's root.
 - **Grafting and upgrading** — it starts from scratch (greenfield), grafts onto an
 existing project (brownfield) and upgrades in place (`vX → vY`) preserving the
 memory accumulated so far, with the `.claude/framework-version` provenance pin as a
@@ -62,7 +63,7 @@ in, is in **[SETUP.md](SETUP.md)**):
    suggested command is in `SETUP.md`.
 
 From there on you work with the cycle described in `.claude/docs/00-overview.md`:
-plan → execute task by task → [if sensitive] `/security-review` → `/retro` →
+plan → execute task by task → [if under the gate] `/security-review` → `/retro` →
 `/checkpoint` → `/integrate` (push decided by the human); if you get stuck, `/sos`.
 
 > Grafting the framework onto an **existing** project (brownfield)? The steps are

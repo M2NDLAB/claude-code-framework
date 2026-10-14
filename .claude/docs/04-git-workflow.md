@@ -55,11 +55,16 @@ feat(<area>): add a compensation step to flow X
 
 The flow left a resource locked when step Y timed out.
 Added an idempotent compensation step.
+
 Refs: #123
 ```
 
 The format is checked by the `commit-msg` hook (commitlint) and defined in
-`commitlint.config.cjs`.
+`commitlint.config.cjs`. The footer follows a blank line, and no line of the body — a
+wrapped one included — begins with a single word followed by a colon or by " #"
+(`measured: …`, `issue #12 …`): commitlint's parser reads such a line as the first line of
+the footer and cuts the body there, and the hook only warns ("footer must have leading
+blank line").
 
 **Shared history = forever.** In messages destined for the shared history (commits,
 merges, tags) there must be no reference to instances EXTERNAL to the project — names
@@ -117,6 +122,14 @@ user — see "Tags and releases"):
 For a deliverable that gathers several commits, the bump is the **highest** among
 those of the included commits (a single `feat` among many `chore`s → MINOR; no
 `feat`/`fix` → no tag, it is internal work, not a release).
+
+**The type suggests; the content decides.** A type is a label written before the release
+exists: a commit typed `docs` or `chore` can bring a new rule or command into what the
+project ships — a MINOR by the criteria below —, one typed `fix` can break the public
+contract — a MAJOR. So `/integrate` weighs the content too and states the bump with its
+reasoning before the tag; if the request that opened the deliverable named an expected
+bump, it names that too, and where the two differ the criteria of this section win, with
+the user's confirmation.
 
 **When the documentation IS the product** — a method/tooling project, whose consumers
 receive its docs and commands as the thing itself — the last row does not apply as
@@ -177,8 +190,8 @@ on WHICH BRANCH the tag lives:
   spaces copied from an editor corrupt the command in obscure ways.
 - Before pushing a tag: ALWAYS verify that it points at the commit meant —
   `git rev-parse '<tag>^{commit}'` equals the tip of the branch just merged. `git tag -d`
-  is used ONLY if that verification fails — never on a healthy tag, and never inline
-  with the constructive commands (see "Execution boundary").
+  is given ONLY after that verification has failed — never printed in advance, never on
+  a healthy tag, never on a tag already published (see "Execution boundary").
 - Where the repository signs its tags (`tag.gpgSign` true, in its config or the global
   one), verify the signature too, `git tag -v <tag>`, and never publish a tag whose
   signature does not verify. Signing stays optional: a project that does not sign has no
@@ -240,11 +253,13 @@ Rules for every command block meant for manual execution by the user:
 2. **Placeholders for the executor ≠ commands for the user.** The placeholders in
    commands that Claude Code runs (the executor resolves them itself) are NEVER
    passed to the user: the user must not have to resolve anything.
-3. **Destructive commands never inline.** `tag -d`, `branch -D`, `reset --hard`,
-   `push --force`, `rm`: never in the same copy-paste block as the constructive
-   commands. They go in a SEPARATE block, preceded by the EXACT condition that
-   justifies them ("only if `<command>` fails") — never executable out of inertia
-   while scrolling through the sequence.
+3. **Destructive commands never in advance.** `tag -d`, `branch -D`, `reset --hard`,
+   `push --force`, `rm`: never in a block of the sequence, not even in a separate block
+   under the condition that would justify them ("only if `<command>` fails") — for a
+   destructive line, a condition written above a copyable block is not a condition:
+   pasted out of inertia, the block runs. Such a command is given only once its
+   condition holds — the user has reported the failure it repairs, and read-only
+   commands have shown the state —, alone in its block, never with constructive ones.
 4. **Publishing goes in a block of its own.** A sequence that ends by publishing is
    printed as TWO blocks: the first does everything local and ends with the checks;
    the second only publishes (the push, then the cleanup), introduced by one line
@@ -257,7 +272,8 @@ Rules for every command block meant for manual execution by the user:
    a block (in zsh's default configuration a `#` at the prompt is a command, and in a
    chain it breaks the chain); a publication that moves several refs is atomic
    (`git push --atomic`). A failure in the first block leaves only local state to
-   repair, and the missing lines show it before anything leaves the machine.
+   repair, and the missing lines show it before anything leaves the machine; the repair
+   is given then, once the user reports them (rule 3).
 
 ## Enforcement of the execution boundary
 
@@ -277,16 +293,24 @@ command does not matter:
 
 | Boundary | Enforced by | Covers | Outside this layer |
 | --- | --- | --- | --- |
-| **No push from an agent session** (shared history is the human's) | the `pre-push` hook generated by `scripts/hooks-install.sh`: it refuses when the environment carries `AGENT_GIT_BOUNDARY` (set by the `env` key of `.claude/settings.json`) or `CLAUDECODE` (set by Claude Code in the processes it starts, as its environment-variable reference documents: the fallback) | every `git push` launched from the session, in any form — `git -C`, an alias, `sh -c`, a script, a `make` target — because every process the agent starts inherits the markers; in each repository where `make hooks-install` ran, while git reads its hooks directory | a repository without the hook; a hook manager that sets `core.hooksPath` after the install — husky does at every `npm install`, unless `HUSKY=0` —, which takes the hooks out without a word; `--no-verify`, hooks disabled, plumbing (`git send-pack`), remote writes without git (`gh`, the forge's API — not covered yet) |
-| **Delegated agents are read-only on git** | the PreToolUse hook `scripts/agent-git-guard.mjs`, wired fail-closed for delegated agents | the git commands a subagent or a workflow agent writes in ordinary forms, through Bash, PowerShell or Monitor: the subcommand found after git's global options (`-C`, `-c`, `--git-dir`, …), across `&&`/`;`/`\|`, line continuations and `$(…)` | git inside `sh -c`, `eval`, scripts or interpreter code, or behind a wrapper it does not know (`sudo`, `find -exec`) |
-| The usual spelling only | the `deny` rules (*Permission configuration*) | an instant refusal of the literal form | everything else: a convenience, not a boundary |
+| **No push from an agent session** (shared history is the human's) | the `pre-push` hook generated by `scripts/hooks-install.sh`: it refuses when the environment carries `AGENT_GIT_BOUNDARY` (set by the `env` key of `.claude/settings.json`) or `CLAUDECODE` (set by Claude Code in the processes it starts — and by its IDE extensions in their integrated terminals, as its environment-variable reference documents: the fallback) | every `git push` launched from the session, in any form — `git -C`, an alias, `sh -c`, a script, a `make` target — because every process the agent starts inherits the markers; in each repository where `make hooks-install` ran, while git reads its hooks directory | a repository without the hook; a hook manager that sets `core.hooksPath` after the install — husky does at every `npm install`, unless `HUSKY=0` —, which takes the hooks out without a word; `--no-verify`, hooks disabled, plumbing (`git send-pack`), remote writes without git (`gh`, the forge's API — not covered yet) |
+| **Delegated agents are read-only on git** | the PreToolUse hook `scripts/agent-git-guard.mjs`, wired fail-closed for delegated agents | the git commands a subagent or a workflow agent writes in the forms its self-test holds it to (`scripts/test-agent-git-guard.sh`), through Bash, PowerShell or Monitor: the subcommand found after git's global options (`-C`, `-c`, `--git-dir`, …), across `&&`/`;`/`\|`, line continuations and `$(…)` | git inside `sh -c`, `eval`, scripts or interpreter code, or behind a wrapper it does not know (`sudo`, `find -exec`); ordinary forms its cases do not hold — git in an unquoted heredoc's `$(…)` or backticks, a function declared with `function` and no parentheses, a `coproc`, a command name held in a variable; Claude Code's tools outside its matcher — EnterWorktree, which creates a worktree on a new branch without a prompt, and ExitWorktree, whose `remove` deletes a worktree with its branch — and a project's git MCP server; a mod that approves what the guard blocked; a session that did not load the project's settings — started outside the repository's root, or moved with `/cd` —, `disableAllHooks` and a `--safe-mode` session, where the project's hooks do not run (below) |
+| The usual spelling only | the `deny` rules (*Permission configuration*) | an instant refusal of the literal form | everything else: a convenience, not a boundary — and a mod can approve what a `deny` rule refuses, unless managed settings or a Team or Enterprise plan hold deny rules over it; a session that did not load the project's settings has none (below) |
 
 - **The human pushes from their own terminal**, not from inside a Claude Code session,
-  where the markers are set.
+  where the markers are set — nor from the integrated terminal of an IDE that runs Claude
+  Code's extension, which sets `CLAUDECODE` there (its environment-variable reference): the
+  `pre-push`, which reads that marker, refuses the push as a session's. A terminal outside
+  the IDE carries no marker.
+- **In auto mode too.** Auto mode allows pushes to any branch of the working repository,
+  the default branch included (Claude Code's *Configure auto mode*, read on 2026-10-14);
+  `deny` and explicit `ask` rules run before its classifier, but a push written another
+  way — `git -C <dir> push`, `git -c <key>=<value> push` — matches neither. The `pre-push`
+  stays the push's boundary there as everywhere.
 - **Fail-closed for delegated agents, open for the main session.** Claude Code lets a
   PreToolUse hook that exits 1, misses its binary or times out PROCEED, so the wiring
-  decides what a broken guard means. The guard's own verdict, pass or block, always
-  stands; any FAILURE of the guard — a crash, a missing file or `node`, an input it cannot
+  decides what a broken guard means. The wiring never changes the guard's own verdict, pass
+  or block; any FAILURE of the guard — a crash, a missing file or `node`, an input it cannot
   parse — blocks when the hook input carries the `agent_id` key. Otherwise it exits 1: a
   non-blocking error, which the transcript shows with the wiring's own first line,
   `agent-git-guard: cannot run …`. The guard has no job in the main session (its push
@@ -294,15 +318,46 @@ command does not matter:
   tool — but it does not go unnoticed. An input the wiring cannot even read blocks every
   call: it cannot be classified. A timeout still proceeds; the guard runs in milliseconds
   against a generous limit.
+- **Only a session that loads the project's settings has the wiring** — read in Claude
+  Code's documentation on 2026-10-14, not measured. Claude Code reads `.claude/settings.json`
+  from the session's primary working directory, with no parent-directory fallback: a
+  session started in a subdirectory of the repository, or moved there with `/cd`, loads none
+  of it — no guard, no `deny` or `ask` rule, no `AGENT_GIT_BOUNDARY`, no SessionStart hook —,
+  and nothing says so, while `CLAUDE.md` still loads from the directories above.
+  `--setting-sources` without `project` does the same, and managed settings'
+  `allowManagedHooksOnly` runs only the managed hooks. The `pre-push` still refuses such a
+  session's push: `CLAUDECODE` is set in the processes Claude Code starts. Start Claude Code
+  at the repository's root; a session that opens without `STATE.md` injected did not load
+  the settings, or runs no hook.
+- **What Claude Code can put above the guard and the rules** — read in its documentation
+  on 2026-10-14, not measured. A mod the user installs that handles `tool.check` — mods are
+  on by default, in the terminal from Claude Code v2.1.287 and in the Desktop app from
+  v2.1.286 — answers after the rules and the PreToolUse hooks, and can approve a call the
+  guard blocked and one an `ask` rule would prompt for; one a `deny` rule refuses too,
+  except on a machine with managed settings or under a Team or Enterprise plan, where deny
+  rules hold over a mod by default and the organization can change that. A
+  PermissionRequest hook can answer a permission prompt in the user's place.
+  `"disableAllHooks": true` outside managed settings — the documented switch for every mod
+  the user installed, in every session — turns off the settings hooks too, the guard and
+  the SessionStart hook among them, and a session started with `--safe-mode` loads none of
+  them: the guard's wiring never runs, so nothing blocks and none of its notices shows. A
+  hook's `"onFailure": "block"` (Claude Code v2.1.295 or later) would close the fail-open
+  above, in the main session too, which this design avoids: it is not set. This layer
+  closes none of them: they are its known limits, the user's to weigh when installing a mod
+  or changing these settings.
 - **Proven, not assumed.** `make test-scripts` fails if the `pre-push` stops refusing an
   agent-session push (direct, `-C`, `sh -c`, a script) or starts refusing the human's, if
-  the guard stops blocking a delegated agent's write or starts blocking a read or the main
-  session, if its wiring leaves `settings.json`, or if a broken guard lets a delegated
-  agent through or blocks the main session.
+  the guard stops blocking one of the delegated agents' writes its cases list or starts
+  blocking a read or the main session, if its wiring leaves `settings.json`, or if a broken
+  guard lets a delegated agent through or blocks the main session. Those cases are the
+  guard's coverage, and a form joins them only when an agent was seen writing it or it is
+  an ordinary form of the shell's own documentation — never because the parser could read
+  it: the guard grows with its threat model, not beyond it.
 - **Installed, not versioned.** The `pre-push` exists only after `make hooks-install`
   (at setup, and again at each upgrade of the framework). A project's own pre-push
   (git-lfs's, for one) goes in `.git/hooks/pre-push.local`: the generated hook runs it after
-  the check. The guard needs Node.js, already a prerequisite of the hooks.
+  the check, if it is executable — one that is not is skipped without a word, and git-lfs's
+  objects are then never uploaded. The guard needs Node.js, already a prerequisite of the hooks.
 - **If the guard cannot run** — its file or `node` missing, a crash — delegated agents
   lose the Bash, PowerShell and Monitor tools until it is repaired; the main session keeps
   them, sees an `agent-git-guard: cannot run` notice on each call, and repairs it.
@@ -318,8 +373,10 @@ main session, and usually in the same working tree.
   worktree: a linked worktree shares refs, config, stash and objects with the
   repository, and from inside one an agent can move another branch or rewrite the shared
   config. Scratch repositories too: an agent that needs a throwaway clone gets it from
-  the main session. The guard enforces it (*Enforcement of the execution boundary*); the
-  same prohibition written in the agent's brief is one more layer, never the boundary.
+  the main session. The guard enforces it on the shell tools (*Enforcement of the execution
+  boundary*), not on Claude Code's EnterWorktree and ExitWorktree nor on a git MCP
+  server; the same prohibition written in the agent's brief is one more layer, never the
+  boundary.
 - **Reading another revision needs no checkout**: `git show <rev>:<path>` gives a whole
   file, `git diff <a>..<b>` and `git log -p <range>` the change, and
   `git archive <rev> | tar -x -C <a scratch directory outside the repository>` a whole
@@ -327,11 +384,14 @@ main session, and usually in the same working tree.
   `.git/index`, and its lock can make a concurrent git command fail.
 - **Worktree isolation** (`isolation: "worktree"` of the Agent and Workflow tools) is for
   an agent that must RUN something at another revision. Its terms: the worktree branches
-  from `origin/<default branch>`, not from your HEAD, unless the `worktree.baseRef`
-  setting is `"head"`; while it lives it writes into the shared repository (a
-  `worktree-agent-<id>` branch, `.git/worktrees/`, `.claude/worktrees/` — the last one
-  ignored by `.gitignore`); Claude Code refuses an isolated agent's git commands aimed at
-  the main checkout.
+  from `origin/<default branch>` — fetched first when the repository was not fetched in the
+  last 24 hours, which moves a remote-tracking ref the snapshot below sees —, or from the
+  local HEAD when no remote is configured or `origin/HEAD` is neither cached nor
+  fetchable, and from your HEAD when the `worktree.baseRef` setting is `"head"`; while it
+  lives it writes into the shared repository (a branch — `worktree-agent-<id>`, measured for
+  the Agent tool, not for the Workflow tool —, `.git/worktrees/`, `.claude/worktrees/` — the
+  last one ignored by `.gitignore`); Claude Code refuses an isolated agent's git commands
+  aimed at the main checkout.
 - **Snapshot before, check after.** Before delegating, the main session runs
   `scripts/repo-snapshot.sh > "$before"` (HEAD, branch, refs, stash, worktrees,
   untracked files); after, `scripts/repo-snapshot.sh | diff "$before" -`. Any
@@ -361,14 +421,25 @@ what Claude Code may run without asking. Keep them **clean and specific**:
   Windows the shell stays Git Bash's, the one the framework's scripts and hooks are written
   for. The guard reads PowerShell's commands too, for a developer who turns the tool on.
 - **`ask`**: an edit to the boundary's own files — `.claude/settings.json` and
-  `scripts/agent-git-guard.mjs` — always asks the human, auto mode included. Claude Code
+  `scripts/agent-git-guard.mjs` — asks the human in every permission mode, auto mode
+  included — dontAsk refuses it instead —, unless a mod approves the call or a
+  PermissionRequest hook answers in the user's place, in a session that loaded the
+  project's settings (*Enforcement of the execution boundary*). Claude Code
   reloads settings while it runs, so an accidental edit would change the boundary at
   once. The rule covers the built-in file tools; a write through a shell command is
-  outside it (and outside the threat model).
+  outside it (and outside the threat model). So the method's own files — `.claude/`,
+  `CLAUDE.md`, `scripts/` — are edited with the file tools, auto mode included, whose
+  instructions favour the shell: a shell write to them skips the checkpoint and is a slip
+  to report, except in a procedure that writes them by design, such as the upgrade of the
+  framework's `SETUP.md`.
 - **A local, UNVERSIONED file.** Personal permissions live in `settings.local.json`
   (already in `.gitignore`) and start out **empty**: what is shared and reasoned about
   lives in the versioned file; ad-hoc grants stay local and do not pollute the
-  project template.
+  project template. Auto mode's own settings, `autoMode`, are read only from the user's
+  settings, the managed ones and `--settings`, never from the project's files: what Claude
+  Code's auto-mode setup command drafts from one repository — a trusted repository, its
+  visibility — lands in the user's settings and holds for every project, so it is written
+  in a form true for all of them.
 - **No vague auto-approvals.** Avoid grants of the "stop asking for similar commands"
   kind: an `allow` that is too broad is a hole nobody remembers opening. Better one
   prompt more than an implicit, forgotten permission.
