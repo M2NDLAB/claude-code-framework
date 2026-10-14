@@ -1493,11 +1493,13 @@ line on; older entries are not backfilled.
   M3 — tools that write git state outside the guard's matcher.
 - Applied, as declarations: `docs/04` gains *What Claude Code can put above the guard and
   the rules* — a mod the user installs that handles `tool.check` can approve a call the
-  guard blocked, one an `ask` rule would prompt for and, outside managed settings and Team
-  or Enterprise plans, one a `deny` rule refuses; a PermissionRequest hook can answer a
-  prompt in the user's place; `"disableAllHooks": true`, the switch for turning mods off,
-  stops the settings hooks with no notice; `"onFailure": "block"` would close the fail-open
-  in the main session too, so it is not set. The fail-closed bullet says the wiring never
+  guard blocked, one an `ask` rule would prompt for and one a `deny` rule refuses, except
+  where managed settings or a Team or Enterprise plan hold deny rules over it, by default;
+  a PermissionRequest hook can answer a prompt in the user's place; `"disableAllHooks":
+  true`, the documented switch for every installed mod in every session, turns off the
+  project's hooks too, and a `--safe-mode` session loads none of them, with none of the
+  wiring's notices; `"onFailure": "block"` would close the fail-open in the main session
+  too, so it is not set. The fail-closed bullet says the wiring never
   changes the guard's verdict; the guard's and the deny rules' rows name what is outside
   them; the read-only bullet and the ask bullet are narrowed to match. IMP-093's tools —
   EnterWorktree, which creates a worktree on a new branch with no prompt, and a git MCP
@@ -1511,7 +1513,14 @@ line on; older entries are not backfilled.
   *Configure permissions* (*Extend permissions with hooks*), *Hooks reference*, *Mods
   overview*, the environment-variable reference, the tools reference and *Run parallel
   sessions with worktrees* — read, not measured; `docs/04` with its slots answered inline
-  merges three ways cleanly, with LF and with CRLF line ends.
+  merges three ways cleanly, with LF and with CRLF line ends. Re-read the same day at the
+  user's request, against the pages' text and with the *Settings reference*
+  (`disableAllHooks`) and the *CLI reference* (`--safe-mode`) besides
+  ([[2026-10-13-backlog-retro-2.2.0]]): four statements narrowed — the deny rules' exception
+  holds by default and the organization can change it, and the deny row had left out Team
+  and Enterprise plans; `disableAllHooks` is one of the documented switches, not the only
+  one; the `/hooks` menu shows a notice when hooks are off; the Desktop app's version —, and
+  `--safe-mode`, which loads no hook of the project, declared with `disableAllHooks`.
 - The guard's own comments follow, edited with the user present (an ask-protected file):
   Bash, PowerShell and Monitor are the shell tools its wiring matches, and EnterWorktree and
   a git MCP server write git state outside it.
