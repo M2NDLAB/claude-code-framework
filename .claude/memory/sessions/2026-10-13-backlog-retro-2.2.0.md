@@ -114,7 +114,7 @@ tags: [session, retro, imp, plan, security-gate]
 - [x] 8. The platform: apply IMP-099 (the platforms the CI's workflow lists, one place) — commit: 07b8abd
 - [x] 9. The framework's own workflow: apply IMP-082 and IMP-088 (`CONTRIBUTING.md`) — commit: 0cf77df, 7b0c4fc
 - [ ] 10. The CI's rounds (block 0, the user's pushes): green on the three systems on every pushed state — commit: —
-- [ ] 11. ONE reviewer, read-only on git, the snapshot before and after, the two lenses on the payload and on the sets its claims name: HIGH fixed here; MEDIUM resolved or accepted with its reason; LOW per IMP-103 — commit: —
+- [x] 11. ONE reviewer, read-only on git, the snapshot before and after, the two lenses on the payload and on the sets its claims name: HIGH fixed here; MEDIUM resolved or accepted with its reason; LOW per IMP-103 — commit: 559541c
 - [ ] 12. `/retro` and `/checkpoint`: the upgrade 2.1.0 → 2.2.0 rehearsed on the final payload, the HYBRID files with LF and with CRLF — commit: —
 - [ ] 13. `/integrate`: the CHANGELOG 2.2.0 entry, claiming only what was measured; the bump computed on the content against the expected MINOR and declared before the tag; the final block 0; blocks 1 and 2, without a recovery block in advance — commit: —
 
@@ -178,6 +178,50 @@ take several commits, one per round of the CI; each round needs the user's push.
 - Round 1, the branch's first push, on `a31cd57` (run 38534670202): green on the three
   images; 31 PASS lines on Ubuntu and on macOS, 30 and the one SKIP on Windows, no FAIL; the
   documentation check 0 FAIL, 0 CHECK on each.
+- Round 2, on `493a4e1` (run 38544391152): green, the same counts. The new step of the
+  prerequisite check named each job's image — "Linux, ubuntu 24.04 (x86_64), verified by the
+  framework's CI on ubuntu-24.04", "macOS 26.6.2 (arm64), verified … on macos-26", and on
+  Windows `windows-2025` with no verdict —, its assertion passing on the three.
+
+## The review (task 11)
+- ONE reviewer, a general-purpose agent, read-only: the range `00f8349..493a4e1`, the two
+  lenses, Claude Code's documentation fetched as Markdown, anything run only in a clone the
+  main session made at the tip; its brief quoted the user's decisions verbatim, the two
+  projects' names replaced. About 27 minutes. The snapshot after it differed in one line,
+  `refs/remotes/origin/feat/backlog-retro-2.2.0` moved to `493a4e1`: the user's push of
+  round 2, at 11:43:01 by the reflog ("update by push"), three minutes after the snapshot
+  before; the working tree clean, the clone at the tip.
+- Its findings: 1 HIGH, 1 MEDIUM, 6 LOW, 6 INFO. Each checked by the main session at its
+  source before acting — the documentation pages fetched again, the texts read.
+  - H1, the session's working directory: Claude Code reads `.claude/settings.json` from the
+    session's primary working directory with no parent-directory fallback (*Settings*,
+    *Configure permissions*), so a session started in a subdirectory, or moved with `/cd`,
+    runs with no guard, no `deny` or `ask` rule, no session marker and no SessionStart hook,
+    while `CLAUDE.md` loads — read, not measured. Declared in `docs/04` (a bullet, the rows,
+    the `ask` bullet), `SETUP.md`'s *Hardening*, the README, `scripts/README.md` and the
+    guard's comment; the `pre-push` still refuses on `CLAUDECODE`.
+  - M1, `SETUP.md`'s abort block claimed `docs/04`'s form while printed under its condition:
+    now run or given only once the user has decided to abort.
+  - L1 to L6, each closed with a line: `/integrate`'s recovery block alone (the changed line
+    kept one unchanged line away from the answered one); ExitWorktree; its "no tag" bullet
+    yields to the content; `reset-task`'s limits declared; rule 7 of `CLAUDE.md` for a
+    session that "dies mid-task"; the base check on `origin/<integration branch>`.
+  - I2, I4, I5, I6 closed with a line (dontAsk; IMP-078's count, now four; the manual
+    discard is the user's form; the worktree's fallback and the branch measured for the
+    Agent tool only). I1, the self-test does not reach `reset-task`'s check that the tree
+    reads clean: declared in IMP-094's entry. I3, two pushed commit messages narrower than
+    the text they introduced (`b408a71`, `4c03a05`): history, not rewritten.
+- The documentation check reported `/cd` as a command missing from `.claude/commands/`:
+  declared in its allow-list beside `/clear`, both commands of Claude Code itself.
+- Its coverage gaps, closed here: the HYBRID merges (the guard blocks `git merge-file` for a
+  delegated agent) — rehearsed by the main session; round 2 of the CI — read above. Left
+  open: the `reset-task` mutant of I1, not run; gitleaks' source behind `SETUP.md`'s known
+  limits, held to the records only.
+- Beside the approved scope, answered: a background session that changed code in a worktree
+  commits and pushes before finishing, unless the task, `CLAUDE.md` or memory says the user
+  handles git — rule 3 does —, and the `pre-push` refuses that push (*agent-view*,
+  read, not measured); `worktree-agent-<id>` was measured for the Agent tool on 2026-09-27,
+  not for the Workflow tool, and `docs/04` now says so.
 
 ## Beside the approved scope — for the review (task 11)
 - Done in 9d75a78, with the user present: the guard's own comments claimed more than its
@@ -187,10 +231,14 @@ take several commits, one per round of the CI; each round needs the user's push.
   code in a worktree commit and push before finishing, and the `pre-push` refuses that push
   where it is installed; `docs/04` names an isolated agent's branch `worktree-agent-<id>`,
   which the worktrees page does not confirm (it names `worktree-<name>` for `--worktree`).
+  Both answered by the review (*The review*, above).
 
 ## Resumption notes
 - The payload names no IMP number: the documentation check's `imp-number` refuses one; the
   why goes in prose.
 - Delegated agents read only: the snapshot before and after each delegation.
-- Next: block 0, round 2 (the commits after `a31cd57`); task 11, ONE reviewer, the two
-  lenses, read-only, its brief quoting the user's decisions verbatim; then task 12.
+- The upgrade 2.1.0 → 2.2.0 was rehearsed once on `493a4e1`, before the review's fixes, with
+  the scratchpad's `rh6-*.sh`: clean, LF and CRLF. Task 12 runs it again on the final
+  payload.
+- Next: block 0, round 3 (the review's fixes); the user's answer on the compensation for H1
+  (a line in `CLAUDE.md`); task 12.
