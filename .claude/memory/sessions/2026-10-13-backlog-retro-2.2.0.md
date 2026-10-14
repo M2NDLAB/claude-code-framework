@@ -2,7 +2,7 @@
 date: 2026-10-13
 task: v2.2.0 — the retro over the backlog, decided and applied — the recovery block given only after a failed check, a LOW finding declared as a limit, a backlog small enough to grow only from the projects' real use
 branch: feat/backlog-retro-2.2.0
-status: in-progress
+status: completed
 model: 'claude-opus-5-5'
 turns: 5
 tags: [session, retro, imp, plan, security-gate]
@@ -118,7 +118,7 @@ tags: [session, retro, imp, plan, security-gate]
 - [x] 10. The CI's rounds (block 0, the user's pushes): green on the three systems on every pushed state — commit: none to fix — rounds 1 to 3 green on `a31cd57`, `493a4e1` and `850ef45`; the final round with task 13
 - [x] 11. ONE reviewer, read-only on git, the snapshot before and after, the two lenses on the payload and on the sets its claims name: HIGH fixed here; MEDIUM resolved or accepted with its reason; LOW per IMP-103 — commit: 559541c, 850ef45 (its record); H1's compensation, the user's decision, 39ade72
 - [x] 12. `/retro` and `/checkpoint`: the upgrade 2.1.0 → 2.2.0 rehearsed on the final payload, the HYBRID files with LF and with CRLF — commit: the checkpoint (its own sha cannot be written in it)
-- [ ] 13. `/integrate`: the CHANGELOG 2.2.0 entry, claiming only what was measured; the bump computed on the content against the expected MINOR and declared before the tag; the final block 0; blocks 1 and 2, without a recovery block in advance — commit: —
+- [x] 13. `/integrate`: the CHANGELOG 2.2.0 entry, claiming only what was measured; the bump computed on the content against the expected MINOR and declared before the tag; the final block 0; blocks 1 and 2, without a recovery block in advance — commit: 3e6b6ca (the entry), c46bbcc (the rehearsal with it); the final block 0 green on the three on `c46bbcc` (run 38567505709); blocks 0, 1 and 2, the user's — the merge 9bc0ef7 on `main`, tagged v2.2.0, signed, both published
 
 Each applying commit carries its IMP's part of the text and moves the entry to Applied, its
 heading dated; the shas go into the headings with a later commit, as in v2.1.0. Task 10 may
@@ -338,6 +338,9 @@ reset-task` left the tree clean; `invariant` 0/0, `post` 0 FAIL once the pin rea
 - The payload names no IMP number: the documentation check's `imp-number` refuses one; the
   why goes in prose.
 - Delegated agents read only: the snapshot before and after each delegation.
-- Next: the final block 0 — the compensation, the checkpoint, the entry and this record
-  pushed, the CI green on the three —, then blocks 1 and 2 without a recovery block in
-  advance, run by the user; the next deliverable's first `/checkpoint` reconciles the merge.
+- Closed on 2026-10-14 on `chore/memory-test-harvest`, the next deliverable's branch: the
+  final block 0 green on the three on `c46bbcc` — 31 PASS on Ubuntu and macOS, 30 and the
+  known SKIP on Windows, the documentation check's one CHECK the release being prepared —,
+  then blocks 1 and 2, run by the user, without a recovery block: the merge `9bc0ef7` on
+  `main`, its tree the tested one, 31 commits, and v2.2.0 signed on it, both published, the
+  feature branch deleted.
