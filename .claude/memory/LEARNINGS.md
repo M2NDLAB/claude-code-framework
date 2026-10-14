@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-10-13
+updated: 2026-10-14
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -104,6 +104,283 @@ tags: [improvement]
 - Expected benefit / risk: the rule stays strict where an agent could have moved shared
   state, and the expected case no longer invites a deviation. Risk: none known — an agent's
   push is refused by the `pre-push` before any ref moves.
+
+### IMP-107 — The greenfield copy has no read-by-tag recipe
+- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
+  project (the project's entry 001, 2026-10-14): a greenfield graft of v2.2.0 copied the
+  framework with no prescribed way to read it by tag
+- Observed problem: `SETUP.md` §1 says only "Copy into the root of the new repo: the
+  `.claude/` directory, …" — implicitly from the clone's working tree. The upgrade's
+  Precondition rule 1 (the framework read ONLY as immutable objects, by tag) has no
+  greenfield counterpart, and `git show <tag>:<path>` does not carry file modes (scripts
+  lose their executable bit). The agent improvised
+  `git -C "${FW:?}" archive <tag> -- <paths> | tar -x`.
+- Proposal: §1 gives the copy by tag as a block —
+  `git -C "${FW:?}" archive vX.Y.Z -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore .gitattributes scripts | tar -x`
+  from the project root — and states the upgrade's rule: never the working tree.
+- Expected benefit / risk: the graft copies exactly the pinned version, modes included;
+  the pin's commit is true by construction. Risk: none known.
+- Kin: IMP-050 (points 1-2), the same rule for the upgrade.
+
+### IMP-108 — The prerequisite check is run "from the framework's clone"
+- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
+  project (the project's entry 002, 2026-10-14): step 0 of a greenfield graft
+- Observed problem: `SETUP.md` §0 runs `bash scripts/check-prerequisites.sh` "from the
+  framework's clone or from the project once step 1 has copied `scripts/`". From the
+  clone it is the working tree's script — what the upgrade forbids. The extract-to-scratch
+  recipe exists only in the upgrade's Precondition.
+- Proposal: §0 shows the same extraction as the upgrade —
+  `git -C "${FW:?}" show vX.Y.Z:scripts/check-prerequisites.sh > "${T:?}/check-prerequisites.sh" && bash "${T:?}/check-prerequisites.sh"`
+  — or says to run it after step 1's copy.
+- Expected benefit / risk: one rule for reading the framework in every path of `SETUP.md`.
+  Risk: none.
+- Kin: IMP-050 (points 1-2), IMP-107.
+
+### IMP-109 — `SETUP.md` §1 names `develop` as if it were mandatory
+- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
+  project (the project's entry 003, 2026-10-14): a graft onto a trunk-based project
+- Observed problem: `SETUP.md` §1: "`git init` … and create the integration branch
+  (`develop`)". `docs/04`'s *Branching model* says the names are ROLES and trunk-based is
+  allowed; §1 reads as if `develop` were required, before §2 asks for the names.
+- Proposal: §1 says "create the integration branch (its name is chosen at §2: `develop` by
+  default, or `main` alone for trunk-based — `docs/04`)".
+- Expected benefit / risk: no contradiction for a trunk-based project. Risk: none.
+- Kin: IMP-008 (the branches as roles), which §1 predates in this sentence.
+
+### IMP-110 — Where the graft commit of a NEW project goes
+- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
+  project (the project's entry 004, 2026-10-14): a graft onto an empty repository
+- Observed problem: `SETUP.md` never says where the graft is committed. In an empty
+  repository the first commit creates the integration branch, so there is no base to
+  branch from; yet `docs/04` says "never work directly on the integration branch", and
+  `/integrate` assumes `origin/<integration>` exists. The user had to decide an exception
+  (the graft committed on the integration branch, the first push as a plain block); the
+  agent then extended the exception on its own to a second direct commit before the first
+  push (the record of the push-boundary test).
+- Proposal: `SETUP.md` §1 (or a new §3b) states the greenfield bootstrap: the graft is the
+  root commit on the integration branch — the one declared exception to `docs/04` —,
+  followed by a first push block the user runs (`git push -u origin <integration>`);
+  `/integrate` starts from the second deliverable. `docs/04` names the exception and its
+  PERIMETER: the root commit only, or everything before the first push (e.g. the boundary
+  test's record, which can only be written after the graft commit).
+- Expected benefit / risk: the first commit and the first push are prescribed, not
+  improvised. Risk: none known.
+
+### IMP-111 — Framework reads outside the working directory prompt in every session: a stable read-only rule
+- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
+  project (the project's entry 005, 2026-10-14): a greenfield graft and the following
+  deliverables; measured by the user in manual mode in a later, new session
+- Observed problem: the upgrade's Precondition makes the agent restate `FW=` and read with
+  `git -C "${FW:?}" show <tag>:<file>`. Measured in manual mode: `FW="$HOME/…"`, an absolute
+  `FW=`, and a literal `git -C /abs/path show …` ALL ask for confirmation — the cause is git
+  run on a repository outside the working directory, not the syntax (the variable forms add
+  "A variable in braces … can't be checked before it runs"). The prompt's option "Yes,
+  allow reading from <dir> from this project" writes NO rule to any settings file, and in a
+  new session, in manual mode, the same literal-path read asked again: the grant is
+  session-scoped. (In auto mode reads do not prompt, so the measurement is taken in manual
+  mode.)
+- Checked against Claude Code's documentation (its *permissions* and *settings* pages, read
+  2026-10-14, not measured): `.claude/settings.local.json` is personal, per-project,
+  unversioned, above `.claude/settings.json` in precedence, and `permissions.allow` lists
+  merge; "A `*` in a Bash rule matches any text, including spaces"; the space before a
+  trailing `*` is part of the rule; "A rule must match each subcommand independently" (so
+  `| head -1` is covered by head's built-in read-only status); a rule `git push *` does not
+  match `git -C . push`, so `-C <path>` must be spelled in the rule; `additionalDirectories`
+  grants "file access only". NOT stated by the documentation: that an allow rule silences
+  the out-of-directory prompt for `git -C`.
+- Trade-off: a permission rule matches the command TEXT, so it matches only a literal path;
+  `git -C "${FW:?}" …` never matches and prompts anyway. With a literal path there is no
+  variable that can be empty, so the guard of `${FW:?}` (the v1.2.1 collision) has no object
+  for those reads.
+- Proposal: the graft adds, once, in the project's `.claude/settings.local.json` (personal:
+  the path is the user's), under `permissions.allow`, one rule per read command, the
+  absolute path written out: `"Bash(git -C /abs/path/to/framework show *)"`,
+  `"Bash(git -C /abs/path/to/framework ls-tree *)"`,
+  `"Bash(git -C /abs/path/to/framework grep *)"` — nothing wider (never
+  `git -C <path> *`, which admits writes). `SETUP.md` §0/§1 give the block; the agent's
+  framework reads (Precondition, `docs/04`) use the literal absolute path, which the rules
+  can match; `${FW:?}` stays for the human's blocks. `SETUP.md` says "an absolute path, not
+  `~`" and warns that `git grep` with an unquoted glob still prompts in manual mode. Before
+  applying: measure in manual mode that the rules silence the prompt.
+- Note at recording (2026-10-14, the user — lens P1, to be verified, not measured): the
+  proposal is not read-only as written. A rule on `git -C <fw> grep *` admits
+  `git grep -O<command>`, which runs a command; a rule on `git -C <fw> show *` admits
+  `--output=<file>`, which writes a file. `ls-tree` is harmless. The proposal is to be
+  narrowed or guarded before it is applied.
+- Expected benefit / risk: reads by tag, which the method mandates, stop being the noisiest
+  part of every session. Risk: a grant wider than reading — the note above shows that
+  `show` and `grep` already are; `git -C` on the clone must never reach a write
+  (Precondition rule 1).
+- Kin: IMP-050 (points 1-2), IMP-054 (a rule matches text, not the program).
+
+### IMP-112 — The command style of framework reads (shell functions, long chains) adds prompts
+- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
+  project (the project's entry 006, 2026-10-14): a greenfield graft
+- Observed problem: the agent wrote framework reads as shell functions
+  (`g(){ git -C "${FW:?}" show "<tag>:$1"; }; g …`) and as long `;`/`&&` chains with echo
+  separators; Claude Code flagged them ("brace with quote character") and asked
+  confirmation for read-only work. In zsh, `echo ======` fails (`=word` is a command-path
+  expansion).
+- Proposal: `docs/04` (or the upgrade's Precondition) gives a style rule for framework
+  reads: one plain `git -C … show <tag>:<path>` per call, no shell functions, no long
+  chains; several reads as parallel tool calls.
+- Expected benefit / risk: fewer prompts, no loss of safety. Risk: more tool calls.
+
+### IMP-113 — The graft copies the framework's LIVE memory, then asks to empty it by hand
+- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
+  project (the project's entry 007, 2026-10-14): a greenfield graft received 27 of the
+  framework's session notes and its whole IMP backlog
+- Observed problem: `SETUP.md` §1 copies `.claude/` whole; §2 then asks to "EMPTY OUT the
+  framework's LIVE memory" by hand (the sections of `LEARNINGS.md` back to empty, the notes
+  of `sessions/` deleted). If skipped, the project starts with the framework's memory, and
+  a `/harvest-framework` would send the framework's own IMPs back upstream as duplicates.
+  The agent rebuilt `LEARNINGS.md` by hand.
+- Proposal: the graft does not copy the live memory: `LEARNINGS.md` and `sessions/` come
+  from empty templates (the header, the format comment, the four `## ` titles;
+  `sessions/README.md` only) — e.g. §1's copy excludes `.claude/memory/sessions/*` but the
+  README, and `SETUP.md` gives the empty `LEARNINGS.md` as the memory template
+  `upgrade-check.sh` already classes it as.
+- Expected benefit / risk: no forgettable manual step; no framework IMP can leak into a
+  project's harvest. Risk: none known.
+- Kin: IMP-024 (the declared hybrid regime), IMP-049 (payload purity).
+
+### IMP-114 — `hooks-install` says "enable formatting" to a project that chose none
+- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
+  project (the project's entry 008, 2026-10-14): a greenfield graft where formatting was
+  decided "none"
+- Observed problem: with the formatting slot of `scripts/hooks-install.sh` answered
+  "none", `make hooks-install` still prints "Remember to enable automatic formatting in the
+  pre-commit hook", and the `Makefile`'s help still says "formatting to be enabled". "None"
+  is a legitimate answer the tooling does not recognise.
+- Proposal: print the reminder only while the slot still carries its setup marker; the
+  `Makefile`'s help says "formatting: see the pre-commit hook".
+- Expected benefit / risk: no false reminder at every hooks run. Risk: none — the change
+  sits near a slot, so IMP-088's distance rule applies.
+
+### IMP-115 — `SETUP.md` asks to fill the slots of `docs/02`-`04`, the upgrade classes them METHOD
+- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
+  project (the project's entry 009, 2026-10-14): filling the docs' slots in a greenfield
+  graft
+- Observed problem: `SETUP.md` §2 asks to fill slots in `02-code-quality.md`,
+  `03-security-gate.md` and `04-git-workflow.md`. The upgrade's class table puts
+  `.claude/docs/00-06` in METHOD (overwritten), and edge case 7 then has to detect them as
+  hybrids "customised inline". Following §2 literally makes the next upgrade harder.
+- Proposal: one rule: either the docs' slots are answered ONLY in `CLAUDE.md` (no slot left
+  in METHOD files, the markers rephrased as pointers), or `docs/02`-`04` are classed HYBRID;
+  §2 and the class table say the same thing.
+- Expected benefit / risk: a greenfield project's first upgrade has no edge case 7 by
+  construction. Risk: moving the slots is a migration (edge case 8) for existing projects.
+- Kin: IMP-050 (points 3-4), IMP-088.
+
+### IMP-116 — `integrate.md`: "replace the placeholders" is ambiguous, and trunk-based is not covered
+- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
+  project (the project's entry 010, 2026-10-14): filling `.claude/commands/integrate.md` in
+  a graft onto a trunk-based project
+- Observed problem: §1, "Replace the placeholders with the project's real names" — unclear
+  whether setup rewrites the ~30 `<integration>`/`<stable>` occurrences (as `checkpoint.md`
+  asks for its own) or the agent substitutes them at run time. With trunk-based
+  (`<integration>` = `<stable>`) the promotion section and the pre/post-1.0 split of the
+  tag's branch do not apply, and the command does not say so.
+- Proposal: "the agent substitutes the names at run time; setup answers only this line",
+  plus "trunk-based: the promotion section does not apply; the tag goes on the single
+  branch".
+- Expected benefit / risk: one reading of the command. Risk: none.
+- Kin: IMP-008, IMP-019.
+
+### IMP-117 — The slots of the method's files filled with `sed -i`, not with the file tools
+- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
+  project (the project's entry 011, 2026-10-14): the user's review of a greenfield graft;
+  seen again in a later deliverable
+- Observed problem: `docs/04`'s *Permission configuration* (the `ask` bullet, from
+  IMP-075) says the method's files are edited with the file tools, auto mode included. The
+  agent filled the slots of `CLAUDE.md`, `docs/02`-`04`, commands, `decisions/README.md`,
+  `hooks-install.sh` and the `Makefile` with `sed -i` by LINE NUMBER. Cost: four later
+  repairs (a duplicated half-line, a lost backtick, a garbled sentence, two comment lines
+  deleted with a slot). `SETUP.md` §2 does not say how the agent writes the answers; the
+  runtime's auto-mode instructions explicitly invite edits through sed. Later, outside
+  setup: after editing project files through a Python heredoc, the agent edited a memory
+  component note the same way, by momentum — the habit is per session, not per file.
+- Proposal: `SETUP.md` §2, "in dialogue with Claude Code", adds: the agent writes the
+  answers with the file tools (Edit/Write), slot by slot on the slot's text, never `sed -i`
+  nor a substitution by line number — pointing at `docs/04`'s rule. The reminder is
+  repeated where the memory is edited most: `/checkpoint`'s step 3 ("with the file
+  tools").
+- Expected benefit / risk: no collateral damage, and the `ask` checkpoint on the
+  boundary's files is not bypassed by a bulk shell edit. Risk: more tool calls at setup.
+- Kin: IMP-075 — its rule held in the text and was not followed at the point of use.
+
+### IMP-118 — The setup marker does not tell a slot from a mention
+- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
+  project (the project's entry 012, 2026-10-14): the user's review of a greenfield graft,
+  and again at the first deliverable's retro
+- Observed problem: `SETUP.md` §2's grep for the setup marker returns the slots AND the
+  prose that mentions the marker (the `Makefile`'s line 4, `CLAUDE.md`'s rule 9, …). The
+  agent rewrote the `Makefile`'s line 4, which was not a slot — in a HYBRID file one more
+  line to reconcile at the next upgrade. §2's *Convention* says it "holds for slots, not
+  for prose that merely names the marker" but gives no mechanical way to tell them apart.
+  Also: `docs/00`'s end-of-deliverable cycle, step 2, "(the concrete list is
+  `[TO BE DEFINED AT SETUP]`)", is a mention, so the graft left it, yet it reads as an
+  OPEN slot after `docs/03` answered it.
+- Proposal: a distinct form for mentions (e.g. `«TO BE DEFINED AT SETUP»` or "the setup
+  marker") so the grep returns slots only; `/lint-memory`'s check 10 and `upgrade-check.sh`
+  adopt the same distinction.
+- Expected benefit / risk: the grep becomes a to-do list; no method line rewritten by
+  mistake. Risk: a migration of the prose in the framework's own files.
+- Kin: IMP-031 (markers on one physical line, the known false positives declared).
+
+### IMP-119 — Trunk-based: no home for memory-only commits between deliverables
+- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
+  project (the project's entry 013, 2026-10-14): the first deliverable's retro of a
+  trunk-based project
+- Observed problem: after the graft was pushed, IMP updates about it had to be committed
+  somewhere. `docs/00`'s "Unrelated work = unrelated branch" wants a separate branch;
+  `docs/04` forbids direct commits on the integration branch, which in trunk-based is the
+  only one. The agent put them as the first commit of the next feature branch — cheapest,
+  but against the letter of `docs/00`; a separate chore branch costs a second `/integrate`
+  cycle for a memory-only change.
+- Proposal: `docs/00` (or `docs/04`) says where memory-only or process-only records go when
+  no deliverable is open: e.g. "they ride on the next feature branch as its first, separate
+  `docs(memory)` commit, named as such in the `/integrate` summary", or "a `chore/memory-*`
+  branch integrated with the no-tag block". One rule for both branching models.
+- Expected benefit / risk: no improvised exception at every between-deliverables note.
+  Risk: none known.
+
+### IMP-120 — Is a deliverable that is not "heavy" closed with the full cycle?
+- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
+  project (the project's entry 014, 2026-10-14): the first deliverable's retro; seen again
+  at the second
+- Observed problem: `docs/00` ties "deliverable" to "a complete heavy unit" and says small
+  tasks do not need the full ritual; `docs/01`'s PHASE 1 measures heaviness (~8-10 files,
+  ~400 lines). Two complete user-facing features (6 files / ~350 lines, then 3 files / ~125
+  lines) were NOT heavy by `docs/01`, yet the user called them deliverables and wanted them
+  integrated; the agent ran the full cycle because `/integrate` was asked. The docs leave
+  the light-but-complete case undecided.
+- Proposal: decouple the axes in `docs/00`: heaviness decides the PLAN (`docs/01`); the
+  end-of-deliverable cycle is triggered by "a unit that will be integrated" (a branch going
+  to `/integrate`), whatever its size; "small, isolated tasks" are those committed without
+  their own integration.
+- Expected benefit / risk: no doubt on when `/retro` and `/checkpoint` are due. Risk:
+  slightly more ritual for small integrated fixes (`/retro` is a no-op without friction).
+- Kin: IMP-006 (the single end-of-deliverable cycle).
+
+### IMP-121 — A question left for the user in a session note does not reach STATE, so resumption misses it
+- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
+  project (the project's entry 015, 2026-10-14): the resumption of a deliverable in a new
+  session
+- Observed problem: a session note ended a measurement with "to be added from the user's
+  observation" — an open question for the USER. `/checkpoint` checks that the existing
+  entries of *Caution & open issues* survive a rewrite of STATE, but nothing carries a NEW
+  open thread of a note into STATE; the note template puts such threads under *Follow-up*,
+  which nobody reads at resumption. The resumption summary, built from the injected STATE,
+  did not mention it; the user remembered it on their own, and their handoff came back with
+  the slot still unfilled.
+- Proposal: `/checkpoint` (and `sessions/README.md`, *Follow-up*) says that every open
+  thread awaiting the user or a later session — a question, a measurement — becomes an
+  entry of STATE's *Caution & open issues* with its trigger (e.g. "→ Trigger: ask the user
+  at the next session's start"); the note keeps the detail, STATE the pointer.
+- Expected benefit / risk: a resumption from STATE alone surfaces every pending question.
+  Risk: a longer *Caution* section — each entry is closed when answered.
+- Kin: IMP-014 (debts with a trigger, surviving the rewrites of STATE).
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
