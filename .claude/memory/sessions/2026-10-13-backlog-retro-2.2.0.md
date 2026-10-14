@@ -94,9 +94,9 @@ tags: [session, retro, imp, plan, security-gate]
 - [x] 4. Process: apply IMP-053 (the gate's verdict always written), IMP-057 (an invariant over a known debt), IMP-060 with IMP-063 (delegation), IMP-078 (a body line read as the footer), IMP-103 (a LOW finding declared as a limit) — commit: 8cf45b1, 3bfc446, 85c7fbe, c62e58d, 29cccab
 - [x] 5. Harvest: apply IMP-061 (the source note's date in the block; each lesson counted once at recording) — commit: 4fe4e26
 - [x] 6. The boundary's claims: apply IMP-092 with IMP-093 and IMP-097's IDE terminal, IMP-083 with IMP-079, IMP-075 with IMP-065 — commit: b408a71, d49e54e, 4c03a05; the guard's own comments to follow
-- [ ] 7. `SETUP.md`: apply IMP-091 (the scan's known limits, IMP-095's and IMP-096's with them) and IMP-085 (the framework's files out of deploy artifacts) — commit: —
+- [x] 7. `SETUP.md`: apply IMP-091 (the scan's known limits, IMP-095's and IMP-096's with them) and IMP-085 (the framework's files out of deploy artifacts) — commit: 3db3233, 249e7af
 - [ ] 8. The platform: apply IMP-099 (the platforms the CI's workflow lists, one place) — commit: —
-- [ ] 9. The framework's own workflow: apply IMP-082 and IMP-088 (`CONTRIBUTING.md`) — commit: —
+- [x] 9. The framework's own workflow: apply IMP-082 and IMP-088 (`CONTRIBUTING.md`) — commit: 0cf77df, 7b0c4fc
 - [ ] 10. The CI's rounds (block 0, the user's pushes): green on the three systems on every pushed state — commit: —
 - [ ] 11. ONE reviewer, read-only on git, the snapshot before and after, the two lenses on the payload and on the sets its claims name: HIGH fixed here; MEDIUM resolved or accepted with its reason; LOW per IMP-103 — commit: —
 - [ ] 12. `/retro` and `/checkpoint`: the upgrade 2.1.0 → 2.2.0 rehearsed on the final payload, the HYBRID files with LF and with CRLF — commit: —
@@ -106,13 +106,59 @@ Each applying commit carries its IMP's part of the text and moves the entry to A
 heading dated; the shas go into the headings with a later commit, as in v2.1.0. Task 10 may
 take several commits, one per round of the CI; each round needs the user's push.
 
+## The mapping, before task 2
+- Four read-only agents, one per theme, mapped each IMP's sites, the references that cite
+  the same rule or title, the tests and documentation checks it touches, the HYBRID slots
+  nearby, and their open questions; their brief quoted the user's decisions verbatim and each
+  returned its coverage gaps. The snapshot was unchanged after them, the tree clean. Their
+  maps are in the session's scratchpad; what they found beside the approved scope is below.
+
+## The applying commits (tasks 2 to 9)
+- One commit per IMP, each gated on `make test-scripts` and the upgrade check's self-test in
+  the same command, each moving its entry to Applied.
+- Measured before IMP-088 was written, with `git merge-file` on git 2.54.0: a change on the
+  line next to an answered slot conflicts; one unchanged line in between merges cleanly.
+  Then found on `integrate.md` (IMP-102): its new section, inserted after a blank line,
+  conflicted against a copy with the branch placeholders answered — the diff aligned the
+  blank line on the other side of the insertion, next to the answered line. Set right under
+  the paragraph above, with no blank line inside, it merges cleanly, LF and CRLF.
+- Every HYBRID file the release changes was merged three ways against a copy with its setup
+  answers in place, LF and CRLF, all clean: `integrate.md` and `checkpoint.md` (their
+  placeholders answered, `checkpoint.md`'s setup paragraph deleted), the `Makefile`
+  (`PROTECTED_BRANCHES` and its project section answered), `CLAUDE.md` (title, stack, repo,
+  rules 5 and 8, technical rules); and `docs/00` and `docs/04`, METHOD files a project may
+  answer inline. Task 12 rehearses the whole upgrade.
+- IMP-094, red first: the new self-test against the script as committed — case 1 left
+  ` M both.txt` and ` M staged.txt`; alone, case 2 (the index's lock held) and case 3
+  (outside a repository, where bash 3.2's `cd ""` let the script go on) each exited 0 saying
+  "Half-done task discarded" —; green after the fix, case 4 under `core.autocrlf` true too.
+- Read before writing task 6's claims, on 2026-10-14: Claude Code's *Configure
+  permissions* (*Extend permissions with hooks*), *Hooks reference*, *Mods overview*, the
+  environment-variable reference, the tools reference, *Run parallel sessions with
+  worktrees* and *Configure auto mode*.
+- The check on commit messages — no body line opening with a single word and a colon —
+  stopped four messages before their commit (IMP-074's, IMP-052's, IMP-057's, IMP-082's),
+  each rewritten while uncommitted: the rule IMP-078 wrote down, at work.
+
+## Beside the approved scope — for the review (task 11)
+- The guard's own comments claim more than its cases, in an ask-protected file:
+  `scripts/agent-git-guard.mjs` says Bash, PowerShell and Monitor are the tools that run git
+  (IMP-093's tools are outside), skips heredoc bodies "as data" (an unquoted one's `$(…)`
+  runs: IMP-079's L6), and "mirrors" the wrappers Claude Code strips (it handles more).
+  To correct with the user present: each edit asks.
+- From the mapping's readings, not measured: Claude Code's background sessions that changed
+  code in a worktree commit and push before finishing, and the `pre-push` refuses that push
+  where it is installed; `docs/04` names an isolated agent's branch `worktree-agent-<id>`,
+  which the worktrees page does not confirm (it names `worktree-<name>` for `--worktree`).
+
 ## Resumption notes
 - Open before task 8 (IMP-099): the CI's workflow, `.github/workflows/test.yml`, is not in
   the payload, and `check-prerequisites.sh` runs in the projects too — where there is no such
-  workflow to read. The user's form is to be settled with the user before task 8.
+  workflow to read. Asked to the user on 2026-10-14 with two designs: the script carries the
+  CI's list, held to the workflow's matrix by the documentation check; or a data file both
+  read, the CI building its matrix from it. Task 8 waits for the answer.
 - The payload names no IMP number: the documentation check's `imp-number` refuses one; the
   why goes in prose.
-- `integrate.md` and `checkpoint.md` are HYBRID: their changes keep unchanged lines between
-  themselves and a slot's line, and the rehearsal of task 12 measures the 3-way merge.
 - Delegated agents read only: the snapshot before and after each delegation.
-- Next: task 2.
+- Next: block 0 on the tasks done (the branch's first push), the user's answer on IMP-099,
+  the guard's comments with the user present, then task 8 and the review.
