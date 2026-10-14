@@ -1017,7 +1017,16 @@ function checkLists() {
     })
   }
   if (written < 5) report('list', PREREQ, 1, `only ${plural(written, 'written minimum')} found in the documents: the extraction is wrong`)
-  settle('list', `§2 and the slots, the class table at ${plural(TAGS.length, 'tag')}, the copy lists, the counts, the subcommands, the sections, the commit types, the memory's titles and labels, and ${plural(written, 'written minimum')} against ${PREREQ}`)
+  // The images the CI runs, against the copy the prerequisite check carries as CI_IMAGES: setup
+  // ships the check without the workflow, and the check names a machine verified by its copy.
+  const WORKFLOW = '.github/workflows/test.yml'
+  const matrix = new Set((/^\s+os: \[([^\]\n]*)\]\s*$/m.exec(text(WORKFLOW))?.[1] ?? '').split(',').map((s) => s.trim()).filter(Boolean))
+  const imagesAt = lines(PREREQ).findIndex((l) => /^CI_IMAGES=/.test(l)) + 1 || 1
+  const images = new Set((/^CI_IMAGES='([^'\n]*)'$/m.exec(text(PREREQ))?.[1] ?? '').split(/\s+/).filter(Boolean))
+  if (!matrix.size) report('list', WORKFLOW, 1, 'no images read from the matrix\'s os: line: the extraction is wrong')
+  if (!images.size) report('list', PREREQ, imagesAt, 'no images read from CI_IMAGES: the extraction is wrong')
+  compareSets('list', PREREQ, imagesAt, 'CI_IMAGES', matrix, images, `the matrix of ${WORKFLOW}`)
+  settle('list', `§2 and the slots, the class table at ${plural(TAGS.length, 'tag')}, the copy lists, the counts, the subcommands, the sections, the commit types, the memory's titles and labels, ${plural(images.size, 'CI image')} against the workflow's matrix, and ${plural(written, 'written minimum')} against ${PREREQ}`)
 }
 
 // --- No Italian residue in the artifacts -------------------------------------------------

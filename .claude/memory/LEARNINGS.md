@@ -50,19 +50,6 @@ tags: [improvement]
   applying on the Free plan —, and macOS out of the CI. IMP-099's platform claim no longer
   depends on the second (see there).
 
-### IMP-099 — The platform the check names as verified is wider than the CI's images
-- Date: 2026-10-13 | Origin: v2.1.0's review, L13 — [[2026-10-13-gate-lenses-2.1.0]]
-- Observed problem: `check-prerequisites.sh` calls any non-WSL Linux on x86_64 a platform the
-  CI verifies; the CI runs Ubuntu 24.04 only, and `SETUP.md` says other distributions are not
-  verified. The same holds for other macOS and Windows versions against the named images.
-- Proposal: NOT decided — name what was verified ("x86_64, verified on Ubuntu 24.04"), or
-  read `/etc/os-release`; the self-test changes with it.
-- Expected benefit / risk: the line claims what the CI shows. Risk: none.
-- Status: APPROVED on 2026-10-13 (the retro over the backlog) — for v2.2.0, in the user's
-  form: the check declares as verified the platforms the CI's workflow lists, read from there
-  — one place — instead of written by hand, so the claim stays true whatever IMP-086 decides
-  on the CI.
-
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
 - Date: YYYY-MM-DD | Origin: [[<session note>]] — <problem>
@@ -1638,6 +1625,34 @@ line on; older entries are not backfilled.
   ([[2026-10-13-backlog-retro-2.2.0]]). The same release found the blank line's weakness:
   `integrate.md`'s new section, inserted after a blank line, was aligned by the diff against
   the answered line below and conflicted until it sat right under the paragraph above.
+
+### IMP-099 — The platform the check names as verified is wider than the CI's images → applied on 2026-10-14
+- Origin: v2.1.0's review, L13 ([[2026-10-13-gate-lenses-2.1.0]]) — `check-prerequisites.sh`
+  called any macOS on arm64, any Linux but WSL on x86_64 and any Windows on x86_64 through
+  Git Bash a platform the framework's CI verifies; the CI runs one release of each.
+- Decided (the user, 2026-10-14, of two designs): the workflow is not in the payload and the
+  check runs in the projects, so the check carries the CI's images in one line, `CI_IMAGES`,
+  and the documentation check fails when that line differs from the workflow's matrix; on
+  Windows the check names the image without declaring a match. Whatever IMP-086 decides on
+  the matrix, the line follows it.
+- Applied: the check reads macOS's release from `sw_vers` and Linux's from `/etc/os-release`
+  — read as data, never sourced —, and says "verified" only for the major release of a
+  `macos-` image on arm64 or the release of an `ubuntu-` image on x86_64; anything else is
+  "not verified", with the images listed; on Windows through Git Bash on x86_64 it names the
+  `windows-` images and says it does not tell Windows releases apart — Git Bash's `uname`
+  gives a build, not an edition. `SETUP.md`'s table names each image's release, and its "Not
+  verified" line the releases left out. The CI's step asserts that the check, run on each
+  image, names that image — verified on Linux and macOS, named on Windows —, so its reading
+  of `sw_vers` and os-release is held to the images themselves.
+- Verified, red first ([[2026-10-13-backlog-retro-2.2.0]]): the committed check called macOS
+  27 and 15, Debian 12, Ubuntu 16.04 and a Windows 11 build "a platform the framework's CI
+  verifies", and the new self-test case failed against it, then passed (macOS, bash 3.2); the
+  committed documentation check let a planted `macos-15` through, the new one fails it both
+  ways; the CI step's assertion, simulated on six platform lines, passed the three right ones
+  and failed the three wrong ones.
+- Uncovered: the check reads the images in the forms GitHub names them today —
+  `macos-<release>`, `ubuntu-<release>`, `windows-<year>` —; an image named otherwise, with an
+  `-arm` or `-intel` suffix, verifies nothing until the check learns its form.
 
 ## Deferred (not rejected — resumed at the right time)
 

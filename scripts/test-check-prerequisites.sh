@@ -11,8 +11,12 @@
 #      a version not read as one;
 #   3. any other version below its minimum — compared number by number: 22.9 is below 22.12 —
 #      and one that cannot be read: a WARN line each, exit 0;
-#   4. the platform, read from uname: the three the framework's CI verifies said to be so;
-#      another architecture, WSL, Cygwin and another system said not to be;
+#   4. the platform, against the images the framework's CI runs, read from the check's own
+#      CI_IMAGES: macOS of the macos- image's release on arm64 (sw_vers) and Ubuntu of the
+#      ubuntu- image's release on x86_64 (os-release, in each of its quotings) said to be
+#      verified; another release, distribution or architecture, WSL, a release unread, Cygwin
+#      and another system said not to be; Windows through Git Bash on x86_64 given the
+#      windows- image's name and no verdict;
 #   5. line ends: core.autocrlf true with nothing holding the framework's files to LF warns —
 #      true as git reads it: 2, or the key without a value, too; held to LF — read from a
 #      subdirectory too —, or core.autocrlf not true, input included, it does not; outside a
@@ -208,30 +212,59 @@ has '^WARN +git: its version cannot be read \("git version unknown"\); 2\.31 or 
 lacks '^FAIL ' "below a minimum: a FAIL line"
 has '^check-prerequisites: 0 FAIL, 3 WARN$' "below a minimum: the summary is not 0 FAIL, 3 WARN"
 
-# --- Case 4 — the platform, read from uname ------------------------------------------------------
-# platform_is <uname -s> <uname -m> <uname -r> <what the first line must say>
+# --- Case 4 — the platform, against the images the framework's CI runs ---------------------------
+# The images are read from the check's own CI_IMAGES, so the cases follow the list.
+images="$(sed -n "s/^CI_IMAGES='\([^']*\)'\$/\1/p" "${CHECK}")"
+mac_release='' ubuntu_release='' windows_images=''
+for image in ${images}; do
+  if [[ "${image}" =~ ^macos-([0-9]+)$ && -z "${mac_release}" ]]; then mac_release="${BASH_REMATCH[1]}"; fi
+  if [[ "${image}" =~ ^ubuntu-([0-9]+\.[0-9]+)$ && -z "${ubuntu_release}" ]]; then ubuntu_release="${BASH_REMATCH[1]}"; fi
+  if [[ "${image}" =~ ^windows-[0-9]+$ ]]; then windows_images="${windows_images:+${windows_images} }${image}"; fi
+done
+[[ -n "${mac_release}" && -n "${ubuntu_release}" && -n "${windows_images}" ]] \
+  || fail "no macos-, ubuntu- or windows- image read from the check's CI_IMAGES (\"${images}\"): the extraction is wrong"
+# The os-release file the check reads in place of /etc/os-release.
+export CHECK_OS_RELEASE="${workdir}/os-release"
+# platform_is <uname -s> <uname -m> <uname -r> <the release: sw_vers's on Darwin, the
+#   os-release file's lines elsewhere; - for none> <what the first line must say>
 platform_is() {
   local dir="${workdir}/case4"
   good "${dir}"
   printf '#!/bin/sh\ncase "$1" in -s) echo %s ;; -m) echo %s ;; -r) echo %s ;; esac\n' \
     "'$1'" "'$2'" "'$3'" > "${dir}/uname"
   chmod +x "${dir}/uname"
+  rm -f "${dir}/sw_vers" "${CHECK_OS_RELEASE}"
+  if [[ "$4" != - && "$1" == Darwin ]]; then
+    printf '#!/bin/sh\n[ "$1" = -productVersion ] && echo %s\n' "'$4'" > "${dir}/sw_vers"
+    chmod +x "${dir}/sw_vers"
+  elif [[ "$4" != - ]]; then
+    printf '%b\n' "$4" > "${CHECK_OS_RELEASE}"
+  fi
   run "${dir}" "${lf_repo}"
-  [[ "$(sed -n 1p "${out}")" == "check-prerequisites: $4" ]] \
-    || fail "uname $1, $2, $3: the first line is not \"check-prerequisites: $4\""
+  [[ "$(sed -n 1p "${out}")" == "check-prerequisites: $5" ]] \
+    || fail "uname $1, $2, $3, release \"$4\": the first line is not \"check-prerequisites: $5\""
 }
-verified="a platform the framework's CI verifies"
-not_verified="not a platform the framework's CI verifies"
-platform_is Darwin arm64 25.0.0 "macOS (arm64), ${verified}"
-platform_is Darwin x86_64 24.6.0 "macOS (x86_64), ${not_verified}"
-platform_is Linux x86_64 6.11.0-1018-azure "Linux (x86_64), ${verified}"
-platform_is Linux aarch64 6.8.0-1009-raspi "Linux (aarch64), ${not_verified}"
-platform_is Linux x86_64 5.15.167.4-microsoft-standard-WSL2 "Linux under WSL (x86_64), ${not_verified}"
-platform_is MINGW64_NT-10.0-26100 x86_64 3.5.4-0bc1222b.x86_64 "Windows, Git Bash (x86_64), ${verified}"
-platform_is MSYS_NT-10.0-26100 x86_64 3.5.4-0bc1222b.x86_64 "Windows, Git Bash (x86_64), ${verified}"
-platform_is MINGW64_NT-10.0-26100 aarch64 3.5.4-0bc1222b.aarch64 "Windows, Git Bash (aarch64), ${not_verified}"
-platform_is CYGWIN_NT-10.0-26100 x86_64 3.5.4-1.x86_64 "Windows, Cygwin (x86_64), ${not_verified}"
-platform_is FreeBSD amd64 14.1-RELEASE "FreeBSD (amd64), ${not_verified}"
+verified="verified by the framework's CI on"
+not_verified="not verified by the framework's CI, which runs ${images}"
+ubuntu_file="PRETTY_NAME=\"Ubuntu ${ubuntu_release}.5 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"${ubuntu_release}\"\nVERSION=\"${ubuntu_release}.5 LTS\"\nID=ubuntu\nID_LIKE=debian"
+platform_is Darwin arm64 25.6.0 "${mac_release}.6.2" "macOS ${mac_release}.6.2 (arm64), ${verified} macos-${mac_release}"
+platform_is Darwin arm64 27.0.0 "$((mac_release + 1)).0.1" "macOS $((mac_release + 1)).0.1 (arm64), ${not_verified}"
+platform_is Darwin x86_64 25.6.0 "${mac_release}.6.2" "macOS ${mac_release}.6.2 (x86_64), ${not_verified}"
+platform_is Darwin arm64 25.6.0 - "macOS (arm64), ${not_verified}"
+platform_is Linux x86_64 6.11.0-1018-azure "${ubuntu_file}" "Linux, ubuntu ${ubuntu_release} (x86_64), ${verified} ubuntu-${ubuntu_release}"
+platform_is Linux x86_64 6.11.0-1018-azure "ID='ubuntu'\nVERSION_ID=${ubuntu_release}" "Linux, ubuntu ${ubuntu_release} (x86_64), ${verified} ubuntu-${ubuntu_release}"
+platform_is Linux x86_64 6.8.0-45-generic 'ID=ubuntu\nVERSION_ID="16.04"' "Linux, ubuntu 16.04 (x86_64), ${not_verified}"
+platform_is Linux x86_64 6.8.0-45-generic "ID=linuxmint\nID_LIKE=\"ubuntu debian\"\nVERSION_ID=\"${ubuntu_release}\"" "Linux, linuxmint ${ubuntu_release} (x86_64), ${not_verified}"
+platform_is Linux x86_64 6.1.0-25-amd64 'ID=debian\nVERSION_ID="12"' "Linux, debian 12 (x86_64), ${not_verified}"
+platform_is Linux x86_64 6.11.0-1018-azure - "Linux (x86_64), ${not_verified}"
+platform_is Linux aarch64 6.8.0-1009-raspi "${ubuntu_file}" "Linux, ubuntu ${ubuntu_release} (aarch64), ${not_verified}"
+platform_is Linux x86_64 5.15.167.4-microsoft-standard-WSL2 "${ubuntu_file}" "Linux under WSL (x86_64), ${not_verified}"
+platform_is MINGW64_NT-10.0-26100 x86_64 3.5.4-0bc1222b.x86_64 - "Windows, Git Bash (x86_64): the framework's CI runs ${windows_images} — this check does not tell Windows releases apart"
+platform_is MSYS_NT-10.0-26100 x86_64 3.5.4-0bc1222b.x86_64 - "Windows, Git Bash (x86_64): the framework's CI runs ${windows_images} — this check does not tell Windows releases apart"
+platform_is MINGW64_NT-10.0-26100 aarch64 3.5.4-0bc1222b.aarch64 - "Windows, Git Bash (aarch64), ${not_verified}"
+platform_is CYGWIN_NT-10.0-26100 x86_64 3.5.4-1.x86_64 - "Windows, Cygwin (x86_64), ${not_verified}"
+platform_is FreeBSD amd64 14.1-RELEASE - "FreeBSD (amd64), ${not_verified}"
+unset CHECK_OS_RELEASE
 
 # --- Case 5 — line ends ------------------------------------------------------------------------
 good "${workdir}/case5"
@@ -286,4 +319,4 @@ run "${workdir}/case5" "${outside}"
 has '^SKIP +line ends: not inside a git repository$' "outside a repository: the line ends not said to be unchecked"
 [[ ${rc} -eq 0 ]] || fail "outside a repository: expected exit 0, got ${rc}"
 
-echo "PASS (prerequisite check): every tool run and held against its minimum number by number — a FAIL for a tool missing or not starting and for gitleaks below its security minimum or unread, a WARN for any other version below its minimum or unread —, the platform named as verified or not, the line ends warned about only where git would write CRLF."
+echo "PASS (prerequisite check): every tool run and held against its minimum number by number — a FAIL for a tool missing or not starting and for gitleaks below its security minimum or unread, a WARN for any other version below its minimum or unread —, the platform verified only on the release and architecture of an image the CI runs, Windows given its image's name and no verdict, the line ends warned about only where git would write CRLF."

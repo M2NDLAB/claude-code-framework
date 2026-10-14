@@ -39,8 +39,10 @@ The tools, by name; how to install each one depends on your platform.
 **Check them** with `bash scripts/check-prerequisites.sh` — without make, from the
 framework's clone or from the project once step 1 has copied `scripts/`. It runs each tool
 above and compares its version with the minimum, names the platform and whether the CI
-below verifies it, and warns when `core.autocrlf` is true and nothing holds the
-framework's files to LF (run from the project's root, it reads the project's). It fails
+below verifies it — the release and the architecture of one of its images; on Windows it
+names the image and says no more, Git Bash's `uname` giving a build, not an edition —, and
+warns when `core.autocrlf` is true and nothing holds the framework's files to LF (run from
+the project's root, it reads the project's). It fails
 for a tool missing or one that does not start, and for gitleaks below its security minimum
 or with a version it cannot read; any other version below its minimum is a warning. It
 installs nothing.
@@ -48,13 +50,14 @@ installs nothing.
 **The platforms verified.** The framework's repository runs `make test-scripts`, the
 upgrade check's self-test, the prerequisite check and the generated hooks with the real
 gitleaks and commitlint at every push, on three GitHub-hosted images — its own
-`.github/workflows/test.yml`, which setup does not copy:
+`.github/workflows/test.yml`, which setup does not copy; the prerequisite check carries the
+same list of images, which the framework's documentation check holds to the workflow's:
 
 | Platform | Image | bash | Node.js |
 | --- | --- | --- | --- |
-| macOS, arm64 | `macos-26` | 3.2, the system's `/bin/bash` | 24 |
-| Linux, x64 | `ubuntu-24.04` | 5.2 | 22 |
-| Windows, x64 | `windows-2025` | 5.3, Git Bash | 22 |
+| macOS 26, arm64 | `macos-26` | 3.2, the system's `/bin/bash` | 24 |
+| Ubuntu 24.04, x64 | `ubuntu-24.04` | 5.2 | 22 |
+| Windows Server 2025, x64 | `windows-2025` | 5.3, Git Bash | 22 |
 
 - The images bring their own tools; the CI installs GNU make on Windows and gitleaks on
   the three, each at a fixed version — gitleaks' archive checked against a fixed SHA-256
@@ -66,8 +69,9 @@ gitleaks and commitlint at every push, on three GitHub-hosted images — its own
 - On Windows, `core.autocrlf` is `true`, as Git for Windows sets it, and `.gitattributes`
   keeps the framework's files LF; the hooks' self-test skips its dangling-symlink case,
   which Git Bash cannot plant.
-- Not verified: WSL, Linux or Windows on arm64, macOS on Intel, other Linux
-  distributions.
+- Not verified: another release of macOS or Ubuntu than the images', other Linux
+  distributions, WSL, Linux or Windows on arm64, macOS on Intel; nor another Windows
+  release, which the prerequisite check cannot tell from the image's.
 
 ## 1. Copy the template into the new project
 
