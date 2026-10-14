@@ -7,6 +7,140 @@ SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [2.2.0] — 2026-10-14
+
+### Added
+- **A session started outside the repository's root runs without the boundary's wiring** —
+  the HIGH of this release's review. Claude Code reads `.claude/settings.json` from the
+  session's primary working directory, with no parent-directory fallback (its documentation,
+  read on 2026-10-14, not measured): a session started in a subdirectory, or moved there with
+  `/cd`, has no guard, no `deny` or `ask` rule, no session marker and no SessionStart hook,
+  and nothing says so, while `CLAUDE.md` still loads; the `pre-push` still refuses its push.
+  `docs/04` declares it, `SETUP.md`'s *Hardening* says to start Claude Code at the
+  repository's root, and `CLAUDE.md` tells the agent that a session whose `STATE.md` was not
+  injected did not load the settings: it says so before anything else and advises a restart
+  from the root.
+- **The bump weighs the content, not the commit types alone** (IMP-074): `docs/04`,
+  *Versioning*, gains *The type suggests; the content decides* — a `docs` or `chore` commit
+  that brings a new rule or command into what a project ships is a MINOR, a `fix` that
+  breaks the public contract a MAJOR. `/integrate` states the bump with its reasoning above
+  the blocks, names the bump the request expected if it named one, and where the two differ
+  waits for the user's confirmation; its "no tag" bullet yields to the content.
+- **The security gate's verdict is always written** (IMP-053): the session-note format gains
+  a `## Security gate` line — the outcome, or "not applicable" with its reason —, written by
+  `/checkpoint` at a deliverable's last checkpoint and asked for by `docs/00` when the review
+  is skipped. The cycle's summaries said "[if sensitive]", narrower than the gate since
+  2.1.0: now "[if under the gate]".
+- **A LOW finding is closed, or declared** (IMP-103): `docs/03`'s point 4 — a LOW or INFO
+  finding that a line of text closes is closed in the release; one it does not close becomes
+  a known limit, declared where the claim it concerns lives, not a backlog entry.
+  `/security-review` follows.
+- **Resumption verifies before continuing** (IMP-052): `docs/01`'s RESUMPTION covers a pause
+  inside a session too; its new step 3 checks the plan's ticks against the commits, the
+  branch's base against the remote integration branch and, with work not yet committed, the
+  build, the touched area's tests and the diff read against the plan; step 4 keeps that work
+  after a pause in the same session if step 3 holds, and discards it in a new one.
+  `CLAUDE.md`'s rule 7 speaks of a session that dies mid-task.
+- **Delegation with the user's words** (IMP-060, IMP-063): `docs/00` — a delegated agent's
+  brief quotes the user's decisions verbatim, or points at the record that holds them; one
+  independent agent first, a fan-out only where the consequences warrant it, with a stall
+  budget fixed before the run; a report built from several agents names its gaps. `docs/03`
+  applies it to reviews.
+- **An invariant over a known debt is a bidirectional allow-list** (IMP-057): `docs/02`,
+  *Tests that demonstrate*.
+- **A body line that commitlint reads as the footer** (IMP-078): `docs/04`, *Commit format*,
+  says the footer follows a blank line and that no body line begins with a single word
+  followed by a colon or by " #"; its example gains the blank line.
+- **A harvested lesson counts once** (IMP-061): `/harvest-framework` prints each entry's
+  number with the date of the session note its origin cites; `docs/06` and
+  `CONTRIBUTING.md` say how the framework counts a repeat once.
+- **What Claude Code can put above the guard and the rules** (IMP-092, IMP-093, IMP-075,
+  IMP-065) — `docs/04`, read in Claude Code's documentation on 2026-10-14, not measured: a
+  mod that handles `tool.check` can approve a call the guard blocked, one an `ask` rule would
+  prompt for, and one a `deny` rule refuses, unless managed settings or a Team or Enterprise
+  plan hold deny rules over it; a PermissionRequest hook can answer a prompt in the user's
+  place; with `"disableAllHooks": true`, and in a `--safe-mode` session, no hook of the
+  project runs; EnterWorktree and ExitWorktree, whose `remove` deletes a worktree with its
+  branch, and a git MCP server write git state outside the guard; dontAsk refuses what an
+  `ask` rule would prompt for. Auto mode allows pushes, and the `pre-push` stays the push's
+  boundary there; `autoMode` is read from the user's settings only. An IDE extension's
+  integrated terminal sets `CLAUDECODE`: the human pushes from a terminal outside it
+  (IMP-097's part). `SETUP.md`'s *Hardening* gains *In auto mode*.
+- **Keep the framework out of what you deploy** (IMP-085): `SETUP.md`'s *Hardening*; the
+  upgrade's Step 5 checks that no framework path, the new ones above all, reaches a deploy
+  artifact.
+
+### Changed
+- **`/integrate` gives a recovery block only after a failed check is reported** (IMP-102):
+  its normal sequence holds no destructive line, and *When the user reports a failed check*
+  produces the recovery block, alone, only while the tag is still local. `docs/04`'s rule 3
+  of the blocks becomes *Destructive commands never in advance*, and the upgrade's abort
+  block in `SETUP.md` is run or given only once the user has decided to abort. At 2.1.0's
+  integration the block printed in advance under its condition was run after an integration
+  that had succeeded: the local tag was deleted, and recovered with `git fetch`.
+- **The reconciliation after a merge is the next deliverable's first `/checkpoint`**
+  (IMP-051): no commit of its own after the merge; `/integrate`, `/checkpoint` and `docs/00`
+  say so.
+- **The guard's coverage is the forms its self-test holds** (IMP-083, IMP-079): `docs/04`'s
+  guard row, its *Outside this layer* naming the ordinary forms the guard does not read, and
+  the rule for admitting a new case; the guard's own comments follow, no line of its code
+  changed.
+- **The pre-commit's known limits, complete** (IMP-091, with IMP-095, IMP-096, IMP-098 and
+  IMP-089 declared under IMP-103): `SETUP.md`'s *What the pre-commit's scan reads* adds the
+  commits git creates itself and the scan's own limits; a `pre-push.local` that is not
+  executable is skipped without a word; a re-run writes its `.bak` over an earlier one.
+
+### Fixed
+- **`reset-task.sh` reported a task discarded while a staged change survived** (IMP-094, a
+  MEDIUM of 2.1.0's review): it restored the working tree from the index, then the index. It
+  now restores both from HEAD in one step, reports a step git refuses, and says the task is
+  discarded only once the tree reads clean with HEAD unmoved; outside a repository, where
+  bash 3.2's `cd ""` let it go on and report a discard, it stops. The new self-test,
+  `scripts/test-reset-task.sh`, failed three of its four cases against the old script.
+  `docs/01`'s manual forms had the same defect, and `docs/01` and the script declare its
+  limits: a merge, rebase or cherry-pick in progress, a detached HEAD.
+- **The prerequisite check called any macOS on arm64, any Linux on x86_64 and any Windows on
+  x86_64 a platform the framework's CI verifies** (IMP-099): it carries the CI's images,
+  `CI_IMAGES`, which the documentation check holds to the workflow's matrix, and says
+  verified only for the release and the architecture of one of them; on Windows it names the
+  image and gives no verdict. The CI asserts, on each image, that the check names it.
+
+### This repository
+- `CONTRIBUTING.md`: every commit gated on the whole suite in the same command (IMP-082); a
+  change to a HYBRID file keeps one unchanged line between itself and a setup slot, and a
+  release that changes one rehearses the upgrade with LF and CRLF (IMP-088).
+- The retro over the backlog: 45 entries decided — 19 applied, 9 merged, 10 deferred on a
+  verifiable trigger, 7 rejected with their reason. The release's review, one reviewer with
+  the two lenses: 1 HIGH, 1 MEDIUM, 6 LOW and 6 INFO, each fixed or declared.
+
+**Upgrading from 2.1.0** (from an earlier release, also follow the entries in between —
+Step 2 of the upgrade says how they combine):
+- METHOD files — bring them over from the tag: `.claude/commands/harvest-framework.md`,
+  `.claude/commands/security-review.md`, `.claude/docs/00-overview.md`,
+  `.claude/docs/01-task-planning.md`, `.claude/docs/02-code-quality.md`,
+  `.claude/docs/03-security-gate.md`, `.claude/docs/04-git-workflow.md`,
+  `.claude/docs/06-self-improvement.md`, `scripts/README.md`, `scripts/agent-git-guard.mjs`,
+  `scripts/check-prerequisites.sh`, `scripts/reset-task.sh`,
+  `scripts/test-check-prerequisites.sh`; and a new one, `scripts/test-reset-task.sh`,
+  executable (mode 100755).
+- HYBRID files (3-way): `.claude/commands/integrate.md`, `.claude/commands/checkpoint.md`,
+  `CLAUDE.md` (the quick commands name the new self-test; a line on a session whose
+  `STATE.md` was not injected; rule 7's wording) and the `Makefile` (`test-scripts` runs the
+  new self-test). Rehearsed on a project grafted at 2.1.0 with every setup answer in place —
+  `CLAUDE.md`'s title, stack, repo, rules 5 and 8 and technical rules; the two commands'
+  branch placeholders, `checkpoint.md`'s setup paragraph deleted; the `Makefile`'s protected
+  branches and targets; the pre-commit's formatting slot —, and with `docs/00`'s and
+  `docs/04`'s slots answered inline (edge case 7): every merge clean, with LF and with CRLF
+  line ends.
+- The memory template `.claude/memory/sessions/README.md` gains the `## Security gate` line in
+  its *Format*: an uncustomised one comes over as 2.2.0's.
+- `make hooks-install`: the generated hooks do not change; no `.bak` is written.
+- The prerequisite check says "not verified" on a release or an architecture the CI does not
+  run — a line of information, not a failure.
+- Start Claude Code at the project's root: a session started in a subdirectory loads none of
+  the project's settings (`docs/04`).
+- The memory's titles and labels and `LEARNINGS.md`'s header do not change; nothing migrates.
+
 ## [2.1.0] — 2026-10-13
 
 ### Added

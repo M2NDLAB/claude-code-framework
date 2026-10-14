@@ -275,6 +275,23 @@ user pushes during a delegated run. IMP-078's count, four.
 `INDEX.md` stay clean templates here (`CONTRIBUTING.md`, *This repo's memory*); the README's
 tree already lists the new self-test, which the documentation check holds to the files.
 
+## Task 13 — /integrate
+**The bump, computed on the content against the expected MINOR.** By the types alone the
+range gives a PATCH: two `fix(scripts)` commits (IMP-094, IMP-099) among `chore` and `docs`.
+By the content a MINOR: new rules and checks in the files the framework ships — `docs/04`'s
+*The type suggests; the content decides*, *Destructive commands never in advance* and the
+session that loads no settings, `docs/03`'s point 4, `docs/02`'s allow-list, `docs/01`'s
+verification before continuing, `docs/00`'s delegation, `CLAUDE.md`'s line on `STATE.md`,
+`/integrate`'s failure path, the session note's security-gate line, the prerequisite
+check's images, `reset-task`'s self-test. No breaking change: no command removed or
+renamed, no slot added or removed (`inventory`), the session-note format gains a line older
+notes need not carry, and the upgrade from 2.1.0 merges cleanly. A MINOR, the bump the
+request expected: v2.2.0 from v2.1.0, the merge typed `feat`.
+
+**The CHANGELOG's 2.2.0 entry** written from the draft, claiming what was measured — the
+rehearsal's clean merges, the hooks unchanged, the self-test red first, the CI's assertion on
+the images — and naming as read, not measured, what rests on Claude Code's documentation.
+
 ## Security gate
 - Under the gate: the release asserts security properties — the boundary's declarations in
   `docs/04`, the pre-commit's known limits, `reset-task`'s "discarded", the prerequisite
@@ -312,7 +329,7 @@ tree already lists the new self-test, which the documentation check holds to the
 - The payload names no IMP number: the documentation check's `imp-number` refuses one; the
   why goes in prose.
 - Delegated agents read only: the snapshot before and after each delegation.
-- Next: task 13 — the CHANGELOG 2.2.0 entry from the draft in the scratchpad
-  (`changelog-2.2.0-draft.md`), the bump computed on the content against the expected MINOR,
-  the final block 0, blocks 1 and 2 without a recovery block in advance; the rehearsal run
-  again with the entry in the clone.
+- Next: the upgrade rehearsed again on the tip with the entry, its *Upgrading* note read by
+  `inventory`; the final block 0 — the checkpoint, the entry and its record pushed, the CI
+  green on the three —, then blocks 1 and 2 without a recovery block in advance, run by the
+  user; the next deliverable's first `/checkpoint` reconciles the merge.
