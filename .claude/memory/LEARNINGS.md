@@ -1512,8 +1512,9 @@ line on; older entries are not backfilled.
   overview*, the environment-variable reference, the tools reference and *Run parallel
   sessions with worktrees* — read, not measured; `docs/04` with its slots answered inline
   merges three ways cleanly, with LF and with CRLF line ends.
-- Uncovered by this commit: the guard's own comment that Bash, PowerShell and Monitor are the
-  tools that execute git, in an ask-protected file.
+- The guard's own comments follow, edited with the user present (an ask-protected file):
+  Bash, PowerShell and Monitor are the shell tools its wiring matches, and EnterWorktree and
+  a git MCP server write git state outside it.
 
 ### IMP-083 — The guard grows beyond its threat model → applied on 2026-10-14
 - Origin: the user's request at v1.5.0's integration ([[2026-10-11-multiplatform-1.5.0]]) —
@@ -1529,10 +1530,16 @@ line on; older entries are not backfilled.
   cases are the guard's coverage and states the admission rule: a form joins them only when
   an agent was seen writing it, or it is an ordinary form of the shell's own documentation,
   never because the parser could read it. `SETUP.md` and `scripts/README.md` narrow their
-  coverage claims the same way. No form is pruned: the rule stops the growth.
+  coverage claims the same way. No form is pruned: the rule stops the growth. The guard's own
+  comments follow: its scope names L6's forms and calls its self-test's forms its coverage,
+  no longer "deliberate evasion"; its splitter says an unquoted heredoc runs its `$(…)`; its
+  wrapper list says how it differs from the wrappers Claude Code strips.
 - Verified: the forms `scripts/README.md` now names — git after its global options, spelled
   `git.exe`, `Git` or a Windows path — are cases of `scripts/test-agent-git-guard.sh`
-  (read); the documentation check passes.
+  (read); the documentation check passes. The forms the guard's scope names, run through it
+  on 2026-10-14: each goes through unblocked, while `exec`, `nice`, `nohup` and `xargs -n1`
+  before a git write are blocked ([[2026-10-13-backlog-retro-2.2.0]]); its comments changed,
+  no line of its code.
 
 ### IMP-075 — Auto mode and the framework's boundaries → applied on 2026-10-14
 - Origin: [[2026-10-11-multiplatform-1.5.0]] — the user ran `/auto-mode-setup` on 2026-10-11:
