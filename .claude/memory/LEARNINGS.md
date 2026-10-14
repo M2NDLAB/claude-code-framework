@@ -50,6 +50,26 @@ tags: [improvement]
   applying on the Free plan —, and macOS out of the CI. IMP-099's platform claim no longer
   depends on the second (see there).
 
+### IMP-104 — Mechanical detection of a session started outside the repository's root
+- Date: 2026-10-14 | Origin: v2.2.0's review, H1 — [[2026-10-13-backlog-retro-2.2.0]]
+- Priority: LOW (user decision, 2026-10-14).
+- Observed problem: Claude Code reads the project's settings from the session's primary
+  working directory only, with no parent-directory fallback: a session started in a
+  subdirectory, or moved there with `/cd`, runs without the guard, the `deny` and `ask`
+  rules, the session marker and the SessionStart hook, and nothing says so. v2.2.0 declares
+  it in `docs/04` and `SETUP.md`, and `CLAUDE.md` — which loads from the directories above —
+  tells the agent to say so when `STATE.md` was not injected: an instruction, read by the
+  agent, not a mechanism.
+- Proposal: a SessionStart hook in the USER's settings (`~/.claude/settings.json`), which
+  load from any folder: it checks whether the session is inside a repository that carries
+  the framework but not at its root, and warns. It is the machine's configuration, not the
+  payload's: `SETUP.md` would document it as optional hardening.
+- Expected benefit / risk: the slip caught by the machine rather than by the agent's
+  reading of an instruction. Risk: a hook in the user's settings runs in every project and
+  every folder; it must stay cheap, and silent where it has nothing to say.
+- Resumption trigger: the first time a session starts from a subfolder without
+  `CLAUDE.md`'s instruction catching it.
+
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
 - Date: YYYY-MM-DD | Origin: [[<session note>]] — <problem>
@@ -1544,7 +1564,11 @@ line on; older entries are not backfilled.
   project's settings has the wiring* and its rows and `ask` bullet follow; `SETUP.md`'s
   *Hardening* gains *Start Claude Code at the repository's root*; the README,
   `scripts/README.md` and the guard's comment follow. The `pre-push` still refuses such a
-  session's push, on `CLAUDECODE`. With it: ExitWorktree, whose `remove` deletes a worktree
+  session's push, on `CLAUDECODE`. The compensation, the user's decision of 2026-10-14:
+  `CLAUDE.md`, which loads from the directories above, tells the agent that a session
+  whose `STATE.md` was not injected did not load the settings, to say so before anything
+  else and to advise a restart from the repository's root — an instruction, not a
+  mechanism, which IMP-104 proposes. With it: ExitWorktree, whose `remove` deletes a worktree
   and its branch with no permission asked (L3), joins EnterWorktree; dontAsk refuses an
   `ask` rule's call instead of asking (I2); a fresh worktree falls back to the local HEAD
   when `origin/HEAD` is neither cached nor fetchable, and the `worktree-agent-<id>` branch

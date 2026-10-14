@@ -22,6 +22,10 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
   task actually touches; read TREE.md before exploring the filesystem by hand. Check
   whether an in-progress plan exists in .claude/memory/plans/ for the requested
   prompt (see rule 7).
+- If STATE.md was NOT injected at the start, the project's settings did not load — the
+  session started outside the repository's root —, or its hooks are off: the boundary's
+  wiring does not run (04-git-workflow.md). Say so to the user before anything else, and
+  advise restarting Claude Code from the repository's root.
 - AT THE END of a task: session note in memory/sessions/, update the components/
   notes you touched, rewrite STATE.md, regenerate TREE.md if the structure changed.
   **A task without updated memory is NOT done.**
