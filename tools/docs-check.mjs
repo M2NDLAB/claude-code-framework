@@ -1141,6 +1141,7 @@ const ALLOW = [
   { check: 'imp-number', file: LEARNINGS, line: '### IMP-001 — <short title>', reason: 'the format example of the template: a project numbers its own IMPs from 001' },
   // Inventories.
   { check: 'inventory', file: '*', text: '/clear: no such command', reason: 'a command of Claude Code itself, not one of the method' },
+  { check: 'inventory', file: '*', text: '/cd: no such command', reason: 'a command of Claude Code itself, not one of the method' },
   { check: 'inventory', file: SETUP, text: '/tmp: no such command', reason: 'a directory, not a command' },
   // Links: names that are not meant to exist in this repository.
   { check: 'link', file: '*', text: '`.claude/framework-version`', reason: 'the provenance pin: created in a project at its graft, never here' },

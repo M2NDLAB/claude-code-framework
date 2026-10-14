@@ -1292,7 +1292,10 @@ line on; older entries are not backfilled.
   and step 5's checklist follow. `docs/04`'s rule 3 of the blocks for the user becomes
   *Destructive commands never in advance*: given once the condition holds, alone in its
   block; the tag hygiene and rule 4 follow. The upgrade's abort block in `SETUP.md` loses the
-  comment line inside it, which rule 4 forbids, and says it runs only then.
+  comment line inside it, which rule 4 forbids, and is run or given only once the user has
+  decided to abort — it had claimed docs/04's form while printed under its condition (the
+  review, M1). The failure path's recovery block is printed alone, never beside blocks 1 and
+  2, which come again after the repair (the review, L1: a phrase left from 2.1.0's text).
 - Verified: `integrate.md` merges three ways cleanly against a copy whose branch placeholders
   are answered, with LF and with CRLF line ends (git 2.54.0, `git merge-file`). The new
   section starts right under the paragraph above it: with a blank line in between, git
@@ -1315,7 +1318,8 @@ line on; older entries are not backfilled.
   step 2 weighs the content after the types, states the bump with its reasoning above the
   blocks, names the bump the request expected if it named one, and where the two differ says
   so and waits for the user's confirmation before step 3's commit; its documentation-is-the-
-  product exception and step 5's checklist follow.
+  product exception and step 5's checklist follow, and its "no tag" bullet yields to the
+  content weighed above it (the review, L4: as first written it contradicted it).
 - Verified: `integrate.md`'s 3-way merge against a copy with the branch placeholders answered
   stays clean, with LF and with CRLF line ends. The rule itself is exercised at this
   release's own `/integrate`, which expects a MINOR.
@@ -1357,9 +1361,11 @@ line on; older entries are not backfilled.
   the fix, case 4 under `core.autocrlf` true included (macOS, bash 3.2). The `Makefile` and
   `CLAUDE.md`, HYBRID, merge three ways cleanly against copies with their setup answers in
   place, with LF and with CRLF line ends.
-- Uncovered (not measured, known limits of the script): a merge, rebase or cherry-pick in
-  progress, whose state files survive a restore; a detached HEAD, where the guard on
-  protected branches has no branch to compare.
+- Declared where its claim lives, `docs/01` and the script's header (the review, L2; not
+  measured): a merge, rebase or cherry-pick in progress, whose state survives the restore;
+  a detached HEAD, where the guard on protected branches has no branch to compare. The
+  self-test does not reach the check that the tree reads clean after the restore (the
+  review, I1, from reading): no case makes it fail.
 
 ### IMP-052 — Resumption after an abrupt interruption: verify before continuing → applied on 2026-10-14
 - Origin: [[2026-09-24-third-upgrade-lessons]] — `docs/01`'s RESUMPTION said WHERE to resume,
@@ -1377,9 +1383,13 @@ line on; older entries are not backfilled.
   work: discarded in a new session, whose context is gone; kept in the same session after a
   pause if step 3 holds; a `chore: wip` commit verified the same way and never undone
   without the user.
-- Verified: the documentation check resolves the sections it cites. Rule 7 of `CLAUDE.md` —
-  "if a session is interrupted … discard only the uncommitted half-done task" — stays true
-  of a new session, so the HYBRID file is not touched for it.
+- Verified: the documentation check resolves the sections it cites. Rule 7 of `CLAUDE.md`
+  said "if a session is interrupted … discard only the uncommitted half-done task", which a
+  pause inside a session now contradicted (the review, L5): it reads "if a session dies
+  mid-task", as `docs/01`'s cleanup section does, and `CLAUDE.md` merges three ways cleanly
+  with it. The base check reads `origin/<integration branch>` where a remote exists (the
+  review, L6), and the manual form of step 4 is the user's: the agent's `deny` rules refuse
+  `git clean` in a compound command (the review, I5).
 
 ### IMP-053 — The security-gate verdict is always written, "not applicable" included → applied on 2026-10-14
 - Origin: [[2026-09-24-third-upgrade-lessons]] — a skipped gate and a forgotten one looked
@@ -1451,7 +1461,7 @@ line on; older entries are not backfilled.
   the blank line. Option (b), the warning raised to an error, is not adopted: the hook would
   refuse messages 2.1.0 accepts — breaking, by the criterion v2.0.0 applied to gitleaks.
 - Verified: the documentation check passes, its Types line untouched. In this release the
-  messages were checked before each commit with a grep for such a line: it stopped three of
+  messages were checked before each commit with a grep for such a line: it stopped four of
   them, rewrapped while still uncommitted ([[2026-10-13-backlog-retro-2.2.0]]).
 
 ### IMP-103 — A LOW finding that a line of text does not close becomes a declared limit, not an IMP → applied on 2026-10-14
@@ -1524,6 +1534,21 @@ line on; older entries are not backfilled.
 - The guard's own comments follow, edited with the user present (an ask-protected file):
   Bash, PowerShell and Monitor are the shell tools its wiring matches, and EnterWorktree and
   a git MCP server write git state outside it.
+- The release's review found the route all these declarations had missed, the HIGH of v2.2.0
+  (H1): Claude Code reads `.claude/settings.json` from the session's primary working
+  directory, with no parent-directory fallback — *Settings* and *Configure permissions*, read
+  on 2026-10-14, not measured —, so a session started in a subdirectory, or moved there with
+  `/cd`, has no guard, no `deny` or `ask` rule, no `AGENT_GIT_BOUNDARY` and no SessionStart
+  hook, while `CLAUDE.md` still loads; `--setting-sources` without `project` and managed
+  `allowManagedHooksOnly` do the same. `docs/04` gains *Only a session that loads the
+  project's settings has the wiring* and its rows and `ask` bullet follow; `SETUP.md`'s
+  *Hardening* gains *Start Claude Code at the repository's root*; the README,
+  `scripts/README.md` and the guard's comment follow. The `pre-push` still refuses such a
+  session's push, on `CLAUDECODE`. With it: ExitWorktree, whose `remove` deletes a worktree
+  and its branch with no permission asked (L3), joins EnterWorktree; dontAsk refuses an
+  `ask` rule's call instead of asking (I2); a fresh worktree falls back to the local HEAD
+  when `origin/HEAD` is neither cached nor fetchable, and the `worktree-agent-<id>` branch
+  was measured for the Agent tool only (I6).
 
 ### IMP-083 — The guard grows beyond its threat model → applied on 2026-10-14
 - Origin: the user's request at v1.5.0's integration ([[2026-10-11-multiplatform-1.5.0]]) —
@@ -1665,7 +1690,10 @@ line on; older entries are not backfilled.
   verifies", and the new self-test case failed against it, then passed (macOS, bash 3.2); the
   committed documentation check let a planted `macos-15` through, the new one fails it both
   ways; the CI step's assertion, simulated on six platform lines, passed the three right ones
-  and failed the three wrong ones.
+  and failed the three wrong ones. On the images themselves, the CI's run on `493a4e1`: the
+  check read "Linux, ubuntu 24.04 (x86_64), verified by the framework's CI on
+  ubuntu-24.04", "macOS 26.6.2 (arm64), verified by the framework's CI on macos-26", and on
+  Windows named `windows-2025` with no verdict; the step's assertion passed on the three.
 - Uncovered: the check reads the images in the forms GitHub names them today —
   `macos-<release>`, `ubuntu-<release>`, `windows-<year>` —; an image named otherwise, with an
   `-arm` or `-intel` suffix, verifies nothing until the check learns its form.

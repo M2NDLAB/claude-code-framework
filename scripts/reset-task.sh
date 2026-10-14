@@ -12,6 +12,9 @@
 #         ./scripts/reset-task.sh  # direct: PROTECTED_BRANCHES from the environment,
 #                                  # else main + develop, with a warning; asks
 # Self-test: scripts/test-reset-task.sh.
+# Its limits: a merge, rebase or cherry-pick in progress keeps its state through the
+# restore, and on a detached HEAD the guard below has no branch to compare — settle
+# those by hand first.
 # ============================================================================
 set -uo pipefail
 # Two steps: in bash 3.2, `cd ""` succeeds and stays put, so outside a repository the

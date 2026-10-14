@@ -145,15 +145,16 @@ session goes on after a pause (a usage limit, a machine's sleep) —:
    restart tasks already done. Do NOT recreate the branch.
 3. Verify before continuing, with or without a plan, scaled to what is not committed.
    Always: `git status`; the plan's ticks against the commits — a tick can lag its commit;
-   and the branch's BASE: `git log --oneline <integration branch>..HEAD` lists only this
-   deliverable's commits — one that is not means the branch started from the wrong base,
-   clean tree or not. With work not yet committed, also: the build or syntax check, the
+   and the branch's BASE: `git log --oneline origin/<integration branch>..HEAD` (without a
+   remote, the local branch) lists only this deliverable's commits — one that is not means
+   the branch started from the wrong base, clean tree or not. With work not yet committed, also: the build or syntax check, the
    tests of the area it touches, and its diff read against the plan or the recorded
    decision — the wiring gaps green tests miss show there.
 4. Then the half-done work. In a new session its context is gone: discard it with
-   `make reset-task` (`YES=1` without asking) or manually, from the repository's top level
-   (`git restore --source=HEAD --staged --worktree -- . && git clean -fd`) — restart from
-   the clean task, not from rubble. In the same session after a pause the context holds:
+   `make reset-task` (`YES=1` without asking) or by hand, from the repository's top level
+   (`git restore --source=HEAD --staged --worktree -- . && git clean -fd`; the user's
+   form: the agent's `deny` rules refuse `git clean`) — restart from the clean task, not
+   from rubble. In the same session after a pause the context holds:
    keep the work if step 3 holds, discard it as above if it does not. A `chore: wip` commit
    (`04-git-workflow.md`, *WHEN to commit*) is half-done work too: step 3 verifies it, and
    it is never undone without the user (*Rollback*).
@@ -173,5 +174,7 @@ If a session dies halfway through a task:
 - `make reset-task` (the `scripts/reset-task.sh` script, with the project's protected
   branches from the `Makefile`) does exactly this, with a safety guard (it refuses to
   operate on shared branches), and says the task is discarded only when the tree then
-  reads clean.
+  reads clean. Its limits: a merge, rebase or cherry-pick in progress keeps its state
+  through the restore, and on a detached HEAD the guard has no branch to compare —
+  settle those by hand first.
 - Then the prompt is relaunched: the resumption protocol restarts from the right task.

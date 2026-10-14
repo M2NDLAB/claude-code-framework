@@ -53,7 +53,7 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
 7. **Task planning** per 01-task-planning.md: at the start of EVERY prompt judge its
    heaviness yourself; if it is heavy, produce a PLAN of atomic tasks in
    .claude/memory/plans/, commit it, then run ONE COMMIT PER TASK (`[task N/T]` in
-   the message) ticking the plan as you go. If a session is interrupted: do NOT
+   the message) ticking the plan as you go. If a session dies mid-task: do NOT
    start over and do NOT delete the branch — discard only the uncommitted half-done
    task (`make reset-task`) and resume from the first unticked task. The commits
    of completed tasks are never touched.

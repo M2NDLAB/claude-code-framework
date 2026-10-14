@@ -324,6 +324,14 @@ commands — the kind every real incident was. Deliberate evasion (disabling a h
 unsetting the session marker, writing to the forge with the owner's credential) is
 outside it: only the forge's rules or the operating system stop it.
 
+**Start Claude Code at the repository's root.** Claude Code reads `.claude/settings.json`
+from the session's working directory only, with no fallback to the directories above: a
+session started in a subdirectory, or moved there with `/cd`, runs without the guard, the
+`deny` and `ask` rules, the session marker and the SessionStart hook, and nothing says so —
+only the `pre-push` still refuses its push (`docs/04`, *Enforcement of the execution
+boundary*). A session that opens without `STATE.md` injected loaded no settings, or runs
+no hook.
+
 **On Windows, Git Bash.** The method's layer is wired for the Bash tool, which on Windows
 runs in Git Bash (Git for Windows, a prerequisite); Claude Code runs the hooks there too.
 Its PowerShell tool is kept off by `CLAUDE_CODE_USE_POWERSHELL_TOOL=0` in
@@ -949,8 +957,9 @@ from a hand-written list; the memory's titles and field labels to rename; and th
 > the branch, `git merge-file`, the commits and any throwaway clone for a dry run stay
 > with the main session. An edit to `.claude/settings.json` or
 > `scripts/agent-git-guard.mjs` through the file tools asks the human (the `ask` rules),
-> auto mode included, unless a mod or a PermissionRequest hook answers in the user's place
-> (`docs/04`); the shell commands of Step 3 do not. Where `vY` changes a
+> auto mode included, unless a mod or a PermissionRequest hook answers in the user's place,
+> in a session started at the project's root (`docs/04`); the shell commands of Step 3 do
+> not. Where `vY` changes a
 > RULE (rather than being a factual correction), Level 2 of `docs/06` kicks in: it is
 > PROPOSED, not applied silently — *"Never rewrite your own rules on your own
 > initiative"* (`CLAUDE.md`, rule 6).
@@ -1163,9 +1172,9 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    `pre-push` that a `vX` before v1.3.0 never had; a `vX` from v0.3.0 to v1.0.0 refuses
    the hooks that carry the English marker; `FORCE_OVERWRITE=1` replaces the pre-upgrade
    `.bak` with the new hook; and a `pre-push` renamed to `pre-push.local` at Step 4 stays
-   renamed. The way back is Step 1's photograph. If you abort the upgrade after Step 4 —
-   only then —, run this, alone in its block as `docs/04` wants for destructive lines: it
-   puts back the hooks photographed at Step 1.
+   renamed. The way back is Step 1's photograph. Once the user has decided to abort the
+   upgrade after Step 4 — never before, and never printed with another block —, the session
+   runs or gives this alone: it puts back the hooks photographed at Step 1.
 
    ```bash
    H="$(git rev-parse --path-format=absolute --git-common-dir)/hooks"

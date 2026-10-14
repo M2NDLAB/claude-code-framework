@@ -287,8 +287,9 @@ try {
   process.exit(FAILED);
 }
 // Bash, PowerShell and Monitor (which runs a shell command in the same environment): the
-// shell tools, the three settings.json matches. Claude Code's EnterWorktree and a project's
-// git MCP server also write git state, outside this guard (docs/04).
+// shell tools, the three settings.json matches. Claude Code's EnterWorktree and
+// ExitWorktree and a project's git MCP server also write git state, outside this guard; and
+// a session that did not load the project's settings runs no guard at all (docs/04).
 if (!['Bash', 'PowerShell', 'Monitor'].includes(input.tool_name) || !input.agent_id) process.exit(0);
 const command = input.tool_input?.command;
 if (input.tool_name === 'Monitor' && command === undefined) process.exit(0); // a WebSocket monitor runs no command

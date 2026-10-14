@@ -38,8 +38,9 @@ Apply the *Versioning* rules of docs/04 to the branch's set of commits:
   deliverable named an expected bump, name it too, and where the two differ say so and wait
   for the user's confirmation before step 3's commit;
 - if there are only `refactor`/`perf`/`test`/`docs`/`build`/`ci`/`chore` or
-  memory/doc-only commits → **no tag** (it is internal work, not a release: state it
-  explicitly above the blocks and omit the tag commands) — EXCEPT in a project whose
+  memory/doc-only commits, and the content weighed above brings nothing more → **no tag**
+  (it is internal work, not a release: state it explicitly above the blocks and omit the
+  tag commands) — EXCEPT in a project whose
   documentation is the product (docs/04, *Versioning*, "When the documentation IS the
   product"): there a change to the files it ships is a release, at least a PATCH whatever
   the commit types — a MINOR or a MAJOR by its content, as the bullet above says —, and
@@ -141,7 +142,8 @@ on the integration branch, `git rev-parse -q --verify 'refs/tags/v<X.Y.Z>^{commi
 
 If (and ONLY if) the tag exists but `tag on <integration>: OK` did not appear — a tag
 left by an earlier, failed paste — ALSO print this recovery block, SEPARATE from the ones
-above, and only while that tag is local: `git ls-remote` printed nothing. A tag already
+above — alone, never beside blocks 1 and 2, which come again once the repair is done —,
+and only while that tag is local: `git ls-remote` printed nothing. A tag already
 published is never deleted, whatever it points at; nor is a sound one.
 ```
 git tag -d v<X.Y.Z>
