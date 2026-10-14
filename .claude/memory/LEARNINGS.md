@@ -70,6 +70,41 @@ tags: [improvement]
 - Resumption trigger: the first time a session starts from a subfolder without
   `CLAUDE.md`'s instruction catching it.
 
+### IMP-105 — The real path starts where the tool reads its configuration
+- Date: 2026-10-14 | Origin: v2.2.0's retro — its review's H1 and the re-reading of task 6
+  — [[2026-10-13-backlog-retro-2.2.0]]
+- Observed problem: two releases in a row, the review's only HIGH was a configuration the
+  boundary relies on, silently not in effect — in v2.1.0 a hook manager that sets
+  `core.hooksPath` after the install (IMP-090), in v2.2.0 a session that did not load the
+  project's settings. `docs/03`'s *The real path* asks what a tool's configuration makes it
+  do, not where and when the tool reads it. In the same release four statements about
+  Claude Code, written from WebFetch's answers about its pages — a model's reading, of the
+  first part only of a long page — and compressed in the writing, said more or other than
+  the pages' own text: the re-reading from the pages' Markdown, at the user's request, found
+  them.
+- Proposal: *The real path* gains (a) where and when the tool reads the configuration the
+  gate relies on — the files, the directory it starts from, the flags and settings that
+  skip them —, and (b) a statement about an external tool rests on the source's own text,
+  its passage quoted in the record, never on a summary of it.
+- Expected benefit / risk: the family of the last two HIGHs looked for by name, and a claim
+  checked against a quote rather than a paraphrase. Risk: a longer lens, and readings that
+  cost more.
+
+### IMP-106 — The snapshot's difference when the user pushes during a delegated run
+- Date: 2026-10-14 | Origin: v2.2.0's retro — [[2026-10-13-backlog-retro-2.2.0]]
+- Observed problem: in this repository block 0 runs while a reviewer works, and the user's
+  push moves `refs/remotes/origin/<branch>`, which the snapshot records: the comparison after
+  the review showed a difference no agent made. `docs/04` says any difference stops the
+  session, to be reported; the main session read the ref's reflog — "update by push", at the
+  time of the user's push — and went on with the review's fixes before reporting it, which
+  the rule's letter does not allow.
+- Proposal: `docs/04`'s *Snapshot before, check after* names the case — a remote-tracking
+  ref whose reflog says "update by push" at the user's push is the user's, reported with the
+  result rather than stopped for —, or the snapshot before is taken after the user's push.
+- Expected benefit / risk: the rule stays strict where an agent could have moved shared
+  state, and the expected case no longer invites a deviation. Risk: none known — an agent's
+  push is refused by the `pre-push` before any ref moves.
+
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
 - Date: YYYY-MM-DD | Origin: [[<session note>]] — <problem>
@@ -1298,7 +1333,7 @@ line on; older entries are not backfilled.
   CRLF cases since `9fa2e9a`, the real-hook cases 5 to 7 since v2.0.0.
 - Uncovered: rounds 3 to 5 of v1.5.0 stay not established.
 
-### IMP-102 — The recovery block printed in advance is run after a successful integration → applied on 2026-10-14
+### IMP-102 — The recovery block printed in advance is run after a successful integration → applied on 2026-10-14, commits 2d82446, 559541c
 - Origin: [[2026-10-13-backlog-retro-2.2.0]] — at v2.1.0's integration the agent printed
   `git tag -d v2.1.0` under its condition next to blocks 1 and 2, against `/integrate`'s own
   "if (and ONLY if)": the tag was free when the blocks were printed. The user ran it after an
@@ -1322,7 +1357,7 @@ line on; older entries are not backfilled.
   aligned the section against the answered line below it and the merge conflicted
   (measured). The behaviour itself shows at this release's own `/integrate`.
 
-### IMP-074 — The bump is fixed by the brief before the content → applied on 2026-10-14
+### IMP-074 — The bump is fixed by the brief before the content → applied on 2026-10-14, commits a25e17e, 559541c
 - Origin: [[2026-10-11-multiplatform-1.5.0]], the user's brief; the reviewer's L1 in
   [[2026-10-10-upgrade-safety-1.3.3]] and L14 in [[2026-10-11-payload-purity-1.4.1]] — v1.3.3
   and v1.4.1 brought new rules into the payload, MINORs by `docs/04`'s criteria, and shipped
@@ -1344,7 +1379,7 @@ line on; older entries are not backfilled.
   stays clean, with LF and with CRLF line ends. The rule itself is exercised at this
   release's own `/integrate`, which expects a MINOR.
 
-### IMP-051 — The memory lags one merge: `/checkpoint` runs before the merge → applied on 2026-10-14
+### IMP-051 — The memory lags one merge: `/checkpoint` runs before the merge → applied on 2026-10-14, commit 8c58dc0
 - Origin: [[2026-09-24-third-upgrade-lessons]] — the cycle runs `/checkpoint` before
   `/integrate`, and the merge happens outside the session, so the memory records the state
   awaiting the merge, and the fix was an optional later `/checkpoint`: one more commit to
@@ -1360,7 +1395,7 @@ line on; older entries are not backfilled.
   LF and with CRLF line ends. Read in `SETUP.md`: an upgrade's first `/checkpoint` is its
   Step 6, after Step 5's invariant on the memory, which the rule leaves as it was.
 
-### IMP-094 — reset-task.sh leaves a staged change in the working tree, and reports success → applied on 2026-10-14
+### IMP-094 — reset-task.sh leaves a staged change in the working tree, and reports success → applied on 2026-10-14, commits 2cb04dd, 559541c
 - Origin: v2.1.0's review, M4 ([[2026-10-13-gate-lenses-2.1.0]]) — `git restore .` restores
   the working tree from the INDEX, and only then did `git restore --staged .` reset the
   index: a staged change survived as an unstaged one while the script reported the task
@@ -1387,7 +1422,7 @@ line on; older entries are not backfilled.
   self-test does not reach the check that the tree reads clean after the restore (the
   review, I1, from reading): no case makes it fail.
 
-### IMP-052 — Resumption after an abrupt interruption: verify before continuing → applied on 2026-10-14
+### IMP-052 — Resumption after an abrupt interruption: verify before continuing → applied on 2026-10-14, commits 14d09fc, 559541c
 - Origin: [[2026-09-24-third-upgrade-lessons]] — `docs/01`'s RESUMPTION said WHERE to resume,
   not WHETHER the resumed state held: it confirmed the committed tasks and discarded a dirty
   tree, at the start of a session only. In the client project a deliverable without a plan
@@ -1411,7 +1446,7 @@ line on; older entries are not backfilled.
   review, L6), and the manual form of step 4 is the user's: the agent's `deny` rules refuse
   `git clean` in a compound command (the review, I5).
 
-### IMP-053 — The security-gate verdict is always written, "not applicable" included → applied on 2026-10-14
+### IMP-053 — The security-gate verdict is always written, "not applicable" included → applied on 2026-10-14, commit 8cf45b1
 - Origin: [[2026-09-24-third-upgrade-lessons]] — a skipped gate and a forgotten one looked
   the same in the memory: 4 of this repository's 13 notes before it recorded "not
   sensitive → skipped", 9 were silent, and in the client project a deliverable that touched
@@ -1431,7 +1466,7 @@ line on; older entries are not backfilled.
   session-note format, so no older note fails. Not adopted from the annotation: a diff of
   the baseline's executable lines as the upgrade's reason — outside the approved form.
 
-### IMP-057 — A test invariant over a known debt: a bidirectional allow-list, not an empty set → applied on 2026-10-14
+### IMP-057 — A test invariant over a known debt: a bidirectional allow-list, not an empty set → applied on 2026-10-14, commit 3bfc446
 - Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project: once
   the last known violations of a capability registry were fixed, an invariant failed
   whenever an entry declared it did not honour the capability, so the fastest way to green
@@ -1447,7 +1482,7 @@ line on; older entries are not backfilled.
   v1.4.1, where direction (b) caught a mutation on the unchanged repository
   ([[2026-10-11-payload-purity-1.4.1]]).
 
-### IMP-060 — A delegation brief quotes the user's decisions verbatim; a multi-agent report declares its coverage gaps → applied on 2026-10-14
+### IMP-060 — A delegation brief quotes the user's decisions verbatim; a multi-agent report declares its coverage gaps → applied on 2026-10-14, commit 85c7fbe
 - Origin: [[2026-09-26-client-harvest-registration]] — harvest from a client project: a brief
   that paraphrased the user's decisions, and left one out, made several agents treat a
   decided point as "undecided, blocking"; the same run lost 2 of 27 agents to stalls, and
@@ -1467,7 +1502,7 @@ line on; older entries are not backfilled.
   four read-only agents got the user's decisions verbatim and each returned its coverage
   gaps; the snapshot was unchanged after them.
 
-### IMP-078 — commitlint reads a body line that starts with "word:" as the footer → applied on 2026-10-14
+### IMP-078 — commitlint reads a body line that starts with "word:" as the footer → applied on 2026-10-14, commit c62e58d
 - Origin: [[2026-10-11-multiplatform-1.5.0]] — a body line that began with a single word and
   a colon opened the footer and cut the body there, the hook only warning "footer must have
   leading blank line": six times from v1.4.1 to v2.1.0, all in the agent's own messages, one
@@ -1484,7 +1519,7 @@ line on; older entries are not backfilled.
   messages were checked before each commit with a grep for such a line: it stopped four of
   them, rewrapped while still uncommitted ([[2026-10-13-backlog-retro-2.2.0]]).
 
-### IMP-103 — A LOW finding that a line of text does not close becomes a declared limit, not an IMP → applied on 2026-10-14
+### IMP-103 — A LOW finding that a line of text does not close becomes a declared limit, not an IMP → applied on 2026-10-14, commit 29cccab
 - Origin: [[2026-10-13-backlog-retro-2.2.0]] — the retro over the backlog, on the data of
   v2.1.0's review ([[2026-10-13-gate-lenses-2.1.0]]): 6 of the 11 IMPs that review opened came
   from LOW findings, IMP-095 to IMP-100, while `docs/03` asked only that LOW/INFO findings
@@ -1498,7 +1533,7 @@ line on; older entries are not backfilled.
   rule 8, "LOW at least recorded", stays true of a declared limit and is not touched.
 - Verified: the documentation check passes.
 
-### IMP-061 — `/harvest-framework` re-prints entries already carried upstream: double counts at recording time → applied on 2026-10-14
+### IMP-061 — `/harvest-framework` re-prints entries already carried upstream: double counts at recording time → applied on 2026-10-14, commit 4fe4e26
 - Origin: [[2026-09-26-client-harvest-registration]] — `/harvest-framework` prints every
   marked entry, carried upstream or not, with no provenance the framework could match: in
   the recording of 2026-09-26, seven of fifteen harvested entries repeated lessons relayed
@@ -1516,7 +1551,7 @@ line on; older entries are not backfilled.
 - Verified: the documentation check passes; the command cannot run in this repository,
   where no entry is marked, so its first use is the next harvest from a project.
 
-### IMP-092 — Claude Code's permission flow can replace the guard's verdict and the ask rules → applied on 2026-10-14
+### IMP-092 — Claude Code's permission flow can replace the guard's verdict and the ask rules → applied on 2026-10-14, commits b408a71, 9d75a78, 0c0d7c2, 559541c, 39ade72
 - Origin: v2.1.0's review, M2 and I1, *The real path* ([[2026-10-13-gate-lenses-2.1.0]]) —
   `docs/04` said the guard's verdict "always stands" and the boundary's files "always" ask,
   while Claude Code's own extension points can answer in their place. Merged in: IMP-093,
@@ -1574,7 +1609,7 @@ line on; older entries are not backfilled.
   when `origin/HEAD` is neither cached nor fetchable, and the `worktree-agent-<id>` branch
   was measured for the Agent tool only (I6).
 
-### IMP-083 — The guard grows beyond its threat model → applied on 2026-10-14
+### IMP-083 — The guard grows beyond its threat model → applied on 2026-10-14, commits d49e54e, 9d75a78
 - Origin: the user's request at v1.5.0's integration ([[2026-10-11-multiplatform-1.5.0]]) —
   in v1.5.0 the guard learned non-ordinary PowerShell forms for a tool the framework keeps
   off, growing from 239 to 309 lines. Merged in: IMP-079 — a parser's coverage holds for the
@@ -1599,7 +1634,7 @@ line on; older entries are not backfilled.
   before a git write are blocked ([[2026-10-13-backlog-retro-2.2.0]]); its comments changed,
   no line of its code.
 
-### IMP-075 — Auto mode and the framework's boundaries → applied on 2026-10-14
+### IMP-075 — Auto mode and the framework's boundaries → applied on 2026-10-14, commit 4c03a05
 - Origin: [[2026-10-11-multiplatform-1.5.0]] — the user ran `/auto-mode-setup` on 2026-10-11:
   it drafted entries from this repository into `~/.claude/settings.json`, which holds for
   every project — the trusted repository, the framework's visibility, and a false
@@ -1624,7 +1659,7 @@ line on; older entries are not backfilled.
   three ways cleanly with its slots answered inline, with LF and with CRLF line ends.
 - Kept apart from IMP-067, deferred: that one measures what loads in non-interactive modes.
 
-### IMP-091 — The commits git creates itself skip the pre-commit → applied on 2026-10-14
+### IMP-091 — The commits git creates itself skip the pre-commit → applied on 2026-10-14, commit 3db3233
 - Origin: v2.1.0's review, M1, *Claims* ([[2026-10-13-gate-lenses-2.1.0]]) — git runs the
   pre-commit only from `git commit`, so a key pasted into a rebase conflict's resolution was
   committed (measured), while `docs/03`'s baseline and `CLAUDE.md`'s rule 1 claimed every
@@ -1646,7 +1681,7 @@ line on; older entries are not backfilled.
 - Verified: the documentation check passes; each declared limit cites its own datum —
   measured, or read at gitleaks' source — as recorded in IMP-095, IMP-096, IMP-098 and IMP-089.
 
-### IMP-085 — The framework's files kept out of deploy artifacts → applied on 2026-10-14
+### IMP-085 — The framework's files kept out of deploy artifacts → applied on 2026-10-14, commit 249e7af
 - Origin: the user's question, 2026-10-13 ([[2026-10-12-prerequisites-1.6.0]]) — the framework
   serves development only, but its files, the project's memory among them, sit in the
   repository, and a deploy that copies the whole repository carries them into production;
@@ -1662,7 +1697,7 @@ line on; older entries are not backfilled.
   images with the repository's root as the build context, copying specific paths — the
   check runs at its upgrade.
 
-### IMP-082 — The whole suite before each commit, the documentation check included → applied on 2026-10-14
+### IMP-082 — The whole suite before each commit, the documentation check included → applied on 2026-10-14, commit 0cf77df
 - Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro) — a prose edit in `SETUP.md` passed
   the self-test that reads its block and failed the documentation check, caught after the
   commit; in v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]) two commits went in after the
@@ -1675,7 +1710,7 @@ line on; older entries are not backfilled.
 - Verified: every commit of v2.2.0 so far ran in that form ([[2026-10-13-backlog-retro-2.2.0]]),
   and none went in on a red suite.
 
-### IMP-088 — A change next to a setup slot conflicts at every project's upgrade → applied on 2026-10-14
+### IMP-088 — A change next to a setup slot conflicts at every project's upgrade → applied on 2026-10-14, commit 7b0c4fc
 - Origin: task 10 of v2.0.0 ([[2026-10-12-prerequisites-1.6.0]]) — a block inserted next to
   the formatting slot's line made `hooks-install.sh`'s 3-way merge conflict, 41 of 311
   lines, for every project that answered it; only the release's rehearsal found it.
@@ -1691,7 +1726,7 @@ line on; older entries are not backfilled.
   `integrate.md`'s new section, inserted after a blank line, was aligned by the diff against
   the answered line below and conflicted until it sat right under the paragraph above.
 
-### IMP-099 — The platform the check names as verified is wider than the CI's images → applied on 2026-10-14
+### IMP-099 — The platform the check names as verified is wider than the CI's images → applied on 2026-10-14, commit 07b8abd
 - Origin: v2.1.0's review, L13 ([[2026-10-13-gate-lenses-2.1.0]]) — `check-prerequisites.sh`
   called any macOS on arm64, any Linux but WSL on x86_64 and any Windows on x86_64 through
   Git Bash a platform the framework's CI verifies; the CI runs one release of each.

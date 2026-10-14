@@ -4,7 +4,7 @@ task: v2.2.0 — the retro over the backlog, decided and applied — the recover
 branch: feat/backlog-retro-2.2.0
 status: in-progress
 model: 'claude-opus-5-5'
-turns: 3
+turns: 5
 tags: [session, retro, imp, plan, security-gate]
 ---
 # Session 2026-10-13 — v2.2.0: the retro over the backlog
@@ -15,8 +15,10 @@ tags: [session, retro, imp, plan, security-gate]
 
 ## The fields of this very note
 - `model: 'claude-opus-5-5'` — the main session.
-- `turns: 3` — the user's report of v2.1.0's integration, with the brief of the retro; the
-  user's decisions on the retro; the user's decisions of 2026-10-14, after the first push.
+- `turns: 5` — the user's report of v2.1.0's integration, with the brief of the retro; the
+  user's decisions on the retro; the user's decisions of 2026-10-14, after the first push;
+  the user's check of the citation, with the CI step approved; the decision on H1's
+  compensation, with IMP-104.
 
 ## The brief — persisted so a /clear does not lose it
 - v2.1.0 integrated and published by the user (`00f8349`, the tag v2.1.0 signed, the branch
@@ -113,9 +115,9 @@ tags: [session, retro, imp, plan, security-gate]
 - [x] 7. `SETUP.md`: apply IMP-091 (the scan's known limits, IMP-095's and IMP-096's with them) and IMP-085 (the framework's files out of deploy artifacts) — commit: 3db3233, 249e7af
 - [x] 8. The platform: apply IMP-099 (the platforms the CI's workflow lists, one place) — commit: 07b8abd
 - [x] 9. The framework's own workflow: apply IMP-082 and IMP-088 (`CONTRIBUTING.md`) — commit: 0cf77df, 7b0c4fc
-- [ ] 10. The CI's rounds (block 0, the user's pushes): green on the three systems on every pushed state — commit: —
-- [x] 11. ONE reviewer, read-only on git, the snapshot before and after, the two lenses on the payload and on the sets its claims name: HIGH fixed here; MEDIUM resolved or accepted with its reason; LOW per IMP-103 — commit: 559541c
-- [ ] 12. `/retro` and `/checkpoint`: the upgrade 2.1.0 → 2.2.0 rehearsed on the final payload, the HYBRID files with LF and with CRLF — commit: —
+- [x] 10. The CI's rounds (block 0, the user's pushes): green on the three systems on every pushed state — commit: none to fix — rounds 1 to 3 green on `a31cd57`, `493a4e1` and `850ef45`; the final round with task 13
+- [x] 11. ONE reviewer, read-only on git, the snapshot before and after, the two lenses on the payload and on the sets its claims name: HIGH fixed here; MEDIUM resolved or accepted with its reason; LOW per IMP-103 — commit: 559541c, 850ef45 (its record); H1's compensation, the user's decision, 39ade72
+- [x] 12. `/retro` and `/checkpoint`: the upgrade 2.1.0 → 2.2.0 rehearsed on the final payload, the HYBRID files with LF and with CRLF — commit: the checkpoint (its own sha cannot be written in it)
 - [ ] 13. `/integrate`: the CHANGELOG 2.2.0 entry, claiming only what was measured; the bump computed on the content against the expected MINOR and declared before the tag; the final block 0; blocks 1 and 2, without a recovery block in advance — commit: —
 
 Each applying commit carries its IMP's part of the text and moves the entry to Applied, its
@@ -182,6 +184,8 @@ take several commits, one per round of the CI; each round needs the user's push.
   prerequisite check named each job's image — "Linux, ubuntu 24.04 (x86_64), verified by the
   framework's CI on ubuntu-24.04", "macOS 26.6.2 (arm64), verified … on macos-26", and on
   Windows `windows-2025` with no verdict —, its assertion passing on the three.
+- Round 3, on `850ef45`, the review's fixes (run 38552013931): green, the same counts, the
+  documentation check 0 FAIL, 0 CHECK, the platform step's assertion passing on the three.
 
 ## The review (task 11)
 - ONE reviewer, a general-purpose agent, read-only: the range `00f8349..493a4e1`, the two
@@ -223,6 +227,77 @@ take several commits, one per round of the CI; each round needs the user's push.
   read, not measured); `worktree-agent-<id>` was measured for the Agent tool on 2026-09-27,
   not for the Workflow tool, and `docs/04` now says so.
 
+## The decisions (the user's, 2026-10-14, after the review)
+- The user checked the citation of the deny statement on *Configure permissions* on their own
+  and found it exact; `0c0d7c2`'s corrections stand; the CI step that asserts the platform
+  line names its own image, approved.
+- H1's compensation, option A, in this release: a line in `CLAUDE.md`'s *Persistent memory*
+  — if `STATE.md` was not injected at the start, the project's settings did not load: say so
+  to the user before anything else, and advise restarting Claude Code from the repository's
+  root —, minimal and away from the slots — `39ade72`.
+- IMP-104 recorded OPEN at a LOW priority, the user's: a SessionStart hook in the USER's
+  settings, which load from any folder, warning when a session sits in a framework
+  repository but not at its root — the machine's configuration, optional hardening for
+  `SETUP.md`, not the payload's; its trigger the first session started from a subfolder that
+  the instruction does not catch.
+
+## Task 12 — the upgrade rehearsed, the retro, the checkpoint
+**The upgrade 2.1.0 → 2.2.0, rehearsed on the final payload** (`39ade72`, tagged v2.2.0 in a
+clone only, the scratchpad's `rh6-*.sh`; a project grafted at v2.1.0 with every setup answer
+in place — `CLAUDE.md`'s title, stack, repo, rules 5 and 8 and technical rules, the two
+commands' branch placeholders with `checkpoint.md`'s setup paragraph deleted, the
+`Makefile`'s protected branches and targets, the formatting slot, `.gitignore` and the
+`allow` list —, and `docs/00`'s and `docs/04`'s slots answered inline), with LF and with
+CRLF line ends, the same results on both:
+- the prerequisite check from `T` 0 FAIL, 0 WARN; `preflight` 0/0; `inventory` 0 FAIL and
+  the two CHECKs of edge case 7, `docs/00` and `docs/04` customised inline; every 3-way at
+  0 conflicts — `CLAUDE.md` 0 of 105 lines, `integrate.md` 0 of 189, `checkpoint.md` 0 of 51,
+  the `Makefile` 0 of 39, `docs/00` 0 of 159, `docs/04` 0 of 448;
+- Step 3: twelve METHOD files with the tag's modes, `scripts/test-reset-task.sh` new at
+  100755; the answers kept, the new texts present — the recovery section, rule 3, the line
+  on `STATE.md`, rule 7's "dies mid-task", the H1 bullet —; `sessions/README.md` equal to
+  2.2.0's;
+- Step 4: `make hooks-install` exit 0, the three hooks unchanged, no `.bak`; refused, a fake
+  secret and a message without a type; the project's `make test-scripts` 12 PASS, the
+  `reset-task` self-test among them; `make reset-task` on a half-done task left the tree
+  clean;
+- Step 5: `invariant` 0/0; `post` 0 FAIL once the pin reads v2.2.0, and the two CHECKs of
+  the files customised inline.
+A first run, on `493a4e1` before the review's fixes, had given the same results.
+
+**The retro.** IMP-104 recorded at the user's decision. Two more, open: IMP-105 — the real
+path starts where the tool reads its configuration: two releases in a row the only HIGH was
+a configuration silently not in effect, and four statements of task 6 came from WebFetch's
+answers about the pages, not their text —; IMP-106 — the snapshot's difference when the
+user pushes during a delegated run. IMP-078's count, four.
+
+**The checkpoint.** The 19 Applied entries carry their commits. `STATE.md`, `TREE.md` and
+`INDEX.md` stay clean templates here (`CONTRIBUTING.md`, *This repo's memory*); the README's
+tree already lists the new self-test, which the documentation check holds to the files.
+
+## Security gate
+- Under the gate: the release asserts security properties — the boundary's declarations in
+  `docs/04`, the pre-commit's known limits, `reset-task`'s "discarded", the prerequisite
+  check's "verified". The two lenses applied by ONE reviewer (task 11): the HIGH declared
+  where its claims live and compensated in `CLAUDE.md`, the MEDIUM resolved, the six LOW and
+  six INFO closed with a line or declared — IMP-103.
+
+## Problems encountered → cause → solution
+1. Four statements of task 6 said more or other than Claude Code's documentation → written
+   from WebFetch's answers about the pages — a model's reading, of the first part only of a
+   long page — and compressed in the writing; the *Settings reference* not read → re-read
+   from the pages' Markdown at the user's request, narrowed in `0c0d7c2`; IMP-105.
+2. The snapshot after the review differed → the user's push of round 2 moved the
+   remote-tracking ref → the reflog showed it; the main session went on with the fixes before
+   reporting it, against the rule's letter; IMP-106.
+3. The documentation check reported `/cd` as a missing command → its rule takes every
+   backticked `/word` for a command of the method → declared beside `/clear`.
+4. A probe command in the scratchpad began with `rm -rf` → the `deny` rule refused it →
+   rerun in a fresh directory, nothing removed.
+
+## Proposals
+- IMP-104, IMP-105 and IMP-106, open in `LEARNINGS.md`, for the next retro.
+
 ## Beside the approved scope — for the review (task 11)
 - Done in 9d75a78, with the user present: the guard's own comments claimed more than its
   cases — Bash, PowerShell and Monitor "the tools that run git", heredoc bodies "data", the
@@ -237,8 +312,7 @@ take several commits, one per round of the CI; each round needs the user's push.
 - The payload names no IMP number: the documentation check's `imp-number` refuses one; the
   why goes in prose.
 - Delegated agents read only: the snapshot before and after each delegation.
-- The upgrade 2.1.0 → 2.2.0 was rehearsed once on `493a4e1`, before the review's fixes, with
-  the scratchpad's `rh6-*.sh`: clean, LF and CRLF. Task 12 runs it again on the final
-  payload.
-- Next: block 0, round 3 (the review's fixes); the user's answer on the compensation for H1
-  (a line in `CLAUDE.md`); task 12.
+- Next: task 13 — the CHANGELOG 2.2.0 entry from the draft in the scratchpad
+  (`changelog-2.2.0-draft.md`), the bump computed on the content against the expected MINOR,
+  the final block 0, blocks 1 and 2 without a recovery block in advance; the rehearsal run
+  again with the entry in the clone.
