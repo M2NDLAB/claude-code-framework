@@ -228,7 +228,7 @@ step is a mechanism, not more text.
 - [x] 8. The greenfield graft, `SETUP.md` §0-§4: IMP-109, IMP-110 (form A; a remote the forge initialised), IMP-107, IMP-113, IMP-108 — commit: d29449f, b2b7458, a0531ef, b11d1db
 - [x] 9. The claims beside the scope: IMP-123's part (`docs/04`'s allow list), IMP-124's Level 1 (`docs/00`'s selective loading) — commit: 24010c2, 6259b15
 - [x] 10. The rehearsal: the upgrade 2.2.0 → 3.0.0, and 1.2.0 → 3.0.0 in the form of the project upgraded next, LF and CRLF, the fixture synthetic; the self-tests' new fixtures synthetic too — commit: 3feb827, 1ae21c5, ce0516e
-- [ ] 11. The security gate: ONE reviewer, read-only, the two lenses, the snapshot before and after; HIGH fixed, MEDIUM resolved or accepted with its reason, LOW per IMP-103 — commit: —
+- [x] 11. The security gate: ONE reviewer, read-only, the two lenses, the snapshot before and after; HIGH fixed, MEDIUM resolved or accepted with its reason, LOW per IMP-103 — commit: 2ed33a9, 07e2e19, 7c81d6c, f0c90e3, 8efe25e, 420448f, 2f17499
 - [ ] 12. `/fw:retro`, `/fw:checkpoint`, the CHANGELOG's 3.0.0 entry and the bump stated — then stop before `/integrate`'s blocks: block 0, the user's push and the CI on the three systems, comes first — commit: —
 
 Each applying commit carries its IMP's part of the text and moves the entry to Applied; the
@@ -366,6 +366,50 @@ shas go into the headings with a later commit, as in v2.2.0.
 - For the CHANGELOG: a project's `STATE.md` and `TREE.md` name the old commands; the upgrade
   leaves them, its checkpoint rewrites `STATE.md` and regenerates `TREE.md` — the structure
   changed —, and the session notes stay history.
+
+## Task 11 — the security gate
+- ONE reviewer, a workflow agent on the session's model, read-only, its brief pointing at this
+  note's decisions; the two lenses of `docs/03`; the range `a45fab2..6a6badd`; a stall budget
+  of 60 minutes, used 35. The snapshot before and after identical, the tree clean. Its full
+  structured output stays in the session's scratchpad, which is not durable, and is not
+  copied here — it holds a path of this machine —: this section is the record.
+- No CRITICAL or HIGH. One MEDIUM, six LOW, five INFO, each fixed or closed by its text:
+  - SG-01 MEDIUM — here the memory-only exemption also covered the memory files the framework
+    ships (the guide READMEs, the templates, `LEARNINGS.md`'s header), against
+    `CONTRIBUTING.md`'s own release test: narrowed to the framework's records; `docs/00` says a
+    shipped memory file is product in a project whose documentation is its product (2ed33a9).
+    The user's decision 5 kept its intent: records between deliverables close lighter.
+  - SG-02 LOW — `git diff --name-only` hides a rename's old path: `--no-renames` (2ed33a9).
+  - SG-03 LOW, SG-04 LOW, SG-09 INFO — the allow list's forms (`tree --fromfile`, measured,
+    `tree -R`, the default external diff, `--output` onto the boundary's files,
+    `git branch --delete --force`, `git commit -n`), `docs/03`'s limit for `--no-verify`, the
+    ask bullet's shell sentence; the ask rule in `bypassPermissions` sourced from the
+    permission-modes page, fetched on 2026-10-15 (07e2e19); IMP-123's deferred restriction
+    gets the forms.
+  - SG-05 LOW, SG-11 INFO — the copy's chain checks its tag first, red first: Case 11 ran the
+    blocks under the test's own pipefail, which hid the defect, and now runs each in a shell
+    of its own; the `export-ignore` limit declared; step 1 says the user runs its blocks, that
+    a hook from the user's git configuration may run, and how to copy beside a forge's
+    `.gitignore` (8efe25e).
+  - SG-06 LOW — step 2's grep read `.git/` and listed the generated pre-commit as a slot:
+    `--exclude-dir=.git`, red first in Case 10 (7c81d6c).
+  - SG-07 LOW, SG-08 INFO — what the bare names run once the old commands are gone, and the two
+    collisions the namespace leaves open (420448f).
+  - SG-10 INFO — an import loads without its frontmatter and block comments; the TREE.md
+    template's legend (2f17499).
+  - SG-12 INFO — `awk -v` read a backslash in T's path, so a double rename did not compose:
+    the path travels in the environment, red first with a backslash T and a double rename;
+    SETUP.md's splice of `LEARNINGS.md`'s format comment, the same defect, dropped the comment
+    with no error, measured (f0c90e3).
+- From the rehearsal, beside the review: edge case 8's third step would have run
+  `YES=1 make reset-task` on the upgrade branch; it checks with `make -n` now (420448f).
+- Not measured, declared: whether Claude Code's rules stop `tree --fromfile .env`; `tree -R`'s
+  writes; an `export-ignore` in the clone's or the user's attributes; a hook from
+  `init.templateDir` on the empty commit; which shell writes prompt in each mode. The Claude
+  Code ones join IMP-111's measurement session (IMP-123's trigger).
+- The reviewer's gaps, declared: nothing that writes was run; GNU tar, Git Bash and git 2.31
+  not measured; `tools/docs-check.mjs` read through its diff only; the files unchanged in the
+  range not reviewed again.
 
 ## Resumption notes
 - The payload names no IMP number (the documentation check's `imp-number`).
