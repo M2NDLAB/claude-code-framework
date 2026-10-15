@@ -167,6 +167,9 @@ Here is the complete list, grouped by file:
       (*Merge*); what the project's public contract is, the criterion of a MAJOR
       (*Versioning*).
 
+These three docs are HYBRID: an answer written inline, or a pointer to `CLAUDE.md` in place
+of the slot, survives every upgrade, which merges them three ways.
+
 ### `.claude/commands/fw/`
 - [ ] `fw/checkpoint.md`: patterns to ignore for `tree`, name of the integration branch — its
       placeholders `<pattern-to-ignore-for-the-stack>` and `<integration>`, then the
@@ -555,15 +558,16 @@ into one of these classes — file by file, the authority is the class table of
 `tools/upgrade-check.sh` (`classes <tag>` prints it), and a payload file without a class
 makes the framework's own self-test fail:
 
-- **METHOD** (pure framework, brought to `vY`): `.claude/docs/00-06`, the
-  non-customised commands in `.claude/commands/`, `scripts/reset-task.sh`,
+- **METHOD** (pure framework, brought to `vY`): `.claude/docs/00-01` and
+  `.claude/docs/05-06`, the non-customised commands in `.claude/commands/fw/`, `scripts/reset-task.sh`,
   `scripts/agent-git-guard.mjs`, `scripts/repo-snapshot.sh`,
   `scripts/check-prerequisites.sh`, the self-tests `scripts/test-*.sh`,
   `scripts/README.md`, `commitlint.config.cjs`.
 - **HYBRID** (a framework part that evolves + a project part to preserve, reconciled):
   `CLAUDE.md`, `.claude/settings.json`, `scripts/hooks-install.sh`, `.gitignore`,
-  `.gitattributes`, `Makefile`, and the commands customised at setup (`fw/checkpoint.md`, `fw/integrate.md`,
-  `fw/new-component.md`).
+  `.gitattributes`, `Makefile`, the docs a project answers at setup (`.claude/docs/02-04`,
+  inline or with a pointer to the technical rules), and the commands customised at setup
+  (`fw/checkpoint.md`, `fw/integrate.md`, `fw/new-component.md`).
 - **MEMORY TEMPLATES** (the method's own files inside `.claude/memory/`, reconciled 3-way
   like the hybrids): the four guide READMEs — the `README.md` of `components/`,
   `decisions/`, `plans/` and `sessions/` — and, of `LEARNINGS.md`, its HEADER (the lines
@@ -879,7 +883,8 @@ from a hand-written list; the memory's titles and field labels to rename; and th
   one that was REMOVED **disappears**; one that was MOVED or co-edited surfaces as a
   **conflict** to resolve by hand. Always re-apply the project's
   `[TO BE DEFINED AT SETUP]` answers (branch names, `tree` patterns, formatter, the
-  stack's allow-list, the whole "Technical rules" section of `CLAUDE.md`) — and if `vY`
+  stack's allow-list, the answers in `docs/02`-`04`, the whole "Technical rules" section of
+  `CLAUDE.md`) — and if `vY`
   MOVED a slot to another file, see edge case 8 before merging either file. `.gitignore`
   is INTEGRATED (additive union: make sure the lines of the `vY` base —
   `git -C "${FW:?}" show vY:<path>` — are present without removing the project's), and
@@ -1242,11 +1247,11 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    per version.
 
 7. **Pre-flight: has the "pure METHOD" file been customised inline?** The METHOD class
-   assumes that `docs/02/03/04` stay templates (their `[TO BE DEFINED]` slots are
-   resolved by convention in `CLAUDE.md` with a pointer). But if the project filled them
-   in **inline** — or freely edited an otherwise pure file (`commitlint.config.cjs`, a
-   doc) — that file is in fact a HYBRID, and the overwrite destroys its customisation
-   silently. Before overwriting a METHOD-class file, **inspect** that it really is
+   assumes a file stays as the framework wrote it. (The docs a project answers at setup,
+   `docs/02`, `03` and `04`, are HYBRID from v3.0.0: their answers are merged, never
+   overwritten.) But if the project freely edited an otherwise pure file
+   (`commitlint.config.cjs`, a doc, a command) that file is in fact a HYBRID, and the
+   overwrite destroys its customisation silently. Before overwriting a METHOD-class file, **inspect** that it really is
    untouched with respect to `vX` — `vX`'s copy read by tag, then compared:
    `git -C "${FW:?}" show vX:<path> > "${T:?}/base" && diff "${T:?}/base" <path>`. A
    bare `git diff vX -- <path>` in the project compares against the PROJECT's `vX`, the

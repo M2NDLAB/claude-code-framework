@@ -221,24 +221,6 @@ tags: [improvement]
   unchanged; the `Makefile`'s help takes `CLAUDE.md`'s wording; the test inside the hooks'
   Case 7.
 
-### IMP-115 — `SETUP.md` asks to fill the slots of `docs/02`-`04`, the upgrade classes them METHOD
-- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
-  project (the project's entry 009, 2026-10-14): filling the docs' slots in a greenfield
-  graft
-- Observed problem: `SETUP.md` §2 asks to fill slots in `02-code-quality.md`,
-  `03-security-gate.md` and `04-git-workflow.md`. The upgrade's class table puts
-  `.claude/docs/00-06` in METHOD (overwritten), and edge case 7 then has to detect them as
-  hybrids "customised inline". Following §2 literally makes the next upgrade harder.
-- Proposal: one rule: either the docs' slots are answered ONLY in `CLAUDE.md` (no slot left
-  in METHOD files, the markers rephrased as pointers), or `docs/02`-`04` are classed HYBRID;
-  §2 and the class table say the same thing.
-- Expected benefit / risk: a greenfield project's first upgrade has no edge case 7 by
-  construction. Risk: moving the slots is a migration (edge case 8) for existing projects.
-- Kin: IMP-050 (points 3-4), IMP-088.
-- Status: APPROVED on 2026-10-15 — option (b): `docs/02`, `03` and `04` classed HYBRID,
-  nothing to migrate; option (a) would move their slots into `CLAUDE.md`, a migration close
-  to the breaking criterion.
-
 ### IMP-116 — `integrate.md`: "replace the placeholders" is ambiguous, and trunk-based is not covered
 - Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
   project (the project's entry 010, 2026-10-14): filling `.claude/commands/integrate.md` in
@@ -2109,6 +2091,25 @@ line on; older entries are not backfilled.
   named `fw`, listed as `/fw:<name>` when its names clash.
 - Measured at the release's rehearsal, not here: the conflicts the rename brings to a project's
   3-way — rule 8's line of `CLAUDE.md` carries its slot and the command's name.
+
+### IMP-115 — `SETUP.md` asks to fill the slots of `docs/02`-`04`, the upgrade classes them METHOD → applied on 2026-10-15
+- Origin: a test project's harvest, the project's entry 009 ([[2026-10-14-test-project-harvest]];
+  the retro, [[2026-10-15-harvest-retro-3.0.0]]) — §2 asked for answers in `docs/02`, `03` and
+  `04`, the class table overwrote them as METHOD, and only edge case 7's CHECK kept an inline
+  answer; the 2.1.0 and 2.2.0 Upgrading notes listed them to bring over from the tag. The
+  project upgraded next has treated `docs/03` and `docs/04` as hybrids since its first upgrade.
+- Applied (option (b), the user's decision): `classify()` puts the three docs in HYBRID; the
+  class table names `.claude/docs/00-01` and `05-06` as METHOD and `.claude/docs/02-04` as
+  HYBRID, answered inline or with a pointer; edge case 7 keeps its pre-flight for any other
+  METHOD file edited inline; §2 says, outside its items, that these docs' answers survive
+  every upgrade; Step 3's answers to re-apply name them. Nothing migrates: an untouched doc
+  merges to `vY`'s text, an answered one keeps its answer. Option (a), the slots moved into
+  `CLAUDE.md`, was a migration for every project that answered inline.
+- Verified: red first — with a project's `docs/04` answered inline, the upgrade check as
+  committed printed "edge case 7: .claude/docs/04-git-workflow.md is METHOD but customised";
+  now `inventory` shows it as a HYBRID and `post` holds it to no `vY` text; the suite green.
+- Consequence: every later change to `docs/02`-`04` keeps CONTRIBUTING's distance from their
+  slots, and the release's rehearsal answers them inline.
 
 ## Deferred (not rejected — resumed at the right time)
 

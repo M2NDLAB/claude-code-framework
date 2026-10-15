@@ -123,15 +123,15 @@ classify() {
     .claude/framework-version) echo GRAFT-STATE ;;
     .claude/settings.local.json | .claude/worktrees/*) echo LOCAL ;;
     CLAUDE.md | .claude/settings.json | .gitignore | .gitattributes | Makefile | scripts/hooks-install.sh | \
+    .claude/docs/02-code-quality.md | .claude/docs/03-security-gate.md | \
+    .claude/docs/04-git-workflow.md | \
     .claude/commands/fw/checkpoint.md | .claude/commands/fw/integrate.md | \
     .claude/commands/fw/new-component.md | \
     .claude/commands/checkpoint.md | .claude/commands/integrate.md | \
     .claude/commands/new-component.md)
       echo HYBRID ;;
     .claude/docs/00-overview.md | .claude/docs/01-task-planning.md | \
-    .claude/docs/02-code-quality.md | .claude/docs/03-security-gate.md | \
-    .claude/docs/04-git-workflow.md | .claude/docs/05-escalation-protocol.md | \
-    .claude/docs/06-self-improvement.md | \
+    .claude/docs/05-escalation-protocol.md | .claude/docs/06-self-improvement.md | \
     .claude/commands/fw/harvest-framework.md | .claude/commands/fw/lint-memory.md | \
     .claude/commands/fw/retro.md | .claude/commands/fw/security-review.md | \
     .claude/commands/fw/sos.md | \

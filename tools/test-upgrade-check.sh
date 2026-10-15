@@ -13,7 +13,8 @@
 #      a tag on the pinned commit is suggested, never applied.
 #   3. inventory — on the same pair: the measured 3-way of a co-edited hybrid, the edge
 #      cases (7, 1, 6, a mode), a slot that moved (edge case 8), the §2 diff, the titles
-#      and labels to rename, the Upgrading notes in release order.
+#      and labels to rename, the Upgrading notes in release order; a doc the project
+#      answered inline, docs/04, is a HYBRID, never edge case 7.
 #   4. invariant — an upgrade that touched the memory only as allowed passes (templates at
 #      vY, titles and labels renamed, a pointer repaired, its own note, plan and decision
 #      added); each violation fails with exactly one FAIL: an IMP entry edited, deleted,
@@ -24,9 +25,9 @@
 #      under a hostile git configuration; a restore point after which nothing changed
 #      fails.
 #   5. post — a reconciled project passes, with the reconciled METHOD file and the moved
-#      slot shown to a human; an orphan, a wrong mode, a missing hook, a missing METHOD
-#      file, a METHOD file left at vX, conflict markers and a marker broken by a wrap
-#      fail.
+#      slot shown to a human, and with docs/04 answered inline; an orphan, a wrong mode, a
+#      missing hook, a missing METHOD file, a METHOD file left at vX, conflict markers and
+#      a marker broken by a wrap fail.
 #   6. line ends — the graft, the upgraded memory and the reconciled project, rebuilt in a
 #      copy whose files all have CRLF line ends (core.autocrlf=true: a Windows checkout),
 #      print the very lines they print with LF, for inventory, invariant and post; git
@@ -241,6 +242,12 @@ has "| **Upgrading from 1.0.1**: move your protected branches to the Makefile fi
 FW="${FWD}" T="${T_DIR}" run 0 "${PRJ}" inventory v1.0.0 v1.0.1
 has "v1.0.1's field labels are still the old form: none to rename"
 hasnt "old-form field label"
+# docs/04 answered inline: a HYBRID's answer, merged 3-way — not a METHOD file customised.
+put "${PRJ}" .claude/docs/04-git-workflow.md '# 04\nMerge form: the integrate block\n'
+FW="${FWD}" T="${T_DIR}" run 0 "${PRJ}" inventory v1.0.0 v1.1.0
+has "HYBRID    =  diverged  .claude/docs/04-git-workflow.md"
+hasnt "edge case 7: .claude/docs/04-git-workflow.md"
+g -C "${PRJ}" checkout -q -- .claude/docs/04-git-workflow.md
 echo "PASS (upgrade-check inventory): the 3-way measured, the edge cases flagged, the moved slot, §2, titles and labels, the notes in order."
 
 # --- Case 4: invariant ----------------------------------------------------------------
@@ -387,6 +394,11 @@ has "PROTECTED_BRANCHES = main dev"
 has "OK     pre-push installed, with the generator's marker"
 has "OK     no orphan of a file v1.1.0 removed"
 has "CHECK  the pin reads 'v1.0.0': Step 6 writes 'version: v1.1.0'"
+# docs/04 answered inline passes: a HYBRID's answer is never held to vY's text.
+reconciled_state
+put "${PRJ}" .claude/docs/04-git-workflow.md '# 04\nMerge form: the integrate block\n'
+FW="${FWD}" T="${T_DIR}" run 0 "${PRJ}" post v1.0.0 v1.1.0
+hasnt ".claude/docs/04-git-workflow.md (METHOD) differs"
 break_post "an orphan" "scripts/test-repo-snapshot.sh is an orphan" \
   put "${PRJ}" scripts/test-repo-snapshot.sh 'echo removed in 1.1.0\n'
 break_post "a mode" "scripts/reset-task.sh: mode 100644, v1.1.0's is 100755" \
