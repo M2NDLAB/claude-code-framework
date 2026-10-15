@@ -1963,6 +1963,12 @@ line on; older entries are not backfilled.
   integrated with the no-tag blocks, the CI green where the project has one; with any other
   file, the full cycle. Only the reconciliation of the previous merge rides on the next
   deliverable. `CONTRIBUTING.md` adopts the rule here (`chore/memory-<slug>`, block 0's CI).
+- Narrowed by the release's security gate (its MEDIUM and a LOW, [[2026-10-15-harvest-retro-3.0.0]]):
+  the diff is read with `--no-renames`, which lists the old path of a file moved into the
+  memory; in a project whose documentation is its product, a memory file it ships is product
+  (`docs/04`, *Versioning*). Here the exemption covers the framework's own records — the dated
+  session notes and `LEARNINGS.md`'s entries —: the memory's starting files are payload, a
+  release with the full cycle, as `CONTRIBUTING.md`'s release test already said.
 - Verified: the documentation check passes. The rule's first use is the next record made
   between deliverables, here or in a project.
 

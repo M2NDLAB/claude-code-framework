@@ -134,12 +134,14 @@ lighter (*Scope and session hygiene*, below).
   whatever its size and in either branching model: it goes on a branch of its own, never
   onto the integration branch, and is integrated before the next deliverable's branch
   starts. A branch whose diff touches only `.claude/memory/` — the criterion is mechanical:
-  every path `git diff --name-only origin/<integration branch>...HEAD` lists starts there —
-  is exempt from the security gate and from `/fw:retro`: it closes with `/fw:checkpoint`,
-  its note's gate line saying why, and is integrated with `/fw:integrate`'s no-tag blocks,
-  the CI green where the project has one. With any other file, the full cycle. Only the
-  reconciliation of the previous merge rides on the next deliverable (*The end-of-deliverable
-  cycle*, above).
+  every path `git diff --no-renames --name-only origin/<integration branch>...HEAD` lists
+  starts there, the old path of a rename included — is exempt from the security gate and
+  from `/fw:retro`: it closes with `/fw:checkpoint`, its note's gate line saying why, and is
+  integrated with `/fw:integrate`'s no-tag blocks, the CI green where the project has one.
+  With any other file, the full cycle; and in a project whose documentation is its product, a
+  file of `.claude/memory/` that it ships is product, not memory (`04-git-workflow.md`,
+  *Versioning*). Only the reconciliation of the previous merge rides on the next deliverable
+  (*The end-of-deliverable cycle*, above).
 - **Effort proportional to the consequences of being wrong.** "Expensive" reasoning
   (high model/effort) is reserved for where correctness has consequences: sensitive
   implementations, security reviews, adversarial analysis. For reading, structured

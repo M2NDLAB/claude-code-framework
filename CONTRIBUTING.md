@@ -15,9 +15,14 @@ This repo applies to itself the method it describes (`.claude/docs/`):
 - **Feature branch** for every change (`feat/...`, `fix/...`, `docs/...`, `chore/...`):
   never work directly on the integration branch. A record made between deliverables goes on
   a branch of its own too (`chore/memory-<slug>`), as `docs/00` says (*Scope and session
-  hygiene*): a branch whose diff touches only `.claude/memory/` skips the gate and the
-  retro, and is integrated with the no-tag blocks once block 0's CI is green. Ten
-  memory-only commits went straight onto `main` before this rule.
+  hygiene*): a branch whose diff touches only the framework's own records — the dated notes
+  of `sessions/` and the entries of `LEARNINGS.md`, by `git diff --no-renames --name-only`
+  and, for `LEARNINGS.md`, by its diff — skips the gate and the retro, and is integrated with
+  the no-tag blocks once block 0's CI is green. The memory's starting files are payload here
+  (*What this framework ships*, below): a change to one of them — a guide README, the
+  templates of `STATE.md`, `TREE.md` and `INDEX.md`, `LEARNINGS.md`'s header, titles or
+  format comment — is a release, with the full cycle. Ten memory-only commits went straight
+  onto `main` before this rule.
 - **Conventional Commits**, checked by the commit-msg hook: types in
   `commitlint.config.cjs`, format and rules in
   `.claude/docs/04-git-workflow.md`. Install the hooks with `make hooks-install`
