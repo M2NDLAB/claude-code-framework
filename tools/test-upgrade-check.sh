@@ -51,7 +51,8 @@
 #      command file remains, and passes the orphans once they are gone.
 #  10. the marker grep — read from SETUP.md's step 2 and run as a project runs it: it prints
 #      the slots, the legacy one included, and none of the records it excludes (a kept
-#      SETUP.md, the backlog, a dated session note), with the platform's own grep.
+#      SETUP.md, the backlog, a dated session note) nor the hooks the install generates in
+#      .git/, with the platform's own grep.
 #  11. step 1 of a greenfield graft — its blocks read from SETUP.md and run on a throwaway
 #      framework: the repository starts with its empty commit; the copy is the tag's, not a
 #      later commit's nor a file the framework does not track, keeps the scripts executable
@@ -638,12 +639,16 @@ put "${G}" .claude/memory/decisions/README.md 'ADR home: [TO BE DEFINED AT SETUP
 put "${G}" SETUP.md 'prose that names the [TO BE DEFINED AT SETUP] marker\n'
 put "${G}" .claude/memory/LEARNINGS.md 'an entry that names the [TO BE DEFINED AT SETUP] marker\n'
 put "${G}" .claude/memory/sessions/2026-01-02-start.md 'a note that names the [TO BE DEFINED AT SETUP] marker\n'
+# The hooks the install generates carry the formatting slot while it is open, and an earlier
+# release's hook its .bak: generated files, never slots to fill by hand.
+put "${G}" .git/hooks/pre-commit '# 2. AUTOMATIC FORMATTING — [TO BE DEFINED AT SETUP].\n'
+put "${G}" .git/hooks/pre-commit.bak '# 2. AUTOMATIC FORMATTING — [TO BE DEFINED AT SETUP].\n'
 ( cd "${G}" && eval "${grep_line}" ) | sed 's#^\./##' | LC_ALL=C sort > "${out}" || true
 printf '%s\n' '.claude/memory/decisions/README.md:1:ADR home: [TO BE DEFINED AT SETUP]' \
   'CLAUDE.md:1:Stack: [TO BE DEFINED AT SETUP]' 'docs/legacy.md:1:Old: [DA DEFINIRE AL SETUP]' \
   | LC_ALL=C sort > "${workdir}/grep.expected"
 diff "${workdir}/grep.expected" "${out}" >/dev/null || fail "marker grep: it printed other lines than the three slots"
-echo "PASS (upgrade-check marker grep): SETUP.md's grep prints the slots, the legacy one included, and none of the records it leaves out."
+echo "PASS (upgrade-check marker grep): SETUP.md's grep prints the slots, the legacy one included, and none of the records it leaves out nor the generated hooks."
 
 # --- Case 11: step 1 of a greenfield graft ------------------------------------------------
 # The two blocks a new project runs before its setup, read from the guide: the start of the

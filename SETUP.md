@@ -192,7 +192,7 @@ the project's repository and the `.gitattributes` the copy brought, not the clon
 Look for the markers in the template:
 
 ```bash
-grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" --exclude=SETUP.md --exclude=LEARNINGS.md --exclude='[0-9][0-9][0-9][0-9]-*' .
+grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" --exclude-dir=.git --exclude=SETUP.md --exclude=LEARNINGS.md --exclude='[0-9][0-9][0-9][0-9]-*' .
 ```
 
 > **Convention (grep visibility).** A `[TO BE DEFINED AT SETUP]` *slot* to be filled
@@ -202,7 +202,10 @@ grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" --exclude=SETUP.md --exc
 > the framework's own files the literal marker appears in slots only — prose calls it the
 > setup marker —, so every line the grep prints from them is a slot to fill; its
 > exclusions leave out what records the marker rather than marks a slot: a copy of this
-> guide kept in the project, the backlog of `LEARNINGS.md`, the dated session notes.
+> guide kept in the project, the backlog of `LEARNINGS.md`, the dated session notes — and
+> `.git/`, whose hooks `make hooks-install` generates: while the formatting slot of
+> `scripts/hooks-install.sh` is open, the generated pre-commit carries it too, and is
+> answered there, never by hand in the hook.
 > `/fw:lint-memory` has a sentinel that flags broken slots (check 10). The grep also
 > accepts the legacy Italian marker, so a project grafted before the English marker
 > was introduced is still covered.
