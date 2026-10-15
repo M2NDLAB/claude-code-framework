@@ -62,11 +62,15 @@ components the task touches.
 
 ## The end-of-deliverable cycle (the standard sequence)
 
-A *deliverable* (a complete heavy unit: a feature, a component, a block of work) is
-ALWAYS closed with this ordered sequence. The building blocks already exist in the
-docs; what is fixed here is their ORDER, so that none of them is forgotten. Small,
-isolated tasks do not need the full ritual (see `01-task-planning.md`): the
-Definition of Done and the commit are enough.
+A *deliverable* is a unit of work that goes to integration — a feature, a component, a
+fix, a block of work —, whatever its size, and it is ALWAYS closed with this ordered
+sequence: heaviness decides whether it gets a plan (`01-task-planning.md`), never whether
+it closes with the cycle. A light deliverable has no plan and still closes with it;
+`/fw:retro` is a no-op where there was no friction. The building blocks already exist in
+the docs; what is fixed here is their ORDER, so that none of them is forgotten. The tasks
+committed inside a deliverable, without an integration of their own, need only their
+Definition of Done and their commit; a branch whose diff touches only the memory closes
+lighter (*Scope and session hygiene*, below).
 
 1. **Construction** — execution in atomic tasks, each with its Definition of Done
    green (`01-task-planning.md`, `02-code-quality.md`). It is the precondition of

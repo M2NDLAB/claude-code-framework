@@ -204,27 +204,6 @@ tags: [improvement]
   the marker, and `/harvest-framework` excludes the format comment's line. The harms that do:
   the numbering, `/retro` and `/lint-memory` over the framework's entries and notes.
 
-### IMP-120 — Is a deliverable that is not "heavy" closed with the full cycle?
-- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
-  project (the project's entry 014, 2026-10-14): the first deliverable's retro; seen again
-  at the second
-- Observed problem: `docs/00` ties "deliverable" to "a complete heavy unit" and says small
-  tasks do not need the full ritual; `docs/01`'s PHASE 1 measures heaviness (~8-10 files,
-  ~400 lines). Two complete user-facing features (6 files / ~350 lines, then 3 files / ~125
-  lines) were NOT heavy by `docs/01`, yet the user called them deliverables and wanted them
-  integrated; the agent ran the full cycle because `/integrate` was asked. The docs leave
-  the light-but-complete case undecided.
-- Proposal: decouple the axes in `docs/00`: heaviness decides the PLAN (`docs/01`); the
-  end-of-deliverable cycle is triggered by "a unit that will be integrated" (a branch going
-  to `/integrate`), whatever its size; "small, isolated tasks" are those committed without
-  their own integration.
-- Expected benefit / risk: no doubt on when `/retro` and `/checkpoint` are due. Risk:
-  slightly more ritual for small integrated fixes (`/retro` is a no-op without friction).
-- Kin: IMP-006 (the single end-of-deliverable cycle).
-- Status: APPROVED on 2026-10-15 — a deliverable is a unit of work that goes to integration,
-  whatever its size; heaviness decides the plan only; the exemption of a memory-only branch is
-  IMP-119's.
-
 ### IMP-123 — The shipped allow list admits more than reading
 - Date: 2026-10-15 | Origin: the retro's agents, the P1 lens on the shipped `settings.json` —
   [[2026-10-15-harvest-retro-3.0.0]]
@@ -2103,6 +2082,21 @@ line on; older entries are not backfilled.
   deliverable. `CONTRIBUTING.md` adopts the rule here (`chore/memory-<slug>`, block 0's CI).
 - Verified: the documentation check passes. The rule's first use is the next record made
   between deliverables, here or in a project.
+
+### IMP-120 — Is a deliverable that is not "heavy" closed with the full cycle? → applied on 2026-10-15
+- Origin: a test project's harvest, the project's entry 014 ([[2026-10-14-test-project-harvest]];
+  the retro, [[2026-10-15-harvest-retro-3.0.0]]) — two complete features, light by `docs/01`'s
+  measure, went to integration, and `docs/00` exempted "small, isolated tasks" from the whole
+  cycle, citing `docs/01`, which exempts them from the plan only; read to the letter, a small
+  change to a sensitive component skipped the gate too.
+- Applied: `docs/00` — a deliverable is a unit of work that goes to integration, whatever its
+  size; heaviness decides whether it gets a plan, never whether it closes with the cycle; a
+  light deliverable has no plan and still closes with it, `/fw:retro` a no-op without friction;
+  the tasks committed inside a deliverable need only their Definition of Done and their
+  commit; a memory-only branch closes lighter (IMP-119). `docs/01`'s PHASE 1: a small task
+  that goes to integration on its own is still a deliverable. The section's title, which
+  `SETUP.md` cites, is unchanged.
+- Verified: the documentation check passes.
 
 ## Deferred (not rejected — resumed at the right time)
 
