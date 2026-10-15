@@ -16,7 +16,7 @@ tags: [improvement]
 >
 > **The `Destination: framework` attribute.** In a CLIENT project an IMP may concern
 > the FRAMEWORK rather than this project: it is marked with the line
-> `- Destination: framework` (a single physical line, so `/harvest-framework` picks
+> `- Destination: framework` (a single physical line, so `/fw:harvest-framework` picks
 > it up via grep). Omitted = a lesson about this project, which stays in the client.
 > It is a DESTINATION attribute, not a level: the lesson stays a Level 2 one — see
 > `docs/06-self-improvement.md`, *"The bridge to the framework"*.
@@ -376,42 +376,6 @@ tags: [improvement]
   checks that every open thread of the notes it writes has an entry in *Caution & open issues*
   with its trigger, and the session-note format says the same; cited by *Format*, never by
   *Follow-up*, which sits inside the fenced template.
-
-### IMP-122 — The framework's commands hide Claude Code's built-in ones: the `fw` namespace
-- Date: 2026-10-15 | Origin: the user's reading and measurement, 2026-10-15 —
-  [[2026-10-15-harvest-retro-3.0.0]]
-- Observed problem: two of the framework's command names are Claude Code's own.
-  `/security-review` is a built-in command, which Claude can also invoke through the Skill
-  tool; `/checkpoint` is a built-in alias of `/rewind` (the commands page: "`/rewind` | …
-  Aliases: `/checkpoint`, `/undo`"). The skills page, *Resolve skills that share a name*: "In
-  a local terminal session, your skill replaces the built-in command, but not its aliases."
-  Measured by the user in a throwaway folder, Claude Code v2.1.299: `/security-review` runs the
-  framework's command, which hides the built-in one; `/checkpoint` runs the framework's command
-  too, which hides the alias — against the page's "not its aliases", a behaviour no page states
-  and that may change. Every project that uses the framework loses two of Anthropic's commands
-  and nothing says so; a built-in named later like another framework command would do the
-  same.
-- Proposal (the user's decision): every framework command moves into the `fw` namespace,
-  `.claude/commands/fw/<name>.md` → `/fw:<name>` — the skills page, *How a skill gets its
-  command name*: "File in a subdirectory of `.claude/commands/` | Subdirectory path relative
-  to `commands/` with each `/` replaced by `:`, then the file name without extension". Names
-  and references change, not the commands' logic; the session notes already written stay as
-  they are. `CONTRIBUTING.md`: a new framework command goes under `fw/` only, with a link to
-  the page of the built-in commands. `SETUP.md` describes the migration for the projects — the
-  old command files removed, the references updated; until then they keep hiding the
-  built-ins —; `upgrade-check.sh` flags the old command files left; the CHANGELOG declares the
-  incompatible change, with its migration step.
-- `fw` checked on 2026-10-15, the pages fetched as Markdown: no built-in command or bundled
-  skill named so, or starting so, and no use of the word in the commands, skills and plugins
-  pages; no plugin named `fw` installed on the maintainer's machine, nor among the 6,708 plugin
-  names of its marketplace cache. Residuals: a plugin named `fw` would namespace its skills as
-  `/fw:<name>` too ("plugin skills are namespaced as `/plugin-name:skill-name`"), and a nested
-  `.claude/skills/` under a project directory named `fw` is listed as `/fw:<name>` when its
-  names clash.
-- Expected benefit / risk: no framework command can hide a built-in one, nor be hidden by one,
-  by construction. Risk: a MAJOR — every command renamed —; every project migrates once, at its
-  upgrade.
-- Status: APPROVED on 2026-10-15 (the user's decision), for v3.0.0.
 
 ### IMP-123 — The shipped allow list admits more than reading
 - Date: 2026-10-15 | Origin: the retro's agents, the P1 lens on the shipped `settings.json` —
@@ -2107,6 +2071,44 @@ line on; older entries are not backfilled.
 - Uncovered: the check reads the images in the forms GitHub names them today —
   `macos-<release>`, `ubuntu-<release>`, `windows-<year>` —; an image named otherwise, with an
   `-arm` or `-intel` suffix, verifies nothing until the check learns its form.
+
+### IMP-122 — The framework's commands hide Claude Code's built-in ones: the `fw` namespace → applied on 2026-10-15
+- Origin: the user's reading and measurement, 2026-10-15 ([[2026-10-15-harvest-retro-3.0.0]])
+  — `/security-review` is a built-in command, and `/checkpoint` a built-in alias of `/rewind`
+  (Claude Code's commands page). The skills page, *Resolve skills that share a name*: "In a
+  local terminal session, your skill replaces the built-in command, but not its aliases." The
+  user measured, Claude Code v2.1.299, both framework commands hiding Anthropic's, the alias
+  too, against the page's "not its aliases": every project lost two of Claude Code's commands,
+  and nothing said so.
+- Applied (the user's decision): the eight commands moved with `git mv` from
+  `.claude/commands/` to `.claude/commands/fw/`, and run as `/fw:<name>` — the skills page,
+  *How a skill gets its command name*: a file in a subdirectory of `.claude/commands/` is named
+  by its path, each `/` replaced by `:`. Names and references changed, not the commands'
+  logic: `CLAUDE.md`, the seven docs, the commands themselves, the memory's templates,
+  `README.md`, `SETUP.md`, `SECURITY.md`, `CONTRIBUTING.md`; the session notes, the CHANGELOG
+  and the IMP entries are history and keep the old names. `CONTRIBUTING.md` gains the rule — a
+  new framework command goes under `fw/` only, with a link to Claude Code's commands page —,
+  and the documentation check fails a command file outside `fw/` and reads a namespaced name.
+  `SETUP.md`'s edge case 2 merges a renamed file the project customised into its new path —
+  base the old path at `vX`, theirs the new one at `vY` — and describes the namespace's
+  migration. `tools/upgrade-check.sh` classes the new paths and keeps the old ones, which an
+  upgrade from an earlier release reads at `vX`; `inventory` names each rename by what the
+  project holds, with its merge's measure, and no longer calls its old path a deletion; `post`
+  fails while an old command file remains. The documentation check's tripwire counts a
+  renamed file against its old path, read from the index.
+- Verified: once the files moved, this session's runtime listed the eight commands as
+  `fw:<name>`, and Claude Code's own `security-review` reappeared among its commands; the new
+  case of `tools/test-upgrade-check.sh` (renames) fails against the upgrade check of the
+  previous commit and passes; the tripwire, before its fix, reported "0 → 4 slot markers since
+  v2.2.0" on the moved `lint-memory.md`, nothing after; `tools/test-docs-check.sh` built its
+  base from HEAD and the unstaged deletions only, so a `git mv`'s old path stayed in it — it now
+  takes the staged deletions out and stages its base, as a commit takes it; the suite green.
+- `fw` collides with nothing Claude Code's pages name, nor with any plugin of the maintainer's
+  marketplace cache (6,708 names), read on 2026-10-15. Declared residuals: a plugin named `fw`,
+  whose skills would be `/fw:<name>` too; a nested `.claude/skills/` under a project directory
+  named `fw`, listed as `/fw:<name>` when its names clash.
+- Measured at the release's rehearsal, not here: the conflicts the rename brings to a project's
+  3-way — rule 8's line of `CLAUDE.md` carries its slot and the command's name.
 
 ## Deferred (not rejected — resumed at the right time)
 

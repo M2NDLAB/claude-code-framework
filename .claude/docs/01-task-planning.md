@@ -100,7 +100,7 @@ resumption.
 
 When all the tasks are ticked:
 - `status: completed` in the plan's frontmatter.
-- A full `/checkpoint` (memory, docs, `STATE.md`: prompt done, next one).
+- A full `/fw:checkpoint` (memory, docs, `STATE.md`: prompt done, next one).
 - The merge onto the integration branch and the push are handled by the user, never
   an autonomous push (see `04-git-workflow.md`).
 

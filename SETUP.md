@@ -129,7 +129,7 @@ Look for the markers in the template:
 > in ALWAYS sits on **a single physical line**: if word wrap breaks it at the end of a
 > line it escapes the grep above — and the one in Step 4 of the upgrade — and silently
 > stays unfilled. This holds for slots, not for prose that merely names the marker.
-> `/lint-memory` has a sentinel that flags broken slots (check 10). The grep also
+> `/fw:lint-memory` has a sentinel that flags broken slots (check 10). The grep also
 > accepts the legacy Italian marker, so a project grafted before the English marker
 > was introduced is still covered.
 
@@ -163,19 +163,19 @@ Here is the complete list, grouped by file:
       CLAUDE.md rule 8) — the same list `00-overview.md` points to in step 2 of the
       end-of-deliverable cycle.
 - [ ] `04-git-workflow.md`: branching model, **if** different from main/develop/feat;
-      the merge form the project adopts — Pull Request or the `/integrate` block
+      the merge form the project adopts — Pull Request or the `/fw:integrate` block
       (*Merge*); what the project's public contract is, the criterion of a MAJOR
       (*Versioning*).
 
-### `.claude/commands/`
-- [ ] `checkpoint.md`: patterns to ignore for `tree`, name of the integration branch — its
+### `.claude/commands/fw/`
+- [ ] `fw/checkpoint.md`: patterns to ignore for `tree`, name of the integration branch — its
       placeholders `<pattern-to-ignore-for-the-stack>` and `<integration>`, then the
       paragraph at its top that marks them.
-- [ ] `integrate.md`: real names of the integration and stable branches (the ROLES of
+- [ ] `fw/integrate.md`: real names of the integration and stable branches (the ROLES of
       `docs/04`) used in the integration block.
-- [ ] `new-component.md`: standard structure of a component in this project, and its
+- [ ] `fw/new-component.md`: standard structure of a component in this project, and its
       production artefact (until CLAUDE.md and this file are filled in,
-      `/new-component` is inert).
+      `/fw:new-component` is inert).
 
 ### `.claude/memory/`
 - [ ] `TREE.md`: the `-I '...'` pattern for `tree` suited to your stack.
@@ -297,8 +297,8 @@ Open Claude Code in the project root and give it a command like this one:
 From here on the cycle is the one in `.claude/docs/00-overview.md` (see "The
 end-of-deliverable cycle"). For every heavy prompt Claude Code will produce a plan in
 `.claude/memory/plans/`; at the end of a deliverable it will follow the sequence [if
-under the gate] `/security-review` → `/retro` → `/checkpoint` → `/integrate`; when it gets
-stuck, `/sos`. The periodic review of the IMP backlog stays `/retro` over the whole
+under the gate] `/fw:security-review` → `/fw:retro` → `/fw:checkpoint` → `/fw:integrate`;
+when it gets stuck, `/fw:sos`. The periodic review of the IMP backlog stays `/fw:retro` over the whole
 `LEARNINGS.md`.
 
 ## 5. Evolving the framework
@@ -309,7 +309,7 @@ back into the framework template, for the next project. It is the loop described
 the README's *Philosophy*.
 
 In practice: mark those IMPs with the line `- Destination: framework` (IMP format in
-the format comment of `LEARNINGS.md`), then run `/harvest-framework` — it collects the
+the format comment of `LEARNINGS.md`), then run `/fw:harvest-framework` — it collects the
 marked entries and prints a copyable block for them, ready to be anonymised and
 re-proposed in the framework repo (`CONTRIBUTING.md`), where a lesson already received
 counts once. The command only reads and
@@ -360,9 +360,9 @@ Two layers beyond the method, neither switched on by the template:
   default branch, *Block force pushes* and *Restrict deletions*; on `refs/tags/v*`,
   *Restrict updates* and *Restrict deletions* (force pushes blocked too). They stop the
   IRREVERSIBLE operations — rewriting or deleting the main line, moving or deleting a
-  release tag — for the human and the agent alike, and leave the `/integrate` flow alone:
+  release tag — for the human and the agent alike, and leave the `/fw:integrate` flow alone:
   a normal push and a NEW tag go through. They are not the push boundary (the `pre-push`
-  is). Do not add *Require a pull request* to a single-developer `/integrate` flow: it
+  is). Do not add *Require a pull request* to a single-developer `/fw:integrate` flow: it
   rejects the direct push of the local `--no-ff` merge, and an owner's bypass is also the
   bypass of an agent holding the owner's credential. Residual, outside the threat model:
   removing the ruleset, or writing to the remote with an owner credential (`gh`, `curl`).
@@ -455,7 +455,7 @@ On a pre-existing git history, before adopting the flow of `docs/04`:
 - [ ] **Audit of inherited tags**: `git cat-file -t <tag>` on each one (`tag` =
       annotated, `commit` = lightweight). The regime of `docs/04` (*Versioning*)
       creates annotated SemVer tags: work out which SemVer base the versioning
-      restarts from (the `/integrate` guard stops on a non-SemVer base); any
+      restarts from (the `/fw:integrate` guard stops on a non-SemVer base); any
       normalisation of the inherited tags is the user's decision — pushed tags are
       shared history.
 - [ ] **Version constants in the host's scripts/config**: if a version is hard-coded,
@@ -465,7 +465,7 @@ On a pre-existing git history, before adopting the flow of `docs/04`:
       `dev`), DECIDE and DECLARE the choice: trunk-based (the two roles coincide — a
       case `docs/04` provides for) or restoring the branch as the integration one.
       Record the choice in the `[TO BE DEFINED AT SETUP]` slots of `docs/04` and in the
-      commands' parameters (`checkpoint.md`, `integrate.md` — step 2 of this guide).
+      commands' parameters (`fw/checkpoint.md`, `fw/integrate.md` — step 2 of this guide).
 
 ### The first command becomes an ASSESSMENT that populates the memory
 
@@ -527,15 +527,15 @@ version **while preserving the accumulated project memory** (STATE, sessions,
 decisions, components, the IMP backlog).
 
 It is the DESCENDING direction of the bridge described in `docs/06` (*"The bridge to
-the framework"*): while `/harvest-framework` sends lessons UP from the project to the
+the framework"*): while `/fw:harvest-framework` sends lessons UP from the project to the
 framework, the upgrade sends a new version of the framework DOWN into the project. It
 is also the vehicle by which the framework's fixes (e.g. to `hooks-install.sh`) and a
 version's new `[TO BE DEFINED AT SETUP]` slots reach already-started projects.
 
 > **Mechanical checks, not an orchestrating command — a choice, not an omission.** The
 > procedure stays a guided MANUAL one, built on primitives that already exist (throwaway
-> branch, `make reset-task`, `/checkpoint`, `/integrate`, `make hooks-install`,
-> `/lint-memory`): what it asks of a human — how to resolve a conflict, which
+> branch, `make reset-task`, `/fw:checkpoint`, `/fw:integrate`, `make hooks-install`,
+> `/fw:lint-memory`): what it asks of a human — how to resolve a conflict, which
 > customisation to keep, how to answer a slot — differed at every real upgrade. Its
 > MECHANICS did not: which files changed and how much they collide with the project's,
 > which slots moved, whether the memory was touched only where allowed. They live in a
@@ -562,8 +562,8 @@ makes the framework's own self-test fail:
   `scripts/README.md`, `commitlint.config.cjs`.
 - **HYBRID** (a framework part that evolves + a project part to preserve, reconciled):
   `CLAUDE.md`, `.claude/settings.json`, `scripts/hooks-install.sh`, `.gitignore`,
-  `.gitattributes`, `Makefile`, and the commands customised at setup (`checkpoint.md`, `integrate.md`,
-  `new-component.md`).
+  `.gitattributes`, `Makefile`, and the commands customised at setup (`fw/checkpoint.md`, `fw/integrate.md`,
+  `fw/new-component.md`).
 - **MEMORY TEMPLATES** (the method's own files inside `.claude/memory/`, reconciled 3-way
   like the hybrids): the four guide READMEs — the `README.md` of `components/`,
   `decisions/`, `plans/` and `sessions/` — and, of `LEARNINGS.md`, its HEADER (the lines
@@ -1034,7 +1034,7 @@ Italian one.
   `vY`'s form.
 - `git diff --stat` and a per-file diff.
 - The project's `[TO BE DEFINED]` customisations survived in the reconciled files.
-- `/lint-memory` on the preserved memory against the new docs (pointers to
+- `/fw:lint-memory` on the preserved memory against the new docs (pointers to
   renamed/moved docs, STATE vs git, `LEARNINGS`↔`STATE` coherence, orphan pages).
 - The project's build/tests green (even if the upgrade is process-only, confirm the
   project still builds and commits).
@@ -1056,10 +1056,10 @@ graft), CREATE it now — that is the retrofit: from this upgrade on the baselin
 certain; unknown `grafted` → `n/a (retrofit YYYY-MM-DD)`. The pin lives outside
 `.claude/memory/`: the closed list of Step 5 needs no entry for it.
 
-`/checkpoint` (the upgrade's session note — `vX→vY`, what was reconciled, what the user
+`/fw:checkpoint` (the upgrade's session note — `vX→vY`, what was reconciled, what the user
 decided, and its security-gate line with the reason, since an upgrade rewrites the security
 baseline: the hooks, the permissions, a destructive guard; `STATE.md` with the updated
-framework version; `TREE.md` if the structure changed). Then `/integrate`: a process-only upgrade of the project does NOT bring
+framework version; `TREE.md` if the structure changed). Then `/fw:integrate`: a process-only upgrade of the project does NOT bring
 product features/fixes → bump **"no tag"** (`chore`, internal work, not a release):
 declare it and omit the tag. The merge of the upgrade branch and the push are HUMAN
 actions. If something does not add up at review time, the branch is thrown away: the
@@ -1082,18 +1082,47 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    doc/command (e.g. a renumbering of `docs/`), the overwrite creates the new name and
    **leaves the old one** → two files and an ambiguous `CLAUDE.md`/`TREE.md` index. Use
    `git -C "${FW:?}" diff -M vX vY` as an index of the renames to apply the move
-   (remove the old one, bring the new one), not a blind add+delete.
+   (remove the old one, bring the new one), not a blind add+delete. A file the project
+   customised — a HYBRID, or a METHOD file edited inline (edge case 7) — is not brought
+   over under its new name: it is MERGED into it, `base` the old path at `vX`, `theirs`
+   the new path at `vY`, `mine` the project's old file, from the project root:
+
+   ```bash
+   git -C "${FW:?}" show vX:<old path> > "${T:?}/base" \
+     && git -C "${FW:?}" show vY:<new path> > "${T:?}/theirs" \
+     && cp <old path> "${T:?}/mine" \
+     && git merge-file "${T:?}/mine" "${T:?}/base" "${T:?}/theirs"
+   ```
+
+   Resolve its conflicts in `"$T/mine"`, then put it at the new path and remove the old
+   one, in the same commit:
+
+   ```bash
+   mkdir -p "$(dirname <new path>)" && cp "${T:?}/mine" <new path> && git rm -q <old path>
+   ```
+
+   **The commands' namespace, from v3.0.0.** Every command of the method moved from
+   `.claude/commands/` to `.claude/commands/fw/`, and runs as `/fw:<name>`. The eight files
+   are renames: the three customised at setup (`fw/checkpoint.md`, `fw/integrate.md`,
+   `fw/new-component.md`) and any other the project edited are merged as above, the rest
+   brought over from the tag; then the project's own references to the old names are
+   updated — its answers in `CLAUDE.md`, its own docs and commands —, while its session
+   notes are history and stay as they are. Until an old file is removed, Claude Code keeps
+   running it under its bare name, and two of them hide Claude Code's own commands of the
+   same name: its security review, and the checkpoint alias of its rewind. `inventory`
+   names each rename with the measure of its merge, and `post` fails while an old file
+   remains.
 
 3. **Memory lines the method reads by name — the declared touches of the closed list.**
    Two kinds of line in the project's memory are read by the method itself, and a `vY`
    that changes them leaves them stale:
    - **(a) Pointers towards renamed docs.** If `vY` renames/renumbers a doc, the
      `[[wikilink]]`s and the pointers (`docs/04:142`, …) in `STATE.md` and in the
-     sessions **dangle**, and `/lint-memory` will flag them as broken.
+     sessions **dangle**, and `/fw:lint-memory` will flag them as broken.
    - **(b) Section titles and field labels looked up by name.** The `## ` titles of
      `STATE.md` and `LEARNINGS.md`, and the field labels of the IMP entries
      (`- Origin:`, `- Observed problem:`, …), are FORMAT lines that the method reads by
-     name (`/checkpoint`, `/lint-memory`, `/retro`, `/harvest-framework`, `docs/03`,
+     name (`/fw:checkpoint`, `/fw:lint-memory`, `/fw:retro`, `/fw:harvest-framework`, `docs/03`,
      `docs/06`). Format is method (`CLAUDE.md`, rule 9): the project's titles and labels
      take `vY`'s form — the rename is mandatory, and a map from old to new is not an
      alternative. Do not wait for a `vY` that renames them: COMPARE at every upgrade,

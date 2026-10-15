@@ -425,7 +425,7 @@ function checkShortSlots() {
 }
 
 // --- Inventories: the documents' lists against the files they enumerate ------------------
-// The mechanical twin of /lint-memory's check 11, which projects run by hand.
+// The mechanical twin of /fw:lint-memory's check 11, which projects run by hand.
 const childrenOf = (dir) => new Set(FILES.filter((p) => p.startsWith(`${dir}/`))
   .map((p) => p.slice(dir.length + 1).split('/')[0] + (p.slice(dir.length + 1).includes('/') ? '/' : '')))
 const globSet = (names, truth) => new Set([...names].flatMap((n) => {
@@ -467,7 +467,14 @@ function readmeTree() {
 }
 function checkInventories() {
   section('Inventories — commands, targets, self-tests, tables and trees against the files')
-  const commands = new Set(FILES.map((p) => /^\.claude\/commands\/([^/]+)\.md$/.exec(p)?.[1]).filter(Boolean).map((c) => `/${c}`))
+  // A command's name is its path under .claude/commands/, each / a : — Claude Code's own rule
+  // for a file in a subdirectory: .claude/commands/fw/checkpoint.md runs as /fw:checkpoint.
+  const commands = new Set(FILES.map((p) => /^\.claude\/commands\/(.+)\.md$/.exec(p)?.[1]).filter(Boolean).map((c) => `/${c.replace(/\//g, ':')}`))
+  // Every command of the method lives under fw/: a bare name can be one of Claude Code's own,
+  // which a project command replaces, silently (CONTRIBUTING.md, This repo's workflow).
+  for (const p of FILES.filter((f) => /^\.claude\/commands\/.+\.md$/.test(f) && !f.startsWith('.claude/commands/fw/'))) {
+    report('inventory', p, 1, `a command outside .claude/commands/fw/: it would run under a name Claude Code may also use`)
+  }
   const slash = item('CLAUDE.md', /^- Slash commands:/)
   if (!slash) report('inventory', 'CLAUDE.md', 1, 'no "- Slash commands:" item in Quick commands')
   else compareSets('inventory', 'CLAUDE.md', slash.line, 'the Slash commands of Quick commands', commands,
@@ -476,11 +483,11 @@ function checkInventories() {
   const cmdLine = region('README.md', /^### Structure/, /^## /).find((l) => /commands\/\s+\//.test(l.text))
   if (!cmdLine) report('inventory', 'README.md', treeLine || 1, 'no commands/ line in the Structure tree')
   else compareSets('inventory', 'README.md', cmdLine.line, 'the Structure tree\'s commands/ line', commands,
-    new Set(cmdLine.text.slice(cmdLine.text.indexOf('commands/')).match(/\/[a-z][a-z0-9-]*/g)), '.claude/commands/')
+    new Set(cmdLine.text.slice(cmdLine.text.indexOf('commands/') + 'commands/'.length).match(/\/[a-z][a-z0-9-]*(?::[a-z][a-z0-9-]*)*/g)), '.claude/commands/')
   // Any command cited by name in the present documents must exist.
   for (const p of PRESENT.filter(isMd)) {
     for (const u of units(p, presentMask(p))) {
-      for (const m of u.text.matchAll(/`(\/[a-z][a-z0-9-]*)`/g)) {
+      for (const m of u.text.matchAll(/`(\/[a-z][a-z0-9-]*(?::[a-z][a-z0-9-]*)*)`/g)) {
         if (!commands.has(m[1])) report('inventory', p, u.at[m.index], `${m[1]}: no such command in .claude/commands/`)
       }
     }
@@ -692,7 +699,7 @@ function checkLinks() {
       }
     }
   }
-  for (const p of FILES.filter((f) => f === 'CLAUDE.md' || /^\.claude\/commands\/[^/]+\.md$/.test(f))) {
+  for (const p of FILES.filter((f) => f === 'CLAUDE.md' || /^\.claude\/commands\/.+\.md$/.test(f))) {
     lines(p).forEach((l, i) => {
       for (const m of l.matchAll(/(?:^|\s)@(\.claude\/[\w./-]+\.md)/g)) {
         n.at++
@@ -839,11 +846,16 @@ function checkLists() {
     }
   }
   // The tripwire: a file that gained a slot since the latest release needs a changed §2 item.
+  // A file renamed since then is counted against its old path, so a move gains nothing: the
+  // rename is read between the tag and the index — staged, as `git mv` leaves it —, which
+  // writes nothing, where a diff against the working tree would refresh the index.
   const prevSetup = LATEST_TAG ? blob(LATEST_TAG.name, SETUP) : null
   if (prevSetup) {
     const prevItems = checklistItems(prevSetup)
+    const renamedFrom = new Map((gitOr(['--no-optional-locks', 'diff', '--cached', '-M', '--name-status', LATEST_TAG.name, '--', ...PAYLOAD_PATHS]) ?? '')
+      .split('\n').map((l) => l.split('\t')).filter((f) => /^R/.test(f[0]) && f[2]).map((f) => [f[2], f[1]]))
     for (const p of slotted) {
-      const before = blob(LATEST_TAG.name, p) ?? ''
+      const before = blob(LATEST_TAG.name, renamedFrom.get(p) ?? p) ?? ''
       if (slotsOf(p) <= slotsOf(p, before)) continue
       const names = shortNames(p)
       const pick = (list) => list.filter((i) => names.some((n) => i.text.includes(n))).map((i) => i.text).join('\n')
@@ -962,14 +974,14 @@ function checkLists() {
       if (missing.length) report('list', p, u.at[m.index], `enumerates the backlog's sections without ${missing.join(', ')}`)
     }
   }
-  // The commit types: commitlint's, docs/04's, its bump table's, /integrate's.
+  // The commit types: commitlint's, docs/04's, its bump table's, /fw:integrate's.
   const types = new Set((/"type-enum":\s*\[\s*\d+,\s*"always",\s*\[([^\]]*)\]/.exec(text('commitlint.config.cjs'))?.[1] ?? '').match(/[a-z]+/g))
   const docs04 = '.claude/docs/04-git-workflow.md'
   const typesLine = lines(docs04).findIndex((l) => /^Types: /.test(l))
   compareSets('list', docs04, typesLine + 1, 'the Types line', types, new Set(backticked(lines(docs04)[typesLine] ?? '')), 'commitlint.config.cjs')
   const bump = lines(docs04).filter((l) => /^\| `/.test(l)).flatMap((l) => backticked(l.split('|')[1]).flatMap((t) => t.split('/'))).filter((t) => /^[a-z]+$/.test(t))
   compareSets('list', docs04, lines(docs04).findIndex((l) => /^\| Commit /.test(l)) + 1, 'the bump table', types, new Set(bump), 'commitlint.config.cjs')
-  const integrate = '.claude/commands/integrate.md'
+  const integrate = '.claude/commands/fw/integrate.md'
   const step2 = region(integrate, /^## 2\./, /^## 3\./).flatMap((l) => backticked(l.text)).flatMap((t) => t.split('/')).filter((t) => /^[a-z]+$/.test(t))
   compareSets('list', integrate, lines(integrate).findIndex((l) => /^## 2\./.test(l)) + 1, 'the bump rules', types, new Set(step2), 'commitlint.config.cjs')
   // The memory's titles and field labels: the tables of SETUP.md and upgrade-check.sh, the
@@ -1150,7 +1162,7 @@ const ALLOW = [
   { check: 'link', file: '.claude/docs/04-git-workflow.md', text: '`secrets/`', reason: 'a generic example of where secrets live' },
   { check: 'link', file: SETUP, text: '`adr/`', reason: 'an example of where a project keeps its ADRs' },
   // Lists.
-  { check: 'list', file: '.claude/commands/lint-memory.md', text: 'a slot SETUP.md §2 never names', reason: 'its markers are prose: check 10 names the marker it hunts, no slot' },
+  { check: 'list', file: '.claude/commands/fw/lint-memory.md', text: 'a slot SETUP.md §2 never names', reason: 'its markers are prose: check 10 names the marker it hunts, no slot' },
   { check: 'list', file: SETUP, text: '§2 names .claude/memory/LEARNINGS.md', reason: 'an action at setup (empty the live memory), not a slot' },
   { check: 'list', file: SETUP, text: '§2 names .claude/memory/STATE.md', reason: 'a template the first command populates, not a slot' },
   { check: 'list', file: SETUP, text: '§2 names .claude/memory/INDEX.md', reason: 'a template the first command populates, not a slot' },

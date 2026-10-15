@@ -29,7 +29,7 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
 - AT THE END of a task: session note in memory/sessions/, update the components/
   notes you touched, rewrite STATE.md, regenerate TREE.md if the structure changed.
   **A task without updated memory is NOT done.**
-- Use the /checkpoint slash command to do memory + docs + commit in one go.
+- Use the /fw:checkpoint slash command to do memory + docs + commit in one go.
 
 ## Non-negotiable global rules (process)
 1. **No secrets in plaintext** in the code or in committed config — only a secret
@@ -62,7 +62,7 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
    task (`make reset-task`) and resume from the first unticked task. The commits
    of completed tasks are never touched.
 8. **Security gate** per 03-security-gate.md: on sensitive components
-   ([TO BE DEFINED AT SETUP]) run /security-review BEFORE the PR; HIGH/CRITICAL
+   ([TO BE DEFINED AT SETUP]) run /fw:security-review BEFORE the PR; HIGH/CRITICAL
    findings resolved, MEDIUM resolved or accepted as debt in STATE.md (with the
    reason), LOW at least recorded.
 9. **Language** — two axes, and only one of them is yours to choose:
@@ -87,8 +87,8 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
    Past git history is never translated: it is immutable (see 04-git-workflow.md).
 
 ## Quick commands
-- Slash commands: `/checkpoint`, `/integrate`, `/sos`, `/retro`, `/security-review`,
-  `/new-component`, `/lint-memory`, `/harvest-framework`
+- Slash commands: `/fw:checkpoint`, `/fw:integrate`, `/fw:sos`, `/fw:retro`,
+  `/fw:security-review`, `/fw:new-component`, `/fw:lint-memory`, `/fw:harvest-framework`
 - `make hooks-install` — install the git hooks (gitleaks + commitlint + the pre-push push boundary)
 - `make test-scripts` — self-test of the framework scripts (hooks-install, the agent git guard, repo-snapshot, the prerequisite check, reset-task)
 - `make reset-task` — discard the interrupted half-done task (keeps commits; the
@@ -105,7 +105,7 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
 > - **Stack**: language(s), frameworks, runtime, versions.
 > - **Build & run**: build, test, lint and local-start commands (as Makefile targets
 >   too).
-> - **Standard structure of a component** (for /new-component): module layout,
+> - **Standard structure of a component** (for /fw:new-component): module layout,
 >   packaging conventions.
 > - **Code conventions** specific to the language (formatter/linter used by the
 >   hook, naming, idioms).

@@ -148,7 +148,7 @@ published is never deleted, whatever it points at; nor is a sound one.
 ```
 git tag -d v<X.Y.Z>
 ```
-Then repair what failed and run `/integrate` again. If `signature: OK` does not appear,
+Then repair what failed and run `/fw:integrate` again. If `signature: OK` does not appear,
 the tag is not published either: find out why first — an SSH signature, for one,
 verifies only with `gpg.ssh.allowedSignersFile` configured.
 
@@ -185,5 +185,5 @@ deleted.
 Do NOT run push/merge/tag: the blocks are for the user. The merge happens after the
 checkpoint, outside the session: until the next deliverable the memory records the state
 that awaits the blocks, never a merge not yet run. The next deliverable's first
-`/checkpoint` reconciles `STATE.md` and the active branches with what the user ran — not a
+`/fw:checkpoint` reconciles `STATE.md` and the active branches with what the user ran — not a
 commit of its own after the merge, which would be one more to push.

@@ -9,7 +9,7 @@ tags: [state]
 > **What this file is.** It is the entry point of the memory: the `SessionStart` hook
 > injects it into every new Claude Code session (see `.claude/settings.json`).
 > It must always answer: *where we are, what exists, what has been decided and is not
-> obvious from the code, what is pending*. It is REWRITTEN at every `/checkpoint` (it
+> obvious from the code, what is pending*. It is REWRITTEN at every `/fw:checkpoint` (it
 > is not append-only like the sessions). Keep it terse: it is a dashboard, not a journal.
 >
 > Delete this block of instructions when you initialise the project and replace
@@ -50,12 +50,12 @@ tags: [state]
      Every entry with its explicit TRIGGER ("X → blocking precondition of Y",
      "resume when Z"), NEVER generic ("X to be fixed"): a debt with a trigger
      resurfaces at the right moment, a generic one drowns in the noise. The entries must
-     SURVIVE the rewrites of this file (a /checkpoint check). -->
+     SURVIVE the rewrites of this file (a /fw:checkpoint check). -->
 - <open issue / accepted debt> — <reason> → <trigger: when it blocks/resumes>
 - [[LEARNINGS]]: state of the IMP proposals (open / applied / deferred / rejected).
 
 ## Active branches
-<!-- Which branches exist and what they are for. /checkpoint reconciles this section
+<!-- Which branches exist and what they are for. /fw:checkpoint reconciles this section
      with `git branch --merged <integration>` because merges happen outside the session. -->
 - **<integration branch>** = integration.
 - **feat/<...>** = <feature in progress>.

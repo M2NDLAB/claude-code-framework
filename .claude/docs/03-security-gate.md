@@ -34,7 +34,7 @@ behalf of a client (e.g. a tool/automation server).
 On top of the Definition of Done (`02-code-quality.md`), BEFORE the merge request
 (PR) towards the integration branch of a sensitive component:
 
-1. **`/security-review`** run on the branch diff — and on the set a widened claim names
+1. **`/fw:security-review`** run on the branch diff — and on the set a widened claim names
    (*The lenses of the gate*).
 2. **HIGH/CRITICAL findings → RESOLVED** before the PR. Non-negotiable.
 3. **MEDIUM findings → resolved**, or **explicitly accepted** as known debt in

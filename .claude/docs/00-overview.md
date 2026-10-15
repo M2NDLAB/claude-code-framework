@@ -38,10 +38,10 @@ components the task touches.
   (SessionStart hook)  (heavy? → PLAN)   (per task)    │
         │                                             ▼
         │   END-OF-DELIVERABLE CYCLE (in order):
-        │     1. /security-review — only if under the gate
-        │     2. /retro           — reflect, record IMPs
-        │     3. /checkpoint      — align memory/docs with reality
-        │     4. /integrate       — merge+tag, then push: 2 blocks, human
+        │     1. /fw:security-review — only if under the gate
+        │     2. /fw:retro           — reflect, record IMPs
+        │     3. /fw:checkpoint      — align memory/docs with reality
+        │     4. /fw:integrate       — merge+tag, then push: 2 blocks, human
         │
         └─ stuck? (2 attempts / a fork) ─▶ ESCALATION REPORT, then stop
 ```
@@ -71,9 +71,9 @@ Definition of Done and the commit are enough.
 1. **Construction** — execution in atomic tasks, each with its Definition of Done
    green (`01-task-planning.md`, `02-code-quality.md`). It is the precondition of
    everything else: the deliverable builds and the tests pass. If you get stuck here,
-   leave through the escalation (`/sos`, `05-escalation-protocol.md`): it is not a
+   leave through the escalation (`/fw:sos`, `05-escalation-protocol.md`): it is not a
    step of the sequence, it is the way out.
-2. **`/security-review` — CONDITIONAL: only if the deliverable is under the gate.**
+2. **`/fw:security-review` — CONDITIONAL: only if the deliverable is under the gate.**
    Under the gate = sensitive — auth/authz, payments/money, personal data, the
    enforcement edge, surfaces that act on behalf of a client (the concrete list is
    `[TO BE DEFINED AT SETUP]`) —, or a deliverable whose product asserts a security
@@ -82,33 +82,33 @@ Definition of Done and the commit are enough.
    write the verdict anyway, one line with its reason, in the session note
    (`.claude/memory/sessions/README.md`, *Format*): a gate skipped and a gate forgotten
    must not look the same.
-3. **`/retro` — end-of-deliverable reflection (FIXED).** Was there friction? A
+3. **`/fw:retro` — end-of-deliverable reflection (FIXED).** Was there friction? A
    rule or a doc that would have helped? → record the proposals as IMPs in
    `LEARNINGS.md` (`06-self-improvement.md`). It is lightweight: with no friction it
    is a no-op of a few seconds. The DECISIONS on the accumulated IMPs are taken in
-   the periodic retrospective (`/retro` again, but over the whole backlog). It goes
+   the periodic retrospective (`/fw:retro` again, but over the whole backlog). It goes
    BEFORE the checkpoint, so that the IMPs just recorded are persisted by the next
    commit.
-4. **`/checkpoint` — align memory and docs with the real state (FIXED).** Session
+4. **`/fw:checkpoint` — align memory and docs with the real state (FIXED).** Session
    note, `STATE.md`, `TREE.md`, `INDEX.md`, branch/merge reconciliation, commit
    (`04-git-workflow.md`). It does NOT push.
-5. **`/integrate` — merge + tag blocks, ready to paste (FIXED).** It computes the bump
+5. **`/fw:integrate` — merge + tag blocks, ready to paste (FIXED).** It computes the bump
    and the next version (`04-git-workflow.md`, *Versioning*) and emits the commands in
    two blocks: the local merge, the tag and the checks first, the push only after
    their output has been read. Push, merge and tag are performed by the HUMAN: it is
    the only step that leaves the agent's control.
 
-> In short: FIXED steps 1·3·4·5; CONDITIONAL step 2 (`/security-review`, only if
-> under the gate). The order is not arbitrary — `/retro` before `/checkpoint` so that the
-> checkpoint persists the IMPs just recorded; `/integrate` last because it is the
+> In short: FIXED steps 1·3·4·5; CONDITIONAL step 2 (`/fw:security-review`, only if
+> under the gate). The order is not arbitrary — `/fw:retro` before `/fw:checkpoint` so that the
+> checkpoint persists the IMPs just recorded; `/fw:integrate` last because it is the
 > only one that touches shared state, and only once memory and docs are aligned. The
 > merge it prints happens after the checkpoint, outside the session: the memory lags it
-> by one step until the next deliverable, whose first `/checkpoint` reconciles it — not a
+> by one step until the next deliverable, whose first `/fw:checkpoint` reconciles it — not a
 > commit of its own after the merge, one more to push.
 
-> **And `/lint-memory`?** It is not a step of the end-of-deliverable cycle: it is a
+> **And `/fw:lint-memory`?** It is not a step of the end-of-deliverable cycle: it is a
 > PERIODIC health-check. It is typically run together with the periodic retrospective
-> over the IMP backlog (`/retro` over the whole `LEARNINGS.md`), and in addition
+> over the IMP backlog (`/fw:retro` over the whole `LEARNINGS.md`), and in addition
 > after events that touch many notes at once: big merges, restructurings of the
 > memory, wide rewrites of `STATE.md`.
 

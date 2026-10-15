@@ -43,7 +43,7 @@ the opportunity for a new slash command or hook:
 1. Do NOT modify `CLAUDE.md`, the rules in the docs, the commands or `settings.json`.
 2. Record an IMP-nnn proposal in `LEARNINGS.md` (problem → proposal → benefit).
 3. If it is urgent or blocking: flag it to the user at the end of the task; otherwise
-   it stays in the backlog for the retrospective (`/retro`).
+   it stays in the backlog for the retrospective (`/fw:retro`).
 
 The reason for the constraint: the rules are the contract with the user. A system
 that rewrites its own rules drifts, and after N sessions nobody knows any more which
@@ -56,10 +56,10 @@ configuration is in force, or why. **The agent proposes, the human disposes.**
   IMP.
 - An escalation (`ESC-...`) was resolved → the lesson goes into `LEARNINGS.md` on top
   of the session note: escalations are the best source of improvements.
-- A security review (`/security-review`) found something systemic → IMP.
-- **At the end of a deliverable, the `/retro` step** (the cycle in `00-overview.md`):
+- A security review (`/fw:security-review`) found something systemic → IMP.
+- **At the end of a deliverable, the `/fw:retro` step** (the cycle in `00-overview.md`):
   30 seconds of reflection — was there friction? a rule/doc that would have helped? →
-  record the IMP. It goes BEFORE `/checkpoint`, which then persists it in the commit.
+  record the IMP. It goes BEFORE `/fw:checkpoint`, which then persists it in the commit.
 
 ## Applying approved proposals
 
@@ -87,10 +87,10 @@ comment of `LEARNINGS.md`). It is a DESTINATION attribute, not a third level: th
 stays a Level 2 one (it is PROPOSED, not applied autonomously) and follows its normal cycle
 IN the project; the marker only adds "this one, besides here, must be sent upstream".
 The criterion for marking it: it is useful to ANY project using the framework, not
-only to this one. A single physical line, so that `/harvest-framework` collects it via
+only to this one. A single physical line, so that `/fw:harvest-framework` collects it via
 grep.
 
-**How it goes upstream — `/harvest-framework`.** The command collects from the backlog
+**How it goes upstream — `/fw:harvest-framework`.** The command collects from the backlog
 the IMPs marked `Destination: framework` and PRINTS a copyable block for them (problem
 → proposal → benefit), ready to be re-proposed as an IMP in the framework repo. The
 command **only reads and prints**: it does not clone, does not copy files between
@@ -117,11 +117,11 @@ human control.
 - It is not a licence to add tools/dependencies "because they improve things" — those
   go through recording a decision.
 - It is not verbose self-assessment on every message: it is ONE moment of reflection
-  at the end of a deliverable (the `/retro` step) + recording whenever friction shows
+  at the end of a deliverable (the `/fw:retro` step) + recording whenever friction shows
   up.
 - It is not the memory lint. The coherence of the knowledge base (state misaligned
   with reality, contradictory notes, orphan pages, broken links) is a separate
-  health-check — `/lint-memory` — where a contradiction is a BUG to be FIXED, not an
+  health-check — `/fw:lint-memory` — where a contradiction is a BUG to be FIXED, not an
   improvement to be proposed. The retro looks at the PROCESS, the lint at the health
   of the DATA; the bridge between the two is the IMP the lint opens when a
   misalignment reveals a process gap.

@@ -13,7 +13,7 @@ reflect the current state of the component, not its history (the history is in
 `sessions/` and in git).
 
 ## When to write / update it
-At the birth of the component and at every substantial change, inside `/checkpoint`.
+At the birth of the component and at every substantial change, inside `/fw:checkpoint`.
 
 ## Naming
 `<component>.md` — e.g. `auth.md`, `core-lib.md`, `web-app.md`.

@@ -5,9 +5,9 @@ Harvest the lessons destined for the FRAMEWORK and prepare the block to carry up
 for: $ARGUMENTS (if $ARGUMENTS is empty: over the whole `LEARNINGS.md` backlog).
 
 See the bridge in @.claude/docs/06-self-improvement.md (*"The bridge to the framework"*).
-Complementary to `/retro`: `/retro` RECORDS the IMPs (and puts the marker
+Complementary to `/fw:retro`: `/fw:retro` RECORDS the IMPs (and puts the marker
 `Destination: framework` on them when the lesson is about the method);
-`/harvest-framework` HARVESTS them to carry them upstream.
+`/fw:harvest-framework` HARVESTS them to carry them upstream.
 
 This command **only reads and prints**: it does NOT clone, it does NOT copy files between
 repos, it does NOT run git/push towards the framework (the execution boundary of

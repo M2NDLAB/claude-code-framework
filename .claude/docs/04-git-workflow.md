@@ -17,7 +17,7 @@ The DEFAULT model (two branches), as a concrete example:
 - `main` = stable/production branch. Only merges from the integration branch via a
   release, never direct commits.
 - `develop` = integration/staging branch. Only merges of feature branches, performed
-  by a human (see *Merge*: via PR or via the `/integrate` block).
+  by a human (see *Merge*: via PR or via the `/fw:integrate` block).
 - `feat/<area>-<description>` = one feature, short-lived (days, not weeks).
 - `fix/<area>-<description>` for bugfixes; `hotfix/<description>` from the stable
   branch (and re-merged into the integration branch right after).
@@ -78,7 +78,7 @@ and in a template repo a concrete name stays there forever, breaking agnosticism
   [TO BE DEFINED AT SETUP]:
   - **via Pull Request** when a remote review flow exists (a team, a forge with
     mandatory review);
-  - **via the `/integrate` block** (a local `--no-ff` merge that the USER pastes and
+  - **via the `/fw:integrate` block** (a local `--no-ff` merge that the USER pastes and
     runs) in the single-developer flow, where a PR to yourself adds no control.
   In both forms, before the merge: rebase onto `develop`
   (`git fetch && git rebase origin/develop`) to resolve conflicts in the branch, not
@@ -92,7 +92,7 @@ and in a template repo a concrete name stays there forever, breaking agnosticism
   branch …") are ignored by commitlint by default, but we prefer the explicit
   conventional message.
 - `develop` → `main`: only as a release merge, in the same form chosen above (a
-  release PR, or the release variant of the `/integrate` block). The version tag
+  release PR, or the release variant of the `/fw:integrate` block). The version tag
   follows the *Versioning* section below (in 0.x you tag on `develop`; from `1.0.0`
   onwards on `main`, after the release merge).
 
@@ -104,7 +104,7 @@ if they touch logic, it STOPS and asks the user, showing both versions.
 Versions are **annotated git tags** (`git tag -a vX.Y.Z -m "..."`), never lightweight
 tags: an annotated tag carries author, date and message. (A precision about the
 rationale: `git describe` WITHOUT `--tags` considers annotated tags only; the
-`/integrate` command uses `git describe --tags`, which also accepts lightweight tags —
+`/fw:integrate` command uses `git describe --tags`, which also accepts lightweight tags —
 inherited, for instance, from a graft onto an existing repo — and for that reason it
 VERIFIES that the base is a sane SemVer tag before computing the bump.) SemVer format
 `vX.Y.Z`.
@@ -126,7 +126,7 @@ those of the included commits (a single `feat` among many `chore`s → MINOR; no
 **The type suggests; the content decides.** A type is a label written before the release
 exists: a commit typed `docs` or `chore` can bring a new rule or command into what the
 project ships — a MINOR by the criteria below —, one typed `fix` can break the public
-contract — a MAJOR. So `/integrate` weighs the content too and states the bump with its
+contract — a MAJOR. So `/fw:integrate` weighs the content too and states the bump with its
 reasoning before the tag; if the request that opened the deliverable named an expected
 bump, it names that too, and where the two differ the criteria of this section win, with
 the user's confirmation.
@@ -225,7 +225,7 @@ on WHICH BRANCH the tag lives:
 - Tags and releases: only the user decides when; Claude Code prepares (changelog from
   the conventional commits, version bump per *Versioning*, the annotated tag already
   written) and asks for confirmation.
-- Integration blocks: at the end of a deliverable, `/integrate` produces the merge +
+- Integration blocks: at the end of a deliverable, `/fw:integrate` produces the merge +
   tag commands ready to paste, in two blocks — the local merge, the tag and the checks,
   then the publication (the next version computed from `git describe` and the bump of
   *Versioning*). Claude Code PRINTS them, it does not run them: push, merge and tag
@@ -241,7 +241,7 @@ Stating it explicitly avoids the incidents that come from its ambiguity:
   rules of this doc — the MAIN session only: delegated agents are read-only on git
   (*Delegated agents and the shared working tree*).
 - **SHARED history → the user.** Push, merge onto the integration branch, tags:
-  Claude Code PREPARES them (blocks ready to paste, see `/integrate`), the user runs
+  Claude Code PREPARES them (blocks ready to paste, see `/fw:integrate`), the user runs
   them from their own terminal.
 
 Rules for every command block meant for manual execution by the user:

@@ -103,7 +103,9 @@ within() {
 
 # classify <path>: the class of a payload file, named one by one outside the memory, so
 # that a file added to the payload has NO class until someone decides it (the self-test
-# fails on it). The classes are those of SETUP.md, *The mental model*:
+# fails on it). A path an earlier release held keeps its class — the commands' old places
+# above .claude/commands/fw/ among them —, since an upgrade from that release reads it at
+# vX. The classes are those of SETUP.md, *The mental model*:
 #   METHOD          pure framework, brought to vY as it is
 #   HYBRID          a framework part and a project part, reconciled 3-way
 #   TEMPLATE        a memory template: a guide README, reconciled 3-way
@@ -121,6 +123,8 @@ classify() {
     .claude/framework-version) echo GRAFT-STATE ;;
     .claude/settings.local.json | .claude/worktrees/*) echo LOCAL ;;
     CLAUDE.md | .claude/settings.json | .gitignore | .gitattributes | Makefile | scripts/hooks-install.sh | \
+    .claude/commands/fw/checkpoint.md | .claude/commands/fw/integrate.md | \
+    .claude/commands/fw/new-component.md | \
     .claude/commands/checkpoint.md | .claude/commands/integrate.md | \
     .claude/commands/new-component.md)
       echo HYBRID ;;
@@ -128,6 +132,9 @@ classify() {
     .claude/docs/02-code-quality.md | .claude/docs/03-security-gate.md | \
     .claude/docs/04-git-workflow.md | .claude/docs/05-escalation-protocol.md | \
     .claude/docs/06-self-improvement.md | \
+    .claude/commands/fw/harvest-framework.md | .claude/commands/fw/lint-memory.md | \
+    .claude/commands/fw/retro.md | .claude/commands/fw/security-review.md | \
+    .claude/commands/fw/sos.md | \
     .claude/commands/harvest-framework.md | .claude/commands/lint-memory.md | \
     .claude/commands/retro.md | .claude/commands/security-review.md | \
     .claude/commands/sos.md | \
@@ -358,6 +365,14 @@ version_id() {
 }
 # The releases after vX up to vY, oldest first.
 releases_between() { fw tag --list 'v*' --sort=v:refname --merged "$2" --no-merged "$1"; }
+# renames_between <vX> <vY>: the payload files vY renamed, one "old<TAB>new" per line (edge
+# case 2), the memory's own left out: the framework's notes are not the project's.
+renames_between() {
+  fw diff --no-ext-diff -M --name-status "$1" "$2" -- "${PAYLOAD_PATHS[@]}" \
+    | awk -F'\t' '$1 ~ /^R/ && $2 !~ /^\.claude\/memory\// {print $2 "\t" $3}'
+}
+# renamed_to <renames file> <path>: the new path a rename of <path> leads to, or nothing.
+renamed_to() { awk -F'\t' -v p="$2" '$1 == p { print $2; exit }' "$1"; }
 # header_region <file>: the lines before the first "## " heading (LEARNINGS.md's template
 # part). Its frontmatter's `updated:` is the project's own date, a value and not the
 # template: it is blanked, so that a date never reads as a change of the template.
@@ -459,6 +474,8 @@ cmd_inventory() {
   rm -rf "${d}" && mkdir -p "${d}" || die "cannot prepare ${d}"
   local releases
   releases="$(releases_between "${vx}" "${vy}" | tr '\n' ' ')"
+  # A renamed file's old path is no deletion: edge case 2 handles it, after the loop.
+  renames_between "${vx}" "${vy}" > "${d}/renames"
 
   section "Files — class, the framework vX->vY (=, M, A, D), the project against the tags, the 3-way's measure"
   local path class bx by bp fwst prj measure n mine base theirs r prev changed modey modep
@@ -503,7 +520,8 @@ cmd_inventory() {
     # The flags of the edge cases (SETUP.md, *Edge cases*).
     [ "${class}" = METHOD ] && [ "${prj}" = diverged ] && [ "${fwst}" != D ] \
       && check "edge case 7: ${path} is METHOD but customised in the project — reconcile it as a HYBRID (3-way), never overwrite"
-    [ "${fwst}" = D ] && [ "${prj}" != absent ] && check "edge case 1: ${path} is deleted in ${vy} — remove it from the project (git rm), after checking it holds nothing of the project's"
+    [ "${fwst}" = D ] && [ "${prj}" != absent ] && [ -z "$(renamed_to "${d}/renames" "${path}")" ] \
+      && check "edge case 1: ${path} is deleted in ${vy} — remove it from the project (git rm), after checking it holds nothing of the project's"
     [ "${fwst}" = A ] && [ "${prj}" = diverged ] && check "${path} is new in ${vy}, but the project already has a file there: compare before taking ${vy}'s"
     [ "${path}" = .gitignore ] && [ "${fwst}" = M ] && info "  .gitignore: an additive union (Step 3), not a 3-way"
     if [ "${fwst}" = M ]; then
@@ -521,10 +539,24 @@ cmd_inventory() {
       [ "${modey}" = "${modep}" ] || check "${path}: ${vy}'s mode is ${modey}, the project's ${modep} (chmod after the copy, on Windows git update-index --chmod: Step 3)"
     fi
   done < "${d}/paths"
-  local renames
-  renames="$(fw diff --no-ext-diff -M --name-status "${vx}" "${vy}" -- "${PAYLOAD_PATHS[@]}" \
-    | awk -F'\t' '$1 ~ /^R/ && $2 !~ /^\.claude\/memory\// {print $2 " -> " $3}')"
-  [ -z "${renames}" ] || while IFS= read -r r; do check "edge case 2: renamed in ${vy}: ${r} — move it, never keep both"; done <<< "${renames}"
+  # Edge case 2: each rename, by what the project holds at the old path. A customised copy
+  # is merged into the new path (base the old path at vX, theirs the new one at vY), and
+  # its measure is shown as for any other 3-way.
+  local old new
+  while IFS=$'\t' read -r old new; do
+    if [ ! -f "${old}" ]; then
+      check "edge case 2: renamed in ${vy}: ${old} -> ${new} — the project holds no ${old}: bring ${new} over from ${vy}"
+    elif [ "$(pg hash-object -- "${old}")" = "$(blob_at "${vx}" "${old}")" ]; then
+      check "edge case 2: renamed in ${vy}: ${old} -> ${new} — the project's copy is ${vx}'s: bring ${new} over from ${vy}, then git rm ${old}"
+    else
+      fw show "${vx}:${old}" > "${d}/rename.base"
+      fw show "${vy}:${new}" > "${d}/rename.theirs"
+      lf "${old}" > "${d}/rename.mine"
+      pg merge-file -p "${d}/rename.mine" "${d}/rename.base" "${d}/rename.theirs" > "${d}/rename.merged" 2>/dev/null
+      n=$?
+      check "edge case 2: renamed in ${vy}: ${old} -> ${new} — customised in the project: merge it into ${new} (base ${vx}:${old}, theirs ${vy}:${new}), then git rm ${old}; 3-way: ${n} conflict(s), $(conflict_lines "${d}/rename.merged") of $(wc -l < "${d}/rename.merged" | tr -d ' ') lines in conflict"
+    fi
+  done < "${d}/renames"
 
   section "Markers — slots added or removed between ${vx} and ${vy}"
   local added="" removed="" mx my
@@ -853,17 +885,32 @@ cmd_post() {
   if grep -nE '^(<<<<<<<|>>>>>>>|\|\|\|\|\|\|\|) ' .claude/memory/LEARNINGS.md > "${d}/conflicts" 2>/dev/null; then
     fail ".claude/memory/LEARNINGS.md: conflict markers left by the header's merge, first at line $(head -n 1 "${d}/conflicts" | cut -d: -f1)"
   fi
-  # Orphans: what vY removed must be gone from the project too.
+  # Orphans: what vY removed must be gone from the project too — a renamed file's old copy
+  # included, which would sit beside the new one (edge case 2).
   awk -F'\t' '{print $2}' "$(tree_of "${vx}")" | sort > "${d}/paths.vx.sorted"
   sort "${d}/paths.vy" > "${d}/paths.vy.sorted"
   comm -23 "${d}/paths.vx.sorted" "${d}/paths.vy.sorted" | while IFS= read -r path; do
     case "$(classify "${path}")" in PROJECT-MEMORY | LOCAL | GRAFT-STATE) continue ;; esac
     [ -e "${path}" ] && echo "${path}"
   done > "${d}/orphans"
+  renames_between "${vx}" "${vy}" > "${d}/renames"
+  local new
   if [ -s "${d}/orphans" ]; then
-    while IFS= read -r path; do fail "${path} is an orphan: ${vy} removed it (edge case 1)"; done < "${d}/orphans"
+    while IFS= read -r path; do
+      new="$(renamed_to "${d}/renames" "${path}")"
+      if [ -z "${new}" ]; then
+        fail "${path} is an orphan: ${vy} removed it (edge case 1)"
+      else
+        case "${path}" in
+          # A command file left at its old place still runs under its bare name, and a bare
+          # name can be one of Claude Code's own commands, which it then hides.
+          .claude/commands/*) fail "${path} is the old place of ${new} (edge case 2): remove it once merged — until then Claude Code runs it under its bare name, and a bare name can hide one of its own commands" ;;
+          *) fail "${path} is the old place of ${new} (edge case 2): remove it once merged" ;;
+        esac
+      fi
+    done < "${d}/orphans"
   else
-    ok "no orphan of a file ${vy} removed"
+    ok "no orphan of a file ${vy} removed or renamed"
   fi
 
   section "Slots — markers broken by a wrap, and the slots ${vy} added"

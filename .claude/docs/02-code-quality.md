@@ -116,7 +116,7 @@ are stack-agnostic principles: the conventions specific to the chosen language g
    procedures, APIs or deployment *(where the documentation lives —
    [TO BE DEFINED AT SETUP])*; if the project documentation does not exist yet, the
    debt is recorded in `memory/STATE.md`.
-8. Memory updated and the commit made per `04-git-workflow.md` (the `/checkpoint`
+8. Memory updated and the commit made per `04-git-workflow.md` (the `/fw:checkpoint`
    command covers points 7 and 8 together).
 9. For a completed **deployable** component/app: the production artifact exists (e.g.
    a multi-stage container image, non-root runtime, or the equivalent for your

@@ -32,4 +32,4 @@ The defences live in the method, they are not duplicated here:
   the one-off `gitleaks detect` scan of the entire history
   (`.claude/docs/03-security-gate.md`);
 - mandatory review on sensitive components: **security gate**,
-  `.claude/docs/03-security-gate.md` (command `/security-review`).
+  `.claude/docs/03-security-gate.md` (command `/fw:security-review`).

@@ -19,7 +19,15 @@ This repo applies to itself the method it describes (`.claude/docs/`):
   `.claude/docs/04-git-workflow.md`. Install the hooks with `make hooks-install`
   (requires gitleaks and Node.js).
 - **End-of-deliverable cycle** (`.claude/docs/00-overview.md`): [if under the gate]
-  `/security-review` → `/retro` → `/checkpoint` → `/integrate`.
+  `/fw:security-review` → `/fw:retro` → `/fw:checkpoint` → `/fw:integrate`.
+- **Every framework command lives under `.claude/commands/fw/`**, and is invoked as
+  `/fw:<name>`. A command file directly under `.claude/commands/` takes a bare name, and a
+  bare name can be one of Claude Code's own: a project command replaces the built-in
+  command of the same name, and was measured hiding a built-in's alias too — silently, in
+  every project that copies it, and a later built-in can do the same the other way round. A
+  new command goes under `fw/` only: Claude Code's built-in commands are listed on its
+  [commands page](https://code.claude.com/docs/en/commands). The documentation check
+  fails a command file outside `fw/`.
 - **Changes to the RULES go through an IMP proposal** in
   `.claude/memory/LEARNINGS.md` (`.claude/docs/06-self-improvement.md`): first the
   proposal, then the human decision, then the application in a dedicated commit.
@@ -52,7 +60,7 @@ This repo applies to itself the method it describes (`.claude/docs/`):
   A blank line is a weak separator, which the diff may align on either side of a change.
   Where a change must land on such a line, the CHANGELOG's *Upgrading* note names the
   conflict and its resolution. Every release that changes a HYBRID file rehearses the
-  upgrade before `/integrate`, on a project with every setup answer in place, with LF and
+  upgrade before `/fw:integrate`, on a project with every setup answer in place, with LF and
   with CRLF line ends.
 
 ## This repo's git model (a declared exception)
@@ -63,7 +71,7 @@ integration branch and stable branch — COINCIDE here (a case the doc itself
 foresees). Concretely:
 
 - deliverables go through a feature branch merged into `main` with `--no-ff` via
-  the `/integrate` block, run by a human (a PR to yourself adds no control);
+  the `/fw:integrate` block, run by a human (a PR to yourself adds no control);
 - annotated tags live on `main` in BOTH regimes (trunk-based: integration and
   stable coincide). Up to `v0.6.2` the repo was pre-1.0 (`v0.x.y`); **from
   `v1.0.0` it is in the post-1.0 regime** — the method's contract is declared
@@ -76,8 +84,8 @@ foresees). Concretely:
 `make test-scripts`, the upgrade check's self-test, the prerequisite check and the generated
 hooks with the real gitleaks and commitlint (`tools/test-real-hooks.sh`) on macOS, Linux and
 Windows, on what is pushed — and a deliverable's branch otherwise stays local until
-`/integrate`. So, in
-this repository, the human runs a block 0 before `/integrate`'s block 1: push the feature
+`/fw:integrate`. So, in
+this repository, the human runs a block 0 before `/fw:integrate`'s block 1: push the feature
 branch (`git push -u origin <branch>`) and wait until the CI is green on the three
 platforms. Block 1 then checks that the tree it merges is the one the CI tested — the merge
 commit's tree equal to the pushed branch's —, and block 2 deletes the remote branch in the
@@ -85,10 +93,10 @@ same atomic push that publishes `main` and the tag
 (`git push --atomic origin main vX.Y.Z :<branch>`), before the local `git branch -d`.
 Atomic means all or nothing: if the remote branch is already gone, git refuses the whole
 push and publishes nothing — drop `:<branch>` and run it again. A
-project's `/integrate` knows nothing of this: a project's CI is the project's own.
+project's `/fw:integrate` knows nothing of this: a project's CI is the project's own.
 
 **No required status checks on `main` — a motivated choice.** The ruleset of `main` does
-not require the CI's checks. `/integrate`'s merge commit is new — block 1 creates it
+not require the CI's checks. `/fw:integrate`'s merge commit is new — block 1 creates it
 locally, with `--no-ff` — and the CI has no result for it when block 2 pushes it: a
 required check would refuse that push. The gate is block 0 instead, with block 1's check
 that the merged tree is the tested one.
@@ -166,14 +174,14 @@ resilient to an immediate crash — the equivalent of `plans/`'s `chore: plan fo
 completion: `status: completed` in the note's frontmatter.
 
 **The `Destination: framework` attribute is moot here**: every IMP of this backlog is
-already a lesson about the framework, so no entry carries it, and `/harvest-framework` —
+already a lesson about the framework, so no entry carries it, and `/fw:harvest-framework` —
 a command for the projects that use the framework — has nothing to collect.
 
 ## In practice, for a proposed change
 
 A proposal can arise from work on this repo, or **come up from a client
 project**: there the lesson is marked `Destination: framework` and
-`/harvest-framework` produces a copyable block (already anonymised) to bring here
+`/fw:harvest-framework` produces a copyable block (already anonymised) to bring here
 (see `.claude/docs/06-self-improvement.md`, *"The bridge to the framework"*).
 Either way it becomes an IMP entry in `LEARNINGS.md`.
 

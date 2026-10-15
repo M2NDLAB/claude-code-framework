@@ -40,6 +40,11 @@
 #   8. read-only — the four subcommands run to their end and leave the project and the
 #      framework exactly as they were (scripts/repo-snapshot.sh, the tracked files, the
 #      index, the config, the hooks).
+#   9. renames — on a throwaway framework whose v2.0.0 moves its commands under
+#      .claude/commands/fw/, as the real one's v3.0.0 does: inventory names each rename by
+#      what the project holds (a customised copy with its merge's measure, an untouched one
+#      to bring over), never as a deletion; post fails while an old command file remains,
+#      and passes the orphans once it is gone.
 # Run it from anywhere: bash tools/test-upgrade-check.sh
 set -euo pipefail
 
@@ -539,3 +544,42 @@ snapshot "${PRJ}" | diff "${workdir}/prj.before" - >/dev/null || fail "read-only
 snapshot "${FWD}" | diff "${workdir}/fw.before" - >/dev/null || fail "read-only: the framework changed"
 [ "$(find "${T_DIR}" -mindepth 1 -maxdepth 1)" = "${T_DIR}/upgrade-check" ] || fail "read-only: something was written in T outside T/upgrade-check"
 echo "PASS (upgrade-check read-only): the project and the framework unchanged; writes only under T/upgrade-check."
+
+# --- Case 9: renames ------------------------------------------------------------------
+# A framework of its own: v2.0.0 moves both commands under .claude/commands/fw/ and edits
+# one of them; the project, grafted at v1.0.0, answered that one's placeholder. One unchanged
+# line separates the two edits, so the merge is clean (the distance rule of CONTRIBUTING.md).
+FW9="${workdir}/fw9"
+P9="${workdir}/project9"
+g init -q -b main "${FW9}"
+put "${FW9}" CLAUDE.md '# Index\n'
+put "${FW9}" .claude/commands/checkpoint.md 'checkpoint\nIntegration branch: <integration>\nAn unchanged line.\nStep two.\n'
+put "${FW9}" .claude/commands/sos.md 'sos\n'
+put "${FW9}" .claude/memory/STATE.md '# STATE\n'
+g -C "${FW9}" add -A && g -C "${FW9}" commit -q -m "feat: 1.0.0" && g -C "${FW9}" tag -a v1.0.0 -m v1.0.0
+mkdir -p "${FW9}/.claude/commands/fw"
+g -C "${FW9}" mv .claude/commands/checkpoint.md .claude/commands/fw/checkpoint.md
+g -C "${FW9}" mv .claude/commands/sos.md .claude/commands/fw/sos.md
+put "${FW9}" .claude/commands/fw/checkpoint.md 'checkpoint\nIntegration branch: <integration>\nAn unchanged line.\nStep two, with the file tools.\n'
+g -C "${FW9}" add -A && g -C "${FW9}" commit -q -m "feat!: 2.0.0" && g -C "${FW9}" tag -a v2.0.0 -m v2.0.0
+mkdir -p "${P9}"
+g -C "${FW9}" archive v1.0.0 -- .claude CLAUDE.md | tar -x -C "${P9}"
+put "${P9}" .claude/commands/checkpoint.md 'checkpoint\nIntegration branch: main\nAn unchanged line.\nStep two.\n'
+g init -q -b main "${P9}" && g -C "${P9}" add -A && g -C "${P9}" commit -q -m "chore: graft the framework v1.0.0"
+FW="${FW9}" T="${T_DIR}" run 0 "${P9}" inventory v1.0.0 v2.0.0
+has "edge case 2: renamed in v2.0.0: .claude/commands/checkpoint.md -> .claude/commands/fw/checkpoint.md — customised in the project: merge it into .claude/commands/fw/checkpoint.md"
+has "3-way: 0 conflict(s), 0 of 4 lines in conflict"
+has "edge case 2: renamed in v2.0.0: .claude/commands/sos.md -> .claude/commands/fw/sos.md — the project's copy is v1.0.0's"
+hasnt "edge case 1:"
+# The migration half done: the merged command in its new place, the old sos.md still there.
+put "${P9}" .claude/commands/fw/checkpoint.md 'checkpoint\nIntegration branch: main\nAn unchanged line.\nStep two, with the file tools.\n'
+g -C "${FW9}" show v2.0.0:.claude/commands/fw/sos.md > "${P9}/.claude/commands/fw/sos.md"
+rm "${P9}/.claude/commands/checkpoint.md"
+FW="${FW9}" T="${T_DIR}" run 1 "${P9}" post v1.0.0 v2.0.0
+has "FAIL   .claude/commands/sos.md is the old place of .claude/commands/fw/sos.md (edge case 2): remove it once merged — until then Claude Code runs it under its bare name"
+hasnt ".claude/commands/checkpoint.md is the old place"
+rm "${P9}/.claude/commands/sos.md"
+FW="${FW9}" T="${T_DIR}" run 1 "${P9}" post v1.0.0 v2.0.0
+has "OK     no orphan of a file v2.0.0 removed or renamed"
+hasnt "is the old place of"
+echo "PASS (upgrade-check renames): inventory names each rename by what the project holds, with the merge's measure, never as a deletion; post fails while an old command file remains."

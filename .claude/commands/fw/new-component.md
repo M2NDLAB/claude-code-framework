@@ -24,4 +24,4 @@ The specific structure and tools are [TO BE DEFINED AT SETUP]: document them in 
 5. Register the component in the overall build configuration and in the local startup
    system (e.g. compose/orchestrator), if applicable.
 6. Create the note in .claude/memory/components/<component>.md and update INDEX.md,
-   STATE.md, TREE.md (via /checkpoint).
+   STATE.md, TREE.md (via /fw:checkpoint).

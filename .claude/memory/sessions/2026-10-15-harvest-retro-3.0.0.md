@@ -219,7 +219,7 @@ step is a mechanism, not more text.
 
 ## Plan (one commit per IMP applied)
 - [x] 1. This note — the brief, the retro's outcome and gaps, the user's decisions, the bump, the plan — and the agents' output beside it — commit: 08a492a
-- [ ] 2. The registrations in `LEARNINGS.md` — IMP-107..121's outcomes (13 approved with their forms; IMP-111 and IMP-112 deferred with their trigger and the P1 verification), IMP-122, IMP-123 and IMP-124 recorded, the evidence on IMP-083 —; the pre-flight readings in this note: Claude Code's pages on command names, `fw` against the built-in commands and the plugins, the project upgraded next (its form only) — commit: —
+- [x] 2. The registrations in `LEARNINGS.md` — IMP-107..121's outcomes (13 approved with their forms; IMP-111 and IMP-112 deferred with their trigger and the P1 verification), IMP-122, IMP-123 and IMP-124 recorded, the evidence on IMP-083 —; the pre-flight readings in this note: Claude Code's pages on command names, `fw` against the built-in commands and the plugins, the project upgraded next (its form only) — commit: 731216a
 - [ ] 3. IMP-122, the `fw` namespace: the eight commands under `.claude/commands/fw/`, every reference, the classes (the old paths kept for the inventory), the old files flagged by `upgrade-check.sh`, the migration in `SETUP.md`, the documentation check and the self-tests, `CONTRIBUTING.md`'s rule — commit: —
 - [ ] 4. Classes and markers: IMP-115 (`docs/02`-`04` HYBRID), IMP-118 (variant Y; the mentions; the greps; lint check 10; inventory by lines) — commit: —
 - [ ] 5. Writing and open threads: IMP-117 (rule 10, `docs/04`'s *Operating rules*, `SETUP.md`'s points of use, `/fw:checkpoint`'s step 3), IMP-121 (an open thread reaches `STATE.md`) — commit: —
@@ -233,6 +233,28 @@ step is a mechanism, not more text.
 
 Each applying commit carries its IMP's part of the text and moves the entry to Applied; the
 shas go into the headings with a later commit, as in v2.2.0.
+
+## Task 3 — the `fw` namespace (IMP-122)
+- The eight commands moved with `git mv`, their content untouched but for the names they cite;
+  every reference outside history follows. The old paths stay in `classify()`: an upgrade from
+  an earlier release reads them at `vX`, and the documentation check holds the class table to
+  every tag's payload.
+- Observed in this session, once the files moved: the runtime listed the commands as
+  `fw:checkpoint`, `fw:integrate` and the rest, and Claude Code's own `security-review`
+  reappeared among its commands — the namespace at work, and the hiding gone.
+- Red first: the new case of `tools/test-upgrade-check.sh`, run against the upgrade check of
+  `731216a`, failed (its `classify()` knew no `fw/` path); green with the change. The
+  documentation check, before its tripwire learned renames, reported "0 → 4 slot markers since
+  v2.2.0" on the moved `lint-memory.md`; nothing after.
+- Found on the way: `tools/test-docs-check.sh` built its base from HEAD and took out only the
+  unstaged deletions, so a `git mv`'s old path stayed in the base and the new one stayed
+  untracked there. It now takes the staged deletions out too and stages the base, as the next
+  commit takes it; the tripwire reads the rename between the tag and the index, which writes
+  nothing — a diff against the working tree refreshed the index, and the read-only case caught
+  it.
+- A conflict this task brings to every project's upgrade, to be measured at the rehearsal:
+  rule 8's line of `CLAUDE.md` holds its slot and the command's name.
+- Writing: the method's files edited with the file tools; the renames with `git mv`.
 
 ## Resumption notes
 - The payload names no IMP number (the documentation check's `imp-number`).
