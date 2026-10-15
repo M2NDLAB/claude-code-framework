@@ -63,6 +63,8 @@ This repo applies to itself the method it describes (`.claude/docs/`):
   stays unchanged: a change on the adjacent line conflicts in every project's 3-way merge,
   one unchanged line in between merges cleanly (measured with `git merge-file`, git 2.54.0).
   A blank line is a weak separator, which the diff may align on either side of a change.
+  `fw/integrate.md`'s branch placeholders count as answered lines too: setup asked the
+  projects grafted before v3.0.0 to replace them throughout.
   Where a change must land on such a line, the CHANGELOG's *Upgrading* note names the
   conflict and its resolution. Every release that changes a HYBRID file rehearses the
   upgrade before `/fw:integrate`, on a project with every setup answer in place, with LF and

@@ -221,24 +221,6 @@ tags: [improvement]
   unchanged; the `Makefile`'s help takes `CLAUDE.md`'s wording; the test inside the hooks'
   Case 7.
 
-### IMP-116 — `integrate.md`: "replace the placeholders" is ambiguous, and trunk-based is not covered
-- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
-  project (the project's entry 010, 2026-10-14): filling `.claude/commands/integrate.md` in
-  a graft onto a trunk-based project
-- Observed problem: §1, "Replace the placeholders with the project's real names" — unclear
-  whether setup rewrites the ~30 `<integration>`/`<stable>` occurrences (as `checkpoint.md`
-  asks for its own) or the agent substitutes them at run time. With trunk-based
-  (`<integration>` = `<stable>`) the promotion section and the pre/post-1.0 split of the
-  tag's branch do not apply, and the command does not say so.
-- Proposal: "the agent substitutes the names at run time; setup answers only this line",
-  plus "trunk-based: the promotion section does not apply; the tag goes on the single
-  branch".
-- Expected benefit / risk: one reading of the command. Risk: none.
-- Kin: IMP-008, IMP-019.
-- Status: APPROVED on 2026-10-15 — the run-time reading, in a paragraph of the command's
-  introduction that touches no answered line; trunk-based: the tag on the single branch, no
-  promotion; `CONTRIBUTING.md` keeps the placeholder lines answered for the earlier grafts.
-
 ### IMP-119 — Trunk-based: no home for memory-only commits between deliverables
 - Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
   project (the project's entry 013, 2026-10-14): the first deliverable's retro of a
@@ -2111,6 +2093,23 @@ line on; older entries are not backfilled.
 - Verified: the documentation check passes. Measured at the release's rehearsal: the 3-way
   of `checkpoint.md` and of `sessions/README.md`, a template a project may have customised.
   `STATE.md`'s comment reaches new grafts only: in a project the file is its memory.
+
+### IMP-116 — `integrate.md`: "replace the placeholders" is ambiguous, and trunk-based is not covered → applied on 2026-10-15
+- Origin: a test project's harvest, the project's entry 010 ([[2026-10-14-test-project-harvest]];
+  the retro, [[2026-10-15-harvest-retro-3.0.0]]) — "Replace the placeholders with the
+  project's real names" left open whether setup rewrites the command's 40 placeholders, on 28
+  lines, or the agent substitutes them; and the command said nothing of trunk-based, where
+  step 2's post-1.0 rule and the release variant contradict `docs/04`.
+- Applied (the run-time reading): a paragraph of `/fw:integrate`'s introduction says the
+  agent substitutes the names step 1's line records in what it prints, as it does every
+  placeholder of the blocks; setup answers that line only, and a project that replaced them
+  throughout has nothing left to substitute; with the two roles one branch, the tag goes on it
+  in both regimes, and neither the post-1.0 rule nor the release variant applies. No answered
+  line touched, nobody migrates. §2's item says the same; `CONTRIBUTING.md` keeps the 28 lines
+  answered lines for the projects grafted before v3.0.0. The project upgraded next left the
+  command as its release shipped it: the run-time reading already.
+- Verified: the documentation check passes; the 3-way of the command, in both forms — the
+  placeholders rewritten, and step 1's line only — is measured at the release's rehearsal.
 
 ## Deferred (not rejected — resumed at the right time)
 

@@ -185,8 +185,9 @@ of the slot, survives every upgrade, which merges them three ways.
 - [ ] `fw/checkpoint.md`: patterns to ignore for `tree`, name of the integration branch — its
       placeholders `<pattern-to-ignore-for-the-stack>` and `<integration>`, then the
       paragraph at its top that marks them.
-- [ ] `fw/integrate.md`: real names of the integration and stable branches (the ROLES of
-      `docs/04`) used in the integration block.
+- [ ] `fw/integrate.md`: the names of the integration and stable branches (the ROLES of
+      `docs/04`), on step 1's line only — the agent substitutes them in the blocks it
+      prints; in a trunk-based project the two are one branch.
 - [ ] `fw/new-component.md`: standard structure of a component in this project, and its
       production artefact (until CLAUDE.md and this file are filled in,
       `/fw:new-component` is inert).
