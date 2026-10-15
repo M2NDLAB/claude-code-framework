@@ -178,6 +178,10 @@ require_t() {
   done
   WORK="${T}/upgrade-check"
   mkdir -p "${WORK}" || die "cannot create ${WORK}"
+  # The listings by tag (tree_of) are cached for one run only: a tag's NAME is no identity
+  # across runs — a re-created tag, another FW with the same tags (the self-test's
+  # fixtures) — and a stale listing answers for the wrong tree without a word.
+  rm -rf "${WORK}/trees" || die "cannot clear ${WORK}/trees"
 }
 
 # The project's root, git 2.31 or later, and a FW that is not the project itself.
@@ -365,11 +369,33 @@ version_id() {
 }
 # The releases after vX up to vY, oldest first.
 releases_between() { fw tag --list 'v*' --sort=v:refname --merged "$2" --no-merged "$1"; }
-# renames_between <vX> <vY>: the payload files vY renamed, one "old<TAB>new" per line (edge
-# case 2), the memory's own left out: the framework's notes are not the project's.
+# renames_between <vX> <vY>: the payload files renamed between the tags, one "old<TAB>new"
+# per line (edge case 2), the memory's own left out: the framework's notes are not the
+# project's. Paired release by release and composed, never across the jump at once: a file
+# that a release in between rewrote is too unlike its renamed copy for git to pair them —
+# measured, v1.2.0's integrate.md against v3.0.0's fw/integrate.md — while the release that
+# moved it pairs it. Kept: a path vX holds and vY no longer does, to one vY holds.
 renames_between() {
-  fw diff --no-ext-diff -M --name-status "$1" "$2" -- "${PAYLOAD_PATHS[@]}" \
-    | awk -F'\t' '$1 ~ /^R/ && $2 !~ /^\.claude\/memory\// {print $2 "\t" $3}'
+  local prev="$1" r old new
+  local map="${WORK}/renames.map" step="${WORK}/renames.step"
+  : > "${map}"
+  for r in $(releases_between "$1" "$2"); do
+    fw diff --no-ext-diff -M --name-status "${prev}" "${r}" -- "${PAYLOAD_PATHS[@]}" \
+      | awk -F'\t' '$1 ~ /^R/ && $2 !~ /^\.claude\/memory\// {print $2 "\t" $3}' > "${step}"
+    # The map holds "first path<TAB>current path": a path it follows moves on with the
+    # step's rename; a rename of any other path starts an entry of its own. The files are
+    # told apart by name, not by NR == FNR, which an empty first file would fool.
+    awk -F'\t' -v OFS='\t' -v steps="${step}" '
+      FILENAME == steps { to[$1] = $2; next }
+      { if ($2 in to) { used[$2] = 1; print $1, to[$2] } else print $1, $2 }
+      END { for (o in to) if (!(o in used)) print o, to[o] }' "${step}" "${map}" > "${map}.next" \
+      && mv "${map}.next" "${map}"
+    prev="${r}"
+  done
+  while IFS=$'\t' read -r old new; do
+    [ "${old}" != "${new}" ] && [ -n "$(blob_at "$1" "${old}")" ] && [ -z "$(blob_at "$2" "${old}")" ] \
+      && [ -n "$(blob_at "$2" "${new}")" ] && printf '%s\t%s\n' "${old}" "${new}"
+  done < "${map}" | LC_ALL=C sort
 }
 # renamed_to <renames file> <path>: the new path a rename of <path> leads to, or nothing.
 renamed_to() { awk -F'\t' -v p="$2" '$1 == p { print $2; exit }' "$1"; }
