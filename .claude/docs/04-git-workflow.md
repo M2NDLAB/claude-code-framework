@@ -412,19 +412,27 @@ main session, and usually in the same working tree.
 The versioned permissions (`.claude/settings.json`) are the safety net that decides
 what Claude Code may run without asking. Keep them **clean and specific**:
 
-- **`allow`**: the inspection commands (`status`, `diff`, `log`, `branch`, the tree map)
-  and the **safe and reversible** staging/commit commands (`git add`, `git commit`).
-  Nothing else: the point is to reduce prompts for harmless operations, not for the ones
-  that touch shared state. A rule matches the command's text, not what the program does
-  (*Enforcement of the execution boundary*), so an allowed inspection also runs, with no
-  prompt, in the forms that write or read past the repository: `git diff` and `git log`
-  with `--output=<file>`, which writes the file, or `--ext-diff`, which runs a configured
-  program; `git diff --no-index`, which reads any file it is given; `tree -o <file>`.
-  Claude Code's `Read` deny rules cover its file tools, the file commands it recognizes in
-  Bash and the redirections, not a program that opens a file itself: whether they stop git
-  reading `.env` is not stated. A known limit, read in the tools' manuals and in Claude
-  Code's permissions page on 2026-10-15, not measured; narrower rules wait for that
-  measurement.
+- **`allow`**: the inspection commands (`status`, `diff`, `log`, the tree map), and
+  `git branch`, `git add` and `git commit`, which act on the local history only. Nothing
+  else: the point is to reduce prompts for harmless operations, not for the ones that touch
+  shared state. A rule matches the command's text, not what the program does
+  (*Enforcement of the execution boundary*), so an allowed command also runs, with no
+  prompt, in its forms that write, read past the repository or run a configured program —
+  among them: `--output=<file>` of `git diff` and `git log`, which writes any file, the
+  boundary's own included (`.claude/settings.json`, the guard, `.git/hooks/`), since
+  neither the `ask` rules nor the protected paths see a program's arguments; a configured
+  external diff or textconv filter, which `git diff` runs by default and `git log` with
+  `--ext-diff` or `-p`; `git diff --no-index`, which reads any file it is given;
+  `tree -o <file>` and `tree -R`, which write, and `tree --fromfile <file>`, which prints
+  any file's lines; `git branch -f`, `-m` and `--delete --force`, which move, rename and
+  delete branches — the long form gets past the `-D` deny —; `git commit -n`
+  (`--no-verify`), which skips the secret scan and the message check
+  (`03-security-gate.md`). Claude Code's `Read` deny rules cover its file tools, the file
+  commands it recognizes in Bash and the redirections, not a program that opens a file
+  itself: whether they stop git or `tree` reading `.env` is not stated. A known limit, read
+  in the tools' manuals and in Claude Code's permissions pages on 2026-10-15 — of these
+  forms only `tree --fromfile` measured, which printed a file's line —; narrower rules wait
+  for a measurement of what Claude Code prompts for.
 - **`deny`**: all **destructive or irreversible** operations — push (including
   `--force`), `reset --hard`, deletions (`clean`, `branch -D`, `rm -rf`), and
   **reading secrets** (`.env`, `secrets/`, credential files). `deny` takes precedence
@@ -439,15 +447,19 @@ what Claude Code may run without asking. Keep them **clean and specific**:
   Windows the shell stays Git Bash's, the one the framework's scripts and hooks are written
   for. The guard reads PowerShell's commands too, for a developer who turns the tool on.
 - **`ask`**: an edit to the boundary's own files — `.claude/settings.json` and
-  `scripts/agent-git-guard.mjs` — asks the human in every permission mode, auto mode
-  included — dontAsk refuses it instead —, unless a mod approves the call or a
-  PermissionRequest hook answers in the user's place, in a session that loaded the
-  project's settings (*Enforcement of the execution boundary*). Claude Code
-  reloads settings while it runs, so an accidental edit would change the boundary at
-  once. The rule covers the built-in file tools; a write through a shell command is
-  outside it (and outside the threat model): a shell write to these two files skips the
-  checkpoint — one more reason for the rule every file setup copies follows (*Operating
-  rules for Claude Code*).
+  `scripts/agent-git-guard.mjs` — asks the human in every permission mode, auto mode and
+  `bypassPermissions` included — dontAsk refuses it instead —, unless a mod approves the
+  call or a PermissionRequest hook answers in the user's place, in a session that loaded
+  the project's settings (*Enforcement of the execution boundary*); Claude Code's
+  permission-modes page, read on 2026-10-15, lists an explicit ask rule among the actions
+  no mode auto-approves. Claude Code reloads settings while it runs, so an accidental edit
+  would change the boundary at once. The rule covers the built-in file tools; a write
+  through a shell command is outside it (and outside the threat model): a redirection or a
+  `tee` into `.claude/` meets Claude Code's protected-path check instead — prompted, or
+  routed to auto mode's classifier, by mode —, while `sed -i`, a script or a program's
+  `--output` meets only the check of the command itself, and the guard's file is no
+  protected path — one more reason for the rule every file setup copies follows
+  (*Operating rules for Claude Code*).
 - **A local, UNVERSIONED file.** Personal permissions live in `settings.local.json`
   (already in `.gitignore`) and start out **empty**: what is shared and reasoned about
   lives in the versioned file; ad-hoc grants stay local and do not pollute the

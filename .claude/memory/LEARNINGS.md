@@ -2533,6 +2533,13 @@ line on; older entries are not backfilled.
   prompt: `--output=<file>`, `--ext-diff`, `git diff --no-index`, `tree -o <file>` (git's and
   tree's manuals, read, not measured). The claim was narrowed in v3.0.0 — IMP-123 (the
   claim), under *Applied*.
+- Evidence, the release's security gate (2026-10-15, [[2026-10-15-harvest-retro-3.0.0]]): more
+  forms run with no prompt — `tree --fromfile <file>`, which printed a file's line (measured),
+  and `tree -R`, which writes; the external diff and textconv that `git diff` runs by default;
+  `--output` aimed at the boundary's own files, which no `ask` rule or protected path sees;
+  `git branch -f`, `-m` and `--delete --force`, the last past the `-D` deny; `git commit -n`,
+  which skips the secret scan. `docs/04` and `docs/03` declare them; the measurement below
+  runs them too.
 - Proposal: the mechanical restriction — narrower rules, deny pairs for the forms above, or
   fewer entries —, chosen on a measurement of what Claude Code prompts for, as IMP-111's
   candidates are.

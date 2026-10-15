@@ -6,8 +6,10 @@ Security has two levels in this framework:
    on the changes staged for a `git commit`, and refuses the commit when it finds a
    secret (rule 1 of `CLAUDE.md`), from the moment it is installed and while git reads
    it. Its limits include the commits git creates itself — a rebase's `--continue`,
-   `git am`, a cherry-pick or a revert that applies cleanly —, which do not run it, and
-   a hook manager that sets `core.hooksPath` after the install, which takes it out
+   `git am`, a cherry-pick or a revert that applies cleanly —, which do not run it, a
+   commit made with `-n` (`--no-verify`), which the shipped `allow` rule runs with no prompt
+   (`04-git-workflow.md`, *Permission configuration*), and a hook manager that sets
+   `core.hooksPath` after the install, which takes it out
    (`04-git-workflow.md`, *Enforcement of the execution boundary*); the scan's own limits
    are listed in the framework's `SETUP.md`, *What the pre-commit's scan reads*. On a repo with
    PRE-EXISTING history (grafting the framework onto an existing project) the baseline
