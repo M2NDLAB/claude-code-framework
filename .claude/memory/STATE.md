@@ -45,7 +45,9 @@ tags: [state]
 - <section/page to write or to correct> — <what it must contain / what diverges>
 
 ## Caution & open issues
-<!-- Known traps, accepted technical debt, fragile things not to break.
+<!-- Known traps, accepted technical debt, fragile things not to break, and the open
+     threads of the session notes that await the user or a later session — a question, a
+     measurement —, so the resumption sees them.
      The security debt accepted by the security gate (docs/03) goes HERE, with the reason.
      Every entry with its explicit TRIGGER ("X → blocking precondition of Y",
      "resume when Z"), NEVER generic ("X to be fixed"): a debt with a trigger

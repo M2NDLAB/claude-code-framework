@@ -220,8 +220,8 @@ step is a mechanism, not more text.
 ## Plan (one commit per IMP applied)
 - [x] 1. This note — the brief, the retro's outcome and gaps, the user's decisions, the bump, the plan — and the agents' output beside it — commit: 08a492a
 - [x] 2. The registrations in `LEARNINGS.md` — IMP-107..121's outcomes (13 approved with their forms; IMP-111 and IMP-112 deferred with their trigger and the P1 verification), IMP-122, IMP-123 and IMP-124 recorded, the evidence on IMP-083 —; the pre-flight readings in this note: Claude Code's pages on command names, `fw` against the built-in commands and the plugins, the project upgraded next (its form only) — commit: 731216a
-- [ ] 3. IMP-122, the `fw` namespace: the eight commands under `.claude/commands/fw/`, every reference, the classes (the old paths kept for the inventory), the old files flagged by `upgrade-check.sh`, the migration in `SETUP.md`, the documentation check and the self-tests, `CONTRIBUTING.md`'s rule — commit: —
-- [ ] 4. Classes and markers: IMP-115 (`docs/02`-`04` HYBRID), IMP-118 (variant Y; the mentions; the greps; lint check 10; inventory by lines) — commit: —
+- [x] 3. IMP-122, the `fw` namespace: the eight commands under `.claude/commands/fw/`, every reference, the classes (the old paths kept for the inventory), the old files flagged by `upgrade-check.sh`, the migration in `SETUP.md`, the documentation check and the self-tests, `CONTRIBUTING.md`'s rule — commit: ee4ce1f
+- [x] 4. Classes and markers: IMP-115 (`docs/02`-`04` HYBRID), IMP-118 (variant Y; the mentions; the greps; lint check 10; inventory by lines) — commit: 080cf44, 1634337
 - [ ] 5. Writing and open threads: IMP-117 (rule 10, `docs/04`'s *Operating rules*, `SETUP.md`'s points of use, `/fw:checkpoint`'s step 3), IMP-121 (an open thread reaches `STATE.md`) — commit: —
 - [ ] 6. Commands and hooks: IMP-116 (the run-time reading, trunk-based), IMP-114 (the formatting reminder) — commit: —
 - [ ] 7. The cycle: IMP-120 (a deliverable is what goes to integration), IMP-119 (records between deliverables; a memory-only branch exempt by its diff), `CONTRIBUTING.md` — commit: —
@@ -255,6 +255,31 @@ shas go into the headings with a later commit, as in v2.2.0.
 - A conflict this task brings to every project's upgrade, to be measured at the rehearsal:
   rule 8's line of `CLAUDE.md` holds its slot and the command's name.
 - Writing: the method's files edited with the file tools; the renames with `git mv`.
+
+## Task 4 — classes and markers (IMP-115, IMP-118)
+- IMP-115, red first: with a project's `docs/04` answered inline, the upgrade check of
+  `ee4ce1f` printed "edge case 7: .claude/docs/04-git-workflow.md is METHOD but customised";
+  with the three docs HYBRID, `inventory` shows a hybrid and `post` holds it to no `vY` text.
+- IMP-118: the payload's markers went from 40 to 30, every one a slot §2 lists; no METHOD file
+  holds one, which the documentation check now fails. The greps' exclusions measured here on
+  macOS with the system's BSD grep and with ugrep (the shell's `grep` on this machine); the
+  new case 10 runs §2's grep, read from `SETUP.md`, with each CI image's own grep.
+- The inventory by lines, red first: on a throwaway release that drops a mention and adds a
+  slot in the same file, the counting check showed nothing in `inventory` and in `post`; the
+  line check shows the slot. From v1.2.0 — the project upgraded next — the `Makefile`'s
+  protected-branches slot, which a count masked, now shows.
+- A planted case of the documentation check's self-test anchored on the HYBRID bullet's run of
+  three files: a `CLAUDE.md` named again in the new parenthesis hid the planted removal; the
+  parenthesis says "the technical rules" instead.
+
+## Task 5 — writing with the file tools, open threads (IMP-117, IMP-121)
+- IMP-117 in the user's form: rule 10 in `CLAUDE.md`, the rule's home in `docs/04`'s
+  *Operating rules for Claude Code*, the points of use in `SETUP.md`, the checkpoint's step 3.
+  `checkpoint.md` carried both entries' hunks: IMP-117's was staged alone with
+  `git apply --cached` on its own hunk, so each entry has its commit.
+- IMP-121 on the side that writes STATE; its `CONTRIBUTING.md` counterpart says where an open
+  thread lives here. This note's own open threads, the framework's way: the follow-up below,
+  and the deferred entries of `LEARNINGS.md`.
 
 ## Resumption notes
 - The payload names no IMP number (the documentation check's `imp-number`).

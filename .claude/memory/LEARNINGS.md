@@ -283,29 +283,6 @@ tags: [improvement]
   whatever its size; heaviness decides the plan only; the exemption of a memory-only branch is
   IMP-119's.
 
-### IMP-121 — A question left for the user in a session note does not reach STATE, so resumption misses it
-- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
-  project (the project's entry 015, 2026-10-14): the resumption of a deliverable in a new
-  session
-- Observed problem: a session note ended a measurement with "to be added from the user's
-  observation" — an open question for the USER. `/checkpoint` checks that the existing
-  entries of *Caution & open issues* survive a rewrite of STATE, but nothing carries a NEW
-  open thread of a note into STATE; the note template puts such threads under *Follow-up*,
-  which nobody reads at resumption. The resumption summary, built from the injected STATE,
-  did not mention it; the user remembered it on their own, and their handoff came back with
-  the slot still unfilled.
-- Proposal: `/checkpoint` (and `sessions/README.md`, *Follow-up*) says that every open
-  thread awaiting the user or a later session — a question, a measurement — becomes an
-  entry of STATE's *Caution & open issues* with its trigger (e.g. "→ Trigger: ask the user
-  at the next session's start"); the note keeps the detail, STATE the pointer.
-- Expected benefit / risk: a resumption from STATE alone surfaces every pending question.
-  Risk: a longer *Caution* section — each entry is closed when answered.
-- Kin: IMP-014 (debts with a trigger, surviving the rewrites of STATE).
-- Status: APPROVED on 2026-10-15 — on the side that writes `STATE.md`: the checkpoint's step 3
-  checks that every open thread of the notes it writes has an entry in *Caution & open issues*
-  with its trigger, and the session-note format says the same; cited by *Format*, never by
-  *Follow-up*, which sits inside the fenced template.
-
 ### IMP-123 — The shipped allow list admits more than reading
 - Date: 2026-10-15 | Origin: the retro's agents, the P1 lens on the shipped `settings.json` —
   [[2026-10-15-harvest-retro-3.0.0]]
@@ -2119,6 +2096,21 @@ line on; older entries are not backfilled.
   `checkpoint.md` and `docs/04`. The behaviour shows at the next graft and upgrade, whose
   notes record which tool wrote each answer; if a shell write recurs, the next step is a
   mechanism, not more text.
+
+### IMP-121 — A question left for the user in a session note does not reach STATE, so resumption misses it → applied on 2026-10-15
+- Origin: a test project's harvest, the project's entry 015 ([[2026-10-14-test-project-harvest]];
+  the retro, [[2026-10-15-harvest-retro-3.0.0]]) — a note left a measurement "to be added from
+  the user's observation"; the resumption, built from the injected `STATE.md`, did not name it,
+  since nothing carried a new open thread of a note into STATE.
+- Applied, on the side that writes STATE: `/fw:checkpoint`'s step 3 checks that every open
+  thread of the notes it writes — a question awaiting the user, a measurement still to take —
+  has its entry in *Caution & open issues*, with its trigger; the note keeps the detail, STATE
+  the pointer, the entry closed once answered. The session-note format's *Follow-up* line and
+  `STATE.md`'s template comment say the same; `CONTRIBUTING.md` says where such a thread lives
+  here, where `STATE.md` is a template: the newest note and `LEARNINGS.md`.
+- Verified: the documentation check passes. Measured at the release's rehearsal: the 3-way
+  of `checkpoint.md` and of `sessions/README.md`, a template a project may have customised.
+  `STATE.md`'s comment reaches new grafts only: in a project the file is its memory.
 
 ## Deferred (not rejected — resumed at the right time)
 

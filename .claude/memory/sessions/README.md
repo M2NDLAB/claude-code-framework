@@ -49,7 +49,9 @@ tags: [session, <area>]
 - IMP-nnn (in LEARNINGS.md): <any improvement proposal that emerged>
 
 ## Follow-up
-- <any open threads picked up at a later date>
+- <any open threads picked up at a later date; one that awaits the user or a later
+  session — a question, a measurement — also gets its entry in STATE.md's "Caution &
+  open issues", with its trigger: the resumption reads STATE, not this note>
 ```
 
 ## The security gate's line

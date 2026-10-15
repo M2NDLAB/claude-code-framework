@@ -27,6 +27,10 @@ values, then deletes this paragraph: [TO BE DEFINED AT SETUP].
      pre-existing entries of "Caution & open issues" are still present or
      knowingly closed (a critical debt must not die in a rewrite)
      and that every entry has its explicit TRIGGER, never a generic one;
+     and that every open thread of the notes this checkpoint writes — a question that
+     awaits the user, a measurement still to take — has its entry there, with its
+     trigger (e.g. "ask the user at the next session's start"): the note keeps the
+     detail, STATE the pointer, and the entry is closed once answered;
    - reconcile the branch state in STATE with the git reality (merges into the
      integration branch happen OUTSIDE the session, so STATE can be stale):
      `git branch --merged <integration>` and `git log --oneline -5

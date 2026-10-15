@@ -139,7 +139,9 @@ The repo uses on itself only PART of its own memory system:
   loop from the README's *Philosophy*: lessons from use flow back into the
   template) and `.claude/memory/sessions/` (the journal of work on the framework).
 - **Clean templates**, never populated here: `STATE.md`, `TREE.md`, `INDEX.md`,
-  `components/`, `decisions/`, `plans/` — they stay ready to copy.
+  `components/`, `decisions/`, `plans/` — they stay ready to copy. So an open thread that
+  awaits the user, which `/fw:checkpoint` carries into a project's `STATE.md`, lives here in
+  the newest session note and in `LEARNINGS.md`, where the resumption looks (below).
 
 This is not an oversight: it is the choice that keeps the template copyable
 without giving up the self-improvement loop. Whoever copies the template into
