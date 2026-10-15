@@ -384,9 +384,11 @@ renames_between() {
       | awk -F'\t' '$1 ~ /^R/ && $2 !~ /^\.claude\/memory\// {print $2 "\t" $3}' > "${step}"
     # The map holds "first path<TAB>current path": a path it follows moves on with the
     # step's rename; a rename of any other path starts an entry of its own. The files are
-    # told apart by name, not by NR == FNR, which an empty first file would fool.
-    awk -F'\t' -v OFS='\t' -v steps="${step}" '
-      FILENAME == steps { to[$1] = $2; next }
+    # told apart by name, not by NR == FNR, which an empty first file would fool — and the
+    # name travels in the environment: awk reads a -v value's escapes, and a T in Windows'
+    # form (C:\…) would stop matching its own file.
+    UC_STEPS="${step}" awk -F'\t' -v OFS='\t' '
+      FILENAME == ENVIRON["UC_STEPS"] { to[$1] = $2; next }
       { if ($2 in to) { used[$2] = 1; print $1, to[$2] } else print $1, $2 }
       END { for (o in to) if (!(o in used)) print o, to[o] }' "${step}" "${map}" > "${map}.next" \
       && mv "${map}.next" "${map}"

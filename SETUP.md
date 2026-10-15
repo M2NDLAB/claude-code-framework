@@ -1034,12 +1034,16 @@ from a hand-written list; the memory's titles and field labels to rename; and th
   blocks:
 
   ```bash
-  awk -v merged="${T:?}/fmt.mine" '
-    /^<!--/ { c = 1; if (!done) { while ((getline l < merged) > 0) print l; done = 1 } }
+  UC_MERGED="${T:?}/fmt.mine" awk '
+    /^<!--/ { c = 1; if (!done) { while ((getline l < ENVIRON["UC_MERGED"]) > 0) print l; done = 1 } }
     !c { print }
     /-->[[:space:]]*$/ { c = 0 }' .claude/memory/LEARNINGS.md > "${T:?}/lrn.fmt" \
     && cp "${T:?}/lrn.fmt" .claude/memory/LEARNINGS.md
   ```
+
+  The merged file's path travels in the environment, not in `awk -v`, which reads a
+  value's escapes: with `T` in Windows' form (`C:\…`) the block read no file and dropped the
+  comment, with no error (measured).
 
   `invariant` compares the result with `vY`'s format and shows a difference for a human.
   Commit the templates apart, declared: `docs(memory): bring the memory templates to vY`.

@@ -46,9 +46,10 @@
 #      mention of the marker while it adds a slot: inventory names each rename by what the
 #      project holds (a customised copy with its merge's measure, an untouched one to bring
 #      over), never as a deletion — a command a release in between rewrote included, which
-#      git pairs release by release and not across the jump —, and shows the slot the
-#      unchanged count would hide; post asks for that slot's answer, fails while an old
-#      command file remains, and passes the orphans once they are gone.
+#      git pairs release by release and not across the jump, and one renamed in two
+#      releases, also with a backslash in T's path —, and shows the slot the unchanged count
+#      would hide; post asks for that slot's answer, fails while an old command file
+#      remains, and passes the orphans once they are gone.
 #  10. the marker grep — read from SETUP.md's step 2 and run as a project runs it: it prints
 #      the slots, the legacy one included, and none of the records it excludes (a kept
 #      SETUP.md, the backlog, a dated session note) nor the hooks the install generates in
@@ -582,16 +583,20 @@ put "${FW9}" CLAUDE.md '# Index\nThe slots are marked [TO BE DEFINED AT SETUP].\
 put "${FW9}" .claude/commands/checkpoint.md 'checkpoint\nIntegration branch: <integration>\nAn unchanged line.\nStep two.\n'
 put "${FW9}" .claude/commands/sos.md 'sos\n'
 put "${FW9}" .claude/commands/integrate.md 'integrate\nBlock one: <integration>\nBlock two: <stable>\nThe end.\n'
+put "${FW9}" .claude/commands/retro.md 'retro\nReflect on the deliverable.\n'
 put "${FW9}" .claude/memory/STATE.md '# STATE\n'
 g -C "${FW9}" add -A && g -C "${FW9}" commit -q -m "feat: 1.0.0" && g -C "${FW9}" tag -a v1.0.0 -m v1.0.0
 # A release in between rewrites integrate.md: from v1.0.0 to v2.0.0 git pairs nothing, while
-# each release's own diff does — a jump of several releases, as from v1.2.0 to v3.0.0.
+# each release's own diff does — a jump of several releases, as from v1.2.0 to v3.0.0. It
+# also moves retro.md once, before v2.0.0 moves it again: two renames, composed.
 put "${FW9}" .claude/commands/integrate.md 'integrate, rewritten\nStep one: the names of the branches.\nStep two: the merge block.\nStep three: the push block.\nStep four: the checks.\n'
+g -C "${FW9}" mv .claude/commands/retro.md .claude/commands/retrospective.md
 g -C "${FW9}" commit -q -am "feat: 1.5.0" && g -C "${FW9}" tag -a v1.5.0 -m v1.5.0
 mkdir -p "${FW9}/.claude/commands/fw"
 g -C "${FW9}" mv .claude/commands/checkpoint.md .claude/commands/fw/checkpoint.md
 g -C "${FW9}" mv .claude/commands/sos.md .claude/commands/fw/sos.md
 g -C "${FW9}" mv .claude/commands/integrate.md .claude/commands/fw/integrate.md
+g -C "${FW9}" mv .claude/commands/retrospective.md .claude/commands/fw/retro.md
 put "${FW9}" .claude/commands/fw/checkpoint.md 'checkpoint\nIntegration branch: <integration>\nAn unchanged line.\nStep two, with the file tools.\n'
 put "${FW9}" .claude/commands/fw/integrate.md 'integrate, rewritten\nStep one: the names of the branches.\nStep two: the merge block.\nStep three: the push block.\nStep four: the checks, each printing a line.\n'
 # The mention goes, a slot comes: one marker line before and after, a count would see nothing.
@@ -606,16 +611,26 @@ has "edge case 2: renamed in v2.0.0: .claude/commands/checkpoint.md -> .claude/c
 has "3-way: 0 conflict(s), 0 of 4 lines in conflict"
 has "edge case 2: renamed in v2.0.0: .claude/commands/sos.md -> .claude/commands/fw/sos.md — the project's copy is v1.0.0's"
 has "edge case 2: renamed in v2.0.0: .claude/commands/integrate.md -> .claude/commands/fw/integrate.md — the project's copy is v1.0.0's"
+has "edge case 2: renamed in v2.0.0: .claude/commands/retro.md -> .claude/commands/fw/retro.md — the project's copy is v1.0.0's"
 hasnt "edge case 1:"
 has "added in CLAUDE.md(+1)"
 hasnt "fw/checkpoint.md(+"
-# The migration half done: the merged command in its new place, the old sos.md and
-# integrate.md still there.
+# The same inventory with a T whose path holds a backslash, as Windows writes one (C:\…):
+# awk reads a -v value's escapes, so a path passed that way would stop matching its own
+# file, and the two renames of retro.md would not compose.
+T9B="${workdir}/T\\b9"
+mkdir -p "${T9B}"
+FW="${FW9}" T="${T9B}" run 0 "${P9}" inventory v1.0.0 v2.0.0
+has "edge case 2: renamed in v2.0.0: .claude/commands/retro.md -> .claude/commands/fw/retro.md — the project's copy is v1.0.0's"
+hasnt "edge case 1:"
+# The migration half done: the merged command in its new place, retro.md moved, the old
+# sos.md and integrate.md still there.
 g -C "${FW9}" show v2.0.0:CLAUDE.md > "${P9}/CLAUDE.md"
 put "${P9}" .claude/commands/fw/checkpoint.md 'checkpoint\nIntegration branch: main\nAn unchanged line.\nStep two, with the file tools.\n'
 g -C "${FW9}" show v2.0.0:.claude/commands/fw/sos.md > "${P9}/.claude/commands/fw/sos.md"
 g -C "${FW9}" show v2.0.0:.claude/commands/fw/integrate.md > "${P9}/.claude/commands/fw/integrate.md"
-rm "${P9}/.claude/commands/checkpoint.md"
+g -C "${FW9}" show v2.0.0:.claude/commands/fw/retro.md > "${P9}/.claude/commands/fw/retro.md"
+rm "${P9}/.claude/commands/checkpoint.md" "${P9}/.claude/commands/retro.md"
 FW="${FW9}" T="${T_DIR}" run 1 "${P9}" post v1.0.0 v2.0.0
 has "FAIL   .claude/commands/sos.md is the old place of .claude/commands/fw/sos.md (edge case 2): remove it once merged — until then Claude Code runs it under its bare name"
 has "FAIL   .claude/commands/integrate.md is the old place of .claude/commands/fw/integrate.md (edge case 2)"
