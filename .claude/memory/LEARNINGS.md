@@ -122,30 +122,6 @@ tags: [improvement]
   end of step 1, after the copy; not an extraction at §0, which would need `FW` and `T` before
   the guide defines them and fails for an export.
 
-### IMP-113 — The graft copies the framework's LIVE memory, then asks to empty it by hand
-- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
-  project (the project's entry 007, 2026-10-14): a greenfield graft received 27 of the
-  framework's session notes and its whole IMP backlog
-- Observed problem: `SETUP.md` §1 copies `.claude/` whole; §2 then asks to "EMPTY OUT the
-  framework's LIVE memory" by hand (the sections of `LEARNINGS.md` back to empty, the notes
-  of `sessions/` deleted). If skipped, the project starts with the framework's memory, and
-  a `/harvest-framework` would send the framework's own IMPs back upstream as duplicates.
-  The agent rebuilt `LEARNINGS.md` by hand.
-- Proposal: the graft does not copy the live memory: `LEARNINGS.md` and `sessions/` come
-  from empty templates (the header, the format comment, the four `## ` titles;
-  `sessions/README.md` only) — e.g. §1's copy excludes `.claude/memory/sessions/*` but the
-  README, and `SETUP.md` gives the empty `LEARNINGS.md` as the memory template
-  `upgrade-check.sh` already classes it as.
-- Expected benefit / risk: no forgettable manual step; no framework IMP can leak into a
-  project's harvest. Risk: none known.
-- Kin: IMP-024 (the declared hybrid regime), IMP-049 (payload purity).
-- Status: APPROVED on 2026-10-15 — option (a), inside IMP-107's block: the archive leaves out
-  `LEARNINGS.md` and the dated notes, `LEARNINGS.md` is derived from the tag's own file
-  (header, the four titles, the format comment); §2's EMPTY OUT becomes a check, which also
-  covers an export. The harvest risk the entry names does not hold: no framework entry carries
-  the marker, and `/harvest-framework` excludes the format comment's line. The harms that do:
-  the numbering, `/retro` and `/lint-memory` over the framework's entries and notes.
-
 ### IMP-123 — The shipped allow list admits more than reading
 - Date: 2026-10-15 | Origin: the retro's agents, the P1 lens on the shipped `settings.json` —
   [[2026-10-15-harvest-retro-3.0.0]]
@@ -2088,6 +2064,29 @@ line on; older entries are not backfilled.
   v2.2.0: `payload: OK`, the scripts executable, nothing git does not track in the clone
   copied; a mistyped tag left the pipe at status 0 and the check line stopped the chain.
   Not measured: git 2.31, GNU tar, Windows.
+
+### IMP-113 — The graft copies the framework's LIVE memory, then asks to empty it by hand → applied on 2026-10-15
+- Origin: a test project's harvest, the project's entry 007 ([[2026-10-14-test-project-harvest]];
+  the retro, [[2026-10-15-harvest-retro-3.0.0]]) — §1 copied `.claude/` whole and §2 asked to
+  empty the framework's memory by hand: a greenfield graft received 27 notes and the whole
+  backlog. The harvest risk the entry named does not hold — no framework entry carries the
+  marker, and `/fw:harvest-framework` excludes the format comment's line —; the harms that do
+  are the numbering, and `/fw:retro` and `/fw:lint-memory` over entries and notes not the
+  project's.
+- Applied (option (a)): step 1's copy by tag leaves out `LEARNINGS.md` and the dated session
+  notes — two exclude pathspecs of `git archive` — and derives `LEARNINGS.md` from the tag's
+  own file, its header, its four titles and its format comment; §2's EMPTY OUT step becomes a
+  check that the memory arrived empty, which still tells an export what to empty. No new
+  payload file, so no class changes and nothing reaches an upgrade. The documentation check's
+  model of the payload and its exception for §2 follow; `CONTRIBUTING.md` says the graft
+  leaves the live part out.
+- Verified: the block, read from `SETUP.md` and run in a throwaway directory from this
+  repository's v2.2.0: `payload: OK`, `sessions/` with its README only, `LEARNINGS.md` with
+  its four titles and the format comment's example alone. The new case 11 of the upgrade
+  check's self-test runs step 1's two blocks, read from `SETUP.md`, on a throwaway framework
+  with a commit after its tag, a file it does not track, a dated note and IMP entries: the
+  copy is the tag's and leaves all of them behind — measured here on macOS, and by the CI on
+  its three images with each one's own git and tar.
 
 ## Deferred (not rejected — resumed at the right time)
 

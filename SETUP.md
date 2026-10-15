@@ -135,13 +135,20 @@ chain:
 : "${FW:?}" && test "$(git rev-parse --show-toplevel)" -ef "$(pwd -P)" \
   && test "$(git -C "${FW:?}" rev-parse --path-format=absolute --git-common-dir)" \
     != "$(git rev-parse --path-format=absolute --git-common-dir)" \
-  && git -C "${FW:?}" archive vX.Y.Z -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore .gitattributes scripts | tar -x \
+  && git -C "${FW:?}" archive vX.Y.Z -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore .gitattributes scripts \
+    ':(exclude).claude/memory/LEARNINGS.md' ':(exclude,glob).claude/memory/sessions/[0-9]*' | tar -x \
+  && git -C "${FW:?}" show vX.Y.Z:.claude/memory/LEARNINGS.md \
+    | awk '/^## /{h=1; print; print ""; next} /^<!--/{c=1} !h || c {print} /-->[[:space:]]*$/{if (h && c) print ""; c=0}' \
+    > .claude/memory/LEARNINGS.md \
   && test -x scripts/hooks-install.sh && test -f .claude/settings.json && echo "payload: OK"
 ```
 
 The last line is what proves the copy: a pipe returns `tar`'s status, 0 even when
 `git archive` failed — a tag mistyped, a path left out. Anything git does not track in the
-clone stays behind. The optional `SECURITY.md` scaffold is read the same way,
+clone stays behind, and so does the framework's own memory — its IMP entries and its dated
+session notes, the live part of its repository: `LEARNINGS.md` is derived from the tag's own
+file, its header, its four titles and its format comment, so the project's IMPs start from
+001. The optional `SECURITY.md` scaffold is read the same way,
 `git -C "${FW:?}" show vX.Y.Z:SECURITY.md > SECURITY.md`. A framework received as an
 export, without git history, has no tag to read by: it is copied as it is. On a brownfield
 graft the archive goes into a scratch directory outside the project, `tar -x -C <dir>`,
@@ -252,10 +259,11 @@ of the slot, survives every upgrade, which merges them three ways.
 - [ ] `TREE.md`: the `-I '...'` pattern for `tree` suited to your stack.
 - [ ] `decisions/README.md`: where formal ADRs live, if the project keeps any (an
       `adr/` folder, a wiki, a docs site).
-- [ ] **EMPTY OUT the framework's LIVE memory**: `LEARNINGS.md` arrives with the IMPs
-      of the framework itself (hybrid regime, see its `CONTRIBUTING.md`) — bring the
-      sections back to empty: the IMPs of YOUR project restart from 001. Delete the
-      notes in `sessions/` (keep the README).
+- [ ] **The memory arrived empty**: step 1's copy leaves out the framework's own IMP
+      entries and session notes — `sessions/` holds its README only, `LEARNINGS.md` no
+      entry beyond its format comment's example: the IMPs of YOUR project start from 001.
+      A framework copied from an export carries them: bring the sections of `LEARNINGS.md`
+      back to empty and delete the notes in `sessions/` (keep the README).
 - [ ] (The `STATE.md` and `INDEX.md` templates are populated by the first command —
       see point 4; for now leave the instruction blocks in place.)
 

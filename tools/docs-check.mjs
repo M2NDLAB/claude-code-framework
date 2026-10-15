@@ -83,8 +83,8 @@ const isSelfTest = (p) => /^(scripts|tools)\/test-[^/]+\.sh$/.test(p)
 // --- The payload -------------------------------------------------------------------------
 // What setup copies into a project. Its paths are read from tools/upgrade-check.sh, where a
 // program already reads them; SECURITY.md is the scaffold setup offers next to them. Of the
-// framework's own memory, setup keeps the templates only: it deletes the session notes, and
-// of LEARNINGS.md only the header and the format comment remain.
+// framework's own memory, setup copies the templates only: no session note, and of
+// LEARNINGS.md only the header, the titles and the format comment.
 const UPGRADE_CHECK = 'tools/upgrade-check.sh'
 if (!FILESET.has(UPGRADE_CHECK)) die(`${UPGRADE_CHECK} not found: run it inside the framework repository`)
 const PAYLOAD_PATHS = (() => {
@@ -1175,7 +1175,7 @@ const ALLOW = [
   { check: 'link', file: '.claude/docs/04-git-workflow.md', text: '`secrets/`', reason: 'a generic example of where secrets live' },
   { check: 'link', file: SETUP, text: '`adr/`', reason: 'an example of where a project keeps its ADRs' },
   // Lists.
-  { check: 'list', file: SETUP, text: '§2 names .claude/memory/LEARNINGS.md', reason: 'an action at setup (empty the live memory), not a slot' },
+  { check: 'list', file: SETUP, text: '§2 names .claude/memory/LEARNINGS.md', reason: 'a check at setup (the memory arrived empty), not a slot' },
   { check: 'list', file: SETUP, text: '§2 names .claude/memory/STATE.md', reason: 'a template the first command populates, not a slot' },
   { check: 'list', file: SETUP, text: '§2 names .claude/memory/INDEX.md', reason: 'a template the first command populates, not a slot' },
   { check: 'list', file: SETUP, text: '§2 names scripts/agent-git-guard.mjs', reason: 'named as boundary wiring to leave in place, not a slot' },

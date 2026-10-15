@@ -51,6 +51,11 @@
 #  10. the marker grep — read from SETUP.md's step 2 and run as a project runs it: it prints
 #      the slots, the legacy one included, and none of the records it excludes (a kept
 #      SETUP.md, the backlog, a dated session note), with the platform's own grep.
+#  11. step 1 of a greenfield graft — its blocks read from SETUP.md and run on a throwaway
+#      framework: the repository starts with its empty commit; the copy is the tag's, not a
+#      later commit's nor a file the framework does not track, keeps the scripts executable
+#      and leaves the framework's memory out but for LEARNINGS.md's template, with the
+#      platform's own tar.
 # Run it from anywhere: bash tools/test-upgrade-check.sh
 set -euo pipefail
 
@@ -625,3 +630,52 @@ printf '%s\n' '.claude/memory/decisions/README.md:1:ADR home: [TO BE DEFINED AT 
   | LC_ALL=C sort > "${workdir}/grep.expected"
 diff "${workdir}/grep.expected" "${out}" >/dev/null || fail "marker grep: it printed other lines than the three slots"
 echo "PASS (upgrade-check marker grep): SETUP.md's grep prints the slots, the legacy one included, and none of the records it leaves out."
+
+# --- Case 11: step 1 of a greenfield graft ------------------------------------------------
+# The two blocks a new project runs before its setup, read from the guide: the start of the
+# repository, and the copy by tag. The framework holds a commit after its tag and a file it
+# does not track — both must stay behind —, and its own memory: a dated note and IMP entries.
+FW11="${workdir}/fw11"
+g init -q -b main "${FW11}"
+put "${FW11}" CLAUDE.md '# Index\n'
+put "${FW11}" Makefile 'help:\n\t@echo help\n'
+put "${FW11}" commitlint.config.cjs 'module.exports = {};\n'
+put "${FW11}" .gitignore '.env\n'
+put "${FW11}" .gitattributes '* text=auto\n'
+put "${FW11}" .claude/settings.json '{}\n'
+put "${FW11}" scripts/hooks-install.sh '#!/usr/bin/env bash\necho hooks\n'
+put "${FW11}" .claude/memory/sessions/README.md 'the sessions guide\n'
+put "${FW11}" .claude/memory/sessions/2026-01-02-work.md 'a note of the framework\n'
+put "${FW11}" .claude/memory/LEARNINGS.md "---\nupdated: 2026-01-02\n---\n# Learnings\nThe header.\n\n## OPEN proposals (awaiting the user's decision)\n\n### IMP-007 — An entry of the framework\n- Observed problem: something\n\n<!-- Format of a proposal:\n### IMP-001 — <short title>\n-->\n\n## Applied\n\n### IMP-003 — An applied entry\n\n## Deferred (not rejected — resumed at the right time)\n\n## Rejected (with the reason — so they are not re-proposed)\n"
+g -C "${FW11}" add -A && set_exec "${FW11}" scripts/hooks-install.sh +x
+g -C "${FW11}" commit -q -m "feat: 1.0.0" && g -C "${FW11}" tag -a v1.0.0 -m v1.0.0
+put "${FW11}" CLAUDE.md '# Index\nA line committed after the tag.\n'
+g -C "${FW11}" commit -q -am "feat: after the tag"
+put "${FW11}" .claude/settings.local.json '{"permissions": {"allow": ["Bash(make:*)"]}}\n'
+step1="$(awk '/^## 1\./{f=1} /^## 2\./{f=0} f' "${REPO_ROOT}/SETUP.md")"
+start_block="$(printf '%s\n' "${step1}" | awk '/^git init -b <integration>/{f=1} f{print} f && /echo "root: OK"/{exit}' \
+  | sed -e 's/<integration>/develop/g' -e 's/<stable>/main/g' -e "s#<the remote's URL>#file:///nonexistent#g")"
+copy_block="$(printf '%s\n' "${step1}" | awk '/^: "\$\{FW:\?\}" && test/{f=1} f{print} f && /echo "payload: OK"/{exit}' \
+  | sed 's/vX\.Y\.Z/v1.0.0/g')"
+[ -n "${start_block}" ] && [ -n "${copy_block}" ] || fail "step 1: a block of SETUP.md not found"
+P11="${workdir}/project11"
+mkdir -p "${P11}"
+( cd "${P11}" \
+    && export GIT_AUTHOR_NAME=self-test GIT_AUTHOR_EMAIL=self-test@example.invalid \
+       GIT_COMMITTER_NAME=self-test GIT_COMMITTER_EMAIL=self-test@example.invalid \
+    && eval "${start_block}" && git switch -q -c chore/graft-framework \
+    && FW="${FW11}" && eval "${copy_block}" ) > "${out}" 2>&1 \
+  || fail "step 1's blocks did not run to their end"
+has "root: OK"
+has "payload: OK"
+[ "$(g -C "${P11}" rev-list --count develop)" = 1 ] && [ "$(g -C "${P11}" rev-list --count main)" = 1 ] \
+  || fail "step 1: the start is not one empty commit on both branches"
+[ -x "${P11}/scripts/hooks-install.sh" ] || fail "step 1: the copy lost a script's executable mode"
+grep -qx '# Index' "${P11}/CLAUDE.md" && ! grep -q 'after the tag' "${P11}/CLAUDE.md" \
+  || fail "step 1: the copy is not the tag's"
+[ ! -e "${P11}/.claude/settings.local.json" ] || fail "step 1: the copy took a file the framework does not track"
+[ ! -e "${P11}/.claude/memory/sessions/2026-01-02-work.md" ] || fail "step 1: the copy took a session note of the framework"
+[ -f "${P11}/.claude/memory/sessions/README.md" ] || fail "step 1: the copy lost the sessions guide"
+[ "$(grep -c '^### IMP-' "${P11}/.claude/memory/LEARNINGS.md")" = 1 ] || fail "step 1: LEARNINGS.md kept an entry of the framework"
+[ "$(grep -c '^## ' "${P11}/.claude/memory/LEARNINGS.md")" = 4 ] || fail "step 1: LEARNINGS.md lost one of its four titles"
+echo "PASS (upgrade-check step 1): the repository starts with its empty commit; the copy is the tag's, its script executable, nothing untracked, no memory of the framework but LEARNINGS.md's template."

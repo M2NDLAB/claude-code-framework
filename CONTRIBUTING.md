@@ -150,8 +150,8 @@ The repo uses on itself only PART of its own memory system:
   the newest session note and in `LEARNINGS.md`, where the resumption looks (below).
 
 This is not an oversight: it is the choice that keeps the template copyable
-without giving up the self-improvement loop. Whoever copies the template into
-their own project EMPTIES the live part (instructions in `SETUP.md`, step 2).
+without giving up the self-improvement loop. A project's graft leaves the live part
+out (`SETUP.md`, step 1), and step 2 checks that its memory arrived empty.
 
 ### A heavy deliverable here: the plan lives in the session note
 
