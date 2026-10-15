@@ -103,7 +103,9 @@ within() {
 
 # classify <path>: the class of a payload file, named one by one outside the memory, so
 # that a file added to the payload has NO class until someone decides it (the self-test
-# fails on it). The classes are those of SETUP.md, *The mental model*:
+# fails on it). A path an earlier release held keeps its class — the commands' old places
+# above .claude/commands/fw/ among them —, since an upgrade from that release reads it at
+# vX. The classes are those of SETUP.md, *The mental model*:
 #   METHOD          pure framework, brought to vY as it is
 #   HYBRID          a framework part and a project part, reconciled 3-way
 #   TEMPLATE        a memory template: a guide README, reconciled 3-way
@@ -121,13 +123,18 @@ classify() {
     .claude/framework-version) echo GRAFT-STATE ;;
     .claude/settings.local.json | .claude/worktrees/*) echo LOCAL ;;
     CLAUDE.md | .claude/settings.json | .gitignore | .gitattributes | Makefile | scripts/hooks-install.sh | \
+    .claude/docs/02-code-quality.md | .claude/docs/03-security-gate.md | \
+    .claude/docs/04-git-workflow.md | \
+    .claude/commands/fw/checkpoint.md | .claude/commands/fw/integrate.md | \
+    .claude/commands/fw/new-component.md | \
     .claude/commands/checkpoint.md | .claude/commands/integrate.md | \
     .claude/commands/new-component.md)
       echo HYBRID ;;
     .claude/docs/00-overview.md | .claude/docs/01-task-planning.md | \
-    .claude/docs/02-code-quality.md | .claude/docs/03-security-gate.md | \
-    .claude/docs/04-git-workflow.md | .claude/docs/05-escalation-protocol.md | \
-    .claude/docs/06-self-improvement.md | \
+    .claude/docs/05-escalation-protocol.md | .claude/docs/06-self-improvement.md | \
+    .claude/commands/fw/harvest-framework.md | .claude/commands/fw/lint-memory.md | \
+    .claude/commands/fw/retro.md | .claude/commands/fw/security-review.md | \
+    .claude/commands/fw/sos.md | \
     .claude/commands/harvest-framework.md | .claude/commands/lint-memory.md | \
     .claude/commands/retro.md | .claude/commands/security-review.md | \
     .claude/commands/sos.md | \
@@ -171,6 +178,10 @@ require_t() {
   done
   WORK="${T}/upgrade-check"
   mkdir -p "${WORK}" || die "cannot create ${WORK}"
+  # The listings by tag (tree_of) are cached for one run only: a tag's NAME is no identity
+  # across runs — a re-created tag, another FW with the same tags (the self-test's
+  # fixtures) — and a stale listing answers for the wrong tree without a word.
+  rm -rf "${WORK}/trees" || die "cannot clear ${WORK}/trees"
 }
 
 # The project's root, git 2.31 or later, and a FW that is not the project itself.
@@ -358,22 +369,63 @@ version_id() {
 }
 # The releases after vX up to vY, oldest first.
 releases_between() { fw tag --list 'v*' --sort=v:refname --merged "$2" --no-merged "$1"; }
+# renames_between <vX> <vY>: the payload files renamed between the tags, one "old<TAB>new"
+# per line (edge case 2), the memory's own left out: the framework's notes are not the
+# project's. Paired release by release and composed, never across the jump at once: a file
+# that a release in between rewrote is too unlike its renamed copy for git to pair them —
+# measured, v1.2.0's integrate.md against v3.0.0's fw/integrate.md — while the release that
+# moved it pairs it. Kept: a path vX holds and vY no longer does, to one vY holds.
+renames_between() {
+  local prev="$1" r old new
+  local map="${WORK}/renames.map" step="${WORK}/renames.step"
+  : > "${map}"
+  for r in $(releases_between "$1" "$2"); do
+    fw diff --no-ext-diff -M --name-status "${prev}" "${r}" -- "${PAYLOAD_PATHS[@]}" \
+      | awk -F'\t' '$1 ~ /^R/ && $2 !~ /^\.claude\/memory\// {print $2 "\t" $3}' > "${step}"
+    # The map holds "first path<TAB>current path": a path it follows moves on with the
+    # step's rename; a rename of any other path starts an entry of its own. The files are
+    # told apart by name, not by NR == FNR, which an empty first file would fool — and the
+    # name travels in the environment: awk reads a -v value's escapes, and a T in Windows'
+    # form (C:\…) would stop matching its own file.
+    UC_STEPS="${step}" awk -F'\t' -v OFS='\t' '
+      FILENAME == ENVIRON["UC_STEPS"] { to[$1] = $2; next }
+      { if ($2 in to) { used[$2] = 1; print $1, to[$2] } else print $1, $2 }
+      END { for (o in to) if (!(o in used)) print o, to[o] }' "${step}" "${map}" > "${map}.next" \
+      && mv "${map}.next" "${map}"
+    prev="${r}"
+  done
+  while IFS=$'\t' read -r old new; do
+    [ "${old}" != "${new}" ] && [ -n "$(blob_at "$1" "${old}")" ] && [ -z "$(blob_at "$2" "${old}")" ] \
+      && [ -n "$(blob_at "$2" "${new}")" ] && printf '%s\t%s\n' "${old}" "${new}"
+  done < "${map}" | LC_ALL=C sort
+}
+# renamed_to <renames file> <path>: the new path a rename of <path> leads to, or nothing.
+renamed_to() { awk -F'\t' -v p="$2" '$1 == p { print $2; exit }' "$1"; }
 # header_region <file>: the lines before the first "## " heading (LEARNINGS.md's template
 # part). Its frontmatter's `updated:` is the project's own date, a value and not the
 # template: it is blanked, so that a date never reads as a change of the template.
 header_region() { awk '/^## /{exit} /^updated: /{print "updated: <date>"; next} {print}' "$1"; }
 # conflict_lines <file>: the lines inside the conflict markers of a merge's output.
 conflict_lines() { awk '/^<<<<<<< /{f=1} f{c++} /^>>>>>>> /{f=0} END{print c+0}' "$1"; }
-# marker_count <tag> <path>: the slot markers of a framework file at a tag — for
-# LEARNINGS.md, of its header region only: the framework's own entries are live, and their
-# prose names the marker.
-marker_count() {
-  if [ "$2" = .claude/memory/LEARNINGS.md ]; then
-    fw show "$1:$2" 2>/dev/null | header_region /dev/stdin | grep -oE "${MARKER_RE}" | wc -l | tr -d ' '
-  else
-    fw show "$1:$2" 2>/dev/null | grep -oE "${MARKER_RE}" | wc -l | tr -d ' '
-  fi
+# marker_lines <tag> <path>: the lines of a framework file at a tag that carry the slot
+# marker, trimmed and sorted — for LEARNINGS.md, of its header region only: the framework's
+# own entries are live, and their prose names the marker.
+marker_lines() {
+  { if [ "$2" = .claude/memory/LEARNINGS.md ]; then
+      fw show "$1:$2" 2>/dev/null | header_region /dev/stdin
+    else
+      fw show "$1:$2" 2>/dev/null
+    fi; } | grep -E "${MARKER_RE}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | LC_ALL=C sort
 }
+# markers_added <vX> <path at vX> <vY> <path at vY>: how many marker lines vY's file holds
+# that vX's lacks — the path at vX is a renamed file's old one. Lines, not a count: a
+# release that drops a mention of the marker and adds a slot in the same file keeps the
+# count, and a count would hide the slot (from a vX before v1.3.2, the Makefile's).
+markers_added() {
+  LC_ALL=C comm -13 <(marker_lines "$1" "$2") <(marker_lines "$3" "$4") | wc -l | tr -d ' '
+}
+# renamed_from <renames file> <path>: the old path a rename led to <path> from, or nothing.
+renamed_from() { awk -F'\t' -v p="$2" '$2 == p { print $1; exit }' "$1"; }
 # file_markers <file>: the slot markers of a project file, by occurrence.
 file_markers() { grep -oE "${MARKER_RE}" "$1" 2>/dev/null | wc -l | tr -d ' '; }
 # labels_renamed <tag>: whether the tag's LEARNINGS format uses the field labels of v1.1.0
@@ -459,6 +511,8 @@ cmd_inventory() {
   rm -rf "${d}" && mkdir -p "${d}" || die "cannot prepare ${d}"
   local releases
   releases="$(releases_between "${vx}" "${vy}" | tr '\n' ' ')"
+  # A renamed file's old path is no deletion: edge case 2 handles it, after the loop.
+  renames_between "${vx}" "${vy}" > "${d}/renames"
 
   section "Files — class, the framework vX->vY (=, M, A, D), the project against the tags, the 3-way's measure"
   local path class bx by bp fwst prj measure n mine base theirs r prev changed modey modep
@@ -503,7 +557,8 @@ cmd_inventory() {
     # The flags of the edge cases (SETUP.md, *Edge cases*).
     [ "${class}" = METHOD ] && [ "${prj}" = diverged ] && [ "${fwst}" != D ] \
       && check "edge case 7: ${path} is METHOD but customised in the project — reconcile it as a HYBRID (3-way), never overwrite"
-    [ "${fwst}" = D ] && [ "${prj}" != absent ] && check "edge case 1: ${path} is deleted in ${vy} — remove it from the project (git rm), after checking it holds nothing of the project's"
+    [ "${fwst}" = D ] && [ "${prj}" != absent ] && [ -z "$(renamed_to "${d}/renames" "${path}")" ] \
+      && check "edge case 1: ${path} is deleted in ${vy} — remove it from the project (git rm), after checking it holds nothing of the project's"
     [ "${fwst}" = A ] && [ "${prj}" = diverged ] && check "${path} is new in ${vy}, but the project already has a file there: compare before taking ${vy}'s"
     [ "${path}" = .gitignore ] && [ "${fwst}" = M ] && info "  .gitignore: an additive union (Step 3), not a 3-way"
     if [ "${fwst}" = M ]; then
@@ -521,18 +576,38 @@ cmd_inventory() {
       [ "${modey}" = "${modep}" ] || check "${path}: ${vy}'s mode is ${modey}, the project's ${modep} (chmod after the copy, on Windows git update-index --chmod: Step 3)"
     fi
   done < "${d}/paths"
-  local renames
-  renames="$(fw diff --no-ext-diff -M --name-status "${vx}" "${vy}" -- "${PAYLOAD_PATHS[@]}" \
-    | awk -F'\t' '$1 ~ /^R/ && $2 !~ /^\.claude\/memory\// {print $2 " -> " $3}')"
-  [ -z "${renames}" ] || while IFS= read -r r; do check "edge case 2: renamed in ${vy}: ${r} — move it, never keep both"; done <<< "${renames}"
+  # Edge case 2: each rename, by what the project holds at the old path. A customised copy
+  # is merged into the new path (base the old path at vX, theirs the new one at vY), and
+  # its measure is shown as for any other 3-way.
+  local old new
+  while IFS=$'\t' read -r old new; do
+    if [ ! -f "${old}" ]; then
+      check "edge case 2: renamed in ${vy}: ${old} -> ${new} — the project holds no ${old}: bring ${new} over from ${vy}"
+    elif [ "$(pg hash-object -- "${old}")" = "$(blob_at "${vx}" "${old}")" ]; then
+      check "edge case 2: renamed in ${vy}: ${old} -> ${new} — the project's copy is ${vx}'s: bring ${new} over from ${vy}, then git rm ${old}"
+    else
+      fw show "${vx}:${old}" > "${d}/rename.base"
+      fw show "${vy}:${new}" > "${d}/rename.theirs"
+      lf "${old}" > "${d}/rename.mine"
+      pg merge-file -p "${d}/rename.mine" "${d}/rename.base" "${d}/rename.theirs" > "${d}/rename.merged" 2>/dev/null
+      n=$?
+      check "edge case 2: renamed in ${vy}: ${old} -> ${new} — customised in the project: merge it into ${new} (base ${vx}:${old}, theirs ${vy}:${new}), then git rm ${old}; 3-way: ${n} conflict(s), $(conflict_lines "${d}/rename.merged") of $(wc -l < "${d}/rename.merged" | tr -d ' ') lines in conflict"
+    fi
+  done < "${d}/renames"
 
-  section "Markers — slots added or removed between ${vx} and ${vy}"
-  local added="" removed="" mx my
+  section "Markers — slots added or removed between ${vx} and ${vy}, line by line"
+  local added="" removed="" na nr from
   while IFS= read -r path; do
     case "$(classify "${path}")" in METHOD | HYBRID | TEMPLATE | LEARNINGS) ;; *) continue ;; esac
-    mx="$(marker_count "${vx}" "${path}")"; my="$(marker_count "${vy}" "${path}")"
-    [ "${my}" -gt "${mx}" ] && added="${added} ${path}(+$((my - mx)))"
-    [ "${mx}" -gt "${my}" ] && removed="${removed} ${path}(-$((mx - my)))"
+    # A renamed file is compared with its old path, under its new name.
+    [ -n "$(renamed_to "${d}/renames" "${path}")" ] && continue
+    from="$(renamed_from "${d}/renames" "${path}")"
+    marker_lines "${vx}" "${from:-${path}}" > "${d}/markers.x"
+    marker_lines "${vy}" "${path}" > "${d}/markers.y"
+    na="$(LC_ALL=C comm -13 "${d}/markers.x" "${d}/markers.y" | wc -l | tr -d ' ')"
+    nr="$(LC_ALL=C comm -23 "${d}/markers.x" "${d}/markers.y" | wc -l | tr -d ' ')"
+    [ "${na}" -gt 0 ] && added="${added} ${path}(+${na})"
+    [ "${nr}" -gt 0 ] && removed="${removed} ${path}(-${nr})"
   done < "${d}/paths"
   if [ -n "${added}" ] && [ -n "${removed}" ]; then
     check "markers removed in${removed} and added in${added}: a slot may have MOVED — if the project answered it in the old file, carry the answer to the new one first (edge case 8)"
@@ -694,7 +769,7 @@ cmd_invariant() {
     pg ls-files --others --exclude-standard -- .claude/memory | awk '{ print "A\t" $0 }'
   } > "${d}/changes"
   [ -s "${d}/changes" ] || ok "no change under .claude/memory/"
-  local st path class bad mnow mrest mx my added
+  local st path class bad mnow mrest added
   while IFS=$'\t' read -r st path; do
     [ -n "${path}" ] || continue
     class="$(classify "${path}")"
@@ -716,8 +791,7 @@ cmd_invariant() {
         # than vY itself added (none, when vY removed or moved one).
         mnow="$(file_markers "${path}")"
         mrest="$(pg show "${restore}:${path}" 2>/dev/null | grep -oE "${MARKER_RE}" | wc -l | tr -d ' ')"
-        mx="$(marker_count "${vx}" "${path}")"; my="$(marker_count "${vy}" "${path}")"
-        added=$((my - mx)); [ "${added}" -ge 0 ] || added=0
+        added="$(markers_added "${vx}" "${path}" "${vy}" "${path}")"
         [ $((mnow - mrest)) -le "${added}" ] \
           || fail "${path}: a slot the project had answered is open again — re-apply its answer" ;;
       LEARNINGS)
@@ -853,21 +927,36 @@ cmd_post() {
   if grep -nE '^(<<<<<<<|>>>>>>>|\|\|\|\|\|\|\|) ' .claude/memory/LEARNINGS.md > "${d}/conflicts" 2>/dev/null; then
     fail ".claude/memory/LEARNINGS.md: conflict markers left by the header's merge, first at line $(head -n 1 "${d}/conflicts" | cut -d: -f1)"
   fi
-  # Orphans: what vY removed must be gone from the project too.
+  # Orphans: what vY removed must be gone from the project too — a renamed file's old copy
+  # included, which would sit beside the new one (edge case 2).
   awk -F'\t' '{print $2}' "$(tree_of "${vx}")" | sort > "${d}/paths.vx.sorted"
   sort "${d}/paths.vy" > "${d}/paths.vy.sorted"
   comm -23 "${d}/paths.vx.sorted" "${d}/paths.vy.sorted" | while IFS= read -r path; do
     case "$(classify "${path}")" in PROJECT-MEMORY | LOCAL | GRAFT-STATE) continue ;; esac
     [ -e "${path}" ] && echo "${path}"
   done > "${d}/orphans"
+  renames_between "${vx}" "${vy}" > "${d}/renames"
+  local new
   if [ -s "${d}/orphans" ]; then
-    while IFS= read -r path; do fail "${path} is an orphan: ${vy} removed it (edge case 1)"; done < "${d}/orphans"
+    while IFS= read -r path; do
+      new="$(renamed_to "${d}/renames" "${path}")"
+      if [ -z "${new}" ]; then
+        fail "${path} is an orphan: ${vy} removed it (edge case 1)"
+      else
+        case "${path}" in
+          # A command file left at its old place still runs under its bare name, and a bare
+          # name can be one of Claude Code's own commands, which it then hides.
+          .claude/commands/*) fail "${path} is the old place of ${new} (edge case 2): remove it once merged — until then Claude Code runs it under its bare name, and a bare name can hide one of its own commands" ;;
+          *) fail "${path} is the old place of ${new} (edge case 2): remove it once merged" ;;
+        esac
+      fi
+    done < "${d}/orphans"
   else
-    ok "no orphan of a file ${vy} removed"
+    ok "no orphan of a file ${vy} removed or renamed"
   fi
 
   section "Slots — markers broken by a wrap, and the slots ${vy} added"
-  local mx my
+  local na from
   while IFS= read -r path; do
     case "$(classify "${path}")" in METHOD | HYBRID | TEMPLATE) ;; *) continue ;; esac
     [ -f "${path}" ] || continue
@@ -877,9 +966,10 @@ cmd_post() {
     while IFS= read -r line; do
       fail "${path}:${line} — a marker broken by a line wrap: keep it on one line"
     done < "${d}/broken"
-    mx="$(marker_count "${vx}" "${path}")"; my="$(marker_count "${vy}" "${path}")"
-    if [ "${my}" -gt "${mx}" ]; then
-      check "${vy} added $((my - mx)) slot(s) to ${path}: confirm the project's answer is in place, not the framework's default:"
+    from="$(renamed_from "${d}/renames" "${path}")"
+    na="$(markers_added "${vx}" "${from:-${path}}" "${vy}" "${path}")"
+    if [ "${na}" -gt 0 ]; then
+      check "${vy} added ${na} slot(s) to ${path}: confirm the project's answer is in place, not the framework's default:"
       lf "${path}" | grep -nE -A1 "${MARKER_RE}" | sed 's/^/       | /'
     fi
   done < "${d}/paths.vy"

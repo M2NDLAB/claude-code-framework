@@ -5,7 +5,7 @@ Run a LINT of the persistent memory (`.claude/memory/`) and of the process
 pointers: a health-check of the CONSISTENCY of the knowledge base, on: $ARGUMENTS
 (if empty: on the whole memory).
 
-This is NOT a process retrospective (`/retro`, see @.claude/docs/06-self-improvement.md):
+This is NOT a process retrospective (`/fw:retro`, see @.claude/docs/06-self-improvement.md):
 the retro proposes WHAT TO IMPROVE in the workflow; the lint verifies the HEALTH of the DATA.
 **When to run it** (see the cycle in @.claude/docs/00-overview.md): NOT at every
 deliverable — periodically, normally together with the periodic retrospective on the
@@ -34,16 +34,15 @@ a rule: then it is a process bug, not a memory bug, and it goes to escalation/IM
    `[[wikilink]]`; `INDEX.md` not listing notes that actually exist.
 7. **Broken links.** `[[wikilink]]` pointing at non-existent notes.
 8. **Consistency of `TREE.md`.** Aligned with the real structure of the filesystem
-   (regenerable as per `/checkpoint`).
+   (regenerable as per `/fw:checkpoint`).
 9. **`LEARNINGS` ↔ `STATE` consistency.** The recorded items are aligned between the
    files: a deferred IMP whose trigger is near or blocking also appears among the
    open issues of `STATE.md` (and vice versa); the debt accepted by the security
    gate (docs/03) lives in `STATE.md` with its reason; every debt entry has its
    explicit TRIGGER, it is not generic.
-10. **Grep-visible `[TO BE DEFINED AT SETUP]` markers.** No *slot* to be filled in
-    is broken by word-wrap across two physical lines: it would escape the
-    `grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" .` with which the
-    framework's setup and upgrade find the slots, silently staying unfilled.
+10. **Grep-visible setup markers.** No *slot* to be filled in is broken by word-wrap
+    across two physical lines: it would escape the grep with which the framework's setup
+    and upgrade find the slots (the framework's `SETUP.md`, §2), silently staying unfilled.
     Sentinel: `grep -rnE "TO BE DEFINED AT$|DA DEFINIRE AL$" .` — every hit is a
     candidate. The Italian form is recognised as LEGACY: projects grafted
     before the release that introduced the English marker do not break. KNOWN false positives to ignore (prose that *discusses* the
@@ -55,12 +54,13 @@ a rule: then it is a process bug, not a memory bug, and it goes to escalation/IM
     from the inventory; an entry LISTED but non-existent. ONLY the enumerated
     lists are checked — never the prose mentions elsewhere (it is the enumeration that avoids
     list-vs-prose false positives):
-    (a) files in `.claude/commands/` ↔ the "Quick commands" list of `CLAUDE.md` and,
-        where present, the `commands/` line of the "Structure" of `README.md`;
+    (a) files in `.claude/commands/fw/`, each the command `/fw:<name>` ↔ the "Quick
+        commands" list of `CLAUDE.md` and, where present, the `commands/` line of the
+        "Structure" of `README.md`;
     (b) PROCESS targets of the `Makefile` ↔ the same lists. Process ones = the
         recipe invokes a script from `scripts/` (STRUCTURAL anchoring, not
         positional: it holds even when the setup fills in or removes the
-        `[TO BE DEFINED AT SETUP]` banner); `help` is excluded (a meta-target that prints the
+        setup marker's banner); `help` is excluded (a meta-target that prints the
         list) and the PROJECT targets (build/test/run of the stack) are OUT OF
         scope — never flag them;
     (c) files in `scripts/` ↔ the table of `scripts/README.md`.

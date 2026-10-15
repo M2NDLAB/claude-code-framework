@@ -16,10 +16,10 @@
 #      by a session note's path, wikilink or @-import, and on a line that also labels it
 #      elsewhere — unless labelled as the framework's or conditional; a slot in a short
 #      form, or wrapped inside its brackets, fails;
-#   3. inventories — a command no list names, a row missing from a table, a process target
-#      the lists do not name, a self-test the recipe does not run, a doc the index lacks, a
-#      file the README tree lacks, a command cited that does not exist, and a list the
-#      check can no longer find: each fails;
+#   3. inventories — a command no list names, a command file outside fw/, a row missing
+#      from a table, a process target the lists do not name, a self-test the recipe does
+#      not run, a doc the index lacks, a file the README tree lacks, a command cited that
+#      does not exist, and a list the check can no longer find: each fails;
 #   4. tags and the CHANGELOG — a tag without its entry, a lightweight tag, an entry dated
 #      after its tag, an untagged entry that is no release in preparation, a missing
 #      [Unreleased], a malformed heading, entries or dates out of order, an Upgrading note
@@ -33,8 +33,9 @@
 #      cited by any of its forms (curly quotes, a bare file name and §N included) — in a
 #      doc, in a script's comment wrapped over two lines, in a script's message — that
 #      resolve to nothing: each fails; an example's path does not;
-#   7. lists — a slot §2 never names, a slot added with its §2 item unchanged, a payload
-#      file without a class (now or at a tag), a class bullet, Step 2's pathspec, what step
+#   7. lists — a slot §2 never names, a slot added with its §2 item unchanged, a slot in a
+#      METHOD file, a payload file without a class (now or at a tag), a class bullet, Step 2's
+#      pathspec, the path list of step 1's copy by tag, what step
 #      1 and the "Outside the upgrade payload" box say is not copied, the counts and
 #      numberings in prose, the sections of the backlog, the subcommands wherever listed,
 #      the copy list, the commit types, the title and label tables, a minimum or
@@ -112,11 +113,14 @@ edit() {
 # --- The base: this repository as it is now, tags included -------------------------------
 base="${workdir}/base"
 git clone -q --no-hardlinks "${REPO_ROOT}" "${base}"
-# The working tree's own state over the clone of HEAD: edits and new files in, deletions out.
+# The working tree's own state over the clone of HEAD: edits and new files in, deletions out
+# — a staged one too, the old path of a `git mv` among them —, then all of it staged, as the
+# next commit takes it: the check reads a rename since the latest release from git's index.
 ( cd "${REPO_ROOT}" && git ls-files -z --cached --others --exclude-standard \
     | while IFS= read -r -d '' p; do [ -f "${p}" ] && printf '%s\0' "${p}"; done \
     | tar --null -T - -cf - ) | tar -C "${base}" -xf -
-( cd "${REPO_ROOT}" && git ls-files -z --deleted ) | ( cd "${base}" && xargs -0 rm -f -- )
+( cd "${REPO_ROOT}" && git diff -z --no-renames --name-only --diff-filter=D HEAD ) | ( cd "${base}" && xargs -0 rm -f -- )
+git -C "${base}" add -A
 # copy <name>: a fresh copy of the base, to break things in.
 copy() { cp -R "${base}" "${workdir}/$1" && printf '%s\n' "${workdir}/$1"; }
 # A session note of the framework that exists in every copy: the most recent, whose name is
@@ -129,7 +133,7 @@ has "docs-check: 0 FAIL"
 floor 'N commands, N process targets' 8
 floor 'no framework IMP number in N payload files' 30
 floor 'N pointers? out of the payload' 15
-floor 'N markers in the full form' 30
+floor 'N markers in the full form' 25
 floor 'N tags and N entries match' 19
 floor 'N mentions of a framework release' 20
 floor 'N Markdown links' 5
@@ -201,17 +205,17 @@ c="$(copy pointer-paths)"
   printf '\nRead `%s`.\n' "${note}"
   printf '\nRun [the check](../../tools/docs-check.mjs).\n'
 } >> "${c}/.claude/docs/02-code-quality.md"
-printf '\nRead `sessions/%s` first.\n' "${note##*/}" >> "${c}/.claude/commands/retro.md"
+printf '\nRead `sessions/%s` first.\n' "${note##*/}" >> "${c}/.claude/commands/fw/retro.md"
 printf '\nAs [[%s]] records.\n' "$(basename "${note}" .md)" >> "${c}/.claude/docs/02-code-quality.md"
-printf '\n@%s\n' "${note}" >> "${c}/.claude/commands/sos.md"
+printf '\n@%s\n' "${note}" >> "${c}/.claude/commands/fw/sos.md"
 run 1 "${c}"
 nfails 8
-has ".claude/commands/sos.md:"
+has ".claude/commands/fw/sos.md:"
 has '"../../SETUP.md" points at SETUP.md'
 has '"../../CONTRIBUTING.md" points at CONTRIBUTING.md'
 has "points at ${note}"
 has '"../../tools/docs-check.mjs" points at tools/docs-check.mjs'
-has ".claude/commands/retro.md:"
+has ".claude/commands/fw/retro.md:"
 c="$(copy pointer-mixed)"
 printf '\nRead the framework'"'"'s `SETUP.md` first. Then fill the slots `SETUP.md`, step 2, lists.\n' >> "${c}/.claude/docs/00-overview.md"
 run 1 "${c}"
@@ -228,10 +232,14 @@ echo "PASS (docs-check, payload): IMP numbers, outward pointers by name, section
 
 # --- Case 3: inventories --------------------------------------------------------------------
 c="$(copy inv-command)"
-printf -- '---\ndescription: a command no list names\n---\nNothing.\n' > "${c}/.claude/commands/extra.md"
+printf -- '---\ndescription: a command no list names\n---\nNothing.\n' > "${c}/.claude/commands/fw/extra.md"
 run 1 "${c}"
-has "the Slash commands of Quick commands lacks /extra"
-has "the Structure tree's commands/ line lacks /extra"
+has "the Slash commands of Quick commands lacks /fw:extra"
+has "the Structure tree's commands/ line lacks /fw:extra"
+c="$(copy inv-command-outside)"
+printf -- '---\ndescription: a command outside the namespace\n---\nNothing.\n' > "${c}/.claude/commands/extra.md"
+run 1 "${c}"
+has ".claude/commands/extra.md:1: a command outside .claude/commands/fw/"
 c="$(copy inv-table)"
 edit "${c}/scripts/README.md" '^\| `reset-task\.sh` \|.*\n' ''
 run 1 "${c}"
@@ -258,7 +266,7 @@ run 1 "${c}"
 has "the test-scripts recipe lacks scripts/test-extra.sh"
 c="$(copy inv-guards)"
 edit "${c}/CLAUDE.md" '^- Slash commands: ' '- Commands of the method: '
-edit "${c}/README.md" 'commands/              /checkpoint' 'cmds/                  /checkpoint'
+edit "${c}/README.md" 'commands/              /fw:checkpoint' 'cmds/                  /fw:checkpoint'
 edit "${c}/Makefile" 'bash scripts/' 'bash scriptz/'
 run 1 "${c}"
 has 'no "- Slash commands:" item in Quick commands'
@@ -387,7 +395,7 @@ has "[[no-such-note]] names no note"
 has "\`scripts/no-such.sh\` names no file"
 has 'has no section "No such section"'
 c="$(copy links-more)"
-printf '\n@.claude/docs/99-none.md\n' >> "${c}/.claude/commands/retro.md"
+printf '\n@.claude/docs/99-none.md\n' >> "${c}/.claude/commands/fw/retro.md"
 {
   printf '\nSee [x](a%%zz.md).\n'
   printf '\nSee docs/04, "No such title".\n'
@@ -423,15 +431,20 @@ echo "PASS (docs-check, links): links, anchors, escapes, wikilinks, @-imports, c
 
 # --- Case 7: lists --------------------------------------------------------------------------
 c="$(copy list-unnamed)"
-printf '\nThe retro cadence is [TO BE DEFINED AT SETUP].\n' >> "${c}/.claude/commands/retro.md"
+printf '\nThe retro cadence is [TO BE DEFINED AT SETUP].\n' >> "${c}/.claude/commands/fw/retro.md"
 run 1 "${c}"
-fails 2 ".claude/commands/retro.md:"
+fails 3 ".claude/commands/fw/retro.md:"
 has "a slot SETUP.md §2 never names"
 has "but its §2 item is unchanged"
+has "a marker in a METHOD file"
 c="$(copy list-tripwire)"
 printf '# [TO BE DEFINED AT SETUP] — one more slot of the stack.\n' >> "${c}/.gitignore"
 run 1 "${c}"
 fails 1 ".gitignore:1: 1 → 2 slot markers since"
+c="$(copy list-archive)"
+edit "${c}/SETUP.md" 'archive vX\.Y\.Z -- \.claude CLAUDE\.md Makefile ' 'archive vX.Y.Z -- .claude CLAUDE.md '
+run 1 "${c}"
+fails 1 "the archive's path list lacks Makefile"
 c="$(copy list-class)"
 mkdir -p "${c}/.claude/agents"
 printf 'An agent definition.\n' > "${c}/.claude/agents/reviewer.md"
@@ -500,7 +513,7 @@ edit "${c}/tools/upgrade-check.sh" '^#   classes <rev>' '#   kinds <rev>  '
 edit "${c}/tools/upgrade-check.sh" 'usage: upgrade-check\.sh classes\|' 'usage: upgrade-check.sh '
 edit "${c}/tools/README.md" '`classes`, `preflight`' '`preflight`'
 edit "${c}/.claude/docs/04-git-workflow.md" '\| `refactor`/`perf`/' '| `refactor`/'
-edit "${c}/.claude/commands/integrate.md" '`refactor`/`perf`/`test`' '`refactor`/`test`'
+edit "${c}/.claude/commands/fw/integrate.md" '`refactor`/`perf`/`test`' '`refactor`/`test`'
 edit "${c}/tools/upgrade-check.sh" '\t## Progress$' '\t## Progression'
 edit "${c}/tools/upgrade-check.sh" '\t- Proposal:$' '\t- Proposals:'
 run 1 "${c}"

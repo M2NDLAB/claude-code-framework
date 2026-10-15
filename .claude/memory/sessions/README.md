@@ -9,7 +9,7 @@ it this way?" — and the best source of improvement proposals (see
 `docs/06-self-improvement.md`).
 
 ## When to write one
-At the end of a task/session, typically inside `/checkpoint`. An escalation
+At the end of a task/session, typically inside `/fw:checkpoint`. An escalation
 (`docs/05`) is recorded here too, with its ID. And ALWAYS before a `/clear` or a
 model switch, if the chat holds expensive work not yet persisted (an assessment, a
 review, decisions taken on the fly): the chat context is lost, the note is not —
@@ -36,7 +36,7 @@ tags: [session, <area>]
 - <itemised list of what was produced, with the relevant commits/shas>
 
 ## Security gate
-- <the outcome of `/security-review` — or "not applicable" —, and why: under the gate for
+- <the outcome of `/fw:security-review` — or "not applicable" —, and why: under the gate for
   a sensitive component or a security property the product asserts, or neither>
 
 ## Problems encountered → cause → solution
@@ -49,13 +49,15 @@ tags: [session, <area>]
 - IMP-nnn (in LEARNINGS.md): <any improvement proposal that emerged>
 
 ## Follow-up
-- <any open threads picked up at a later date>
+- <any open threads picked up at a later date; one that awaits the user or a later
+  session — a question, a measurement — also gets its entry in STATE.md's "Caution &
+  open issues", with its trigger: the resumption reads STATE, not this note>
 ```
 
 ## The security gate's line
 
 The note that closes a deliverable states the gate's verdict, always, with its reason: the
-outcome of `/security-review` when the deliverable is under the gate — a sensitive
+outcome of `/fw:security-review` when the deliverable is under the gate — a sensitive
 component, or a security property its product asserts (`docs/03`) —, "not applicable" and
 why when it is not. A gate skipped and a gate forgotten must not look the same in the
 memory: a closing note without the line is a forgotten gate. Notes written before this line
@@ -69,7 +71,7 @@ many exchanges the recorded work took — an objective proxy of its friction.
 
 - **Absent = not recorded.** Notes that predate the fields stay valid; never backfill
   them — the values would be reconstructed, not recorded. The fields are historical
-  attributes of the note: for `/lint-memory` they are neither stale claims (check 3)
+  attributes of the note: for `/fw:lint-memory` they are neither stale claims (check 3)
   nor concepts that call for a page of their own (check 5).
 - **`model`** — the identifier of the model running the main session, **as the runtime
   exposes it to the agent**, verbatim. A free value, never an enum: model names change.

@@ -17,7 +17,7 @@ The DEFAULT model (two branches), as a concrete example:
 - `main` = stable/production branch. Only merges from the integration branch via a
   release, never direct commits.
 - `develop` = integration/staging branch. Only merges of feature branches, performed
-  by a human (see *Merge*: via PR or via the `/integrate` block).
+  by a human (see *Merge*: via PR or via the `/fw:integrate` block).
 - `feat/<area>-<description>` = one feature, short-lived (days, not weeks).
 - `fix/<area>-<description>` for bugfixes; `hotfix/<description>` from the stable
   branch (and re-merged into the integration branch right after).
@@ -78,7 +78,7 @@ and in a template repo a concrete name stays there forever, breaking agnosticism
   [TO BE DEFINED AT SETUP]:
   - **via Pull Request** when a remote review flow exists (a team, a forge with
     mandatory review);
-  - **via the `/integrate` block** (a local `--no-ff` merge that the USER pastes and
+  - **via the `/fw:integrate` block** (a local `--no-ff` merge that the USER pastes and
     runs) in the single-developer flow, where a PR to yourself adds no control.
   In both forms, before the merge: rebase onto `develop`
   (`git fetch && git rebase origin/develop`) to resolve conflicts in the branch, not
@@ -92,7 +92,7 @@ and in a template repo a concrete name stays there forever, breaking agnosticism
   branch …") are ignored by commitlint by default, but we prefer the explicit
   conventional message.
 - `develop` → `main`: only as a release merge, in the same form chosen above (a
-  release PR, or the release variant of the `/integrate` block). The version tag
+  release PR, or the release variant of the `/fw:integrate` block). The version tag
   follows the *Versioning* section below (in 0.x you tag on `develop`; from `1.0.0`
   onwards on `main`, after the release merge).
 
@@ -104,7 +104,7 @@ if they touch logic, it STOPS and asks the user, showing both versions.
 Versions are **annotated git tags** (`git tag -a vX.Y.Z -m "..."`), never lightweight
 tags: an annotated tag carries author, date and message. (A precision about the
 rationale: `git describe` WITHOUT `--tags` considers annotated tags only; the
-`/integrate` command uses `git describe --tags`, which also accepts lightweight tags —
+`/fw:integrate` command uses `git describe --tags`, which also accepts lightweight tags —
 inherited, for instance, from a graft onto an existing repo — and for that reason it
 VERIFIES that the base is a sane SemVer tag before computing the bump.) SemVer format
 `vX.Y.Z`.
@@ -126,7 +126,7 @@ those of the included commits (a single `feat` among many `chore`s → MINOR; no
 **The type suggests; the content decides.** A type is a label written before the release
 exists: a commit typed `docs` or `chore` can bring a new rule or command into what the
 project ships — a MINOR by the criteria below —, one typed `fix` can break the public
-contract — a MAJOR. So `/integrate` weighs the content too and states the bump with its
+contract — a MAJOR. So `/fw:integrate` weighs the content too and states the bump with its
 reasoning before the tag; if the request that opened the deliverable named an expected
 bump, it names that too, and where the two differ the criteria of this section win, with
 the user's confirmation.
@@ -225,11 +225,20 @@ on WHICH BRANCH the tag lives:
 - Tags and releases: only the user decides when; Claude Code prepares (changelog from
   the conventional commits, version bump per *Versioning*, the annotated tag already
   written) and asks for confirmation.
-- Integration blocks: at the end of a deliverable, `/integrate` produces the merge +
+- Integration blocks: at the end of a deliverable, `/fw:integrate` produces the merge +
   tag commands ready to paste, in two blocks — the local merge, the tag and the checks,
   then the publication (the next version computed from `git describe` and the bump of
   *Versioning*). Claude Code PRINTS them, it does not run them: push, merge and tag
   remain human actions.
+- The method's files are edited with the file tools: every edit to a file setup copies,
+  the memory included — an answer, a value re-applied after a merge, a conflict's
+  resolution, a renamed title —, is made with Claude Code's file tools on the text it
+  changes, in every permission mode, auto mode included, whose instructions favour the
+  shell. An edit names the text it replaces and fails where that text is absent; a line
+  number goes stale after the first change, and a pattern can match more than the line
+  meant, both with no error. Never `sed -i`, a heredoc or a script for such an edit. The
+  whole-file writes a procedure prints — a copy from a tag, `git merge-file`, a splice —
+  are not edits, and an answer is never one of them.
 
 ## Execution boundary and blocks for the user
 
@@ -241,7 +250,7 @@ Stating it explicitly avoids the incidents that come from its ambiguity:
   rules of this doc — the MAIN session only: delegated agents are read-only on git
   (*Delegated agents and the shared working tree*).
 - **SHARED history → the user.** Push, merge onto the integration branch, tags:
-  Claude Code PREPARES them (blocks ready to paste, see `/integrate`), the user runs
+  Claude Code PREPARES them (blocks ready to paste, see `/fw:integrate`), the user runs
   them from their own terminal.
 
 Rules for every command block meant for manual execution by the user:
@@ -403,10 +412,27 @@ main session, and usually in the same working tree.
 The versioned permissions (`.claude/settings.json`) are the safety net that decides
 what Claude Code may run without asking. Keep them **clean and specific**:
 
-- **`allow`**: only **read-only** commands (inspection: `status`, `diff`, `log`,
-  `branch`, the tree map) and the **safe and reversible** staging/commit commands
-  (`git add`, `git commit`). Nothing else: the point is to reduce prompts for
-  harmless operations, not for the ones that touch shared state.
+- **`allow`**: the inspection commands (`status`, `diff`, `log`, the tree map), and
+  `git branch`, `git add` and `git commit`, which act on the local history only. Nothing
+  else: the point is to reduce prompts for harmless operations, not for the ones that touch
+  shared state. A rule matches the command's text, not what the program does
+  (*Enforcement of the execution boundary*), so an allowed command also runs, with no
+  prompt, in its forms that write, read past the repository or run a configured program —
+  among them: `--output=<file>` of `git diff` and `git log`, which writes any file, the
+  boundary's own included (`.claude/settings.json`, the guard, `.git/hooks/`), since
+  neither the `ask` rules nor the protected paths see a program's arguments; a configured
+  external diff or textconv filter, which `git diff` runs by default and `git log` with
+  `--ext-diff` or `-p`; `git diff --no-index`, which reads any file it is given;
+  `tree -o <file>` and `tree -R`, which write, and `tree --fromfile <file>`, which prints
+  any file's lines; `git branch -f`, `-m` and `--delete --force`, which move, rename and
+  delete branches — the long form gets past the `-D` deny —; `git commit -n`
+  (`--no-verify`), which skips the secret scan and the message check
+  (`03-security-gate.md`). Claude Code's `Read` deny rules cover its file tools, the file
+  commands it recognizes in Bash and the redirections, not a program that opens a file
+  itself: whether they stop git or `tree` reading `.env` is not stated. A known limit, read
+  in the tools' manuals and in Claude Code's permissions pages on 2026-10-15 — of these
+  forms only `tree --fromfile` measured, which printed a file's line —; narrower rules wait
+  for a measurement of what Claude Code prompts for.
 - **`deny`**: all **destructive or irreversible** operations — push (including
   `--force`), `reset --hard`, deletions (`clean`, `branch -D`, `rm -rf`), and
   **reading secrets** (`.env`, `secrets/`, credential files). `deny` takes precedence
@@ -421,17 +447,19 @@ what Claude Code may run without asking. Keep them **clean and specific**:
   Windows the shell stays Git Bash's, the one the framework's scripts and hooks are written
   for. The guard reads PowerShell's commands too, for a developer who turns the tool on.
 - **`ask`**: an edit to the boundary's own files — `.claude/settings.json` and
-  `scripts/agent-git-guard.mjs` — asks the human in every permission mode, auto mode
-  included — dontAsk refuses it instead —, unless a mod approves the call or a
-  PermissionRequest hook answers in the user's place, in a session that loaded the
-  project's settings (*Enforcement of the execution boundary*). Claude Code
-  reloads settings while it runs, so an accidental edit would change the boundary at
-  once. The rule covers the built-in file tools; a write through a shell command is
-  outside it (and outside the threat model). So the method's own files — `.claude/`,
-  `CLAUDE.md`, `scripts/` — are edited with the file tools, auto mode included, whose
-  instructions favour the shell: a shell write to them skips the checkpoint and is a slip
-  to report, except in a procedure that writes them by design, such as the upgrade of the
-  framework's `SETUP.md`.
+  `scripts/agent-git-guard.mjs` — asks the human in every permission mode, auto mode and
+  `bypassPermissions` included — dontAsk refuses it instead —, unless a mod approves the
+  call or a PermissionRequest hook answers in the user's place, in a session that loaded
+  the project's settings (*Enforcement of the execution boundary*); Claude Code's
+  permission-modes page, read on 2026-10-15, lists an explicit ask rule among the actions
+  no mode auto-approves. Claude Code reloads settings while it runs, so an accidental edit
+  would change the boundary at once. The rule covers the built-in file tools; a write
+  through a shell command is outside it (and outside the threat model): a redirection or a
+  `tee` into `.claude/` meets Claude Code's protected-path check instead — prompted, or
+  routed to auto mode's classifier, by mode —, while `sed -i`, a script or a program's
+  `--output` meets only the check of the command itself, and the guard's file is no
+  protected path — one more reason for the rule every file setup copies follows
+  (*Operating rules for Claude Code*).
 - **A local, UNVERSIONED file.** Personal permissions live in `settings.local.json`
   (already in `.gitignore`) and start out **empty**: what is shared and reasoned about
   lives in the versioned file; ad-hoc grants stay local and do not pollute the

@@ -7,7 +7,7 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
 > non-negotiable rules. The rules below are about PROCESS (stack-agnostic); the
 > project's technical rules go in the last section.
 
-## Process documentation — load ONLY the files relevant to the task
+## Process documentation — imported below, so loaded whole at every launch
 - @.claude/docs/00-overview.md            — the method, the end-of-deliverable cycle, selective loading
 - @.claude/docs/01-task-planning.md       — task plan for heavy prompts, resilient resumption
 - @.claude/docs/02-code-quality.md        — comments, error handling, Definition of Done
@@ -29,7 +29,7 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
 - AT THE END of a task: session note in memory/sessions/, update the components/
   notes you touched, rewrite STATE.md, regenerate TREE.md if the structure changed.
   **A task without updated memory is NOT done.**
-- Use the /checkpoint slash command to do memory + docs + commit in one go.
+- Use the /fw:checkpoint slash command to do memory + docs + commit in one go.
 
 ## Non-negotiable global rules (process)
 1. **No secrets in plaintext** in the code or in committed config — only a secret
@@ -62,20 +62,20 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
    task (`make reset-task`) and resume from the first unticked task. The commits
    of completed tasks are never touched.
 8. **Security gate** per 03-security-gate.md: on sensitive components
-   ([TO BE DEFINED AT SETUP]) run /security-review BEFORE the PR; HIGH/CRITICAL
+   ([TO BE DEFINED AT SETUP]) run /fw:security-review BEFORE the PR; HIGH/CRITICAL
    findings resolved, MEDIUM resolved or accepted as debt in STATE.md (with the
    reason), LOW at least recorded.
 9. **Language** — two axes, and only one of them is yours to choose:
    - **ARTIFACTS: always English.** Everything that lands in the repo — code,
      comments, documentation, memory, future commit messages, IMP entries, session
      notes — is written in English. This is deliberately NOT a
-     [TO BE DEFINED AT SETUP] slot. The framework is opinionated here on purpose:
+     setup slot. The framework is opinionated here on purpose:
      English artifacts are the universal practice of open source, and they keep a
      project readable, greppable and portable beyond the people who started it. The
      trade-off is stated openly rather than hidden — on this one axis the framework
      imposes instead of staying agnostic, and it accepts the cost.
    - **INTERACTION: yours.** The language the agent speaks with you in session is a
-     [TO BE DEFINED AT SETUP] slot in the technical rules below. Talking to you in
+     setup slot in the technical rules below. Talking to you in
      your own language costs the repo nothing, so nothing is imposed.
    The rule applies from the graft, or from the upgrade that brought it, onwards: to
    the method's artifacts and to the new ones the project produces; what already
@@ -85,10 +85,14 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
    brings the project's to it, leaving the content under them as it is — never a map
    from old to new, which every command would have to consult.
    Past git history is never translated: it is immutable (see 04-git-workflow.md).
+10. **File tools for the method's files**: every edit to a file setup copies, the memory
+    included — an answer, a resolved conflict, a renamed title — is made with the file
+    tools on the text it changes, never with `sed -i`, a line number or a script, whatever
+    the permission mode suggests (04-git-workflow.md, *Operating rules for Claude Code*).
 
 ## Quick commands
-- Slash commands: `/checkpoint`, `/integrate`, `/sos`, `/retro`, `/security-review`,
-  `/new-component`, `/lint-memory`, `/harvest-framework`
+- Slash commands: `/fw:checkpoint`, `/fw:integrate`, `/fw:sos`, `/fw:retro`,
+  `/fw:security-review`, `/fw:new-component`, `/fw:lint-memory`, `/fw:harvest-framework`
 - `make hooks-install` — install the git hooks (gitleaks + commitlint + the pre-push push boundary)
 - `make test-scripts` — self-test of the framework scripts (hooks-install, the agent git guard, repo-snapshot, the prerequisite check, reset-task)
 - `make reset-task` — discard the interrupted half-done task (keeps commits; the
@@ -105,7 +109,7 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
 > - **Stack**: language(s), frameworks, runtime, versions.
 > - **Build & run**: build, test, lint and local-start commands (as Makefile targets
 >   too).
-> - **Standard structure of a component** (for /new-component): module layout,
+> - **Standard structure of a component** (for /fw:new-component): module layout,
 >   packaging conventions.
 > - **Code conventions** specific to the language (formatter/linter used by the
 >   hook, naming, idioms).

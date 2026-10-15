@@ -13,7 +13,8 @@
 #      a tag on the pinned commit is suggested, never applied.
 #   3. inventory — on the same pair: the measured 3-way of a co-edited hybrid, the edge
 #      cases (7, 1, 6, a mode), a slot that moved (edge case 8), the §2 diff, the titles
-#      and labels to rename, the Upgrading notes in release order.
+#      and labels to rename, the Upgrading notes in release order; a doc the project
+#      answered inline, docs/04, is a HYBRID, never edge case 7.
 #   4. invariant — an upgrade that touched the memory only as allowed passes (templates at
 #      vY, titles and labels renamed, a pointer repaired, its own note, plan and decision
 #      added); each violation fails with exactly one FAIL: an IMP entry edited, deleted,
@@ -24,9 +25,9 @@
 #      under a hostile git configuration; a restore point after which nothing changed
 #      fails.
 #   5. post — a reconciled project passes, with the reconciled METHOD file and the moved
-#      slot shown to a human; an orphan, a wrong mode, a missing hook, a missing METHOD
-#      file, a METHOD file left at vX, conflict markers and a marker broken by a wrap
-#      fail.
+#      slot shown to a human, and with docs/04 answered inline; an orphan, a wrong mode, a
+#      missing hook, a missing METHOD file, a METHOD file left at vX, conflict markers and
+#      a marker broken by a wrap fail.
 #   6. line ends — the graft, the upgraded memory and the reconciled project, rebuilt in a
 #      copy whose files all have CRLF line ends (core.autocrlf=true: a Windows checkout),
 #      print the very lines they print with LF, for inventory, invariant and post; git
@@ -40,6 +41,25 @@
 #   8. read-only — the four subcommands run to their end and leave the project and the
 #      framework exactly as they were (scripts/repo-snapshot.sh, the tracked files, the
 #      index, the config, the hooks).
+#   9. renames and marker lines — on a throwaway framework whose v2.0.0 moves its commands
+#      under .claude/commands/fw/, as the real one's v3.0.0 does, and in CLAUDE.md drops a
+#      mention of the marker while it adds a slot: inventory names each rename by what the
+#      project holds (a customised copy with its merge's measure, an untouched one to bring
+#      over), never as a deletion — a command a release in between rewrote included, which
+#      git pairs release by release and not across the jump, and one renamed in two
+#      releases, also with a backslash in T's path —, and shows the slot the unchanged count
+#      would hide; post asks for that slot's answer, fails while an old command file
+#      remains, and passes the orphans once they are gone.
+#  10. the marker grep — read from SETUP.md's step 2 and run as a project runs it: it prints
+#      the slots, the legacy one included, and none of the records it excludes (a kept
+#      SETUP.md, the backlog, a dated session note) nor the hooks the install generates in
+#      .git/, with the platform's own grep.
+#  11. step 1 of a greenfield graft — its blocks read from SETUP.md and run on a throwaway
+#      framework, each in a shell of its own, as a user's: the repository starts with its
+#      empty commit; the copy is the tag's, not a later commit's nor a file the framework
+#      does not track, keeps the scripts executable and leaves the framework's memory out but
+#      for LEARNINGS.md's template, with the platform's own tar; run again with a mistyped
+#      tag, it stops before writing.
 # Run it from anywhere: bash tools/test-upgrade-check.sh
 set -euo pipefail
 
@@ -236,6 +256,12 @@ has "| **Upgrading from 1.0.1**: move your protected branches to the Makefile fi
 FW="${FWD}" T="${T_DIR}" run 0 "${PRJ}" inventory v1.0.0 v1.0.1
 has "v1.0.1's field labels are still the old form: none to rename"
 hasnt "old-form field label"
+# docs/04 answered inline: a HYBRID's answer, merged 3-way — not a METHOD file customised.
+put "${PRJ}" .claude/docs/04-git-workflow.md '# 04\nMerge form: the integrate block\n'
+FW="${FWD}" T="${T_DIR}" run 0 "${PRJ}" inventory v1.0.0 v1.1.0
+has "HYBRID    =  diverged  .claude/docs/04-git-workflow.md"
+hasnt "edge case 7: .claude/docs/04-git-workflow.md"
+g -C "${PRJ}" checkout -q -- .claude/docs/04-git-workflow.md
 echo "PASS (upgrade-check inventory): the 3-way measured, the edge cases flagged, the moved slot, §2, titles and labels, the notes in order."
 
 # --- Case 4: invariant ----------------------------------------------------------------
@@ -382,6 +408,11 @@ has "PROTECTED_BRANCHES = main dev"
 has "OK     pre-push installed, with the generator's marker"
 has "OK     no orphan of a file v1.1.0 removed"
 has "CHECK  the pin reads 'v1.0.0': Step 6 writes 'version: v1.1.0'"
+# docs/04 answered inline passes: a HYBRID's answer is never held to vY's text.
+reconciled_state
+put "${PRJ}" .claude/docs/04-git-workflow.md '# 04\nMerge form: the integrate block\n'
+FW="${FWD}" T="${T_DIR}" run 0 "${PRJ}" post v1.0.0 v1.1.0
+hasnt ".claude/docs/04-git-workflow.md (METHOD) differs"
 break_post "an orphan" "scripts/test-repo-snapshot.sh is an orphan" \
   put "${PRJ}" scripts/test-repo-snapshot.sh 'echo removed in 1.1.0\n'
 break_post "a mode" "scripts/reset-task.sh: mode 100644, v1.1.0's is 100755" \
@@ -539,3 +570,160 @@ snapshot "${PRJ}" | diff "${workdir}/prj.before" - >/dev/null || fail "read-only
 snapshot "${FWD}" | diff "${workdir}/fw.before" - >/dev/null || fail "read-only: the framework changed"
 [ "$(find "${T_DIR}" -mindepth 1 -maxdepth 1)" = "${T_DIR}/upgrade-check" ] || fail "read-only: something was written in T outside T/upgrade-check"
 echo "PASS (upgrade-check read-only): the project and the framework unchanged; writes only under T/upgrade-check."
+
+# --- Case 9: renames ------------------------------------------------------------------
+# A framework of its own: v2.0.0 moves both commands under .claude/commands/fw/ and edits
+# one of them; the project, grafted at v1.0.0, answered that one's placeholder. One unchanged
+# line separates the two edits, so the merge is clean (the distance rule of CONTRIBUTING.md).
+# Its T is the one the first fixture used: tags of the same names in another FW, which
+# listings cached by name across runs would confuse.
+FW9="${workdir}/fw9"
+P9="${workdir}/project9"
+g init -q -b main "${FW9}"
+put "${FW9}" CLAUDE.md '# Index\nThe slots are marked [TO BE DEFINED AT SETUP].\n'
+put "${FW9}" .claude/commands/checkpoint.md 'checkpoint\nIntegration branch: <integration>\nAn unchanged line.\nStep two.\n'
+put "${FW9}" .claude/commands/sos.md 'sos\n'
+put "${FW9}" .claude/commands/integrate.md 'integrate\nBlock one: <integration>\nBlock two: <stable>\nThe end.\n'
+put "${FW9}" .claude/commands/retro.md 'retro\nReflect on the deliverable.\n'
+put "${FW9}" .claude/memory/STATE.md '# STATE\n'
+g -C "${FW9}" add -A && g -C "${FW9}" commit -q -m "feat: 1.0.0" && g -C "${FW9}" tag -a v1.0.0 -m v1.0.0
+# A release in between rewrites integrate.md: from v1.0.0 to v2.0.0 git pairs nothing, while
+# each release's own diff does — a jump of several releases, as from v1.2.0 to v3.0.0. It
+# also moves retro.md once, before v2.0.0 moves it again: two renames, composed.
+put "${FW9}" .claude/commands/integrate.md 'integrate, rewritten\nStep one: the names of the branches.\nStep two: the merge block.\nStep three: the push block.\nStep four: the checks.\n'
+g -C "${FW9}" mv .claude/commands/retro.md .claude/commands/retrospective.md
+g -C "${FW9}" commit -q -am "feat: 1.5.0" && g -C "${FW9}" tag -a v1.5.0 -m v1.5.0
+mkdir -p "${FW9}/.claude/commands/fw"
+g -C "${FW9}" mv .claude/commands/checkpoint.md .claude/commands/fw/checkpoint.md
+g -C "${FW9}" mv .claude/commands/sos.md .claude/commands/fw/sos.md
+g -C "${FW9}" mv .claude/commands/integrate.md .claude/commands/fw/integrate.md
+g -C "${FW9}" mv .claude/commands/retrospective.md .claude/commands/fw/retro.md
+put "${FW9}" .claude/commands/fw/checkpoint.md 'checkpoint\nIntegration branch: <integration>\nAn unchanged line.\nStep two, with the file tools.\n'
+put "${FW9}" .claude/commands/fw/integrate.md 'integrate, rewritten\nStep one: the names of the branches.\nStep two: the merge block.\nStep three: the push block.\nStep four: the checks, each printing a line.\n'
+# The mention goes, a slot comes: one marker line before and after, a count would see nothing.
+put "${FW9}" CLAUDE.md '# Index\nThe slots carry the setup marker.\nStack: [TO BE DEFINED AT SETUP]\n'
+g -C "${FW9}" add -A && g -C "${FW9}" commit -q -m "feat!: 2.0.0" && g -C "${FW9}" tag -a v2.0.0 -m v2.0.0
+mkdir -p "${P9}"
+g -C "${FW9}" archive v1.0.0 -- .claude CLAUDE.md | tar -x -C "${P9}"
+put "${P9}" .claude/commands/checkpoint.md 'checkpoint\nIntegration branch: main\nAn unchanged line.\nStep two.\n'
+g init -q -b main "${P9}" && g -C "${P9}" add -A && g -C "${P9}" commit -q -m "chore: graft the framework v1.0.0"
+FW="${FW9}" T="${T_DIR}" run 0 "${P9}" inventory v1.0.0 v2.0.0
+has "edge case 2: renamed in v2.0.0: .claude/commands/checkpoint.md -> .claude/commands/fw/checkpoint.md — customised in the project: merge it into .claude/commands/fw/checkpoint.md"
+has "3-way: 0 conflict(s), 0 of 4 lines in conflict"
+has "edge case 2: renamed in v2.0.0: .claude/commands/sos.md -> .claude/commands/fw/sos.md — the project's copy is v1.0.0's"
+has "edge case 2: renamed in v2.0.0: .claude/commands/integrate.md -> .claude/commands/fw/integrate.md — the project's copy is v1.0.0's"
+has "edge case 2: renamed in v2.0.0: .claude/commands/retro.md -> .claude/commands/fw/retro.md — the project's copy is v1.0.0's"
+hasnt "edge case 1:"
+has "added in CLAUDE.md(+1)"
+hasnt "fw/checkpoint.md(+"
+# The same inventory with a T whose path holds a backslash, as Windows writes one (C:\…):
+# awk reads a -v value's escapes, so a path passed that way would stop matching its own
+# file, and the two renames of retro.md would not compose.
+T9B="${workdir}/T\\b9"
+mkdir -p "${T9B}"
+FW="${FW9}" T="${T9B}" run 0 "${P9}" inventory v1.0.0 v2.0.0
+has "edge case 2: renamed in v2.0.0: .claude/commands/retro.md -> .claude/commands/fw/retro.md — the project's copy is v1.0.0's"
+hasnt "edge case 1:"
+# The migration half done: the merged command in its new place, retro.md moved, the old
+# sos.md and integrate.md still there.
+g -C "${FW9}" show v2.0.0:CLAUDE.md > "${P9}/CLAUDE.md"
+put "${P9}" .claude/commands/fw/checkpoint.md 'checkpoint\nIntegration branch: main\nAn unchanged line.\nStep two, with the file tools.\n'
+g -C "${FW9}" show v2.0.0:.claude/commands/fw/sos.md > "${P9}/.claude/commands/fw/sos.md"
+g -C "${FW9}" show v2.0.0:.claude/commands/fw/integrate.md > "${P9}/.claude/commands/fw/integrate.md"
+g -C "${FW9}" show v2.0.0:.claude/commands/fw/retro.md > "${P9}/.claude/commands/fw/retro.md"
+rm "${P9}/.claude/commands/checkpoint.md" "${P9}/.claude/commands/retro.md"
+FW="${FW9}" T="${T_DIR}" run 1 "${P9}" post v1.0.0 v2.0.0
+has "FAIL   .claude/commands/sos.md is the old place of .claude/commands/fw/sos.md (edge case 2): remove it once merged — until then Claude Code runs it under its bare name"
+has "FAIL   .claude/commands/integrate.md is the old place of .claude/commands/fw/integrate.md (edge case 2)"
+hasnt ".claude/commands/checkpoint.md is the old place"
+has "CHECK  v2.0.0 added 1 slot(s) to CLAUDE.md"
+rm "${P9}/.claude/commands/sos.md" "${P9}/.claude/commands/integrate.md"
+FW="${FW9}" T="${T_DIR}" run 1 "${P9}" post v1.0.0 v2.0.0
+has "OK     no orphan of a file v2.0.0 removed or renamed"
+hasnt "is the old place of"
+echo "PASS (upgrade-check renames and marker lines): inventory names each rename by what the project holds, with the merge's measure, never as a deletion, and a slot a mention's removal would hide in the count; post asks for it, and fails while an old command file remains."
+
+# --- Case 10: the marker grep -----------------------------------------------------------
+# The grep of SETUP.md's step 2, read from the guide as a project reads it, run with the
+# platform's own grep on a project that holds slots and the records the grep leaves out.
+grep_line="$(awk '/^## 2\./{f=1} /^## 3\./{f=0} f && /^grep -rnE /{print; exit}' "${REPO_ROOT}/SETUP.md")"
+[ -n "${grep_line}" ] || fail "marker grep: no grep line in SETUP.md's step 2"
+G="${workdir}/grep-project"
+put "${G}" CLAUDE.md 'Stack: [TO BE DEFINED AT SETUP]\n'
+put "${G}" docs/legacy.md 'Old: [DA DEFINIRE AL SETUP]\n'
+put "${G}" .claude/memory/decisions/README.md 'ADR home: [TO BE DEFINED AT SETUP]\n'
+put "${G}" SETUP.md 'prose that names the [TO BE DEFINED AT SETUP] marker\n'
+put "${G}" .claude/memory/LEARNINGS.md 'an entry that names the [TO BE DEFINED AT SETUP] marker\n'
+put "${G}" .claude/memory/sessions/2026-01-02-start.md 'a note that names the [TO BE DEFINED AT SETUP] marker\n'
+# The hooks the install generates carry the formatting slot while it is open, and an earlier
+# release's hook its .bak: generated files, never slots to fill by hand.
+put "${G}" .git/hooks/pre-commit '# 2. AUTOMATIC FORMATTING — [TO BE DEFINED AT SETUP].\n'
+put "${G}" .git/hooks/pre-commit.bak '# 2. AUTOMATIC FORMATTING — [TO BE DEFINED AT SETUP].\n'
+( cd "${G}" && eval "${grep_line}" ) | sed 's#^\./##' | LC_ALL=C sort > "${out}" || true
+printf '%s\n' '.claude/memory/decisions/README.md:1:ADR home: [TO BE DEFINED AT SETUP]' \
+  'CLAUDE.md:1:Stack: [TO BE DEFINED AT SETUP]' 'docs/legacy.md:1:Old: [DA DEFINIRE AL SETUP]' \
+  | LC_ALL=C sort > "${workdir}/grep.expected"
+diff "${workdir}/grep.expected" "${out}" >/dev/null || fail "marker grep: it printed other lines than the three slots"
+echo "PASS (upgrade-check marker grep): SETUP.md's grep prints the slots, the legacy one included, and none of the records it leaves out nor the generated hooks."
+
+# --- Case 11: step 1 of a greenfield graft ------------------------------------------------
+# The two blocks a new project runs before its setup, read from the guide: the start of the
+# repository, and the copy by tag. The framework holds a commit after its tag and a file it
+# does not track — both must stay behind —, and its own memory: a dated note and IMP entries.
+FW11="${workdir}/fw11"
+g init -q -b main "${FW11}"
+put "${FW11}" CLAUDE.md '# Index\n'
+put "${FW11}" Makefile 'help:\n\t@echo help\n'
+put "${FW11}" commitlint.config.cjs 'module.exports = {};\n'
+put "${FW11}" .gitignore '.env\n'
+put "${FW11}" .gitattributes '* text=auto\n'
+put "${FW11}" .claude/settings.json '{}\n'
+put "${FW11}" scripts/hooks-install.sh '#!/usr/bin/env bash\necho hooks\n'
+put "${FW11}" .claude/memory/sessions/README.md 'the sessions guide\n'
+put "${FW11}" .claude/memory/sessions/2026-01-02-work.md 'a note of the framework\n'
+put "${FW11}" .claude/memory/LEARNINGS.md "---\nupdated: 2026-01-02\n---\n# Learnings\nThe header.\n\n## OPEN proposals (awaiting the user's decision)\n\n### IMP-007 — An entry of the framework\n- Observed problem: something\n\n<!-- Format of a proposal:\n### IMP-001 — <short title>\n-->\n\n## Applied\n\n### IMP-003 — An applied entry\n\n## Deferred (not rejected — resumed at the right time)\n\n## Rejected (with the reason — so they are not re-proposed)\n"
+g -C "${FW11}" add -A && set_exec "${FW11}" scripts/hooks-install.sh +x
+g -C "${FW11}" commit -q -m "feat: 1.0.0" && g -C "${FW11}" tag -a v1.0.0 -m v1.0.0
+put "${FW11}" CLAUDE.md '# Index\nA line committed after the tag.\n'
+g -C "${FW11}" commit -q -am "feat: after the tag"
+put "${FW11}" .claude/settings.local.json '{"permissions": {"allow": ["Bash(make:*)"]}}\n'
+step1="$(awk '/^## 1\./{f=1} /^## 2\./{f=0} f' "${REPO_ROOT}/SETUP.md")"
+start_block="$(printf '%s\n' "${step1}" | awk '/^git init -b <integration>/{f=1} f{print} f && /echo "root: OK"/{exit}' \
+  | sed -e 's/<integration>/develop/g' -e 's/<stable>/main/g' -e "s#<the remote's URL>#file:///nonexistent#g")"
+copy_block="$(printf '%s\n' "${step1}" | awk '/^: "\$\{FW:\?\}" && test/{f=1} f{print} f && /echo "payload: OK"/{exit}' \
+  | sed 's/vX\.Y\.Z/v1.0.0/g')"
+[ -n "${start_block}" ] && [ -n "${copy_block}" ] || fail "step 1: a block of SETUP.md not found"
+P11="${workdir}/project11"
+mkdir -p "${P11}"
+# Each block runs in a shell of its own, as a user's: without this test's errexit and
+# pipefail, a pipe returns its last command's status.
+( cd "${P11}" \
+    && export GIT_AUTHOR_NAME=self-test GIT_AUTHOR_EMAIL=self-test@example.invalid \
+       GIT_COMMITTER_NAME=self-test GIT_COMMITTER_EMAIL=self-test@example.invalid \
+    && bash -c "${start_block}" && git switch -q -c chore/graft-framework \
+    && FW="${FW11}" bash -c "${copy_block}" ) > "${out}" 2>&1 \
+  || fail "step 1's blocks did not run to their end"
+has "root: OK"
+has "payload: OK"
+[ "$(g -C "${P11}" rev-list --count develop)" = 1 ] && [ "$(g -C "${P11}" rev-list --count main)" = 1 ] \
+  || fail "step 1: the start is not one empty commit on both branches"
+[ -x "${P11}/scripts/hooks-install.sh" ] || fail "step 1: the copy lost a script's executable mode"
+grep -qx '# Index' "${P11}/CLAUDE.md" && ! grep -q 'after the tag' "${P11}/CLAUDE.md" \
+  || fail "step 1: the copy is not the tag's"
+[ ! -e "${P11}/.claude/settings.local.json" ] || fail "step 1: the copy took a file the framework does not track"
+[ ! -e "${P11}/.claude/memory/sessions/2026-01-02-work.md" ] || fail "step 1: the copy took a session note of the framework"
+[ -f "${P11}/.claude/memory/sessions/README.md" ] || fail "step 1: the copy lost the sessions guide"
+[ "$(grep -c '^### IMP-' "${P11}/.claude/memory/LEARNINGS.md")" = 1 ] || fail "step 1: LEARNINGS.md kept an entry of the framework"
+[ "$(grep -c '^## ' "${P11}/.claude/memory/LEARNINGS.md")" = 4 ] || fail "step 1: LEARNINGS.md lost one of its four titles"
+# The copy run again over the first, its tag mistyped: bsdtar takes an empty archive for a
+# good one, so the chain must stop before it writes, and the line that proves the copy stay
+# silent over the files the first run left.
+cp "${P11}/.claude/memory/LEARNINGS.md" "${workdir}/learnings11.before"
+retag_block="$(printf '%s\n' "${copy_block}" | sed 's/v1\.0\.0/v1.0.9/g')"
+if ( cd "${P11}" && FW="${FW11}" bash -c "${retag_block}" ) > "${out}" 2>&1; then
+  fail "step 1: the copy ran to its end with a tag that does not exist"
+fi
+hasnt "payload: OK"
+cmp -s "${workdir}/learnings11.before" "${P11}/.claude/memory/LEARNINGS.md" \
+  || fail "step 1: a run with a mistyped tag rewrote LEARNINGS.md"
+echo "PASS (upgrade-check step 1): the repository starts with its empty commit; the copy is the tag's, its script executable, nothing untracked, no memory of the framework but LEARNINGS.md's template; run again with a mistyped tag, it stops and writes nothing."

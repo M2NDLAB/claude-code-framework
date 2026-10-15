@@ -1,7 +1,7 @@
 ---
 type: tree
 updated: YYYY-MM-DD
-generated-by: /checkpoint
+generated-by: /fw:checkpoint
 tags: [structure]
 ---
 # Project structure
@@ -23,7 +23,7 @@ tags: [structure]
 
 ## Tree (generated)
 ```
-<paste here the output of `tree` regenerated at the last /checkpoint>
+<paste here the output of `tree` regenerated at the last /fw:checkpoint>
 ```
 
 ## Key directory legend
@@ -31,8 +31,8 @@ tags: [structure]
      Claude) lands in the repo without knowing it. -->
 | Path | What it contains |
 |---|---|
-| .claude/docs/ | process documentation (the "method") — load only the relevant files |
-| .claude/commands/ | slash commands of the method — listed in `CLAUDE.md`, "Quick commands" |
+| .claude/docs/ | process documentation (the "method") — imported by `CLAUDE.md`, loaded at every launch |
+| .claude/commands/fw/ | slash commands of the method, `/fw:<name>` — listed in `CLAUDE.md`, "Quick commands" |
 | .claude/memory/ | this memory: [[STATE]], [[TREE]], [[INDEX]], [[LEARNINGS]], sessions/, decisions/, components/, plans/ |
 | <path> | <what it contains> |
 

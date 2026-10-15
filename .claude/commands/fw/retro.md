@@ -6,7 +6,7 @@ Run an improvement retrospective according to
 (if $ARGUMENTS is empty: on the latest sessions recorded in memory).
 
 Two intensities of use (see the cycle in @.claude/docs/00-overview.md):
-- **At the end of a deliverable** (fixed step of the cycle, BEFORE `/checkpoint`):
+- **At the end of a deliverable** (fixed step of the cycle, BEFORE `/fw:checkpoint`):
   LIGHT reflection — run steps 1-3 and RECORD any IMPs; without friction it is a no-op
   of a few seconds. The decisions (steps 4-6) can be deferred.
 - **Periodic / on-demand**: FULL review of the accumulated backlog — all the steps,

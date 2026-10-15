@@ -1,9 +1,9 @@
 # Security Policy
 
 > **Two levels.** This file is the security policy of the FRAMEWORK REPO and, at the
-> same time, the skeleton to copy into a project built on the framework: the
-> `[TO BE DEFINED AT SETUP]` parts are filled in by the project; for the framework
-> the values declared here apply.
+> same time, the skeleton to copy into a project built on the framework: the parts the
+> setup marker marks are filled in by the project; for the framework the values declared
+> here apply.
 
 ## Reporting a vulnerability
 
@@ -32,4 +32,4 @@ The defences live in the method, they are not duplicated here:
   the one-off `gitleaks detect` scan of the entire history
   (`.claude/docs/03-security-gate.md`);
 - mandatory review on sensitive components: **security gate**,
-  `.claude/docs/03-security-gate.md` (command `/security-review`).
+  `.claude/docs/03-security-gate.md` (command `/fw:security-review`).

@@ -37,7 +37,7 @@ The tools, by name; how to install each one depends on your platform.
   in any editor.
 
 **Check them** with `bash scripts/check-prerequisites.sh` — without make, from the
-framework's clone or from the project once step 1 has copied `scripts/`. It runs each tool
+project's root at the end of step 1, once the copy by tag has brought `scripts/`. It runs each tool
 above and compares its version with the minimum, names the platform and whether the CI
 below verifies it — the release and the architecture of one of its images; on Windows it
 names the image and says no more, Git Bash's `uname` giving a build, not an edition —, and
@@ -80,6 +80,45 @@ same list of images, which the framework's documentation check holds to the work
 > absent, and there you will find the reconciliation rules for the ones already
 > present (plus the criterion for a pre-existing `.claude/`).
 
+**Start the repository first.** The graft goes on a branch of its own and reaches the
+integration branch like any deliverable, so that branch must exist on the remote before it.
+Create the remote empty — no README, no licence — and run two blocks from the new project's
+directory, in your own terminal: the first local, the second the publication — no `pre-push`
+and no project settings exist yet to refuse a push an agent would run. The branch names are
+the ROLES of `docs/04` (*Branching model*): `develop` and `main` by default; in a trunk-based
+project the two are one branch, so drop `<stable>` from both blocks. No hook of the framework
+exists yet, and one your own git configuration brings (`init.templateDir`, a global
+`core.hooksPath`) may run: the commit's message is given ready, in the Conventional Commits
+form.
+
+```bash
+git init -b <integration> \
+  && git commit --allow-empty -m "chore: start the repository" \
+  && git branch <stable> \
+  && git remote add origin <the remote's URL> \
+  && test "$(git rev-list --count <integration>)" = 1 && echo "root: OK"
+```
+
+Once the first block has printed `root: OK`, publish:
+
+```bash
+git push --atomic -u origin <integration> <stable>
+```
+
+If the forge created the remote with a first commit — a README or a licence made from its
+web interface —, start from that commit instead: clone the remote, and in a two-branch
+model create the integration branch from it (`git switch -c <integration>`) and publish it
+(`git push -u origin <integration>`); in a trunk-based one the clone's branch already is
+the integration branch. The forge's files are the project's own: where the copy below
+collides with one of them — a `.gitignore` the forge wrote —, reconcile it as the brownfield
+section says, never overwrite it. The copy writes over a file of the same name (measured with
+the forge's `.gitignore`): there, extract the archive into a scratch directory instead,
+`tar -x -C <dir>`, as a brownfield graft does, and bring each file over, `.gitignore`
+merged.
+
+Then open the graft's branch, `git switch -c chore/graft-framework`: everything that follows
+is committed there, and integrated at step 4.
+
 Copy into the root of the new repo: the `.claude/` directory, `CLAUDE.md`, `Makefile`,
 `commitlint.config.cjs`, `.gitignore`, `.gitattributes`, `scripts/`. (README.md and this
 SETUP.md you may leave out of the final project, or keep them for reference.)
@@ -90,6 +129,44 @@ SETUP.md you may leave out of the final project, or keep them for reference.)
 > ([TO BE DEFINED AT SETUP], Root checklist below).
 > `SECURITY.md`, on the other hand, is a reusable scaffold: you can copy it and fill in
 > its `[TO BE DEFINED AT SETUP]` slots.
+
+**The copy is read by tag, never from the framework's working tree** — the upgrade's rule
+(*Precondition*, rule 1): a clone may hold another branch, work not committed, files git
+ignores there — a maintainer's personal `settings.local.json`, for one — or commits past
+the tag the pin names. From the new project's root, with `FW` the absolute path of the
+framework's clone and `vX.Y.Z` the tag you graft, the one the pin below records, as one
+chain:
+
+```bash
+: "${FW:?}" && test "$(git rev-parse --show-toplevel)" -ef "$(pwd -P)" \
+  && test "$(git -C "${FW:?}" rev-parse --path-format=absolute --git-common-dir)" \
+    != "$(git rev-parse --path-format=absolute --git-common-dir)" \
+  && git -C "${FW:?}" rev-parse -q --verify "refs/tags/vX.Y.Z^{commit}" >/dev/null \
+  && git -C "${FW:?}" archive vX.Y.Z -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore .gitattributes scripts \
+    ':(exclude).claude/memory/LEARNINGS.md' ':(exclude,glob).claude/memory/sessions/[0-9]*' | tar -x \
+  && git -C "${FW:?}" show vX.Y.Z:.claude/memory/LEARNINGS.md \
+    | awk '/^## /{h=1; print; print ""; next} /^<!--/{c=1} !h || c {print} /-->[[:space:]]*$/{if (h && c) print ""; c=0}' \
+    > .claude/memory/LEARNINGS.md \
+  && test -x scripts/hooks-install.sh && test -f .claude/settings.json && echo "payload: OK"
+```
+
+The tag is checked before anything is written: with a mistyped one the chain stops there
+(measured). The last line proves that the copy landed in a new project: a pipe returns
+`tar`'s status — 0 for an empty archive with macOS's `tar` —, so without it a failed
+`git archive` would pass unseen. It looks for two files, not for every one, and over an
+earlier copy it would find that copy's: run the chain once. A known limit: `git archive` also
+applies the `export-ignore` attributes of the clone's `.git/info/attributes` and of your
+global or system attributes file, and an entry there leaves a payload file out without a
+word. Anything git does not track in the clone stays behind, and so does the framework's own
+memory — its IMP entries and its dated session notes, the live part of its repository:
+`LEARNINGS.md` is derived from the tag's own file, its header, its four titles and its format
+comment, so the project's IMPs start from 001. The optional `SECURITY.md` scaffold is read
+the same way,
+`git -C "${FW:?}" show vX.Y.Z:SECURITY.md > SECURITY.md`. A framework received as an
+export, without git history, has no tag to read by: it is copied as it is. On a brownfield
+graft the archive goes into a scratch directory outside the project, `tar -x -C <dir>`,
+never over the host's files: each colliding file is reconciled from there (*Reconciling
+colliding files*).
 
 Then **write the provenance pin**: create `.claude/framework-version` (it does NOT
 exist in the framework repo and must not be looked for there — it is CREATED at every
@@ -113,23 +190,36 @@ the PROJECT's commit, silently, into the base of the next upgrade. The `^{commit
 matters too: on an annotated tag the bare form returns the tag object's id. (Why
 `${FW:?}` and not `$FW`: see the *Precondition* of *Upgrading the framework*.)
 
-Then: `git init` (if it is not a repo already) and create the integration branch
-(`develop`). On Windows git records no executable bit (`core.fileMode` is false there):
+On Windows git records no executable bit (`core.fileMode` is false there):
 give the scripts theirs as you add them,
 `git add --chmod=+x -- scripts/*.sh scripts/*.mjs`, or they enter the history as `100644` —
 not executable in a teammate's checkout on macOS or Linux, and a mode failure in every
 check of a future upgrade.
 
+Last, check the prerequisites from the project's root, with the copy step 1 has just made:
+`bash scripts/check-prerequisites.sh` (§0). Run from there, its line about line ends reads
+the project's repository and the `.gitattributes` the copy brought, not the clone's.
+
 ## 2. Fill in the `[TO BE DEFINED AT SETUP]` slots
 
 Look for the markers in the template:
-`grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" .`
+
+```bash
+grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" --exclude-dir=.git --exclude=SETUP.md --exclude=LEARNINGS.md --exclude='[0-9][0-9][0-9][0-9]-*' .
+```
 
 > **Convention (grep visibility).** A `[TO BE DEFINED AT SETUP]` *slot* to be filled
 > in ALWAYS sits on **a single physical line**: if word wrap breaks it at the end of a
 > line it escapes the grep above — and the one in Step 4 of the upgrade — and silently
-> stays unfilled. This holds for slots, not for prose that merely names the marker.
-> `/lint-memory` has a sentinel that flags broken slots (check 10). The grep also
+> stays unfilled. This holds for slots, not for prose that merely names the marker. In
+> the framework's own files the literal marker appears in slots only — prose calls it the
+> setup marker —, so every line the grep prints from them is a slot to fill; its
+> exclusions leave out what records the marker rather than marks a slot: a copy of this
+> guide kept in the project, the backlog of `LEARNINGS.md`, the dated session notes — and
+> `.git/`, whose hooks `make hooks-install` generates: while the formatting slot of
+> `scripts/hooks-install.sh` is open, the generated pre-commit carries it too, and is
+> answered there, never by hand in the hook.
+> `/fw:lint-memory` has a sentinel that flags broken slots (check 10). The grep also
 > accepts the legacy Italian marker, so a project grafted before the English marker
 > was introduced is still covered.
 
@@ -139,7 +229,12 @@ Two equivalent modes — pick the one you prefer:
   `[TO BE DEFINED AT SETUP]` slots (guided by this checklist) and to write your
   answers into the right files. It invents nothing: whatever you do not answer stays
   `[TO BE DEFINED AT SETUP]`, and you complete it whenever you like. (See also the
-  variant of the first command, step 4.)
+  variant of the first command, step 4.) It writes each answer with its file tools, an
+  edit of the slot's own text — never `sed -i`, a line number or a script: the grep's
+  output is the list of what to fill, not a set of coordinates (`CLAUDE.md`, rule 10).
+  Stage what step 1 copied before the interview; after it, `git diff` shows what the
+  interview wrote, the memory's initialisation beside the answers — read it before
+  staging it.
 
 Here is the complete list, grouped by file:
 
@@ -160,31 +255,35 @@ Here is the complete list, grouped by file:
       formatter/linter, where the documentation lives, production artifact format.
       (It is often enough to define them in CLAUDE.md and leave a pointer here.)
 - [ ] `03-security-gate.md`: explicit list of the sensitive components (aligned with
-      CLAUDE.md rule 8) — the same list `00-overview.md` points to in step 2 of the
-      end-of-deliverable cycle.
+      CLAUDE.md rule 8) — the list step 2 of the end-of-deliverable cycle points to.
 - [ ] `04-git-workflow.md`: branching model, **if** different from main/develop/feat;
-      the merge form the project adopts — Pull Request or the `/integrate` block
+      the merge form the project adopts — Pull Request or the `/fw:integrate` block
       (*Merge*); what the project's public contract is, the criterion of a MAJOR
       (*Versioning*).
 
-### `.claude/commands/`
-- [ ] `checkpoint.md`: patterns to ignore for `tree`, name of the integration branch — its
+These three docs are HYBRID: an answer written inline, or a pointer to `CLAUDE.md` in place
+of the slot, survives every upgrade, which merges them three ways.
+
+### `.claude/commands/fw/`
+- [ ] `fw/checkpoint.md`: patterns to ignore for `tree`, name of the integration branch — its
       placeholders `<pattern-to-ignore-for-the-stack>` and `<integration>`, then the
       paragraph at its top that marks them.
-- [ ] `integrate.md`: real names of the integration and stable branches (the ROLES of
-      `docs/04`) used in the integration block.
-- [ ] `new-component.md`: standard structure of a component in this project, and its
+- [ ] `fw/integrate.md`: the names of the integration and stable branches (the ROLES of
+      `docs/04`), on step 1's line only — the agent substitutes them in the blocks it
+      prints; in a trunk-based project the two are one branch.
+- [ ] `fw/new-component.md`: standard structure of a component in this project, and its
       production artefact (until CLAUDE.md and this file are filled in,
-      `/new-component` is inert).
+      `/fw:new-component` is inert).
 
 ### `.claude/memory/`
 - [ ] `TREE.md`: the `-I '...'` pattern for `tree` suited to your stack.
 - [ ] `decisions/README.md`: where formal ADRs live, if the project keeps any (an
       `adr/` folder, a wiki, a docs site).
-- [ ] **EMPTY OUT the framework's LIVE memory**: `LEARNINGS.md` arrives with the IMPs
-      of the framework itself (hybrid regime, see its `CONTRIBUTING.md`) — bring the
-      sections back to empty: the IMPs of YOUR project restart from 001. Delete the
-      notes in `sessions/` (keep the README).
+- [ ] **The memory arrived empty**: step 1's copy leaves out the framework's own IMP
+      entries and session notes — `sessions/` holds its README only, `LEARNINGS.md` no
+      entry beyond its format comment's example: the IMPs of YOUR project start from 001.
+      A framework copied from an export carries them: bring the sections of `LEARNINGS.md`
+      back to empty and delete the notes in `sessions/` (keep the README).
 - [ ] (The `STATE.md` and `INDEX.md` templates are populated by the first command —
       see point 4; for now leave the instruction blocks in place.)
 
@@ -229,6 +328,9 @@ pushes from their own terminal). Check: a commit with a non-conventional message
 rejected; a file with a fake secret must be blocked by gitleaks; `make test-scripts` must
 pass — it proves the pre-push on a throwaway repository and the delegated agents' guard on
 the command forms its cases list. A pre-push of your own (git-lfs's, for one): see Step 4 of the upgrade.
+
+**The graft's first commit comes now**, on its branch, so the hooks just checked see it:
+name its paths — what step 1 copied, the pin, the answers of step 2 —, never `git add .`.
 
 **What the pre-commit's scan reads.** gitleaks scans the staged changes as `git diff` shows
 them. The hook turns git's colour off and reads each textconv driver as `cat` for it, so a
@@ -291,15 +393,21 @@ Open Claude Code in the project root and give it a command like this one:
 *(If at step 2 you chose the dialogue mode)* append to the command:
 
 > Then interview me about the `[TO BE DEFINED AT SETUP]` slots still open, following
-> the checklist of step 2 of `SETUP.md`, and write my answers into the right files;
-> whatever I cannot answer yet stays `[TO BE DEFINED AT SETUP]`.
+> the checklist of step 2 of `SETUP.md`, and write my answers into the right files, each
+> an edit of the slot's own text with your file tools; whatever I cannot answer yet stays
+> `[TO BE DEFINED AT SETUP]`.
 
 From here on the cycle is the one in `.claude/docs/00-overview.md` (see "The
 end-of-deliverable cycle"). For every heavy prompt Claude Code will produce a plan in
 `.claude/memory/plans/`; at the end of a deliverable it will follow the sequence [if
-under the gate] `/security-review` → `/retro` → `/checkpoint` → `/integrate`; when it gets
-stuck, `/sos`. The periodic review of the IMP backlog stays `/retro` over the whole
+under the gate] `/fw:security-review` → `/fw:retro` → `/fw:checkpoint` → `/fw:integrate`;
+when it gets stuck, `/fw:sos`. The periodic review of the IMP backlog stays `/fw:retro` over the whole
 `LEARNINGS.md`.
+
+The graft itself is the project's first deliverable: closed with that cycle — its session
+note's security-gate line says whether it is under the gate, since it installs the security
+baseline (the hooks, the permissions) — and integrated with `/fw:integrate`'s no-tag blocks
+onto the branch the first block of step 1 started.
 
 ## 5. Evolving the framework
 
@@ -309,7 +417,7 @@ back into the framework template, for the next project. It is the loop described
 the README's *Philosophy*.
 
 In practice: mark those IMPs with the line `- Destination: framework` (IMP format in
-the format comment of `LEARNINGS.md`), then run `/harvest-framework` — it collects the
+the format comment of `LEARNINGS.md`), then run `/fw:harvest-framework` — it collects the
 marked entries and prints a copyable block for them, ready to be anonymised and
 re-proposed in the framework repo (`CONTRIBUTING.md`), where a lesson already received
 counts once. The command only reads and
@@ -360,9 +468,9 @@ Two layers beyond the method, neither switched on by the template:
   default branch, *Block force pushes* and *Restrict deletions*; on `refs/tags/v*`,
   *Restrict updates* and *Restrict deletions* (force pushes blocked too). They stop the
   IRREVERSIBLE operations — rewriting or deleting the main line, moving or deleting a
-  release tag — for the human and the agent alike, and leave the `/integrate` flow alone:
+  release tag — for the human and the agent alike, and leave the `/fw:integrate` flow alone:
   a normal push and a NEW tag go through. They are not the push boundary (the `pre-push`
-  is). Do not add *Require a pull request* to a single-developer `/integrate` flow: it
+  is). Do not add *Require a pull request* to a single-developer `/fw:integrate` flow: it
   rejects the direct push of the local `--no-ff` merge, and an owner's bypass is also the
   bypass of an agent holding the owner's credential. Residual, outside the threat model:
   removing the ruleset, or writing to the remote with an owner credential (`gh`, `curl`).
@@ -455,7 +563,7 @@ On a pre-existing git history, before adopting the flow of `docs/04`:
 - [ ] **Audit of inherited tags**: `git cat-file -t <tag>` on each one (`tag` =
       annotated, `commit` = lightweight). The regime of `docs/04` (*Versioning*)
       creates annotated SemVer tags: work out which SemVer base the versioning
-      restarts from (the `/integrate` guard stops on a non-SemVer base); any
+      restarts from (the `/fw:integrate` guard stops on a non-SemVer base); any
       normalisation of the inherited tags is the user's decision — pushed tags are
       shared history.
 - [ ] **Version constants in the host's scripts/config**: if a version is hard-coded,
@@ -465,7 +573,7 @@ On a pre-existing git history, before adopting the flow of `docs/04`:
       `dev`), DECIDE and DECLARE the choice: trunk-based (the two roles coincide — a
       case `docs/04` provides for) or restoring the branch as the integration one.
       Record the choice in the `[TO BE DEFINED AT SETUP]` slots of `docs/04` and in the
-      commands' parameters (`checkpoint.md`, `integrate.md` — step 2 of this guide).
+      commands' parameters (`fw/checkpoint.md`, `fw/integrate.md` — step 2 of this guide).
 
 ### The first command becomes an ASSESSMENT that populates the memory
 
@@ -527,15 +635,15 @@ version **while preserving the accumulated project memory** (STATE, sessions,
 decisions, components, the IMP backlog).
 
 It is the DESCENDING direction of the bridge described in `docs/06` (*"The bridge to
-the framework"*): while `/harvest-framework` sends lessons UP from the project to the
+the framework"*): while `/fw:harvest-framework` sends lessons UP from the project to the
 framework, the upgrade sends a new version of the framework DOWN into the project. It
 is also the vehicle by which the framework's fixes (e.g. to `hooks-install.sh`) and a
 version's new `[TO BE DEFINED AT SETUP]` slots reach already-started projects.
 
 > **Mechanical checks, not an orchestrating command — a choice, not an omission.** The
 > procedure stays a guided MANUAL one, built on primitives that already exist (throwaway
-> branch, `make reset-task`, `/checkpoint`, `/integrate`, `make hooks-install`,
-> `/lint-memory`): what it asks of a human — how to resolve a conflict, which
+> branch, `make reset-task`, `/fw:checkpoint`, `/fw:integrate`, `make hooks-install`,
+> `/fw:lint-memory`): what it asks of a human — how to resolve a conflict, which
 > customisation to keep, how to answer a slot — differed at every real upgrade. Its
 > MECHANICS did not: which files changed and how much they collide with the project's,
 > which slots moved, whether the memory was touched only where allowed. They live in a
@@ -555,15 +663,16 @@ into one of these classes — file by file, the authority is the class table of
 `tools/upgrade-check.sh` (`classes <tag>` prints it), and a payload file without a class
 makes the framework's own self-test fail:
 
-- **METHOD** (pure framework, brought to `vY`): `.claude/docs/00-06`, the
-  non-customised commands in `.claude/commands/`, `scripts/reset-task.sh`,
+- **METHOD** (pure framework, brought to `vY`): `.claude/docs/00-01` and
+  `.claude/docs/05-06`, the non-customised commands in `.claude/commands/fw/`, `scripts/reset-task.sh`,
   `scripts/agent-git-guard.mjs`, `scripts/repo-snapshot.sh`,
   `scripts/check-prerequisites.sh`, the self-tests `scripts/test-*.sh`,
   `scripts/README.md`, `commitlint.config.cjs`.
 - **HYBRID** (a framework part that evolves + a project part to preserve, reconciled):
   `CLAUDE.md`, `.claude/settings.json`, `scripts/hooks-install.sh`, `.gitignore`,
-  `.gitattributes`, `Makefile`, and the commands customised at setup (`checkpoint.md`, `integrate.md`,
-  `new-component.md`).
+  `.gitattributes`, `Makefile`, the docs a project answers at setup (`.claude/docs/02-04`,
+  inline or with a pointer to the technical rules), and the commands customised at setup
+  (`fw/checkpoint.md`, `fw/integrate.md`, `fw/new-component.md`).
 - **MEMORY TEMPLATES** (the method's own files inside `.claude/memory/`, reconciled 3-way
   like the hybrids): the four guide READMEs — the `README.md` of `components/`,
   `decisions/`, `plans/` and `sessions/` — and, of `LEARNINGS.md`, its HEADER (the lines
@@ -706,10 +815,14 @@ Determine `vX` like this, in order of preference:
    grafted — or already upgraded once — since the pin exists): the `version` field IS
    the baseline, end of step. `preflight` checks the pin: `version: vX.Y.Z` with its
    `v`, and a `commit` that is that tag's commit, never the tag object. A malformed pin
-   is an ERROR that names its correction, never normalised: correct the line by hand
-   before going on; when a tag sits on the pinned commit, the script SUGGESTS it and
-   applies nothing. The fallbacks below are for pre-pin grafts, and they are needed ONCE
-   only: Step 6 writes the pin at the close (retrofit).
+   is an ERROR that names its correction, never normalised: correct the line by hand on
+   the upgrade branch, as its first commit — once Step 1 has created the branch from a
+   clean tree and photographed the hooks, so that the integration branch takes no commit
+   outside the upgrade's merge —, and run `preflight` again before the inventory;
+   `invariant` then shows the restore point's pin in its old form, as expected. When a tag
+   sits on the pinned commit, the script SUGGESTS it and applies nothing. The fallbacks
+   below are for pre-pin grafts, and they are needed ONCE only: Step 6 writes the pin at
+   the close (retrofit).
 1. **Ask** whoever did the graft (they often remember it or wrote it down).
 2. **Estimate it** from the content: pick the framework tag whose copy of the
    METHOD-class files matches the project's current ones best — a comparison on the
@@ -796,7 +909,8 @@ the project stands against them (`=vX`, `=vY`, `diverged`, `absent`) and, for a 
 both sides changed, the measure of its 3-way (conflicts, and lines in conflict out of
 the total); the flags of the edge cases (a customised METHOD file, a file deleted or
 renamed, one changed in several releases, a mode); the slots added, removed or moved
-between the tags, and the changes of the §2 checklist — derived from the tags, never
+between the tags — compared line by line, so a mention of the marker that a release drops
+hides no slot it adds —, and the changes of the §2 checklist — derived from the tags, never
 from a hand-written list; the memory's titles and field labels to rename; and the
 *Upgrading* notes of the releases in between, oldest first. It is the input of Step 3.
 
@@ -840,7 +954,8 @@ from a hand-written list; the memory's titles and field labels to rename; and th
   in conflict — a translation release, a wide rewrite — rebuild it from `vY` and
   re-apply the project's customisations, listed from the diff against `vX`'s copy and
   sorted by what they are: prose is rewritten freely, VALUES (slot answers, names,
-  identifiers) stay identical, strings a program reads stay byte for byte. Where the line
+  identifiers) stay identical, strings a program reads stay byte for byte — each one an
+  edit with the file tools on its own text (`CLAUDE.md`, rule 10). Where the line
   falls is a human call, informed by the table: the measure, not the file's name,
   decides.
 - **METHOD** → after the pre-flight of edge case 7 — and edge case 8, if `vY` moved a
@@ -877,9 +992,10 @@ from a hand-written list; the memory's titles and field labels to rename; and th
   merge comes out wrong with no error of its own. The 3-way must achieve this: a marker
   ADDED by `vY` **re-materialises** in the file (a new `[TO BE DEFINED]` to fill in);
   one that was REMOVED **disappears**; one that was MOVED or co-edited surfaces as a
-  **conflict** to resolve by hand. Always re-apply the project's
+  **conflict** to resolve by hand, with the file tools. Always re-apply the project's
   `[TO BE DEFINED AT SETUP]` answers (branch names, `tree` patterns, formatter, the
-  stack's allow-list, the whole "Technical rules" section of `CLAUDE.md`) — and if `vY`
+  stack's allow-list, the answers in `docs/02`-`04`, the whole "Technical rules" section of
+  `CLAUDE.md`) — and if `vY`
   MOVED a slot to another file, see edge case 8 before merging either file. `.gitignore`
   is INTEGRATED (additive union: make sure the lines of the `vY` base —
   `git -C "${FW:?}" show vY:<path>` — are present without removing the project's), and
@@ -931,12 +1047,16 @@ from a hand-written list; the memory's titles and field labels to rename; and th
   blocks:
 
   ```bash
-  awk -v merged="${T:?}/fmt.mine" '
-    /^<!--/ { c = 1; if (!done) { while ((getline l < merged) > 0) print l; done = 1 } }
+  UC_MERGED="${T:?}/fmt.mine" awk '
+    /^<!--/ { c = 1; if (!done) { while ((getline l < ENVIRON["UC_MERGED"]) > 0) print l; done = 1 } }
     !c { print }
     /-->[[:space:]]*$/ { c = 0 }' .claude/memory/LEARNINGS.md > "${T:?}/lrn.fmt" \
     && cp "${T:?}/lrn.fmt" .claude/memory/LEARNINGS.md
   ```
+
+  The merged file's path travels in the environment, not in `awk -v`, which reads a
+  value's escapes: with `T` in Windows' form (`C:\…`) the block read no file and dropped the
+  comment, with no error (measured).
 
   `invariant` compares the result with `vY`'s format and shows a difference for a human.
   Commit the templates apart, declared: `docs(memory): bring the memory templates to vY`.
@@ -955,7 +1075,10 @@ from a hand-written list; the memory's titles and field labels to rename; and th
 > guard enforces on the shell tools from v1.3.0 (`docs/04`, *Delegated agents and the
 > shared working tree*). The READING can be spread across them (inventories, diffs by tag, a review);
 > the branch, `git merge-file`, the commits and any throwaway clone for a dry run stay
-> with the main session. An edit to `.claude/settings.json` or
+> with the main session. Its edits — an answer, a value re-applied, a conflict's
+> resolution, a renamed title — are made with the file tools (`CLAUDE.md`, rule 10); the
+> copies from the tag, `git merge-file`, the line-end rewrite and the header's splice are
+> the procedure's whole-file writes. An edit to `.claude/settings.json` or
 > `scripts/agent-git-guard.mjs` through the file tools asks the human (the `ask` rules),
 > auto mode included, unless a mod or a PermissionRequest hook answers in the user's place,
 > in a session started at the project's root (`docs/04`); the shell commands of Step 3 do
@@ -1012,9 +1135,10 @@ leaves it alone. Real verification:
 
 The slots `vY` added, removed or MOVED are in `inventory`'s *Markers* section, and a new
 or re-worded item of the §2 checklist in the next one: both derived from the tags. Then
-`grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" .` lists every marker still in
-the project, to be filled in with the project's answers (reuse the dialogue of step 2
-of this guide); a slot that moved to another file is edge case 8. The dual-form grep
+step 2's grep, run from the project root, lists every marker still in the project, to be
+filled in with the project's answers, each an edit with the file tools (reuse the dialogue
+of step 2 of this guide); a
+slot that moved to another file is edge case 8. The dual-form grep
 matters here: a project grafted before the English marker existed still carries the
 Italian one.
 
@@ -1034,7 +1158,7 @@ Italian one.
   `vY`'s form.
 - `git diff --stat` and a per-file diff.
 - The project's `[TO BE DEFINED]` customisations survived in the reconciled files.
-- `/lint-memory` on the preserved memory against the new docs (pointers to
+- `/fw:lint-memory` on the preserved memory against the new docs (pointers to
   renamed/moved docs, STATE vs git, `LEARNINGS`↔`STATE` coherence, orphan pages).
 - The project's build/tests green (even if the upgrade is process-only, confirm the
   project still builds and commits).
@@ -1056,10 +1180,10 @@ graft), CREATE it now — that is the retrofit: from this upgrade on the baselin
 certain; unknown `grafted` → `n/a (retrofit YYYY-MM-DD)`. The pin lives outside
 `.claude/memory/`: the closed list of Step 5 needs no entry for it.
 
-`/checkpoint` (the upgrade's session note — `vX→vY`, what was reconciled, what the user
+`/fw:checkpoint` (the upgrade's session note — `vX→vY`, what was reconciled, what the user
 decided, and its security-gate line with the reason, since an upgrade rewrites the security
 baseline: the hooks, the permissions, a destructive guard; `STATE.md` with the updated
-framework version; `TREE.md` if the structure changed). Then `/integrate`: a process-only upgrade of the project does NOT bring
+framework version; `TREE.md` if the structure changed). Then `/fw:integrate`: a process-only upgrade of the project does NOT bring
 product features/fixes → bump **"no tag"** (`chore`, internal work, not a release):
 declare it and omit the tag. The merge of the upgrade branch and the push are HUMAN
 actions. If something does not add up at review time, the branch is thrown away: the
@@ -1082,18 +1206,53 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    doc/command (e.g. a renumbering of `docs/`), the overwrite creates the new name and
    **leaves the old one** → two files and an ambiguous `CLAUDE.md`/`TREE.md` index. Use
    `git -C "${FW:?}" diff -M vX vY` as an index of the renames to apply the move
-   (remove the old one, bring the new one), not a blind add+delete.
+   (remove the old one, bring the new one), not a blind add+delete. A file the project
+   customised — a HYBRID, or a METHOD file edited inline (edge case 7) — is not brought
+   over under its new name: it is MERGED into it, `base` the old path at `vX`, `theirs`
+   the new path at `vY`, `mine` the project's old file, from the project root:
+
+   ```bash
+   git -C "${FW:?}" show vX:<old path> > "${T:?}/base" \
+     && git -C "${FW:?}" show vY:<new path> > "${T:?}/theirs" \
+     && cp <old path> "${T:?}/mine" \
+     && git merge-file "${T:?}/mine" "${T:?}/base" "${T:?}/theirs"
+   ```
+
+   Resolve its conflicts in `"$T/mine"`, then put it at the new path and remove the old
+   one, in the same commit:
+
+   ```bash
+   mkdir -p "$(dirname <new path>)" && cp "${T:?}/mine" <new path> && git rm -q <old path>
+   ```
+
+   **The commands' namespace, from v3.0.0.** Every command of the method moved from
+   `.claude/commands/` to `.claude/commands/fw/`, and runs as `/fw:<name>`. The eight files
+   are renames: the three customised at setup (`fw/checkpoint.md`, `fw/integrate.md`,
+   `fw/new-component.md`) and any other the project edited are merged as above, the rest
+   brought over from the tag; then the project's own references to the old names are
+   updated — its answers in `CLAUDE.md`, its own docs and commands —; its `STATE.md` and
+   `TREE.md` change at the upgrade's own `/fw:checkpoint` (Step 6), which rewrites the
+   first and regenerates the second, and its session notes are history and stay as they
+   are. Until an old file is removed, Claude Code keeps running it under its bare name, and
+   two of them hide Claude Code's own commands of the same name: its security review, and
+   the checkpoint alias of its rewind. Once they are gone, those bare names are Claude
+   Code's own again: its security review is not the gate of `docs/03`, and its checkpoint
+   rolls the session back — read the old names in the project's notes as their `fw:` form,
+   and run the gate as `/fw:security-review`. `inventory` names each rename with the
+   measure of its merge, and `post` fails while an old file remains. Two collisions stay
+   open: a plugin named `fw`, and a directory of the project named `fw` that holds skills of
+   its own (Claude Code's skills page, *Resolve skills that share a name*) — keep neither.
 
 3. **Memory lines the method reads by name — the declared touches of the closed list.**
    Two kinds of line in the project's memory are read by the method itself, and a `vY`
    that changes them leaves them stale:
    - **(a) Pointers towards renamed docs.** If `vY` renames/renumbers a doc, the
      `[[wikilink]]`s and the pointers (`docs/04:142`, …) in `STATE.md` and in the
-     sessions **dangle**, and `/lint-memory` will flag them as broken.
+     sessions **dangle**, and `/fw:lint-memory` will flag them as broken.
    - **(b) Section titles and field labels looked up by name.** The `## ` titles of
      `STATE.md` and `LEARNINGS.md`, and the field labels of the IMP entries
      (`- Origin:`, `- Observed problem:`, …), are FORMAT lines that the method reads by
-     name (`/checkpoint`, `/lint-memory`, `/retro`, `/harvest-framework`, `docs/03`,
+     name (`/fw:checkpoint`, `/fw:lint-memory`, `/fw:retro`, `/fw:harvest-framework`, `docs/03`,
      `docs/06`). Format is method (`CLAUDE.md`, rule 9): the project's titles and labels
      take `vY`'s form — the rename is mandatory, and a map from old to new is not an
      alternative. Do not wait for a `vY` that renames them: COMPARE at every upgrade,
@@ -1119,7 +1278,9 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
      grep -nE '^- (Data|Origine|Problema osservato|Proposta|Beneficio atteso / rischio|Trigger di ripresa|Destinazione):|\| Origine:' .claude/memory/LEARNINGS.md
      ```
 
-     Rename the label, never the text after it. ONLY the title and label lines: the content is never
+     Rename the label, never the text after it: one edit per line, anchored at its start,
+     with the file tools — a pattern replaced across the file would rewrite an entry's text
+     too, which `invariant` fails. ONLY the title and label lines: the content is never
      touched and keeps its language. If the project's own code or tests cite the old
      titles (grep for them), update them in the same commit as the rename — the declared
      `docs(memory)` commit below — so that no commit leaves the project's tests red: that
@@ -1213,11 +1374,11 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    per version.
 
 7. **Pre-flight: has the "pure METHOD" file been customised inline?** The METHOD class
-   assumes that `docs/02/03/04` stay templates (their `[TO BE DEFINED]` slots are
-   resolved by convention in `CLAUDE.md` with a pointer). But if the project filled them
-   in **inline** — or freely edited an otherwise pure file (`commitlint.config.cjs`, a
-   doc) — that file is in fact a HYBRID, and the overwrite destroys its customisation
-   silently. Before overwriting a METHOD-class file, **inspect** that it really is
+   assumes a file stays as the framework wrote it. (The docs a project answers at setup,
+   `docs/02`, `03` and `04`, are HYBRID from v3.0.0: their answers are merged, never
+   overwritten.) But if the project freely edited an otherwise pure file
+   (`commitlint.config.cjs`, a doc, a command) that file is in fact a HYBRID, and the
+   overwrite destroys its customisation silently. Before overwriting a METHOD-class file, **inspect** that it really is
    untouched with respect to `vX` — `vX`'s copy read by tag, then compared:
    `git -C "${FW:?}" show vX:<path> > "${T:?}/base" && diff "${T:?}/base" <path>`. A
    bare `git diff vX -- <path>` in the project compares against the PROJECT's `vX`, the
@@ -1230,11 +1391,16 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    value that looks answered — while the project's answer stays behind in the old file,
    as a conflict there, or lost if that file comes over as METHOD. Edge case 7 would
    keep the answer where it was: the opposite of the migration. So: (1) carry the
-   project's answer to its new home FIRST, by hand; (2) only then bring the old file over
-   as its class says; (3) check EVERY way of reaching the answer — the `make` target, its
-   unattended form (`YES=1`), the script run directly, the docs that name the command —
-   not only the one you edited. The *Upgrading* note of the release that moved the slot
-   names both places (Step 2).
+   project's answer to its new home FIRST, by hand, with the file tools; (2) only then
+   bring the old file over as its class says; (3) check EVERY way of reaching the answer —
+   the `make` target, its unattended form (`YES=1`), the script run directly, the docs that
+   name the command — not only the one you edited, and without running the command the
+   answer guards: on the upgrade branch, which no list protects, `YES=1 make reset-task`
+   would discard the reconciliation in progress. `make -n reset-task YES=1` prints the
+   command with the list it passes, the script run directly falls back to its defaults and
+   says so, and `make test-scripts` proves the refusal (measured on a project grafted at
+   v1.2.0). The *Upgrading* note of the release that moved the slot names both places
+   (Step 2).
 
 > **Outside the upgrade payload.** `LICENSE`, `CONTRIBUTING.md`, `CHANGELOG.md` are
 > files of the FRAMEWORK REPO (not copied into the project, step 1): do not push them

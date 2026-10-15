@@ -25,7 +25,8 @@ At the start of EVERY prompt, before touching files, estimate the heaviness:
   layers (e.g. logic + persistence + interface + tests), it is HEAVY → go to PHASE 2.
 - If it is small and self-contained (a fix, an endpoint, a config change) → run it
   directly with a single final commit, no plan. Do not bureaucratise small tasks: the
-  plan is a tool, not a ritual.
+  plan is a tool, not a ritual. If it goes to integration on its own, it is still a
+  deliverable, closed with the cycle of `00-overview.md`: no plan is no exemption from it.
 
 You make this assessment YOURSELF, without asking the user.
 
@@ -100,7 +101,7 @@ resumption.
 
 When all the tasks are ticked:
 - `status: completed` in the plan's frontmatter.
-- A full `/checkpoint` (memory, docs, `STATE.md`: prompt done, next one).
+- A full `/fw:checkpoint` (memory, docs, `STATE.md`: prompt done, next one).
 - The merge onto the integration branch and the push are handled by the user, never
   an autonomous push (see `04-git-workflow.md`).
 

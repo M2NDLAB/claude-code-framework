@@ -15,7 +15,7 @@ SaaS, data pipelines, anything.
 ## What it includes
 
 - **Persistent memory system** — STATE, TREE, INDEX, sessions, decisions,
-plans, improvement backlog, with a consistency health-check (`/lint-memory`).
+plans, improvement backlog, with a consistency health-check (`/fw:lint-memory`).
 Claude Code keeps context across sessions.
 - **Resilient task planning** — heavy prompts are broken into atomic tasks with
 one commit each; an interruption never costs you a restart from scratch.
@@ -23,7 +23,7 @@ one commit each; an interruption never costs you a restart from scratch.
 a structured report instead of pushing on blindly.
 - **Self-improvement (IMP)** — process lessons become improvement proposals
 approved by the human, never self-applied; the ones useful to any project travel
-back up to the template through the project→framework bridge (`/harvest-framework`).
+back up to the template through the project→framework bridge (`/fw:harvest-framework`).
 - **Security gate & git workflow** — mandatory review on sensitive components,
 conventional commits, SemVer versioning on annotated tags, a paste-ready "ready for
 integration" block, git hooks (secret scan, formatting, and a pre-push that refuses an
@@ -45,14 +45,14 @@ It runs on macOS, Linux and Windows (Git Bash, from Git for Windows): the framew
 own CI verifies the three at every push — the prerequisites and what exactly is
 verified are in `SETUP.md`, §0.
 
-In short (the full guide, with the list of every `[TO BE DEFINED AT SETUP]` to fill
-in, is in **[SETUP.md](SETUP.md)**):
+In short (the full guide, with the list of every setup slot to fill in, is in
+**[SETUP.md](SETUP.md)**):
 
 1. **Copy** the framework contents into the root of your new project (the
    `.claude/` folder, plus `CLAUDE.md`, `Makefile`, `commitlint.config.cjs`,
    `.gitignore`, `.gitattributes`, `scripts/`), then create the provenance pin
    `.claude/framework-version` with the version you just copied (`SETUP.md`, step 1).
-2. **Fill in the `[TO BE DEFINED AT SETUP]`** — above all in `CLAUDE.md` (project
+2. **Fill in the setup slots** — above all in `CLAUDE.md` (project
    name, stack, technical rules, sensitive components) and in the spots listed in
    `SETUP.md`. By hand, or in dialogue with Claude Code, which interviews you and
    writes the answers down (see `SETUP.md`, step 2).
@@ -63,8 +63,10 @@ in, is in **[SETUP.md](SETUP.md)**):
    suggested command is in `SETUP.md`.
 
 From there on you work with the cycle described in `.claude/docs/00-overview.md`:
-plan → execute task by task → [if under the gate] `/security-review` → `/retro` →
-`/checkpoint` → `/integrate` (push decided by the human); if you get stuck, `/sos`.
+plan → execute task by task → [if under the gate] `/fw:security-review` → `/fw:retro` →
+`/fw:checkpoint` → `/fw:integrate` (push decided by the human); if you get stuck,
+`/fw:sos`. The method's commands live under `.claude/commands/fw/`, so their names never
+collide with Claude Code's own.
 
 > Grafting the framework onto an **existing** project (brownfield)? The steps are
 > the same, with the differences — reconciling colliding files, an initial
@@ -104,7 +106,7 @@ plan → execute task by task → [if under the gate] `/security-review` → `/r
 └── .claude/
     ├── settings.json          SessionStart hook (injects STATE.md) + PreToolUse guard + session marker + permissions
     ├── docs/                  00-overview, 01-task-planning ... 06-self-improvement
-    ├── commands/              /checkpoint /integrate /sos /retro /security-review /new-component /lint-memory /harvest-framework
+    ├── commands/              /fw:checkpoint /fw:integrate /fw:sos /fw:retro /fw:security-review /fw:new-component /fw:lint-memory /fw:harvest-framework (all in fw/)
     └── memory/                STATE, TREE, INDEX, LEARNINGS (template) + 4 subfolders
 ```
 
@@ -112,6 +114,6 @@ plan → execute task by task → [if under the gate] `/security-review` → `/r
 
 The framework improves with use: every project you build on top of it generates
 process lessons that come back here as improvements for the next one. In the
-project those lessons are marked `Destination: framework`, and `/harvest-framework`
+project those lessons are marked `Destination: framework`, and `/fw:harvest-framework`
 collects them into a block ready to be re-proposed here (see
 `.claude/docs/06-self-improvement.md`, *"The bridge to the framework"*).

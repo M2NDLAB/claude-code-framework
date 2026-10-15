@@ -3,9 +3,179 @@
 The relevant changes to this repo, in the
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format; versions follow the
 SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
-(*Versioning*). It is updated inside `/integrate`, before the merge+tag blocks.
+(*Versioning*). It is updated inside `/fw:integrate`, before the merge+tag blocks.
 
 ## [Unreleased]
+
+## [3.0.0] — 2026-10-15
+
+**Breaking: the framework's commands are `/fw:<name>`.** The eight commands moved from
+`.claude/commands/` to `.claude/commands/fw/` (IMP-122): Claude Code names a command file in a
+subdirectory by its path, so they run as `/fw:checkpoint`, `/fw:integrate`, `/fw:sos`,
+`/fw:retro`, `/fw:security-review`, `/fw:new-component`, `/fw:lint-memory` and
+`/fw:harvest-framework`. Under their bare names two of them hid Claude Code's own commands in
+every project, without a word: `/security-review`, a built-in command, and `/checkpoint`, a
+built-in alias of `/rewind` — Claude Code's documentation says a project command replaces a
+built-in command but not its aliases; on Claude Code v2.1.299 both were measured replaced,
+the alias included. No built-in command or bundled skill is named `fw` (Claude Code's
+commands page, read on 2026-10-15); a plugin named `fw`, or a project directory named `fw`
+with skills of its own, would still collide. A project moves its command files, merging the
+ones it customised, and updates its own references to the old names (*Upgrading*, below).
+
+### Added
+- **Rule 10: the method's files are edited with the file tools** (IMP-117) — `CLAUDE.md`,
+  short, its home in `docs/04`'s *Operating rules for Claude Code*: every edit to a file setup
+  copies, the memory included, in every permission mode; a line number goes stale after the
+  first change and a pattern can match more than the line meant, both with no error; the
+  whole-file writes a procedure prints are not edits, and an answer is never one of them.
+  `SETUP.md` says it where an answer is written, a conflict resolved or a title renamed, and
+  has the interview's answers read in `git diff` before they are staged; `/fw:checkpoint`
+  writes the memory with the file tools. A test project wrote its slots with `sed`, past
+  IMP-075's rule, which lived off the point of use.
+- **An open thread of a note reaches `STATE.md`** (IMP-121): `/fw:checkpoint` checks that every
+  question a note leaves for the user, and every measurement still to take, has its entry in
+  *Caution & open issues*, with its trigger — the resumption reads `STATE.md`, not the note.
+- **A new project starts with an empty commit, the graft on a branch of its own** (IMP-109,
+  IMP-110): `SETUP.md` §1 gives two blocks for the user's own terminal, the local one ending in
+  a check and then the publication, with the integration branch named by the roles of
+  `docs/04` — trunk-based, one branch. A remote the forge started with a README or a licence is
+  the start instead; its files are the project's own, and where the copy would write over one
+  — a `.gitignore` —, the archive goes to a scratch directory and the file is merged. The graft
+  is the project's first deliverable.
+- **The copy reads the framework by tag** (IMP-107): one chain — the directories and the tag
+  checked, `git archive` of the payload at the tag, and a last line, `payload: OK`, that proves
+  the copy landed, since a pipe returns `tar`'s status. Nothing the clone does not track comes
+  along — a maintainer's `settings.local.json` —, nor commits past the tag. The documentation
+  check holds the archive's paths to the payload's. A known limit, declared: an `export-ignore`
+  in the clone's or the user's attributes leaves a payload file out.
+- **The framework's own memory stays behind** (IMP-113): the copy leaves out its IMP entries
+  and dated session notes, and derives `LEARNINGS.md` from the tag's header, titles and format
+  comment, so a project's IMPs start from 001. §2's "empty out the live memory" becomes a check
+  that the memory arrived empty.
+- **A record between deliverables gets a branch of its own** (IMP-119): `docs/00`, *Scope and
+  session hygiene*, in either branching model; a branch whose diff touches only
+  `.claude/memory/` — a mechanical criterion, `git diff --no-renames --name-only`, so a file
+  moved into the memory shows its old path — is exempt from the security gate and from
+  `/fw:retro`, and is integrated with `/fw:integrate`'s no-tag blocks, the CI green where the
+  project has one. With any other file, the full cycle; in a project whose documentation is its
+  product, a memory file it ships is product.
+
+### Changed
+- **`docs/02`, `03` and `04` are HYBRID** (IMP-115): a project answers them at setup, inline or
+  with a pointer to its technical rules, and the upgrade merges them 3-way. Earlier notes said
+  to bring them over: an answer written inline there was overwritten.
+- **The setup marker marks slots only** (IMP-118): the payload's markers went from 40 to 30,
+  every one a slot §2 lists; the prose that named it says "the setup marker", and the code
+  that matches it writes a split form. No METHOD file holds one — the documentation check
+  fails it —, §2's grep prints slots only, `.git/` left out, and `/fw:lint-memory`'s check 10
+  follows. `upgrade-check.sh` compares marker LINES between the tags: a release that drops a
+  mention and adds a slot in the same file showed nothing — from v1.2.0, the `Makefile`'s
+  protected branches.
+- **A deliverable is what goes to integration** (IMP-120): `docs/00` — whatever its size, it
+  closes with the cycle; heaviness decides the plan, never the cycle. A light deliverable has no
+  plan and still closes with it.
+- **`/fw:integrate`: the branch names, and trunk-based** (IMP-116): the agent substitutes the
+  names of step 1's line in what it prints, and setup answers that line only; with one branch,
+  the tag goes on it in both regimes. A project that replaced the placeholders throughout keeps
+  them.
+- **The permissions say what they grant** (IMP-123, the claim): `docs/04`'s `allow` list is no
+  longer "only read-only commands" — a rule matches the command's text, and its forms that
+  write, read past the repository or run a configured program run with no prompt, among them
+  `--output` of `git diff` and `git log`, onto the boundary's own files too, the external diff
+  `git diff` runs by default, `git diff --no-index`, `tree -o`, `-R` and `--fromfile`,
+  `git branch --delete --force` past the `-D` deny, and `git commit -n`, a limit of the secret
+  scan that `docs/03` now names. The ask rule's reach in every mode is sourced, and its shell
+  sentence corrected. A mechanical restriction waits for a measurement.
+- **`docs/00` says what an import loads** (IMP-124, Level 1): `CLAUDE.md` imports the seven
+  docs and `STATE.md`, and Claude Code loads an imported file at launch, without its frontmatter
+  and its block comments; selective loading applies to the rest. Whether to stop importing them
+  stays open. The `TREE.md` template's legend follows.
+- **The prerequisite check runs from the project** (IMP-108), at the end of step 1, once the
+  copy is in: from the clone it read the clone's line ends.
+- **The upgrade procedure**, from its rehearsal and the review: a malformed pin is corrected on
+  the upgrade branch, as its first commit — Step 0 asked for the correction before going on,
+  Step 1 for a clean start; edge case 8 checks a moved answer with `make -n`, never by running
+  `YES=1 make reset-task` on the upgrade branch, which no list protects; the namespace's
+  migration says what the bare names run once the old files are gone.
+
+### Fixed
+- **The hooks' install reminded every project to enable formatting** (IMP-114), the ones that
+  had answered "none" included; the reminder now shows only while the slot is open. Its
+  self-test, as first written, failed in every project that answered the slot: the rehearsal
+  found it, and the test builds both states from the copy it tests.
+- **The upgrade check missed a rename across several releases**: from v1.2.0, `integrate.md`
+  had changed too much for git to pair it with `fw/integrate.md`, and read as a deletion — a
+  customised copy would have been removed instead of merged. Renames are paired release by
+  release and composed. Its listings by tag, cached under `T` across runs by the tag's name,
+  live for one run; a path in Windows' form (`C:\…`) no longer stops the composition, nor
+  `SETUP.md`'s splice of `LEARNINGS.md`'s format comment, which dropped the comment.
+- **A second run of the copy with a mistyped tag** emptied `LEARNINGS.md` and printed
+  `payload: OK`: the chain checks its tag first. The self-test now runs `SETUP.md`'s blocks in a
+  shell of its own, as a user's, where a pipe returns its last command's status.
+
+### This repository
+- `CONTRIBUTING.md`: a command lives under `.claude/commands/fw/`, with the link to Claude
+  Code's commands page, and the documentation check fails one outside it; the setup marker
+  marks slots only; a record between deliverables goes on a branch of its own, and only the
+  framework's records — the dated notes, `LEARNINGS.md`'s entries — skip the gate and the
+  tag: the memory's starting files are payload; where an open thread lives here.
+- The retro of a test project's harvest, IMP-107 to IMP-121: 13 applied, IMP-111 and IMP-112
+  deferred to a measurement after this tag. Recorded and decided in the same session: IMP-122
+  applied; IMP-123 split, the claim applied and the restriction deferred; IMP-124's Level 1
+  applied, its Level 2 open; IMP-125 open. The release's review, one reviewer with the two
+  lenses: 1 MEDIUM, 6 LOW and 5 INFO, each fixed or closed by its text.
+
+**Upgrading from 2.2.0** (from an earlier release, also follow the entries in between —
+Step 2 of the upgrade says how they combine):
+- **The commands first — the breaking change.** Each of the eight files is a rename, which
+  `inventory` names with what the project holds (edge case 2). One the project customised —
+  `checkpoint.md`, `integrate.md` and `new-component.md` set up at the graft, any other it
+  edited — is merged into its new place, base the old path at `vX` and theirs the new one at
+  `vY`, and the old file removed in the same commit; an untouched one is brought over from the
+  tag and the old one removed. `post` fails while an old file remains: until then Claude Code
+  runs it under its bare name, and the built-ins stay hidden. Then the project's own
+  references to the old names — its answers in `CLAUDE.md`, its own docs and commands. Its
+  `STATE.md` and `TREE.md` change at the upgrade's own `/fw:checkpoint`, which rewrites the
+  first and regenerates the second; its session notes are history and stay as they are. Once
+  the old files are gone the bare names are Claude Code's own again: its security review is
+  not the gate, and its checkpoint rolls the session back.
+- **`docs/02`, `03` and `04` are merged 3-way, never brought over** — this supersedes the
+  "bring them over" of earlier notes. Answered inline, they merged clean in the rehearsal.
+- METHOD files — bring them over from the tag: `.claude/docs/00-overview.md` (a project that
+  answered its step 2 inline: edge case 7, and its declared conflict below),
+  `.claude/docs/01-task-planning.md`, `.claude/docs/05-escalation-protocol.md`,
+  `.claude/docs/06-self-improvement.md`, `scripts/README.md`, `scripts/test-hooks-install.sh`,
+  and the commands the project left untouched, at their new paths.
+- HYBRID files (3-way): `CLAUDE.md` (the commands' names, rule 10, the technical rules'
+  guidance), `.claude/docs/02-code-quality.md`, `.claude/docs/03-security-gate.md`,
+  `.claude/docs/04-git-workflow.md`, the `Makefile` (its help line, the mention at its top),
+  `scripts/hooks-install.sh` (the reminder), and the three setup commands at their new paths.
+- **The conflicts to expect**, measured: `CLAUDE.md`'s rule 8 holds its slot and the command's
+  name — keep the project's answer, with `/fw:security-review`; in a project that replaced the
+  technical rules' guidance with its own section, the guidance's reworded line conflicts — keep
+  the project's section; `docs/00`'s step 2, answered inline with the sensitive components,
+  now points at `docs/03` — take `vY`'s line once `docs/03` holds the same list; the
+  `Makefile`'s mention at its top, where the project rewrote it — either form. A customised
+  command can meet a co-edit of its own, as any hybrid.
+- **The markers.** `inventory`'s *Markers* section lists markers removed and added: the removed
+  ones are mentions, not slots, and carry nothing. The line `vY` adds in `CLAUDE.md` is rule 8's
+  — its answer stays. `fw/integrate.md`'s step 1 line is a slot: a project that replaced the
+  placeholders throughout keeps them and answers that line too. Step 4's grep is `vY`'s §2
+  line, which leaves `.git/` out: the generated hooks are never slots to fill by hand.
+- **The §2 checklist** re-words the commands' items (their new paths; `fw/integrate.md`'s step 1
+  line only), `03-security-gate.md`'s (the list step 2 of the cycle points to) and the
+  memory's (now a check): nothing for a project already set up.
+- The memory templates: `components/README.md` and `sessions/README.md` (the commands' names,
+  and an open thread's entry in `STATE.md`), and the header and format comment of
+  `LEARNINGS.md`: merged 3-way, as Step 3 says. The memory's titles and labels do not change.
+- `make hooks-install`: the generated hooks do not change and no `.bak` is written; the
+  install reminds of formatting only while the slot is open.
+- Rehearsed: from 2.2.0, on a project with every setup answer in place, with LF and with CRLF
+  line ends; from 1.2.0, on a synthetic project in a form seen in the field — the pin without
+  its `v`, trunk-based with a second protected branch, the docs answered inline, five commands
+  customised. The conflicts above and one co-edit in a customised command, no other;
+  `make test-scripts` green; `invariant` and `post` without a FAIL.
+- The new greenfield steps ask nothing of a project already grafted.
 
 ## [2.2.0] — 2026-10-14
 

@@ -309,4 +309,9 @@ install_generated "${HOOKS_DIR}/pre-push"
 
 echo "OK: pre-commit (gitleaks), commit-msg (commitlint) and pre-push (push boundary) hooks installed"
 echo "    in ${HOOKS_DIR}."
-echo "    Remember to enable automatic formatting in the pre-commit hook (see comments)."
+# The formatting slot is open while the generated pre-commit still carries its marker; an
+# answer — a formatter, or none — removes the marker, and the reminder with it. The marker
+# is matched in a split form, so this line is no slot of its own.
+if grep -qE 'TO BE DEFINED A[T] SETUP|DA DEFINIRE A[L] SETUP' "${HOOKS_DIR}/pre-commit"; then
+  echo "    Remember to enable automatic formatting in the pre-commit hook (see comments)."
+fi

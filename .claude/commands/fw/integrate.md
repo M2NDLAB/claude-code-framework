@@ -11,6 +11,13 @@ steps 1-2, the CHANGELOG update of step 3 if the project keeps one (a local comm
 the read-only computations of step 4, its failure path included (*When the user reports a
 failed check*); everything else must be PRINTED, not executed.
 
+The branch placeholders `<integration>` and `<stable>` stand for the names step 1's line
+records — the ROLES of docs/04 —, and the agent substitutes them in what it prints, as it
+does every placeholder of the blocks: setup answers that line only, and a project that
+replaced them throughout has nothing left to substitute. Where the two roles are one branch
+(trunk-based, docs/04, *Branching model*), the tag goes on that branch in both regimes:
+neither step 2's post-1.0 rule nor the release variant below applies.
+
 ## 1. Collect the state (read-only)
 - Current branch (feature): `git branch --show-current`.
 - Integration branch `<integration>` and stable branch `<stable>`: they are the ROLES
@@ -148,7 +155,7 @@ published is never deleted, whatever it points at; nor is a sound one.
 ```
 git tag -d v<X.Y.Z>
 ```
-Then repair what failed and run `/integrate` again. If `signature: OK` does not appear,
+Then repair what failed and run `/fw:integrate` again. If `signature: OK` does not appear,
 the tag is not published either: find out why first — an SSH signature, for one,
 verifies only with `gpg.ssh.allowedSignersFile` configured.
 
@@ -185,5 +192,5 @@ deleted.
 Do NOT run push/merge/tag: the blocks are for the user. The merge happens after the
 checkpoint, outside the session: until the next deliverable the memory records the state
 that awaits the blocks, never a merge not yet run. The next deliverable's first
-`/checkpoint` reconciles `STATE.md` and the active branches with what the user ran — not a
+`/fw:checkpoint` reconciles `STATE.md` and the active branches with what the user ran — not a
 commit of its own after the merge, which would be one more to push.

@@ -9,7 +9,7 @@ values, then deletes this paragraph: [TO BE DEFINED AT SETUP].
 1. Read @.claude/docs/04-git-workflow.md for the commit rules.
 2. `git status` and `git diff --stat`: list what has changed and check that there
    are no unexpected or suspicious files (secrets, environment files, build artefacts).
-3. Update the memory (.claude/memory/):
+3. Update the memory (.claude/memory/), with the file tools (`CLAUDE.md`, rule 10):
    - create/update today's session note with what was done and why. Its frontmatter
      follows `sessions/README.md`, plus the two fields written by the main session:
      `model: '<model id as the runtime exposes it>'` (verbatim, ALWAYS single-quoted,
@@ -27,6 +27,10 @@ values, then deletes this paragraph: [TO BE DEFINED AT SETUP].
      pre-existing entries of "Caution & open issues" are still present or
      knowingly closed (a critical debt must not die in a rewrite)
      and that every entry has its explicit TRIGGER, never a generic one;
+     and that every open thread of the notes this checkpoint writes — a question that
+     awaits the user, a measurement still to take — has its entry there, with its
+     trigger (e.g. "ask the user at the next session's start"): the note keeps the
+     detail, STATE the pointer, and the entry is closed once answered;
    - reconcile the branch state in STATE with the git reality (merges into the
      integration branch happen OUTSIDE the session, so STATE can be stale):
      `git branch --merged <integration>` and `git log --oneline -5
@@ -45,7 +49,7 @@ values, then deletes this paragraph: [TO BE DEFINED AT SETUP].
 5. EXPLICIT `git add` of the relevant files (never `git add .`), memory and doc included.
 6. Commit with a Conventional Commit: correct type and scope, body with the WHY.
 7. Show the commit created. Do NOT push: the push is the user's decision. At the end
-   of a deliverable, for the merge + tag commands ready to paste use `/integrate`. The
+   of a deliverable, for the merge + tag commands ready to paste use `/fw:integrate`. The
    merge it prints happens outside the session: the next deliverable's first checkpoint
    reconciles it, at step 3 — never a commit of its own after the merge.
 

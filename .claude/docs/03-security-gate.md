@@ -6,8 +6,10 @@ Security has two levels in this framework:
    on the changes staged for a `git commit`, and refuses the commit when it finds a
    secret (rule 1 of `CLAUDE.md`), from the moment it is installed and while git reads
    it. Its limits include the commits git creates itself — a rebase's `--continue`,
-   `git am`, a cherry-pick or a revert that applies cleanly —, which do not run it, and
-   a hook manager that sets `core.hooksPath` after the install, which takes it out
+   `git am`, a cherry-pick or a revert that applies cleanly —, which do not run it, a
+   commit made with `-n` (`--no-verify`), which the shipped `allow` rule runs with no prompt
+   (`04-git-workflow.md`, *Permission configuration*), and a hook manager that sets
+   `core.hooksPath` after the install, which takes it out
    (`04-git-workflow.md`, *Enforcement of the execution boundary*); the scan's own limits
    are listed in the framework's `SETUP.md`, *What the pre-commit's scan reads*. On a repo with
    PRE-EXISTING history (grafting the framework onto an existing project) the baseline
@@ -34,7 +36,7 @@ behalf of a client (e.g. a tool/automation server).
 On top of the Definition of Done (`02-code-quality.md`), BEFORE the merge request
 (PR) towards the integration branch of a sensitive component:
 
-1. **`/security-review`** run on the branch diff — and on the set a widened claim names
+1. **`/fw:security-review`** run on the branch diff — and on the set a widened claim names
    (*The lenses of the gate*).
 2. **HIGH/CRITICAL findings → RESOLVED** before the PR. Non-negotiable.
 3. **MEDIUM findings → resolved**, or **explicitly accepted** as known debt in
