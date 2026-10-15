@@ -222,12 +222,12 @@ step is a mechanism, not more text.
 - [x] 2. The registrations in `LEARNINGS.md` — IMP-107..121's outcomes (13 approved with their forms; IMP-111 and IMP-112 deferred with their trigger and the P1 verification), IMP-122, IMP-123 and IMP-124 recorded, the evidence on IMP-083 —; the pre-flight readings in this note: Claude Code's pages on command names, `fw` against the built-in commands and the plugins, the project upgraded next (its form only) — commit: 731216a
 - [x] 3. IMP-122, the `fw` namespace: the eight commands under `.claude/commands/fw/`, every reference, the classes (the old paths kept for the inventory), the old files flagged by `upgrade-check.sh`, the migration in `SETUP.md`, the documentation check and the self-tests, `CONTRIBUTING.md`'s rule — commit: ee4ce1f
 - [x] 4. Classes and markers: IMP-115 (`docs/02`-`04` HYBRID), IMP-118 (variant Y; the mentions; the greps; lint check 10; inventory by lines) — commit: 080cf44, 1634337
-- [ ] 5. Writing and open threads: IMP-117 (rule 10, `docs/04`'s *Operating rules*, `SETUP.md`'s points of use, `/fw:checkpoint`'s step 3), IMP-121 (an open thread reaches `STATE.md`) — commit: —
-- [ ] 6. Commands and hooks: IMP-116 (the run-time reading, trunk-based), IMP-114 (the formatting reminder) — commit: —
-- [ ] 7. The cycle: IMP-120 (a deliverable is what goes to integration), IMP-119 (records between deliverables; a memory-only branch exempt by its diff), `CONTRIBUTING.md` — commit: —
-- [ ] 8. The greenfield graft, `SETUP.md` §0-§4: IMP-109, IMP-110 (form A; a remote the forge initialised), IMP-107, IMP-113, IMP-108 — commit: —
-- [ ] 9. The claims beside the scope: IMP-123's part (`docs/04`'s allow list), IMP-124's Level 1 (`docs/00`'s selective loading) — commit: —
-- [ ] 10. The rehearsal: the upgrade 2.2.0 → 3.0.0, and 1.2.0 → 3.0.0 in the form of the project upgraded next, LF and CRLF, the fixture synthetic; the self-tests' new fixtures synthetic too — commit: —
+- [x] 5. Writing and open threads: IMP-117 (rule 10, `docs/04`'s *Operating rules*, `SETUP.md`'s points of use, `/fw:checkpoint`'s step 3), IMP-121 (an open thread reaches `STATE.md`) — commit: d7ea3e3, 5bdad7a
+- [x] 6. Commands and hooks: IMP-116 (the run-time reading, trunk-based), IMP-114 (the formatting reminder) — commit: 292f860, 7c49e79
+- [x] 7. The cycle: IMP-120 (a deliverable is what goes to integration), IMP-119 (records between deliverables; a memory-only branch exempt by its diff), `CONTRIBUTING.md` — commit: 6ab65a0, c8e3221
+- [x] 8. The greenfield graft, `SETUP.md` §0-§4: IMP-109, IMP-110 (form A; a remote the forge initialised), IMP-107, IMP-113, IMP-108 — commit: d29449f, b2b7458, a0531ef, b11d1db
+- [x] 9. The claims beside the scope: IMP-123's part (`docs/04`'s allow list), IMP-124's Level 1 (`docs/00`'s selective loading) — commit: 24010c2, 6259b15
+- [x] 10. The rehearsal: the upgrade 2.2.0 → 3.0.0, and 1.2.0 → 3.0.0 in the form of the project upgraded next, LF and CRLF, the fixture synthetic; the self-tests' new fixtures synthetic too — commit: 3feb827, 1ae21c5, ce0516e
 - [ ] 11. The security gate: ONE reviewer, read-only, the two lenses, the snapshot before and after; HIGH fixed, MEDIUM resolved or accepted with its reason, LOW per IMP-103 — commit: —
 - [ ] 12. `/fw:retro`, `/fw:checkpoint`, the CHANGELOG's 3.0.0 entry and the bump stated — then stop before `/integrate`'s blocks: block 0, the user's push and the CI on the three systems, comes first — commit: —
 
@@ -280,6 +280,92 @@ shas go into the headings with a later commit, as in v2.2.0.
 - IMP-121 on the side that writes STATE; its `CONTRIBUTING.md` counterpart says where an open
   thread lives here. This note's own open threads, the framework's way: the follow-up below,
   and the deferred entries of `LEARNINGS.md`.
+
+## Task 6 — commands and hooks (IMP-116, IMP-114)
+- IMP-116: `integrate.md`'s introduction says the agent substitutes the branch names in what it
+  prints and setup answers step 1's line only; with one branch, the tag goes on it in both
+  regimes. No answered line is touched, so no project migrates.
+- IMP-114: the reminder only while the generated pre-commit carries the slot's marker, red first
+  against the installer as committed. Its self-test's open-slot half took the project's own
+  copy for an open one: the rehearsal (task 10) found it failing in every project that answered
+  the slot.
+
+## Task 7 — the cycle (IMP-120, IMP-119)
+- A deliverable is what goes to integration, whatever its size: heaviness decides the plan,
+  never the cycle. A record made while no deliverable is open gets a branch of its own; a
+  branch whose diff touches only `.claude/memory/` is exempt from the gate and the retro, by the
+  diff, and goes in with the no-tag blocks, the CI green. `CONTRIBUTING.md` adopts the rule.
+
+## Task 8 — the greenfield graft (IMP-109, IMP-110, IMP-107, IMP-113, IMP-108)
+- Step 1 starts the repository with an empty commit on the integration branch (the roles of
+  `docs/04`), in two blocks for the user, or from the commit a forge made; the graft goes on a
+  branch of its own. The copy is read by tag, as one chain ending in a line that proves it,
+  leaves the framework's own memory out and derives `LEARNINGS.md` from the tag's file; the
+  prerequisite check runs from the project once the copy is in. Case 11 of the upgrade check's
+  self-test runs step 1's blocks, read from `SETUP.md`; measured here too, macOS, git 2.54.0,
+  bsdtar.
+
+## Task 9 — the claims beside the scope (IMP-123, IMP-124)
+- `docs/04` no longer calls the shipped allow list read-only: its rules match the command's
+  text, and an allowed `git diff` can write with `--output`; the claim narrowed, the limit
+  declared, the mechanical restriction deferred with its trigger. `docs/00` says what Claude
+  Code does: the seven docs are imported and loaded at every launch, selective loading applies
+  to the rest; whether to stop importing them stays IMP-124, open.
+
+## Task 10 — the rehearsal (2.2.0 → 3.0.0, and 1.2.0 → 3.0.0)
+- The fixture, synthetic, in the session's scratchpad (`rh7-*`): the framework cloned at the
+  branch's tip and tagged v3.0.0 in the clone only. Scenario A: a graft at v2.2.0 with every
+  answer — `CLAUDE.md`, `docs/00` answered inline, `docs/02`-`04` inline, the three commands set
+  up, the `Makefile`, the formatting slot, `decisions/README.md`, `.gitignore`, the allow list —,
+  LF, and the same cloned with `core.autocrlf` true. Scenario B: a graft at v1.2.0 in the form
+  of the project upgraded next, none of its names or contents — the pin `version: 1.2.0`
+  without its v, a short commit, `grafted: n/d (retrofit …)`; trunk-based on `main`, a dormant
+  branch protected in `reset-task.sh`; `CLAUDE.md` answered, forty technical rules of its own;
+  `docs/00` answered inline and its closing mention rewritten; `docs/02` and `03` inline,
+  `docs/04` four slots of five; the `Makefile`'s mention rewritten and its section answered;
+  formatting "none"; `checkpoint.md`'s placeholders answered; `lint-memory`,
+  `harvest-framework`, `new-component` and `security-review` customised; `integrate`, `retro`
+  and `sos` as shipped; no `.gitattributes`; LF.
+- The procedure as `SETUP.md` writes it, with the tag's `upgrade-check.sh`: Precondition,
+  prerequisites, preflight, Step 1 and the hooks' photograph, the inventory, Step 3 by class,
+  the declared conflicts resolved by hand, the templates committed apart, Step 4 (the hooks, a
+  fake secret, a message without a type, `make test-scripts`, `reset-task`), Step 5, Step 6.
+- Four defects found, each fixed red first: `make test-scripts` failed in all three projects
+  at the hooks' Case 7, which took the project's answered copy for an open one (3feb827); from
+  v1.2.0, `integrate.md`'s move read as a deletion — git pairs nothing across the jump —, so a
+  customised copy would have been removed instead of merged, and the listings by tag were
+  cached across runs by name (1ae21c5); Step 0's correction of a malformed pin contradicted
+  Step 1's clean start (ce0516e).
+- The last run, on ce0516e: preflight 0 FAIL in A; in B the pin's FAIL, v1.2.0 suggested, and
+  the `n/d` CHECK — the pin corrected as the branch's first commit, preflight then 0 FAIL. The
+  inventory names the eight renames in both. The 3-way's conflicts, each declared or expected:
+  `CLAUDE.md` 2 in both (rule 8's line, its slot and the command's name: the project's answer
+  kept with `/fw:security-review`; the technical rules' guidance against the project's own
+  section: the project's kept); `docs/00` 1 in A and 2 in B (step 2's list answered inline
+  against the pointer to `docs/03`, which holds the list: vY's taken; in B the closing mention
+  rewritten: vY's taken); the `Makefile` 1 in B (its rewritten mention: vY's taken);
+  `fw/harvest-framework.md` 1 in B (the project's line beside vY's change in §5: both kept).
+  `docs/02`-`04`, the three setup commands, `settings.json` and `hooks-install.sh` merged clean.
+- `integrate.md` in its two forms: answered throughout (A), merged clean with every answer kept,
+  step 1's slot line left to answer; as shipped (B), brought over, its slot line the same.
+- Edge case 8 in B: `main dev` carried to the `Makefile` first, `reset-task.sh` then brought
+  from the tag; on each protected branch, in a clone of the upgrade branch, `make reset-task`
+  refuses with and without `YES=1`; the script run directly refuses `--yes` and, asked, warns of
+  its defaults and asks.
+- Step 4: in A the hooks unchanged, no `.bak`; in B two `.bak` and a new `pre-push`. A fake
+  secret and a message without a type refused; `make test-scripts` green in all three. Step 5:
+  `invariant` 0 FAIL — in B one CHECK, the restore point's pin in its old form —; `post` 0
+  FAIL, its CHECKs the customised files and the slot lines, `CLAUDE.md`'s rule 8 among them.
+  Step 6: the pin at v3.0.0, B's `n/d` written `n/a`.
+- Greenfield step 1, block 1 only — the publication is the user's: two branches and
+  trunk-based, `root: OK`, the copy `payload: OK`, `sessions/` its README only, the
+  prerequisites 0 FAIL; a remote the forge started with a README, a licence and a `.gitignore`:
+  the integration branch from its commit, and the copy as written overwrites the forge's
+  `.gitignore` — git shows it modified and restores it —, the case §1 sends to the brownfield
+  reconciliation.
+- For the CHANGELOG: a project's `STATE.md` and `TREE.md` name the old commands; the upgrade
+  leaves them, its checkpoint rewrites `STATE.md` and regenerates `TREE.md` — the structure
+  changed —, and the session notes stay history.
 
 ## Resumption notes
 - The payload names no IMP number (the documentation check's `imp-number`).
