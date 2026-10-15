@@ -12,8 +12,12 @@ the method — this file says how, in the way the framework itself uses on itsel
 
 This repo applies to itself the method it describes (`.claude/docs/`):
 
-- **Feature branch** for every significant change (`feat/...`, `fix/...`,
-  `docs/...`): never work directly on the integration branch.
+- **Feature branch** for every change (`feat/...`, `fix/...`, `docs/...`, `chore/...`):
+  never work directly on the integration branch. A record made between deliverables goes on
+  a branch of its own too (`chore/memory-<slug>`), as `docs/00` says (*Scope and session
+  hygiene*): a branch whose diff touches only `.claude/memory/` skips the gate and the
+  retro, and is integrated with the no-tag blocks once block 0's CI is green. Ten
+  memory-only commits went straight onto `main` before this rule.
 - **Conventional Commits**, checked by the commit-msg hook: types in
   `commitlint.config.cjs`, format and rules in
   `.claude/docs/04-git-workflow.md`. Install the hooks with `make hooks-install`

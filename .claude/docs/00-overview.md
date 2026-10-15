@@ -124,7 +124,17 @@ Definition of Done and the commit are enough.
 - **Unrelated work = unrelated branch.** Documentation or fixes foreign to the
   current feature branch go on a separate branch (or worktree), not appended to the
   branch you are working on. (Documentation RELATED to the change stays instead in
-  the same commit/branch: rule 5 of `CLAUDE.md`.)
+  the same commit/branch: rule 5 of `CLAUDE.md`.) A record made while no deliverable is
+  open — an IMP, a harvest, the user's decisions on the backlog — is unrelated work too,
+  whatever its size and in either branching model: it goes on a branch of its own, never
+  onto the integration branch, and is integrated before the next deliverable's branch
+  starts. A branch whose diff touches only `.claude/memory/` — the criterion is mechanical:
+  every path `git diff --name-only origin/<integration branch>...HEAD` lists starts there —
+  is exempt from the security gate and from `/fw:retro`: it closes with `/fw:checkpoint`,
+  its note's gate line saying why, and is integrated with `/fw:integrate`'s no-tag blocks,
+  the CI green where the project has one. With any other file, the full cycle. Only the
+  reconciliation of the previous merge rides on the next deliverable (*The end-of-deliverable
+  cycle*, above).
 - **Effort proportional to the consequences of being wrong.** "Expensive" reasoning
   (high model/effort) is reserved for where correctness has consequences: sensitive
   implementations, security reviews, adversarial analysis. For reading, structured

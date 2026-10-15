@@ -204,29 +204,6 @@ tags: [improvement]
   the marker, and `/harvest-framework` excludes the format comment's line. The harms that do:
   the numbering, `/retro` and `/lint-memory` over the framework's entries and notes.
 
-### IMP-119 — Trunk-based: no home for memory-only commits between deliverables
-- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
-  project (the project's entry 013, 2026-10-14): the first deliverable's retro of a
-  trunk-based project
-- Observed problem: after the graft was pushed, IMP updates about it had to be committed
-  somewhere. `docs/00`'s "Unrelated work = unrelated branch" wants a separate branch;
-  `docs/04` forbids direct commits on the integration branch, which in trunk-based is the
-  only one. The agent put them as the first commit of the next feature branch — cheapest,
-  but against the letter of `docs/00`; a separate chore branch costs a second `/integrate`
-  cycle for a memory-only change.
-- Proposal: `docs/00` (or `docs/04`) says where memory-only or process-only records go when
-  no deliverable is open: e.g. "they ride on the next feature branch as its first, separate
-  `docs(memory)` commit, named as such in the `/integrate` summary", or "a `chore/memory-*`
-  branch integrated with the no-tag block". One rule for both branching models.
-- Expected benefit / risk: no improvised exception at every between-deliverables note.
-  Risk: none known.
-- Status: APPROVED on 2026-10-15 — the user's form: a record made while no deliverable is open
-  goes on a branch of its own, never onto the integration branch; a branch whose diff touches
-  only `.claude/memory/**` is exempt from the gate and from `/retro`, and is integrated with the
-  no-tag block and the CI green — the criterion is mechanical, on the diff —; with any other
-  file, the full cycle. `CONTRIBUTING.md` adopts the same rule: ten memory-only commits went
-  straight onto this repository's `main`.
-
 ### IMP-120 — Is a deliverable that is not "heavy" closed with the full cycle?
 - Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
   project (the project's entry 014, 2026-10-14): the first deliverable's retro; seen again
@@ -2108,6 +2085,24 @@ line on; older entries are not backfilled.
 - Verified: red first — the self-test's new assertion, run against the installer as committed,
   failed ("with the formatting slot answered, the install still reminds of it"), and passes
   now; the answered copy is checked to carry its answer before the absence counts.
+
+### IMP-119 — Trunk-based: no home for memory-only commits between deliverables → applied on 2026-10-15
+- Origin: a test project's harvest, the project's entry 013 ([[2026-10-14-test-project-harvest]];
+  the retro, [[2026-10-15-harvest-retro-3.0.0]]) — records made between deliverables had no
+  home: the test project put them on the next feature branch; this repository put ten
+  memory-only commits straight onto `main` and two through a branch of their own. The
+  loophole was "a feature or a significant change".
+- Applied (the user's form): `docs/00`'s *Unrelated work = unrelated branch* — a record made
+  while no deliverable is open is unrelated work too, whatever its size and in either
+  branching model: a branch of its own, never the integration branch, integrated before the
+  next deliverable's branch starts. A branch whose diff touches only `.claude/memory/` — a
+  mechanical criterion, every path the branch's diff lists — is exempt from the security gate
+  and from `/fw:retro`: it closes with `/fw:checkpoint`, its gate line saying why, and is
+  integrated with the no-tag blocks, the CI green where the project has one; with any other
+  file, the full cycle. Only the reconciliation of the previous merge rides on the next
+  deliverable. `CONTRIBUTING.md` adopts the rule here (`chore/memory-<slug>`, block 0's CI).
+- Verified: the documentation check passes. The rule's first use is the next record made
+  between deliverables, here or in a project.
 
 ## Deferred (not rejected — resumed at the right time)
 
