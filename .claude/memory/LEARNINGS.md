@@ -144,42 +144,6 @@ tags: [improvement]
   end of step 1, after the copy; not an extraction at §0, which would need `FW` and `T` before
   the guide defines them and fails for an export.
 
-### IMP-109 — `SETUP.md` §1 names `develop` as if it were mandatory
-- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
-  project (the project's entry 003, 2026-10-14): a graft onto a trunk-based project
-- Observed problem: `SETUP.md` §1: "`git init` … and create the integration branch
-  (`develop`)". `docs/04`'s *Branching model* says the names are ROLES and trunk-based is
-  allowed; §1 reads as if `develop` were required, before §2 asks for the names.
-- Proposal: §1 says "create the integration branch (its name is chosen at §2: `develop` by
-  default, or `main` alone for trunk-based — `docs/04`)".
-- Expected benefit / risk: no contradiction for a trunk-based project. Risk: none.
-- Kin: IMP-008 (the branches as roles), which §1 predates in this sentence.
-- Status: APPROVED on 2026-10-15 — in the same edit as IMP-110: the integration branch named
-  when it is created, after `docs/04`'s *Branching model*, and recorded at §2.
-
-### IMP-110 — Where the graft commit of a NEW project goes
-- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
-  project (the project's entry 004, 2026-10-14): a graft onto an empty repository
-- Observed problem: `SETUP.md` never says where the graft is committed. In an empty
-  repository the first commit creates the integration branch, so there is no base to
-  branch from; yet `docs/04` says "never work directly on the integration branch", and
-  `/integrate` assumes `origin/<integration>` exists. The user had to decide an exception
-  (the graft committed on the integration branch, the first push as a plain block); the
-  agent then extended the exception on its own to a second direct commit before the first
-  push (the record of the push-boundary test).
-- Proposal: `SETUP.md` §1 (or a new §3b) states the greenfield bootstrap: the graft is the
-  root commit on the integration branch — the one declared exception to `docs/04` —,
-  followed by a first push block the user runs (`git push -u origin <integration>`);
-  `/integrate` starts from the second deliverable. `docs/04` names the exception and its
-  PERIMETER: the root commit only, or everything before the first push (e.g. the boundary
-  test's record, which can only be written after the graft commit).
-- Expected benefit / risk: the first commit and the first push are prescribed, not
-  improvised. Risk: none known.
-- Status: APPROVED on 2026-10-15 — form A, the user's, not the entry's exception: the user's
-  empty initial commit, before §1, and the first push, in two blocks; a remote the forge
-  initialised with a README or a licence is the starting point instead; then the graft on a
-  branch of its own, the project's first deliverable. `docs/04` unchanged.
-
 ### IMP-113 — The graft copies the framework's LIVE memory, then asks to empty it by hand
 - Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
   project (the project's entry 007, 2026-10-14): a greenfield graft received 27 of the
@@ -2097,6 +2061,34 @@ line on; older entries are not backfilled.
   that goes to integration on its own is still a deliverable. The section's title, which
   `SETUP.md` cites, is unchanged.
 - Verified: the documentation check passes.
+
+### IMP-109 — `SETUP.md` §1 names `develop` as if it were mandatory → applied on 2026-10-15
+- Origin: a test project's harvest, the project's entry 003 ([[2026-10-14-test-project-harvest]];
+  the retro, [[2026-10-15-harvest-retro-3.0.0]]) — §1's "create the integration branch
+  (`develop`)", from the first template, read as if the name were required, against
+  `docs/04`'s branch roles.
+- Applied, with IMP-110, in one edit of §1: the integration branch is named when the
+  repository starts, after `docs/04`'s *Branching model* — `develop` and `main` by default,
+  one branch in a trunk-based project.
+- Verified: the documentation check passes.
+
+### IMP-110 — Where the graft commit of a NEW project goes → applied on 2026-10-15
+- Origin: a test project's harvest, the project's entry 004 ([[2026-10-14-test-project-harvest]];
+  the retro, [[2026-10-15-harvest-retro-3.0.0]]) — `SETUP.md` never said where the first
+  commit goes; the user decided an exception, the graft on the integration branch, and the
+  agent then extended it on its own to a second commit.
+- Applied (form A, the user's decision — the empty initial commit before §1): §1 starts the
+  repository in two user blocks, `docs/04`'s rule 4 — the first local, `git init -b`, an empty
+  commit with its message given ready, since no hook exists yet, the stable branch where there
+  is one, the remote, and a check that prints `root: OK`; the second only the atomic push. A
+  remote the forge created with a first commit (a README, a licence) is the starting point
+  instead: cloned, the integration branch created from it, its files reconciled, never
+  overwritten. Then the graft goes on a branch of its own; §3 commits it after the hooks'
+  checks, its paths named; §4 closes it as the project's first deliverable — its gate line —
+  with `/fw:integrate`'s no-tag blocks. `docs/04` and the command are unchanged: no exception.
+  The entry's own form, the graft as the root commit, had already grown past its perimeter.
+- Verified: the documentation check passes. The first block is run at the release's
+  rehearsal, in a throwaway directory; the second, a push, is the user's to run.
 
 ## Deferred (not rejected — resumed at the right time)
 

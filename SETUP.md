@@ -80,6 +80,39 @@ same list of images, which the framework's documentation check holds to the work
 > absent, and there you will find the reconciliation rules for the ones already
 > present (plus the criterion for a pre-existing `.claude/`).
 
+**Start the repository first.** The graft goes on a branch of its own and reaches the
+integration branch like any deliverable, so that branch must exist on the remote before it.
+Create the remote empty — no README, no licence — and run two blocks from the new project's
+directory: the first local, the second the publication. The branch names are the ROLES of
+`docs/04` (*Branching model*): `develop` and `main` by default; in a trunk-based project the
+two are one branch, so drop `<stable>` from both blocks. No hook exists yet: the commit's
+message is given ready, in the Conventional Commits form.
+
+```bash
+git init -b <integration> \
+  && git commit --allow-empty -m "chore: start the repository" \
+  && git branch <stable> \
+  && git remote add origin <the remote's URL> \
+  && test "$(git rev-list --count <integration>)" = 1 && echo "root: OK"
+```
+
+Once the first block has printed `root: OK`, publish:
+
+```bash
+git push --atomic -u origin <integration> <stable>
+```
+
+If the forge created the remote with a first commit — a README or a licence made from its
+web interface —, start from that commit instead: clone the remote, and in a two-branch
+model create the integration branch from it (`git switch -c <integration>`) and publish it
+(`git push -u origin <integration>`); in a trunk-based one the clone's branch already is
+the integration branch. The forge's files are the project's own: where the copy below
+collides with one of them — a `.gitignore` the forge wrote —, reconcile it as the brownfield
+section says, never overwrite it.
+
+Then open the graft's branch, `git switch -c chore/graft-framework`: everything that follows
+is committed there, and integrated at step 4.
+
 Copy into the root of the new repo: the `.claude/` directory, `CLAUDE.md`, `Makefile`,
 `commitlint.config.cjs`, `.gitignore`, `.gitattributes`, `scripts/`. (README.md and this
 SETUP.md you may leave out of the final project, or keep them for reference.)
@@ -113,8 +146,7 @@ the PROJECT's commit, silently, into the base of the next upgrade. The `^{commit
 matters too: on an annotated tag the bare form returns the tag object's id. (Why
 `${FW:?}` and not `$FW`: see the *Precondition* of *Upgrading the framework*.)
 
-Then: `git init` (if it is not a repo already) and create the integration branch
-(`develop`). On Windows git records no executable bit (`core.fileMode` is false there):
+On Windows git records no executable bit (`core.fileMode` is false there):
 give the scripts theirs as you add them,
 `git add --chmod=+x -- scripts/*.sh scripts/*.mjs`, or they enter the history as `100644` —
 not executable in a teammate's checkout on macOS or Linux, and a mode failure in every
@@ -245,6 +277,9 @@ rejected; a file with a fake secret must be blocked by gitleaks; `make test-scri
 pass — it proves the pre-push on a throwaway repository and the delegated agents' guard on
 the command forms its cases list. A pre-push of your own (git-lfs's, for one): see Step 4 of the upgrade.
 
+**The graft's first commit comes now**, on its branch, so the hooks just checked see it:
+name its paths — what step 1 copied, the pin, the answers of step 2 —, never `git add .`.
+
 **What the pre-commit's scan reads.** gitleaks scans the staged changes as `git diff` shows
 them. The hook turns git's colour off and reads each textconv driver as `cat` for it, so a
 configuration that would empty or convert that output hides no secret. A file git shows as
@@ -316,6 +351,11 @@ end-of-deliverable cycle"). For every heavy prompt Claude Code will produce a pl
 under the gate] `/fw:security-review` → `/fw:retro` → `/fw:checkpoint` → `/fw:integrate`;
 when it gets stuck, `/fw:sos`. The periodic review of the IMP backlog stays `/fw:retro` over the whole
 `LEARNINGS.md`.
+
+The graft itself is the project's first deliverable: closed with that cycle — its session
+note's security-gate line says whether it is under the gate, since it installs the security
+baseline (the hooks, the permissions) — and integrated with `/fw:integrate`'s no-tag blocks
+onto the branch the first block of step 1 started.
 
 ## 5. Evolving the framework
 
