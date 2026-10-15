@@ -229,7 +229,7 @@ step is a mechanism, not more text.
 - [x] 9. The claims beside the scope: IMP-123's part (`docs/04`'s allow list), IMP-124's Level 1 (`docs/00`'s selective loading) — commit: 24010c2, 6259b15
 - [x] 10. The rehearsal: the upgrade 2.2.0 → 3.0.0, and 1.2.0 → 3.0.0 in the form of the project upgraded next, LF and CRLF, the fixture synthetic; the self-tests' new fixtures synthetic too — commit: 3feb827, 1ae21c5, ce0516e
 - [x] 11. The security gate: ONE reviewer, read-only, the two lenses, the snapshot before and after; HIGH fixed, MEDIUM resolved or accepted with its reason, LOW per IMP-103 — commit: 2ed33a9, 07e2e19, 7c81d6c, f0c90e3, 8efe25e, 420448f, 2f17499
-- [ ] 12. `/fw:retro`, `/fw:checkpoint`, the CHANGELOG's 3.0.0 entry and the bump stated — then stop before `/integrate`'s blocks: block 0, the user's push and the CI on the three systems, comes first — commit: —
+- [x] 12. `/fw:retro`, `/fw:checkpoint`, the CHANGELOG's 3.0.0 entry and the bump stated — then stop before `/integrate`'s blocks: block 0, the user's push and the CI on the three systems, comes first — commit: 06fedd2, 2143e6a, and the checkpoint (its own sha cannot be written in it)
 
 Each applying commit carries its IMP's part of the text and moves the entry to Applied; the
 shas go into the headings with a later commit, as in v2.2.0.
@@ -411,6 +411,28 @@ shas go into the headings with a later commit, as in v2.2.0.
   not measured; `tools/docs-check.mjs` read through its diff only; the files unchanged in the
   range not reviewed again.
 
+## Task 12 — the retro, the CHANGELOG, the rehearsal again, the checkpoint
+- **The retro** found one pattern, recorded as IMP-125, open: two tests of this release passed
+  here and were wrong about the projects — the hooks' Case 7 against a project's answered slot,
+  the upgrade check's Case 11 under the test's own shell options. Its proposal: the rule for
+  the self-tests, and a CI run of `make test-scripts` in a graft whose slots are answered.
+- **The CHANGELOG's 3.0.0 entry** (2143e6a): the breaking change first, each applied entry, the
+  review's and the rehearsal's fixes, and the *Upgrading* note with the conflicts measured.
+  The documentation check's one CHECK is the release being prepared.
+- **The rehearsal again**, on `2143e6a` tagged v3.0.0 in a clone only (`rh7e`), the three
+  projects: the same results as task 10's last run — preflight, the eight renames, the
+  declared conflicts and the co-edit, `make test-scripts` green, `invariant` and `post`
+  without a FAIL —, and `inventory` now prints v3.0.0's *Upgrading* note.
+- **The bump, on the final content** (IMP-074): the commands renamed — "removing or renaming a
+  command" is the breaking criterion of a method project (`docs/04`, *Versioning*;
+  `CONTRIBUTING.md`) —, and every project must move its command files and references to
+  adopt the release. A MAJOR whatever the commits' types: v3.0.0 from v2.2.0, as the decisions
+  set; the new rules alone were a MINOR, the fixes a PATCH.
+- **The checkpoint.** The fifteen Applied headings carry their commits, and the entries the
+  rehearsal and the gate amended say how. `STATE.md`, `TREE.md` and `INDEX.md` stay clean
+  templates here (`CONTRIBUTING.md`, *This repo's memory*): the `TREE.md` template changed
+  only its legend; this note and `LEARNINGS.md` hold the open threads.
+
 ## Resumption notes
 - The payload names no IMP number (the documentation check's `imp-number`).
 - The method's files are edited with the file tools (IMP-075); the copy of the agents' output
@@ -422,6 +444,51 @@ shas go into the headings with a later commit, as in v2.2.0.
 ## Security gate
 - Under the gate: the release asserts security properties — the boundary's claims in
   `docs/04`, the graft that reads the framework by tag and copies no personal permissions, the
-  namespace that hides no built-in command. The verdict is written at the deliverable's close.
+  namespace that hides no built-in command. ONE reviewer with the two lenses (task 11): no
+  CRITICAL or HIGH; the MEDIUM resolved — the memory-only exemption narrowed here to the
+  framework's records —; the six LOW and five INFO each fixed or closed by its text, the
+  unmeasured residuals declared where their claims live — IMP-103.
+
+## Problems encountered → cause → solution
+1. `make test-scripts` failed in every rehearsed project → the hooks' Case 7 took the
+   project's answered copy for one with the slot open → both states built from the copy under
+   test (3feb827); IMP-125.
+2. From v1.2.0 `inventory` read `integrate.md`'s move as a deletion → git pairs nothing across a
+   jump where the file changed past its rename threshold → renames paired release by release
+   (1ae21c5).
+3. Extending the test, Case 9 read another framework's listing → listings cached under `T` by
+   tag name across runs → the cache lives one run (1ae21c5).
+4. Case 11 passed over a defect a user's shell shows → it ran `SETUP.md`'s blocks under the
+   test's `set -euo pipefail` → each block in a shell of its own (8efe25e); IMP-125.
+5. Scenario B's protected-branch check first tested the pre-upgrade files → the protected
+   branches were checked out, holding the old `Makefile` → a clone of the upgrade branch with
+   branches of those names; it showed edge case 8's trap, fixed in 420448f.
+6. The rehearsal's own script left `LEARNINGS.md` unstaged, and `reset-task` discarded it → a
+   scaffolding error, not the procedure's → staged with the templates; `invariant` then clean.
+7. A probe command began with `echo =====` → zsh reads `=word` as a command lookup → quoted.
+
+## Factual doc corrections (Level 1, docs/06)
+- `docs/00`'s *Selective loading* and `CLAUDE.md`'s heading — IMP-124's Level 1 (6259b15) —,
+  refined by the gate: an import loads without its frontmatter and block comments; the
+  `TREE.md` template's legend (2f17499).
+- `docs/04`'s `allow` and `ask` bullets and `docs/03`'s limits, narrowed to what the tools
+  do (24010c2, 07e2e19).
+
+## Proposals
+- IMP-125, open in `LEARNINGS.md`, for the next retro; IMP-124's Level 2 stays open; IMP-123's
+  restriction gained the gate's forms as evidence.
+
+## Follow-up
+- Block 0, the user's: push this branch and read the CI on the three systems; then
+  `/fw:integrate`'s blocks — the bump stated above, MAJOR, v3.0.0 —, run by the user.
+- After the tag, a dedicated session: IMP-111 and IMP-112's measurement, candidates A and B
+  first, C only if they fail S2 (the user's decision 6); IMP-123's restriction runs its forms
+  there as control cases, with the gate's unmeasured items on Claude Code's rules.
+- The next upgrade, the project upgraded next from 1.2.0: its pin corrected as the upgrade
+  branch's first commit, edge case 8 for its protected branches checked with `make -n`, the
+  three command files it left as shipped brought over and the five it customised merged — the
+  form task 10 rehearsed; it runs with the confirmations (the user's decision 6).
+- The next deliverable's first checkpoint closes this note (`status: completed`) after the
+  merge, as v2.2.0's was.
 
 [[LEARNINGS]] · [[2026-10-14-test-project-harvest]] · [[2026-10-13-backlog-retro-2.2.0]]

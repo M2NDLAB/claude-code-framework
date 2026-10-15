@@ -1808,7 +1808,7 @@ line on; older entries are not backfilled.
   `macos-<release>`, `ubuntu-<release>`, `windows-<year>` —; an image named otherwise, with an
   `-arm` or `-intel` suffix, verifies nothing until the check learns its form.
 
-### IMP-122 — The framework's commands hide Claude Code's built-in ones: the `fw` namespace → applied on 2026-10-15
+### IMP-122 — The framework's commands hide Claude Code's built-in ones: the `fw` namespace → applied on 2026-10-15, commits ee4ce1f, 1ae21c5, 420448f
 - Origin: the user's reading and measurement, 2026-10-15 ([[2026-10-15-harvest-retro-3.0.0]])
   — `/security-review` is a built-in command, and `/checkpoint` a built-in alias of `/rewind`
   (Claude Code's commands page). The skills page, *Resolve skills that share a name*: "In a
@@ -1843,10 +1843,14 @@ line on; older entries are not backfilled.
   marketplace cache (6,708 names), read on 2026-10-15. Declared residuals: a plugin named `fw`,
   whose skills would be `/fw:<name>` too; a nested `.claude/skills/` under a project directory
   named `fw`, listed as `/fw:<name>` when its names clash.
-- Measured at the release's rehearsal, not here: the conflicts the rename brings to a project's
-  3-way — rule 8's line of `CLAUDE.md` carries its slot and the command's name.
+- Measured at the release's rehearsal (task 10): rule 8's line of `CLAUDE.md` carries its slot
+  and the command's name, a conflict in every project that answered it — the answer kept, with
+  `/fw:security-review`; from v1.2.0, `integrate.md`'s move read as a deletion, git pairing
+  nothing across the jump: the renames are paired release by release (1ae21c5). The security
+  gate: what the bare names run once the old files are gone, and the two open collisions, said
+  where the projects read them (420448f).
 
-### IMP-115 — `SETUP.md` asks to fill the slots of `docs/02`-`04`, the upgrade classes them METHOD → applied on 2026-10-15
+### IMP-115 — `SETUP.md` asks to fill the slots of `docs/02`-`04`, the upgrade classes them METHOD → applied on 2026-10-15, commit 080cf44
 - Origin: a test project's harvest, the project's entry 009 ([[2026-10-14-test-project-harvest]];
   the retro, [[2026-10-15-harvest-retro-3.0.0]]) — §2 asked for answers in `docs/02`, `03` and
   `04`, the class table overwrote them as METHOD, and only edge case 7's CHECK kept an inline
@@ -1865,7 +1869,7 @@ line on; older entries are not backfilled.
 - Consequence: every later change to `docs/02`-`04` keeps CONTRIBUTING's distance from their
   slots, and the release's rehearsal answers them inline.
 
-### IMP-118 — The setup marker does not tell a slot from a mention → applied on 2026-10-15
+### IMP-118 — The setup marker does not tell a slot from a mention → applied on 2026-10-15, commits 1634337, 7c81d6c
 - Origin: a test project's harvest, the project's entry 012 ([[2026-10-14-test-project-harvest]];
   the retro, [[2026-10-15-harvest-retro-3.0.0]]) — §2's grep printed the slots and the prose
   that names the marker alike: the `Makefile`'s line 4 was rewritten as if it were a slot,
@@ -1896,8 +1900,11 @@ line on; older entries are not backfilled.
   `Makefile`'s protected-branches slot, which a count masked; where a project rewrote a
   mention or answered `docs/00`'s line inline, its 3-way meets a conflict there, to keep
   `vY`'s line — named in the CHANGELOG's *Upgrading* note.
+- The release's security gate: §2's grep read `.git/` too, and listed the generated
+  pre-commit, which carries the formatting slot while it is open, as a slot to fill by hand;
+  it leaves `.git/` out, red first in Case 10 (7c81d6c).
 
-### IMP-117 — The slots of the method's files filled with `sed -i`, not with the file tools → applied on 2026-10-15
+### IMP-117 — The slots of the method's files filled with `sed -i`, not with the file tools → applied on 2026-10-15, commit d7ea3e3
 - Origin: a test project's harvest, the project's entry 011 ([[2026-10-14-test-project-harvest]];
   the retro, [[2026-10-15-harvest-retro-3.0.0]]) — the slots filled with `sed -i` by line
   number, four repairs after, then a memory note edited by heredoc: against the rule IMP-075
@@ -1927,7 +1934,7 @@ line on; older entries are not backfilled.
   notes record which tool wrote each answer; if a shell write recurs, the next step is a
   mechanism, not more text.
 
-### IMP-121 — A question left for the user in a session note does not reach STATE, so resumption misses it → applied on 2026-10-15
+### IMP-121 — A question left for the user in a session note does not reach STATE, so resumption misses it → applied on 2026-10-15, commit 5bdad7a
 - Origin: a test project's harvest, the project's entry 015 ([[2026-10-14-test-project-harvest]];
   the retro, [[2026-10-15-harvest-retro-3.0.0]]) — a note left a measurement "to be added from
   the user's observation"; the resumption, built from the injected `STATE.md`, did not name it,
@@ -1942,7 +1949,7 @@ line on; older entries are not backfilled.
   of `checkpoint.md` and of `sessions/README.md`, a template a project may have customised.
   `STATE.md`'s comment reaches new grafts only: in a project the file is its memory.
 
-### IMP-116 — `integrate.md`: "replace the placeholders" is ambiguous, and trunk-based is not covered → applied on 2026-10-15
+### IMP-116 — `integrate.md`: "replace the placeholders" is ambiguous, and trunk-based is not covered → applied on 2026-10-15, commit 292f860
 - Origin: a test project's harvest, the project's entry 010 ([[2026-10-14-test-project-harvest]];
   the retro, [[2026-10-15-harvest-retro-3.0.0]]) — "Replace the placeholders with the
   project's real names" left open whether setup rewrites the command's 40 placeholders, on 28
@@ -1959,7 +1966,7 @@ line on; older entries are not backfilled.
 - Verified: the documentation check passes; the 3-way of the command, in both forms — the
   placeholders rewritten, and step 1's line only — is measured at the release's rehearsal.
 
-### IMP-114 — `hooks-install` says "enable formatting" to a project that chose none → applied on 2026-10-15
+### IMP-114 — `hooks-install` says "enable formatting" to a project that chose none → applied on 2026-10-15, commits 7c49e79, 3feb827
 - Origin: a test project's harvest, the project's entry 008 ([[2026-10-14-test-project-harvest]];
   the retro, [[2026-10-15-harvest-retro-3.0.0]]) — with the formatting slot answered "none",
   every `make hooks-install`, Step 4 of every upgrade included, still printed the reminder, and
@@ -1972,9 +1979,14 @@ line on; older entries are not backfilled.
   `scripts/README.md` says so.
 - Verified: red first — the self-test's new assertion, run against the installer as committed,
   failed ("with the formatting slot answered, the install still reminds of it"), and passes
-  now; the answered copy is checked to carry its answer before the absence counts.
+  now.
+- The release's rehearsal found the self-test, as first written, failing in every project
+  that answered the slot: it took the project's own copy for an open one. It builds both
+  states from the copy it tests now, each checked to reach the generated pre-commit — red with
+  an answered copy, green after, both mutants of the reminder killed (3feb827); IMP-125
+  proposes the rule.
 
-### IMP-119 — Trunk-based: no home for memory-only commits between deliverables → applied on 2026-10-15
+### IMP-119 — Trunk-based: no home for memory-only commits between deliverables → applied on 2026-10-15, commits 6ab65a0, 2ed33a9
 - Origin: a test project's harvest, the project's entry 013 ([[2026-10-14-test-project-harvest]];
   the retro, [[2026-10-15-harvest-retro-3.0.0]]) — records made between deliverables had no
   home: the test project put them on the next feature branch; this repository put ten
@@ -1998,7 +2010,7 @@ line on; older entries are not backfilled.
 - Verified: the documentation check passes. The rule's first use is the next record made
   between deliverables, here or in a project.
 
-### IMP-120 — Is a deliverable that is not "heavy" closed with the full cycle? → applied on 2026-10-15
+### IMP-120 — Is a deliverable that is not "heavy" closed with the full cycle? → applied on 2026-10-15, commit c8e3221
 - Origin: a test project's harvest, the project's entry 014 ([[2026-10-14-test-project-harvest]];
   the retro, [[2026-10-15-harvest-retro-3.0.0]]) — two complete features, light by `docs/01`'s
   measure, went to integration, and `docs/00` exempted "small, isolated tasks" from the whole
@@ -2013,7 +2025,7 @@ line on; older entries are not backfilled.
   `SETUP.md` cites, is unchanged.
 - Verified: the documentation check passes.
 
-### IMP-109 — `SETUP.md` §1 names `develop` as if it were mandatory → applied on 2026-10-15
+### IMP-109 — `SETUP.md` §1 names `develop` as if it were mandatory → applied on 2026-10-15, commit d29449f
 - Origin: a test project's harvest, the project's entry 003 ([[2026-10-14-test-project-harvest]];
   the retro, [[2026-10-15-harvest-retro-3.0.0]]) — §1's "create the integration branch
   (`develop`)", from the first template, read as if the name were required, against
@@ -2023,7 +2035,7 @@ line on; older entries are not backfilled.
   one branch in a trunk-based project.
 - Verified: the documentation check passes.
 
-### IMP-110 — Where the graft commit of a NEW project goes → applied on 2026-10-15
+### IMP-110 — Where the graft commit of a NEW project goes → applied on 2026-10-15, commits d29449f, 8efe25e
 - Origin: a test project's harvest, the project's entry 004 ([[2026-10-14-test-project-harvest]];
   the retro, [[2026-10-15-harvest-retro-3.0.0]]) — `SETUP.md` never said where the first
   commit goes; the user decided an exception, the graft on the integration branch, and the
@@ -2038,10 +2050,13 @@ line on; older entries are not backfilled.
   checks, its paths named; §4 closes it as the project's first deliverable — its gate line —
   with `/fw:integrate`'s no-tag blocks. `docs/04` and the command are unchanged: no exception.
   The entry's own form, the graft as the root commit, had already grown past its perimeter.
-- Verified: the documentation check passes. The first block is run at the release's
-  rehearsal, in a throwaway directory; the second, a push, is the user's to run.
+- Verified: the documentation check passes; the first block run at the release's rehearsal,
+  `root: OK` with two branches and trunk-based, the second, a push, left to the user. The
+  security gate: the opening says the user runs both blocks from their own terminal — no
+  `pre-push` exists yet to refuse an agent's push —, that a hook of the user's own git
+  configuration may run, and how to copy beside a `.gitignore` the forge wrote (8efe25e).
 
-### IMP-107 — The greenfield copy has no read-by-tag recipe → applied on 2026-10-15
+### IMP-107 — The greenfield copy has no read-by-tag recipe → applied on 2026-10-15, commits b2b7458, 8efe25e
 - Origin: a test project's harvest, the project's entry 001 ([[2026-10-14-test-project-harvest]];
   the retro, [[2026-10-15-harvest-retro-3.0.0]]) — §1 named no source for the copy, so a
   graft read the clone's working tree, where files git ignores (a maintainer's personal
@@ -2059,10 +2074,14 @@ line on; older entries are not backfilled.
   the three images, one form for the method.
 - Verified, in a throwaway directory on macOS (git 2.54.0, bsdtar), from this repository's
   v2.2.0: `payload: OK`, the scripts executable, nothing git does not track in the clone
-  copied; a mistyped tag left the pipe at status 0 and the check line stopped the chain.
-  Not measured: git 2.31, GNU tar, Windows.
+  copied; a mistyped tag left the pipe at status 0, and in a fresh directory the chain stopped
+  at `LEARNINGS.md`'s redirection, its directory absent. Over an earlier copy it went on to
+  `payload: OK`, an emptied `LEARNINGS.md` behind — found by the release's security gate: the
+  chain checks its tag first, red first in Case 11, which now runs the blocks in a shell of
+  their own, as a user's (8efe25e). Declared: an `export-ignore` in the clone's or the user's
+  attributes leaves a payload file out. Not measured: git 2.31, GNU tar, Windows.
 
-### IMP-113 — The graft copies the framework's LIVE memory, then asks to empty it by hand → applied on 2026-10-15
+### IMP-113 — The graft copies the framework's LIVE memory, then asks to empty it by hand → applied on 2026-10-15, commit a0531ef
 - Origin: a test project's harvest, the project's entry 007 ([[2026-10-14-test-project-harvest]];
   the retro, [[2026-10-15-harvest-retro-3.0.0]]) — §1 copied `.claude/` whole and §2 asked to
   empty the framework's memory by hand: a greenfield graft received 27 notes and the whole
@@ -2085,7 +2104,7 @@ line on; older entries are not backfilled.
   copy is the tag's and leaves all of them behind — measured here on macOS, and by the CI on
   its three images with each one's own git and tar.
 
-### IMP-108 — The prerequisite check is run "from the framework's clone" → applied on 2026-10-15
+### IMP-108 — The prerequisite check is run "from the framework's clone" → applied on 2026-10-15, commit b11d1db
 - Origin: a test project's harvest, the project's entry 002 ([[2026-10-14-test-project-harvest]];
   the retro, [[2026-10-15-harvest-retro-3.0.0]]) — §0 ran the check "from the framework's
   clone", its working tree, and from there the check's line on line ends read the clone, not
@@ -2097,7 +2116,7 @@ line on; older entries are not backfilled.
   an export. The script is unchanged: the framework's CI still runs it from the clone.
 - Verified: the documentation check passes; README's and §3's pointers to §0 still hold.
 
-### IMP-123 (the claim) — The shipped allow list admits more than reading → applied on 2026-10-15
+### IMP-123 (the claim) — The shipped allow list admits more than reading → applied on 2026-10-15, commits 24010c2, 07e2e19
 - Origin: the retro's agents, the P1 lens on the shipped `settings.json`
   ([[2026-10-15-harvest-retro-3.0.0]]); the user's decision, 2026-10-15 — `docs/04` called the
   `allow` list "only read-only commands", and it holds `Bash(git diff:*)`, `Bash(git log:*)` and
