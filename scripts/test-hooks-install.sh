@@ -25,8 +25,8 @@
 #   7. a re-run: over its own hooks unchanged, nothing saved and nothing said; over a hook
 #      that differs — an earlier release's, untouched by the user — a .bak of it, and a
 #      message that says what was measured, a difference, not a local change; the reminder
-#      to enable formatting while the slot is open, and none once a copy answers it — see
-#      "Case 7";
+#      to enable formatting while the slot is open, and none once a copy answers it — both
+#      states built from the copy under test, which a project has answered — see "Case 7";
 #   8. core.hooksPath set — a hook manager's, husky's for one: the install stops before
 #      writing any hook, and its message says that such a manager sets it again at its next
 #      run, so integrating the commands into it is the durable choice — see "Case 8" at the
@@ -514,8 +514,6 @@ mkdir -p "${rerun_repo}/scripts"
 cp "${HOOKS_INSTALL}" "${rerun_repo}/scripts/hooks-install.sh"
 cp "${CHECK_PREREQ}" "${rerun_repo}/scripts/check-prerequisites.sh"
 bash "${rerun_repo}/scripts/hooks-install.sh" >"${workdir}/out7.log" 2>&1 || fail7 "the first install failed"
-grep -q 'Remember to enable automatic formatting' "${workdir}/out7.log" \
-  || fail7 "with the formatting slot open, the install does not remind of it"
 hooks7="${rerun_repo}/.git/hooks"
 bash "${rerun_repo}/scripts/hooks-install.sh" >"${workdir}/out7.log" 2>&1 || fail7 "a re-run over its own hooks failed"
 ! grep -q '^WARNING' "${workdir}/out7.log" || fail7 "a re-run over its own unchanged hooks warned"
@@ -529,17 +527,36 @@ cmp -s "${hooks7}/commit-msg.bak" "${workdir}/earlier-commit-msg" || fail7 "the 
 grep -q '^WARNING: commit-msg differs from the hook this version generates' "${workdir}/out7.log" \
   || fail7 "the message does not say what was measured, a difference from the generated hook"
 ! grep -q 'local changes' "${workdir}/out7.log" || fail7 "the message claims local changes it did not measure"
-# A copy whose formatting slot is answered — here with "none" — says nothing of it. The
-# marker is written split, so this test is no slot of its own; the answer is checked to
-# have reached the copy before the absence counts.
+# The formatting reminder follows the slot, not the copy this test runs against: a project
+# answers the slot, and runs this test against its own copy. So both states are built from
+# that copy — the slot opened by a marker line after the gitleaks call, the slot answered by
+# every marker replaced with "none" — and each is checked to have reached the generated
+# pre-commit before the reminder, or its absence, counts. The marker is written split, so
+# this test is no slot of its own.
+marker7="TO BE DEFINED"
+marker7="${marker7} AT SETUP"
+open_repo="${workdir}/open-repo"
+git init -q "${open_repo}"
+mkdir -p "${open_repo}/scripts"
+awk -v m="${marker7}" '{ print }
+  /^gitleaks protect --staged --redact -v$/ && !done { print "# 2. AUTOMATIC FORMATTING — [" m "]."; done = 1 }' \
+  "${HOOKS_INSTALL}" > "${open_repo}/scripts/hooks-install.sh"
+cp "${CHECK_PREREQ}" "${open_repo}/scripts/check-prerequisites.sh"
+bash "${open_repo}/scripts/hooks-install.sh" >"${workdir}/out7.log" 2>&1 || fail7 "an install with the formatting slot open failed"
+grep -qE 'TO BE DEFINED A[T] SETUP' "${open_repo}/.git/hooks/pre-commit" \
+  || fail7 "the opened slot did not reach the generated pre-commit"
+grep -q 'Remember to enable automatic formatting' "${workdir}/out7.log" \
+  || fail7 "with the formatting slot open, the install does not remind of it"
 answered_repo="${workdir}/answered-repo"
 git init -q "${answered_repo}"
 mkdir -p "${answered_repo}/scripts"
-sed 's/TO BE DEFINED A[T] SETUP/none: no formatter in this project/' "${HOOKS_INSTALL}" > "${answered_repo}/scripts/hooks-install.sh"
+sed -E 's/TO BE DEFINED A[T] SETUP|DA DEFINIRE A[L] SETUP/none: no formatter in this project/g' \
+  "${HOOKS_INSTALL}" > "${answered_repo}/scripts/hooks-install.sh"
 cp "${CHECK_PREREQ}" "${answered_repo}/scripts/check-prerequisites.sh"
-grep -q 'AUTOMATIC FORMATTING — .none: no formatter in this project' "${answered_repo}/scripts/hooks-install.sh" \
-  || fail7 "the answered copy does not carry its answer"
 bash "${answered_repo}/scripts/hooks-install.sh" >"${workdir}/out7.log" 2>&1 || fail7 "an install with the formatting slot answered failed"
+[[ -f "${answered_repo}/.git/hooks/pre-commit" ]] || fail7 "the answered copy generated no pre-commit"
+! grep -qE 'TO BE DEFINED A[T] SETUP|DA DEFINIRE A[L] SETUP' "${answered_repo}/.git/hooks/pre-commit" \
+  || fail7 "the answered copy's generated pre-commit still carries the marker"
 ! grep -q 'Remember to enable automatic formatting' "${workdir}/out7.log" \
   || fail7 "with the formatting slot answered, the install still reminds of it"
 
