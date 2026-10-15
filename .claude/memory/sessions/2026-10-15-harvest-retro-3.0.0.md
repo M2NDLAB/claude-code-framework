@@ -2,7 +2,7 @@
 date: 2026-10-15
 task: v3.0.0 — the retro of a test project's harvest (IMP-107..121) decided and applied, the framework's commands moved under the fw namespace, the claims of the allow list and of selective loading made true
 branch: feat/harvest-retro-3.0.0
-status: in-progress
+status: completed
 model: 'claude-opus-5-5'
 turns: 2
 tags: [session, retro, imp, plan, security-gate]
@@ -227,9 +227,9 @@ step is a mechanism, not more text.
 - [x] 7. The cycle: IMP-120 (a deliverable is what goes to integration), IMP-119 (records between deliverables; a memory-only branch exempt by its diff), `CONTRIBUTING.md` — commit: 6ab65a0, c8e3221
 - [x] 8. The greenfield graft, `SETUP.md` §0-§4: IMP-109, IMP-110 (form A; a remote the forge initialised), IMP-107, IMP-113, IMP-108 — commit: d29449f, b2b7458, a0531ef, b11d1db
 - [x] 9. The claims beside the scope: IMP-123's part (`docs/04`'s allow list), IMP-124's Level 1 (`docs/00`'s selective loading) — commit: 24010c2, 6259b15
-- [x] 10. The rehearsal: the upgrade 2.2.0 → 3.0.0, and 1.2.0 → 3.0.0 in the form of the project upgraded next, LF and CRLF, the fixture synthetic; the self-tests' new fixtures synthetic too — commit: 3feb827, 1ae21c5, ce0516e
-- [x] 11. The security gate: ONE reviewer, read-only, the two lenses, the snapshot before and after; HIGH fixed, MEDIUM resolved or accepted with its reason, LOW per IMP-103 — commit: 2ed33a9, 07e2e19, 7c81d6c, f0c90e3, 8efe25e, 420448f, 2f17499
-- [x] 12. `/fw:retro`, `/fw:checkpoint`, the CHANGELOG's 3.0.0 entry and the bump stated — then stop before `/integrate`'s blocks: block 0, the user's push and the CI on the three systems, comes first — commit: 06fedd2, 2143e6a, and the checkpoint (its own sha cannot be written in it)
+- [x] 10. The rehearsal: the upgrade 2.2.0 → 3.0.0, and 1.2.0 → 3.0.0 in the form of the project upgraded next, LF and CRLF, the fixture synthetic; the self-tests' new fixtures synthetic too — commit: 3feb827, 1ae21c5, ce0516e, 6a6badd (its record)
+- [x] 11. The security gate: ONE reviewer, read-only, the two lenses, the snapshot before and after; HIGH fixed, MEDIUM resolved or accepted with its reason, LOW per IMP-103 — commit: 2ed33a9, 07e2e19, 7c81d6c, f0c90e3, 8efe25e, 420448f, 2f17499, 023642f (its record)
+- [x] 12. `/fw:retro`, `/fw:checkpoint`, the CHANGELOG's 3.0.0 entry and the bump stated — then stop before `/integrate`'s blocks: block 0, the user's push and the CI on the three systems, comes first — commit: 06fedd2, 2143e6a, and the checkpoint, feff389 (its sha written after it); block 0's final round green on the three on `feff389` (run 38785400776); blocks 0, 1 and 2, the user's — the merge a55c7b6 on `main`, its tree the tested one, tagged v3.0.0, signed, both published
 
 Each applying commit carries its IMP's part of the text and moves the entry to Applied; the
 shas go into the headings with a later commit, as in v2.2.0.
@@ -433,6 +433,43 @@ shas go into the headings with a later commit, as in v2.2.0.
   templates here (`CONTRIBUTING.md`, *This repo's memory*): the `TREE.md` template changed
   only its legend; this note and `LEARNINGS.md` hold the open threads.
 
+## The integration — blocks 0, 1 and 2, the user's
+- **Block 0**, printed once the 32 commits it publishes (`a45fab2..feff389`) were read:
+  gitleaks found no secret, all 32 signed, neither the project upgraded next nor a path of this
+  machine in their messages, diffs and tree; `origin/main` at `a45fab2` and the branch absent
+  on the remote, read live. Five read-only verifiers on the session's model — rules, shell,
+  facts, red team, completeness —, the snapshot identical after them: no blocker, no major;
+  adopted, the tree's check fail-closed (`|| echo FAILED`), a guard on the tip before
+  `git push -u`, and the prose naming 0b's marker and forbidding a commit on the branch until
+  block 2. Task 1's agents file (`08a492a`) carries the prefix of a local session id on five
+  lines, a random value with no path or user name: the user, told before 0b, ran 0b.
+- **The final CI round**, run 38785400776 (push, `feff389`, each job's checkout `feff389`), green
+  on the three: ubuntu-24.04 and macos-26 34 PASS, windows-2025 33 PASS, the known SKIP (a
+  dangling symlink) and one NOTE (binary files' mode under Git Bash); the documentation check
+  0 FAIL and one CHECK, the release being prepared; the prerequisite check 0 FAIL, 0 WARN; the
+  real hooks PASS. Three PASS more than v2.2.0's 31/31/30: the upgrade check's new cases.
+- **Blocks 1 and 2**, v3.0.0 by the bump above. The same five lenses, read-only, the snapshot
+  and `.git/config` identical after them; 26.5 minutes against a 25-minute stall budget, all
+  five returned. One major — the draft carried no report of the CI, put above the blocks —;
+  adopted, the tree's check inside block 1's chain, before `git tag -a`, so a tree the CI did
+  not test is never tagged; two guards after the fetch, `origin/main` still `a45fab2` and the
+  remote branch still `feff389`; the prose on a refused push aligned with `CONTRIBUTING.md`;
+  step 5's checklist with this repository's items. Block 2 exactly as `CONTRIBUTING.md` writes
+  it.
+- **Run by the user**: the merge `a55c7b6` on `main` (`a45fab2` + `feff389`), signed, its tree
+  `5d26215` the tested one, 33 commits over `a45fab2`; v3.0.0 annotated and signed on it; one
+  atomic push — `main`, the tag, the remote branch's deletion —, then `git branch -d`. Read back
+  read-only the same day: `git ls-remote` gives `main` and `v3.0.0^{}` at `a55c7b6`, and no
+  branch; `git tag -v` valid.
+- **The CI on the merge**, run 38805847073 (the push of `main`, each job's checkout `a55c7b6`),
+  green on the three with the same counts — 34, 34, and 33 PASS with Windows' known SKIP and
+  NOTE —; the documentation check 0 FAIL and 0 CHECK, v3.0.0 now a tag; the prerequisite check
+  0 FAIL, 0 WARN; the real hooks PASS. Read after the push, not a gate (`CONTRIBUTING.md`, *No
+  required status checks on `main`*).
+- The lessons, recorded after the merge in [[2026-10-15-3.0.0-record]]: IMP-126 (block 0's
+  written form, approved) and IMP-127 (the 3.0.0 entry's claim on `LEARNINGS.md`'s format
+  comment).
+
 ## Resumption notes
 - The payload names no IMP number (the documentation check's `imp-number`).
 - The method's files are edited with the file tools (IMP-075); the copy of the agents' output
@@ -479,8 +516,10 @@ shas go into the headings with a later commit, as in v2.2.0.
   restriction gained the gate's forms as evidence.
 
 ## Follow-up
-- Block 0, the user's: push this branch and read the CI on the three systems; then
-  `/fw:integrate`'s blocks — the bump stated above, MAJOR, v3.0.0 —, run by the user.
+- Closed on 2026-10-15 on `chore/memory-3.0.0-record`, the next deliverable's branch: block 0's
+  final round green on the three on `feff389`, then blocks 1 and 2, run by the user — the merge
+  `a55c7b6` on `main`, its tree the tested one, 33 commits, and v3.0.0 signed on it, both
+  published, the feature branch deleted (*The integration*, above).
 - After the tag, a dedicated session: IMP-111 and IMP-112's measurement, candidates A and B
   first, C only if they fail S2 (the user's decision 6); IMP-123's restriction runs its forms
   there as control cases, with the gate's unmeasured items on Claude Code's rules.
@@ -488,7 +527,5 @@ shas go into the headings with a later commit, as in v2.2.0.
   branch's first commit, edge case 8 for its protected branches checked with `make -n`, the
   three command files it left as shipped brought over and the five it customised merged — the
   form task 10 rehearsed; it runs with the confirmations (the user's decision 6).
-- The next deliverable's first checkpoint closes this note (`status: completed`) after the
-  merge, as v2.2.0's was.
 
 [[LEARNINGS]] · [[2026-10-14-test-project-harvest]] · [[2026-10-13-backlog-retro-2.2.0]]
