@@ -24,10 +24,11 @@ the project happens to build.
 
 ## Selective loading
 
-Load **only the files relevant to the task at hand**, not everything at once: it is
-a token-efficiency choice. `CLAUDE.md` is the index; from there you pull in what you
-need. The same logic applies to the memory: you load the notes of only the
-components the task touches.
+`CLAUDE.md` imports the seven docs of this directory and `STATE.md` with `@`, and Claude
+Code expands and loads an imported file whole, at launch: the method is in context in every
+session. Selective loading applies to the rest, a token-efficiency choice: load **only
+what the task at hand needs**, not everything at once — the memory's notes of only the
+components the task touches, the session notes it points at, the files it reads besides.
 
 ## The working cycle
 

@@ -7,7 +7,7 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
 > non-negotiable rules. The rules below are about PROCESS (stack-agnostic); the
 > project's technical rules go in the last section.
 
-## Process documentation — load ONLY the files relevant to the task
+## Process documentation — imported below, so loaded whole at every launch
 - @.claude/docs/00-overview.md            — the method, the end-of-deliverable cycle, selective loading
 - @.claude/docs/01-task-planning.md       — task plan for heavy prompts, resilient resumption
 - @.claude/docs/02-code-quality.md        — comments, error handling, Definition of Done

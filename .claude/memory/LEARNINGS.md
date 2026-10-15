@@ -107,17 +107,20 @@ tags: [improvement]
 
 ### IMP-124 — The docs' selective loading against `CLAUDE.md`'s imports
 - Date: 2026-10-15 | Origin: the retro's agents (theme C) — [[2026-10-15-harvest-retro-3.0.0]]
-- Observed problem: `docs/00`'s *Selective loading* says to load only the files the task
-  needs, `CLAUDE.md` being the index. `CLAUDE.md` writes the seven docs and `STATE.md` as
-  `@`-imports, which Claude Code expands and loads into the context at launch (its memory
-  page, read in a saved copy, not measured): every session starts with all of them, about
-  1,450 lines — the retro's own sessions carried all seven docs. The selective part holds for
-  the memory's notes, not for the docs.
-- Proposal: Level 1, in v3.0.0 (the user's decision) — `docs/00` describes what happens: the
-  docs load at every launch through `CLAUDE.md`'s imports; selective loading applies to the
-  memory's notes and to what the task reads besides. Level 2, OPEN: whether to stop importing
-  the docs — pointers without `@`, read on demand —, weighing salience (IMP-117: a rule loaded
-  and still missed) against the context every session pays.
+- Observed problem: `docs/00`'s *Selective loading* said to load only the files the task
+  needs, `CLAUDE.md` being the index, and `CLAUDE.md`'s own heading said "load ONLY the files
+  relevant to the task"; `CLAUDE.md` writes the seven docs and `STATE.md` as `@`-imports. Claude
+  Code's memory page, read on 2026-10-15: "Imported files are expanded and loaded into context
+  at launch alongside the CLAUDE.md that references them." Every session starts with all of
+  them, 1,347 lines at this release — the retro's own sessions carried all seven docs. The
+  selective part holds for the memory's notes, not for the docs.
+- Level 1, applied in v3.0.0 (the user's decision; a factual correction, docs/06): `docs/00`'s
+  *Selective loading* says the docs are imported and loaded whole at every launch, and that
+  selective loading applies to the rest — the memory's notes, the session notes a task points
+  at, the files it reads besides —; `CLAUDE.md`'s heading over the docs says the same.
+- Proposal, Level 2, OPEN: whether to stop importing the docs — pointers without `@`, read on
+  demand —, weighing salience (IMP-117: a rule loaded and still missed) against the context
+  every session pays.
 - Expected benefit / risk: a doc that tells the truth about its own cost. Level 2's risk:
   rules read less often.
 - Kin: IMP-117 (salience, not loading).
