@@ -105,28 +105,6 @@ tags: [improvement]
   state, and the expected case no longer invites a deviation. Risk: none known — an agent's
   push is refused by the `pre-push` before any ref moves.
 
-### IMP-107 — The greenfield copy has no read-by-tag recipe
-- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
-  project (the project's entry 001, 2026-10-14): a greenfield graft of v2.2.0 copied the
-  framework with no prescribed way to read it by tag
-- Observed problem: `SETUP.md` §1 says only "Copy into the root of the new repo: the
-  `.claude/` directory, …" — implicitly from the clone's working tree. The upgrade's
-  Precondition rule 1 (the framework read ONLY as immutable objects, by tag) has no
-  greenfield counterpart, and `git show <tag>:<path>` does not carry file modes (scripts
-  lose their executable bit). The agent improvised
-  `git -C "${FW:?}" archive <tag> -- <paths> | tar -x`.
-- Proposal: §1 gives the copy by tag as a block —
-  `git -C "${FW:?}" archive vX.Y.Z -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore .gitattributes scripts | tar -x`
-  from the project root — and states the upgrade's rule: never the working tree.
-- Expected benefit / risk: the graft copies exactly the pinned version, modes included;
-  the pin's commit is true by construction. Risk: none known.
-- Kin: IMP-050 (points 1-2), the same rule for the upgrade.
-- Status: APPROVED on 2026-10-15 (the retro, [[2026-10-15-harvest-retro-3.0.0]]) — with
-  IMP-113, one block of §1: the copy by tag (`git archive`, the live memory excluded), a guard
-  on the directory, the pin from the same literal tag, a check line, since the pipe returns
-  tar's status; brownfield extracts into `T`; the plain `tar -x` the CI already runs, one form
-  for the method.
-
 ### IMP-108 — The prerequisite check is run "from the framework's clone"
 - Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
   project (the project's entry 002, 2026-10-14): step 0 of a greenfield graft
@@ -2089,6 +2067,27 @@ line on; older entries are not backfilled.
   The entry's own form, the graft as the root commit, had already grown past its perimeter.
 - Verified: the documentation check passes. The first block is run at the release's
   rehearsal, in a throwaway directory; the second, a push, is the user's to run.
+
+### IMP-107 — The greenfield copy has no read-by-tag recipe → applied on 2026-10-15
+- Origin: a test project's harvest, the project's entry 001 ([[2026-10-14-test-project-harvest]];
+  the retro, [[2026-10-15-harvest-retro-3.0.0]]) — §1 named no source for the copy, so a
+  graft read the clone's working tree, where files git ignores (a maintainer's personal
+  permissions among them) and commits past the pinned tag could come along; the agent
+  improvised an archive by tag.
+- Applied: §1 states the upgrade's rule — the framework is read by tag, never from its
+  working tree — and gives the copy as one chain run from the new project's root: the
+  directory checked, `FW` checked not to be the project, `git -C "${FW:?}" archive vX.Y.Z --
+  <the payload's paths> | tar -x`, and a line that prints `payload: OK` only when the files
+  are there, since a pipe returns tar's status. The optional `SECURITY.md` is read by tag the
+  same way; a framework received as an export is copied as it is; a brownfield graft extracts
+  into a scratch directory and reconciles from there. The copy paragraph and the box of what
+  stays out are unchanged; the documentation check holds the archive's path list to the
+  payload's, a planted removal failing. The plain `tar -x` the CI's fixture already runs on
+  the three images, one form for the method.
+- Verified, in a throwaway directory on macOS (git 2.54.0, bsdtar), from this repository's
+  v2.2.0: `payload: OK`, the scripts executable, nothing git does not track in the clone
+  copied; a mistyped tag left the pipe at status 0 and the check line stopped the chain.
+  Not measured: git 2.31, GNU tar, Windows.
 
 ## Deferred (not rejected — resumed at the right time)
 

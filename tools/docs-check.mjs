@@ -912,6 +912,14 @@ function checkLists() {
     if (!it) { report('list', p, 1, 'the copy list of the payload is gone (its first words changed?)'); continue }
     compareSets('list', p, it.line, 'the copy list', paths, new Set(backticked(it.text).map((t) => t.replace(/\/$/, ''))), 'PAYLOAD_PATHS of tools/upgrade-check.sh')
   }
+  // Step 1's copy by tag names the payload's paths in its git archive line: the same set.
+  const archiveAt = lines(SETUP).findIndex((l) => /git -C "\$\{FW:\?\}" archive vX\.Y\.Z -- /.test(l))
+  if (archiveAt < 0) report('list', SETUP, 1, 'step 1\'s copy by tag (its git archive line) is gone')
+  else {
+    const spec = lines(SETUP)[archiveAt].split(' -- ')[1].split(/\s+\|/)[0]
+    compareSets('list', SETUP, archiveAt + 1, 'the archive\'s path list', paths,
+      new Set(spec.trim().split(/\s+/).filter((t) => !t.startsWith("'") && t !== '\\')), 'PAYLOAD_PATHS of tools/upgrade-check.sh')
+  }
   // Step 2's diff pathspec covers exactly the files reconciled from the framework's diff.
   const at = lines(SETUP).findIndex((l) => /diff vX vY -- \.claude\/docs/.test(l))
   if (at < 0) report('list', SETUP, 1, 'Step 2\'s diff pathspec is gone')

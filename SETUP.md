@@ -124,6 +124,30 @@ SETUP.md you may leave out of the final project, or keep them for reference.)
 > `SECURITY.md`, on the other hand, is a reusable scaffold: you can copy it and fill in
 > its `[TO BE DEFINED AT SETUP]` slots.
 
+**The copy is read by tag, never from the framework's working tree** — the upgrade's rule
+(*Precondition*, rule 1): a clone may hold another branch, work not committed, files git
+ignores there — a maintainer's personal `settings.local.json`, for one — or commits past
+the tag the pin names. From the new project's root, with `FW` the absolute path of the
+framework's clone and `vX.Y.Z` the tag you graft, the one the pin below records, as one
+chain:
+
+```bash
+: "${FW:?}" && test "$(git rev-parse --show-toplevel)" -ef "$(pwd -P)" \
+  && test "$(git -C "${FW:?}" rev-parse --path-format=absolute --git-common-dir)" \
+    != "$(git rev-parse --path-format=absolute --git-common-dir)" \
+  && git -C "${FW:?}" archive vX.Y.Z -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore .gitattributes scripts | tar -x \
+  && test -x scripts/hooks-install.sh && test -f .claude/settings.json && echo "payload: OK"
+```
+
+The last line is what proves the copy: a pipe returns `tar`'s status, 0 even when
+`git archive` failed — a tag mistyped, a path left out. Anything git does not track in the
+clone stays behind. The optional `SECURITY.md` scaffold is read the same way,
+`git -C "${FW:?}" show vX.Y.Z:SECURITY.md > SECURITY.md`. A framework received as an
+export, without git history, has no tag to read by: it is copied as it is. On a brownfield
+graft the archive goes into a scratch directory outside the project, `tar -x -C <dir>`,
+never over the host's files: each colliding file is reconciled from there (*Reconciling
+colliding files*).
+
 Then **write the provenance pin**: create `.claude/framework-version` (it does NOT
 exist in the framework repo and must not be looked for there — it is CREATED at every
 graft) with the version you are copying. It is the certain base of the 3-way merge of a
