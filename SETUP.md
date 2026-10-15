@@ -1230,12 +1230,18 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    are renames: the three customised at setup (`fw/checkpoint.md`, `fw/integrate.md`,
    `fw/new-component.md`) and any other the project edited are merged as above, the rest
    brought over from the tag; then the project's own references to the old names are
-   updated — its answers in `CLAUDE.md`, its own docs and commands —, while its session
-   notes are history and stay as they are. Until an old file is removed, Claude Code keeps
-   running it under its bare name, and two of them hide Claude Code's own commands of the
-   same name: its security review, and the checkpoint alias of its rewind. `inventory`
-   names each rename with the measure of its merge, and `post` fails while an old file
-   remains.
+   updated — its answers in `CLAUDE.md`, its own docs and commands —; its `STATE.md` and
+   `TREE.md` change at the upgrade's own `/fw:checkpoint` (Step 6), which rewrites the
+   first and regenerates the second, and its session notes are history and stay as they
+   are. Until an old file is removed, Claude Code keeps running it under its bare name, and
+   two of them hide Claude Code's own commands of the same name: its security review, and
+   the checkpoint alias of its rewind. Once they are gone, those bare names are Claude
+   Code's own again: its security review is not the gate of `docs/03`, and its checkpoint
+   rolls the session back — read the old names in the project's notes as their `fw:` form,
+   and run the gate as `/fw:security-review`. `inventory` names each rename with the
+   measure of its merge, and `post` fails while an old file remains. Two collisions stay
+   open: a plugin named `fw`, and a directory of the project named `fw` that holds skills of
+   its own (Claude Code's skills page, *Resolve skills that share a name*) — keep neither.
 
 3. **Memory lines the method reads by name — the declared touches of the closed list.**
    Two kinds of line in the project's memory are read by the method itself, and a `vY`
@@ -1385,11 +1391,16 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    value that looks answered — while the project's answer stays behind in the old file,
    as a conflict there, or lost if that file comes over as METHOD. Edge case 7 would
    keep the answer where it was: the opposite of the migration. So: (1) carry the
-   project's answer to its new home FIRST, by hand, with the file tools; (2) only then bring the old file over
-   as its class says; (3) check EVERY way of reaching the answer — the `make` target, its
-   unattended form (`YES=1`), the script run directly, the docs that name the command —
-   not only the one you edited. The *Upgrading* note of the release that moved the slot
-   names both places (Step 2).
+   project's answer to its new home FIRST, by hand, with the file tools; (2) only then
+   bring the old file over as its class says; (3) check EVERY way of reaching the answer —
+   the `make` target, its unattended form (`YES=1`), the script run directly, the docs that
+   name the command — not only the one you edited, and without running the command the
+   answer guards: on the upgrade branch, which no list protects, `YES=1 make reset-task`
+   would discard the reconciliation in progress. `make -n reset-task YES=1` prints the
+   command with the list it passes, the script run directly falls back to its defaults and
+   says so, and `make test-scripts` proves the refusal (measured on a project grafted at
+   v1.2.0). The *Upgrading* note of the release that moved the slot names both places
+   (Step 2).
 
 > **Outside the upgrade payload.** `LICENSE`, `CONTRIBUTING.md`, `CHANGELOG.md` are
 > files of the FRAMEWORK REPO (not copied into the project, step 1): do not push them
