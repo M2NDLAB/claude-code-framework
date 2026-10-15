@@ -412,10 +412,19 @@ main session, and usually in the same working tree.
 The versioned permissions (`.claude/settings.json`) are the safety net that decides
 what Claude Code may run without asking. Keep them **clean and specific**:
 
-- **`allow`**: only **read-only** commands (inspection: `status`, `diff`, `log`,
-  `branch`, the tree map) and the **safe and reversible** staging/commit commands
-  (`git add`, `git commit`). Nothing else: the point is to reduce prompts for
-  harmless operations, not for the ones that touch shared state.
+- **`allow`**: the inspection commands (`status`, `diff`, `log`, `branch`, the tree map)
+  and the **safe and reversible** staging/commit commands (`git add`, `git commit`).
+  Nothing else: the point is to reduce prompts for harmless operations, not for the ones
+  that touch shared state. A rule matches the command's text, not what the program does
+  (*Enforcement of the execution boundary*), so an allowed inspection also runs, with no
+  prompt, in the forms that write or read past the repository: `git diff` and `git log`
+  with `--output=<file>`, which writes the file, or `--ext-diff`, which runs a configured
+  program; `git diff --no-index`, which reads any file it is given; `tree -o <file>`.
+  Claude Code's `Read` deny rules cover its file tools, the file commands it recognizes in
+  Bash and the redirections, not a program that opens a file itself: whether they stop git
+  reading `.env` is not stated. A known limit, read in the tools' manuals and in Claude
+  Code's permissions page on 2026-10-15, not measured; narrower rules wait for that
+  measurement.
 - **`deny`**: all **destructive or irreversible** operations — push (including
   `--force`), `reset --hard`, deletions (`clean`, `branch -D`, `rm -rf`), and
   **reading secrets** (`.env`, `secrets/`, credential files). `deny` takes precedence

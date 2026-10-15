@@ -105,27 +105,6 @@ tags: [improvement]
   state, and the expected case no longer invites a deviation. Risk: none known — an agent's
   push is refused by the `pre-push` before any ref moves.
 
-### IMP-123 — The shipped allow list admits more than reading
-- Date: 2026-10-15 | Origin: the retro's agents, the P1 lens on the shipped `settings.json` —
-  [[2026-10-15-harvest-retro-3.0.0]]
-- Observed problem: `docs/04`'s *Permission configuration* says `allow` holds "only
-  read-only commands", and the shipped list holds `Bash(git diff:*)`, `Bash(git log:*)` and
-  `Bash(tree:*)`. In git's and tree's man pages — read, not measured —: `git diff` and
-  `git log` take `--output=<file>`, which writes a file, and `--ext-diff`, which runs a
-  configured program; `git diff --no-index` — explicit, or implied when a path lies outside
-  the working tree — reads any file, `.env` included, while the `Read(.env)` deny binds the
-  Read tool only; `tree -o <file>` writes a file. A rule matches the command's text, so each of
-  these forms runs with no prompt.
-- Proposal: (a) in v3.0.0, `docs/04`'s claim narrowed and the limit declared where the claim
-  lives (the user's decision); (b) the mechanical restriction — narrower rules, deny pairs,
-  fewer entries — measured before it is chosen.
-- Expected benefit / risk: the allow list says what it grants; later, it grants reading only.
-  Risk: a narrower list asks more often.
-- Resumption trigger, for (b): IMP-111's measurement session, which runs these forms as control
-  cases; or an agent seen running one of them at work, whichever comes first.
-- Kin: IMP-111 (the same lens on the framework's reads), IMP-054 (a rule matches the text, not
-  the program).
-
 ### IMP-124 — The docs' selective loading against `CLAUDE.md`'s imports
 - Date: 2026-10-15 | Origin: the retro's agents (theme C) — [[2026-10-15-harvest-retro-3.0.0]]
 - Observed problem: `docs/00`'s *Selective loading* says to load only the files the task
@@ -2083,6 +2062,26 @@ line on; older entries are not backfilled.
   an export. The script is unchanged: the framework's CI still runs it from the clone.
 - Verified: the documentation check passes; README's and §3's pointers to §0 still hold.
 
+### IMP-123 (the claim) — The shipped allow list admits more than reading → applied on 2026-10-15
+- Origin: the retro's agents, the P1 lens on the shipped `settings.json`
+  ([[2026-10-15-harvest-retro-3.0.0]]); the user's decision, 2026-10-15 — `docs/04` called the
+  `allow` list "only read-only commands", and it holds `Bash(git diff:*)`, `Bash(git log:*)` and
+  `Bash(tree:*)`.
+- Applied, the claim narrowed and the limit declared where the claim lives: `docs/04`'s
+  `allow` bullet names inspection commands, and says that a rule matches the command's text,
+  so an allowed inspection also runs with no prompt in the forms that write or read past the
+  repository — `git diff` and `git log` with `--output=<file>` or `--ext-diff`,
+  `git diff --no-index`, `tree -o <file>` —; and that Claude Code's `Read` deny rules cover
+  its file tools, the file commands it recognizes in Bash and the redirections, not a program
+  that opens a file itself — its permissions page, read on 2026-10-15: "Read and Edit deny
+  rules apply to Claude's built-in file tools, to file commands Claude Code recognizes in
+  Bash, such as `cat`, `head`, `tail`, `sed`, and `tee`, and to the targets of Bash
+  redirections […]. They don't apply to […] arbitrary subprocesses that read or write files
+  indirectly". Whether they stop git reading `.env` is not stated there.
+- Verified: the documentation check passes. The forms are read in git's and tree's manuals,
+  not measured. Corrected on the way: the entry as recorded said the `Read` deny binds the
+  Read tool only, which the page contradicts.
+
 ## Deferred (not rejected — resumed at the right time)
 
 ### IMP-026 — Claude Code skills as a managed artifact → deferred on 2026-07-11
@@ -2516,6 +2515,25 @@ line on; older entries are not backfilled.
   prompts. If adopted, a rule for the agent's ad-hoc framework reads only, the procedure's
   blocks exempt.
 - Resumption trigger: IMP-111's measurement, with its S4 cases; decided at the same retro.
+
+### IMP-123 (the restriction) — The shipped allow list admits more than reading → deferred on 2026-10-15
+- Date: 2026-10-15 | Origin: the retro's agents, the P1 lens on the shipped `settings.json` —
+  [[2026-10-15-harvest-retro-3.0.0]]
+- Observed problem: the shipped `allow` rules — `Bash(git diff:*)`, `Bash(git log:*)`,
+  `Bash(tree:*)` — match the command's text, so their writing and reading forms run with no
+  prompt: `--output=<file>`, `--ext-diff`, `git diff --no-index`, `tree -o <file>` (git's and
+  tree's manuals, read, not measured). The claim was narrowed in v3.0.0 — IMP-123 (the
+  claim), under *Applied*.
+- Proposal: the mechanical restriction — narrower rules, deny pairs for the forms above, or
+  fewer entries —, chosen on a measurement of what Claude Code prompts for, as IMP-111's
+  candidates are.
+- Expected benefit / risk: the allow list grants reading only. Risk: a narrower list asks more
+  often.
+- Deferred on 2026-10-15 (the user's decision): the claim now, the restriction with a trigger.
+- Resumption trigger: IMP-111's measurement session, which runs these forms as control cases;
+  or an agent seen running one of them at work, whichever comes first.
+- Kin: IMP-111 (the same lens on the framework's reads), IMP-054 (a rule matches the text, not
+  the program).
 
 ## Rejected (with the reason — so they are not re-proposed)
 
