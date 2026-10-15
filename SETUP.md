@@ -799,10 +799,14 @@ Determine `vX` like this, in order of preference:
    grafted — or already upgraded once — since the pin exists): the `version` field IS
    the baseline, end of step. `preflight` checks the pin: `version: vX.Y.Z` with its
    `v`, and a `commit` that is that tag's commit, never the tag object. A malformed pin
-   is an ERROR that names its correction, never normalised: correct the line by hand
-   before going on; when a tag sits on the pinned commit, the script SUGGESTS it and
-   applies nothing. The fallbacks below are for pre-pin grafts, and they are needed ONCE
-   only: Step 6 writes the pin at the close (retrofit).
+   is an ERROR that names its correction, never normalised: correct the line by hand on
+   the upgrade branch, as its first commit — once Step 1 has created the branch from a
+   clean tree and photographed the hooks, so that the integration branch takes no commit
+   outside the upgrade's merge —, and run `preflight` again before the inventory;
+   `invariant` then shows the restore point's pin in its old form, as expected. When a tag
+   sits on the pinned commit, the script SUGGESTS it and applies nothing. The fallbacks
+   below are for pre-pin grafts, and they are needed ONCE only: Step 6 writes the pin at
+   the close (retrofit).
 1. **Ask** whoever did the graft (they often remember it or wrote it down).
 2. **Estimate it** from the content: pick the framework tag whose copy of the
    METHOD-class files matches the project's current ones best — a comparison on the
