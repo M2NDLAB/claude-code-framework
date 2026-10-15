@@ -25,10 +25,13 @@ the project happens to build.
 ## Selective loading
 
 `CLAUDE.md` imports the seven docs of this directory and `STATE.md` with `@`, and Claude
-Code expands and loads an imported file whole, at launch: the method is in context in every
-session. Selective loading applies to the rest, a token-efficiency choice: load **only
-what the task at hand needs**, not everything at once — the memory's notes of only the
-components the task touches, the session notes it points at, the files it reads besides.
+Code expands and loads an imported file at launch — its frontmatter and block-level HTML
+comments left out: Claude Code's memory page says so of the comments in `CLAUDE.md`, and for
+an imported file it was observed on 2026-10-15; the SessionStart hook injects `STATE.md` as
+it is —: the method is in context in every session. Selective loading applies to the rest, a
+token-efficiency choice: load **only what the task at hand needs**, not everything at once —
+the memory's notes of only the components the task touches, the session notes it points at,
+the files it reads besides.
 
 ## The working cycle
 
