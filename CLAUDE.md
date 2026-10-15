@@ -85,6 +85,10 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
    brings the project's to it, leaving the content under them as it is — never a map
    from old to new, which every command would have to consult.
    Past git history is never translated: it is immutable (see 04-git-workflow.md).
+10. **File tools for the method's files**: every edit to a file setup copies, the memory
+    included — an answer, a resolved conflict, a renamed title — is made with the file
+    tools on the text it changes, never with `sed -i`, a line number or a script, whatever
+    the permission mode suggests (04-git-workflow.md, *Operating rules for Claude Code*).
 
 ## Quick commands
 - Slash commands: `/fw:checkpoint`, `/fw:integrate`, `/fw:sos`, `/fw:retro`,

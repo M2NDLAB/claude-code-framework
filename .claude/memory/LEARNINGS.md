@@ -239,34 +239,6 @@ tags: [improvement]
   introduction that touches no answered line; trunk-based: the tag on the single branch, no
   promotion; `CONTRIBUTING.md` keeps the placeholder lines answered for the earlier grafts.
 
-### IMP-117 — The slots of the method's files filled with `sed -i`, not with the file tools
-- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
-  project (the project's entry 011, 2026-10-14): the user's review of a greenfield graft;
-  seen again in a later deliverable
-- Observed problem: `docs/04`'s *Permission configuration* (the `ask` bullet, from
-  IMP-075) says the method's files are edited with the file tools, auto mode included. The
-  agent filled the slots of `CLAUDE.md`, `docs/02`-`04`, commands, `decisions/README.md`,
-  `hooks-install.sh` and the `Makefile` with `sed -i` by LINE NUMBER. Cost: four later
-  repairs (a duplicated half-line, a lost backtick, a garbled sentence, two comment lines
-  deleted with a slot). `SETUP.md` §2 does not say how the agent writes the answers; the
-  runtime's auto-mode instructions explicitly invite edits through sed. Later, outside
-  setup: after editing project files through a Python heredoc, the agent edited a memory
-  component note the same way, by momentum — the habit is per session, not per file.
-- Proposal: `SETUP.md` §2, "in dialogue with Claude Code", adds: the agent writes the
-  answers with the file tools (Edit/Write), slot by slot on the slot's text, never `sed -i`
-  nor a substitution by line number — pointing at `docs/04`'s rule. The reminder is
-  repeated where the memory is edited most: `/checkpoint`'s step 3 ("with the file
-  tools").
-- Expected benefit / risk: no collateral damage, and the `ask` checkpoint on the
-  boundary's files is not bypassed by a bulk shell edit. Risk: more tool calls at setup.
-- Kin: IMP-075 — its rule held in the text and was not followed at the point of use.
-- Status: APPROVED on 2026-10-15 — the user's form: a short rule 10 in `CLAUDE.md`, pointing
-  to `docs/04`'s *Operating rules for Claude Code*, not in *Persistent memory*: it concerns
-  every file setup copies, not the memory alone. There, the reason (precision), the scope (the
-  files setup copies) and a closed exception (a whole-file write a procedure prints, never an
-  answer); the `ask` bullet keeps its two files and a pointer; the points of use in `SETUP.md`
-  and the checkpoint's step 3. Why IMP-075's rule was not enough: the retro's note.
-
 ### IMP-119 — Trunk-based: no home for memory-only commits between deliverables
 - Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
   project (the project's entry 013, 2026-10-14): the first deliverable's retro of a
@@ -2117,6 +2089,36 @@ line on; older entries are not backfilled.
   `Makefile`'s protected-branches slot, which a count masked; where a project rewrote a
   mention or answered `docs/00`'s line inline, its 3-way meets a conflict there, to keep
   `vY`'s line — named in the CHANGELOG's *Upgrading* note.
+
+### IMP-117 — The slots of the method's files filled with `sed -i`, not with the file tools → applied on 2026-10-15
+- Origin: a test project's harvest, the project's entry 011 ([[2026-10-14-test-project-harvest]];
+  the retro, [[2026-10-15-harvest-retro-3.0.0]]) — the slots filled with `sed -i` by line
+  number, four repairs after, then a memory note edited by heredoc: against the rule IMP-075
+  had shipped the day of the graft.
+- Why IMP-075's rule was not enough (the retro, the user's question): it sat off the point of
+  use, at the tail of `docs/04`'s `ask` bullet; its stated reason, the checkpoint, reached two
+  files, and the harm — a stale line number writes the wrong line, with no error — was named
+  nowhere; its list left out the `Makefile`; its exception, a procedure that writes by design,
+  was open; the runtime's auto-mode instruction favours the shell all session long; the
+  procedure's `grep -rn` handed out line numbers; nothing read the answers' diff; loaded in
+  every session, the rule was one clause among some 1,450 lines; it was never exercised.
+- Applied (the user's form): `CLAUDE.md` gains a short rule 10 — every edit to a file setup
+  copies, the memory included, is made with the file tools on the text it changes, whatever
+  the permission mode suggests —, pointing to `docs/04`'s *Operating rules for Claude Code*,
+  which holds the reason (precision), the scope (the files setup copies: no fourth list) and
+  a closed exception (the whole-file writes a procedure prints, never an answer); the `ask`
+  bullet keeps its two files and points there. `SETUP.md` says it at every point of use —
+  §2's dialogue, with a check (stage what step 1 copied, read `git diff` after the
+  interview), §4's variant, Step 3's strategy, hybrids and boundary box, Step 4, edge case
+  3 (b), one edit per line anchored at its start, and edge case 8 —, and `/fw:checkpoint`'s
+  step 3 where the memory is written.
+- Not adopted: a hook that parses shell text (beyond the threat model the guard keeps to), a
+  path-scoped rule, an `ask` rule on `sed -i`.
+- Verified: the documentation check resolves the rule and the title cited. Measured at the
+  release's rehearsal: the distance of the changes from the slots of `CLAUDE.md`,
+  `checkpoint.md` and `docs/04`. The behaviour shows at the next graft and upgrade, whose
+  notes record which tool wrote each answer; if a shell write recurs, the next step is a
+  mechanism, not more text.
 
 ## Deferred (not rejected — resumed at the right time)
 

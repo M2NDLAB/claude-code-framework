@@ -146,7 +146,12 @@ Two equivalent modes — pick the one you prefer:
   `[TO BE DEFINED AT SETUP]` slots (guided by this checklist) and to write your
   answers into the right files. It invents nothing: whatever you do not answer stays
   `[TO BE DEFINED AT SETUP]`, and you complete it whenever you like. (See also the
-  variant of the first command, step 4.)
+  variant of the first command, step 4.) It writes each answer with its file tools, an
+  edit of the slot's own text — never `sed -i`, a line number or a script: the grep's
+  output is the list of what to fill, not a set of coordinates (`CLAUDE.md`, rule 10).
+  Stage what step 1 copied before the interview; after it, `git diff` shows what the
+  interview wrote, the memory's initialisation beside the answers — read it before
+  staging it.
 
 Here is the complete list, grouped by file:
 
@@ -300,8 +305,9 @@ Open Claude Code in the project root and give it a command like this one:
 *(If at step 2 you chose the dialogue mode)* append to the command:
 
 > Then interview me about the `[TO BE DEFINED AT SETUP]` slots still open, following
-> the checklist of step 2 of `SETUP.md`, and write my answers into the right files;
-> whatever I cannot answer yet stays `[TO BE DEFINED AT SETUP]`.
+> the checklist of step 2 of `SETUP.md`, and write my answers into the right files, each
+> an edit of the slot's own text with your file tools; whatever I cannot answer yet stays
+> `[TO BE DEFINED AT SETUP]`.
 
 From here on the cycle is the one in `.claude/docs/00-overview.md` (see "The
 end-of-deliverable cycle"). For every heavy prompt Claude Code will produce a plan in
@@ -851,7 +857,8 @@ from a hand-written list; the memory's titles and field labels to rename; and th
   in conflict — a translation release, a wide rewrite — rebuild it from `vY` and
   re-apply the project's customisations, listed from the diff against `vX`'s copy and
   sorted by what they are: prose is rewritten freely, VALUES (slot answers, names,
-  identifiers) stay identical, strings a program reads stay byte for byte. Where the line
+  identifiers) stay identical, strings a program reads stay byte for byte — each one an
+  edit with the file tools on its own text (`CLAUDE.md`, rule 10). Where the line
   falls is a human call, informed by the table: the measure, not the file's name,
   decides.
 - **METHOD** → after the pre-flight of edge case 7 — and edge case 8, if `vY` moved a
@@ -888,7 +895,7 @@ from a hand-written list; the memory's titles and field labels to rename; and th
   merge comes out wrong with no error of its own. The 3-way must achieve this: a marker
   ADDED by `vY` **re-materialises** in the file (a new `[TO BE DEFINED]` to fill in);
   one that was REMOVED **disappears**; one that was MOVED or co-edited surfaces as a
-  **conflict** to resolve by hand. Always re-apply the project's
+  **conflict** to resolve by hand, with the file tools. Always re-apply the project's
   `[TO BE DEFINED AT SETUP]` answers (branch names, `tree` patterns, formatter, the
   stack's allow-list, the answers in `docs/02`-`04`, the whole "Technical rules" section of
   `CLAUDE.md`) — and if `vY`
@@ -967,7 +974,10 @@ from a hand-written list; the memory's titles and field labels to rename; and th
 > guard enforces on the shell tools from v1.3.0 (`docs/04`, *Delegated agents and the
 > shared working tree*). The READING can be spread across them (inventories, diffs by tag, a review);
 > the branch, `git merge-file`, the commits and any throwaway clone for a dry run stay
-> with the main session. An edit to `.claude/settings.json` or
+> with the main session. Its edits — an answer, a value re-applied, a conflict's
+> resolution, a renamed title — are made with the file tools (`CLAUDE.md`, rule 10); the
+> copies from the tag, `git merge-file`, the line-end rewrite and the header's splice are
+> the procedure's whole-file writes. An edit to `.claude/settings.json` or
 > `scripts/agent-git-guard.mjs` through the file tools asks the human (the `ask` rules),
 > auto mode included, unless a mod or a PermissionRequest hook answers in the user's place,
 > in a session started at the project's root (`docs/04`); the shell commands of Step 3 do
@@ -1025,7 +1035,8 @@ leaves it alone. Real verification:
 The slots `vY` added, removed or MOVED are in `inventory`'s *Markers* section, and a new
 or re-worded item of the §2 checklist in the next one: both derived from the tags. Then
 step 2's grep, run from the project root, lists every marker still in the project, to be
-filled in with the project's answers (reuse the dialogue of step 2 of this guide); a
+filled in with the project's answers, each an edit with the file tools (reuse the dialogue
+of step 2 of this guide); a
 slot that moved to another file is edge case 8. The dual-form grep
 matters here: a project grafted before the English marker existed still carries the
 Italian one.
@@ -1160,7 +1171,9 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
      grep -nE '^- (Data|Origine|Problema osservato|Proposta|Beneficio atteso / rischio|Trigger di ripresa|Destinazione):|\| Origine:' .claude/memory/LEARNINGS.md
      ```
 
-     Rename the label, never the text after it. ONLY the title and label lines: the content is never
+     Rename the label, never the text after it: one edit per line, anchored at its start,
+     with the file tools — a pattern replaced across the file would rewrite an entry's text
+     too, which `invariant` fails. ONLY the title and label lines: the content is never
      touched and keeps its language. If the project's own code or tests cite the old
      titles (grep for them), update them in the same commit as the rename — the declared
      `docs(memory)` commit below — so that no commit leaves the project's tests red: that
@@ -1271,7 +1284,7 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    value that looks answered — while the project's answer stays behind in the old file,
    as a conflict there, or lost if that file comes over as METHOD. Edge case 7 would
    keep the answer where it was: the opposite of the migration. So: (1) carry the
-   project's answer to its new home FIRST, by hand; (2) only then bring the old file over
+   project's answer to its new home FIRST, by hand, with the file tools; (2) only then bring the old file over
    as its class says; (3) check EVERY way of reaching the answer — the `make` target, its
    unattended form (`YES=1`), the script run directly, the docs that name the command —
    not only the one you edited. The *Upgrading* note of the release that moved the slot

@@ -9,7 +9,7 @@ values, then deletes this paragraph: [TO BE DEFINED AT SETUP].
 1. Read @.claude/docs/04-git-workflow.md for the commit rules.
 2. `git status` and `git diff --stat`: list what has changed and check that there
    are no unexpected or suspicious files (secrets, environment files, build artefacts).
-3. Update the memory (.claude/memory/):
+3. Update the memory (.claude/memory/), with the file tools (`CLAUDE.md`, rule 10):
    - create/update today's session note with what was done and why. Its frontmatter
      follows `sessions/README.md`, plus the two fields written by the main session:
      `model: '<model id as the runtime exposes it>'` (verbatim, ALWAYS single-quoted,

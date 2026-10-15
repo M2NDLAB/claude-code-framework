@@ -230,6 +230,15 @@ on WHICH BRANCH the tag lives:
   then the publication (the next version computed from `git describe` and the bump of
   *Versioning*). Claude Code PRINTS them, it does not run them: push, merge and tag
   remain human actions.
+- The method's files are edited with the file tools: every edit to a file setup copies,
+  the memory included — an answer, a value re-applied after a merge, a conflict's
+  resolution, a renamed title —, is made with Claude Code's file tools on the text it
+  changes, in every permission mode, auto mode included, whose instructions favour the
+  shell. An edit names the text it replaces and fails where that text is absent; a line
+  number goes stale after the first change, and a pattern can match more than the line
+  meant, both with no error. Never `sed -i`, a heredoc or a script for such an edit. The
+  whole-file writes a procedure prints — a copy from a tag, `git merge-file`, a splice —
+  are not edits, and an answer is never one of them.
 
 ## Execution boundary and blocks for the user
 
@@ -427,11 +436,9 @@ what Claude Code may run without asking. Keep them **clean and specific**:
   project's settings (*Enforcement of the execution boundary*). Claude Code
   reloads settings while it runs, so an accidental edit would change the boundary at
   once. The rule covers the built-in file tools; a write through a shell command is
-  outside it (and outside the threat model). So the method's own files — `.claude/`,
-  `CLAUDE.md`, `scripts/` — are edited with the file tools, auto mode included, whose
-  instructions favour the shell: a shell write to them skips the checkpoint and is a slip
-  to report, except in a procedure that writes them by design, such as the upgrade of the
-  framework's `SETUP.md`.
+  outside it (and outside the threat model): a shell write to these two files skips the
+  checkpoint — one more reason for the rule every file setup copies follows (*Operating
+  rules for Claude Code*).
 - **A local, UNVERSIONED file.** Personal permissions live in `settings.local.json`
   (already in `.gitignore`) and start out **empty**: what is shared and reasoned about
   lives in the versioned file; ad-hoc grants stay local and do not pollute the
