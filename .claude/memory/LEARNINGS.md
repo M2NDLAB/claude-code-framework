@@ -204,23 +204,6 @@ tags: [improvement]
   the marker, and `/harvest-framework` excludes the format comment's line. The harms that do:
   the numbering, `/retro` and `/lint-memory` over the framework's entries and notes.
 
-### IMP-114 — `hooks-install` says "enable formatting" to a project that chose none
-- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
-  project (the project's entry 008, 2026-10-14): a greenfield graft where formatting was
-  decided "none"
-- Observed problem: with the formatting slot of `scripts/hooks-install.sh` answered
-  "none", `make hooks-install` still prints "Remember to enable automatic formatting in the
-  pre-commit hook", and the `Makefile`'s help still says "formatting to be enabled". "None"
-  is a legitimate answer the tooling does not recognise.
-- Proposal: print the reminder only while the slot still carries its setup marker; the
-  `Makefile`'s help says "formatting: see the pre-commit hook".
-- Expected benefit / risk: no false reminder at every hooks run. Risk: none — the change
-  sits near a slot, so IMP-088's distance rule applies.
-- Status: APPROVED on 2026-10-15 — the reminder printed only while the generated pre-commit
-  carries the formatting slot's marker, matched without writing it; the generated hooks
-  unchanged; the `Makefile`'s help takes `CLAUDE.md`'s wording; the test inside the hooks'
-  Case 7.
-
 ### IMP-119 — Trunk-based: no home for memory-only commits between deliverables
 - Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
   project (the project's entry 013, 2026-10-14): the first deliverable's retro of a
@@ -2110,6 +2093,21 @@ line on; older entries are not backfilled.
   command as its release shipped it: the run-time reading already.
 - Verified: the documentation check passes; the 3-way of the command, in both forms — the
   placeholders rewritten, and step 1's line only — is measured at the release's rehearsal.
+
+### IMP-114 — `hooks-install` says "enable formatting" to a project that chose none → applied on 2026-10-15
+- Origin: a test project's harvest, the project's entry 008 ([[2026-10-14-test-project-harvest]];
+  the retro, [[2026-10-15-harvest-retro-3.0.0]]) — with the formatting slot answered "none",
+  every `make hooks-install`, Step 4 of every upgrade included, still printed the reminder, and
+  the `Makefile`'s help said "formatting to be enabled".
+- Applied: the installer prints the reminder only while the generated pre-commit still carries
+  the formatting slot's marker, matched in a split form so the line is no slot of its own; an
+  answer, a formatter or none, removes it. The pre-commit's own text is untouched, so the
+  generated hooks do not change and no `.bak` follows. The `Makefile`'s help takes
+  `CLAUDE.md`'s wording; the hooks' self-test asserts both states inside its Case 7, and
+  `scripts/README.md` says so.
+- Verified: red first — the self-test's new assertion, run against the installer as committed,
+  failed ("with the formatting slot answered, the install still reminds of it"), and passes
+  now; the answered copy is checked to carry its answer before the absence counts.
 
 ## Deferred (not rejected — resumed at the right time)
 

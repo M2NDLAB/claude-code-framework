@@ -8,7 +8,7 @@
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
 
-hooks-install: ## Install the git hooks (gitleaks + commitlint + pre-push push boundary; formatting to be enabled)
+hooks-install: ## Install the git hooks (gitleaks + commitlint + the pre-push push boundary)
 	bash scripts/hooks-install.sh
 
 # [TO BE DEFINED AT SETUP] the branches reset-task must never touch: your integration and

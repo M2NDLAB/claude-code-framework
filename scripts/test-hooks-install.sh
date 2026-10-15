@@ -24,7 +24,9 @@
 #      ends — passing, refused, or stopped by a signal — see "Case 6";
 #   7. a re-run: over its own hooks unchanged, nothing saved and nothing said; over a hook
 #      that differs — an earlier release's, untouched by the user — a .bak of it, and a
-#      message that says what was measured, a difference, not a local change — see "Case 7";
+#      message that says what was measured, a difference, not a local change; the reminder
+#      to enable formatting while the slot is open, and none once a copy answers it — see
+#      "Case 7";
 #   8. core.hooksPath set — a hook manager's, husky's for one: the install stops before
 #      writing any hook, and its message says that such a manager sets it again at its next
 #      run, so integrating the commands into it is the durable choice — see "Case 8" at the
@@ -512,6 +514,8 @@ mkdir -p "${rerun_repo}/scripts"
 cp "${HOOKS_INSTALL}" "${rerun_repo}/scripts/hooks-install.sh"
 cp "${CHECK_PREREQ}" "${rerun_repo}/scripts/check-prerequisites.sh"
 bash "${rerun_repo}/scripts/hooks-install.sh" >"${workdir}/out7.log" 2>&1 || fail7 "the first install failed"
+grep -q 'Remember to enable automatic formatting' "${workdir}/out7.log" \
+  || fail7 "with the formatting slot open, the install does not remind of it"
 hooks7="${rerun_repo}/.git/hooks"
 bash "${rerun_repo}/scripts/hooks-install.sh" >"${workdir}/out7.log" 2>&1 || fail7 "a re-run over its own hooks failed"
 ! grep -q '^WARNING' "${workdir}/out7.log" || fail7 "a re-run over its own unchanged hooks warned"
@@ -525,8 +529,21 @@ cmp -s "${hooks7}/commit-msg.bak" "${workdir}/earlier-commit-msg" || fail7 "the 
 grep -q '^WARNING: commit-msg differs from the hook this version generates' "${workdir}/out7.log" \
   || fail7 "the message does not say what was measured, a difference from the generated hook"
 ! grep -q 'local changes' "${workdir}/out7.log" || fail7 "the message claims local changes it did not measure"
+# A copy whose formatting slot is answered — here with "none" — says nothing of it. The
+# marker is written split, so this test is no slot of its own; the answer is checked to
+# have reached the copy before the absence counts.
+answered_repo="${workdir}/answered-repo"
+git init -q "${answered_repo}"
+mkdir -p "${answered_repo}/scripts"
+sed 's/TO BE DEFINED A[T] SETUP/none: no formatter in this project/' "${HOOKS_INSTALL}" > "${answered_repo}/scripts/hooks-install.sh"
+cp "${CHECK_PREREQ}" "${answered_repo}/scripts/check-prerequisites.sh"
+grep -q 'AUTOMATIC FORMATTING — .none: no formatter in this project' "${answered_repo}/scripts/hooks-install.sh" \
+  || fail7 "the answered copy does not carry its answer"
+bash "${answered_repo}/scripts/hooks-install.sh" >"${workdir}/out7.log" 2>&1 || fail7 "an install with the formatting slot answered failed"
+! grep -q 'Remember to enable automatic formatting' "${workdir}/out7.log" \
+  || fail7 "with the formatting slot answered, the install still reminds of it"
 
-echo "PASS (re-run): over its own unchanged hooks a re-run saves and says nothing; over an earlier release's hook it saves a .bak and says the hook differs from the one it generates, claiming no local change."
+echo "PASS (re-run): over its own unchanged hooks a re-run saves and says nothing; over an earlier release's hook it saves a .bak and says the hook differs from the one it generates, claiming no local change; the formatting reminder only while its slot is open."
 
 # --- Case 8 — core.hooksPath set, as a hook manager sets it --------------------------------
 # git then reads another directory, and the hooks written to .git/hooks would never run. The
