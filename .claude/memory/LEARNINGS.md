@@ -115,15 +115,41 @@ tags: [improvement]
   them, 1,347 lines at this release — the retro's own sessions carried all seven docs. The
   selective part holds for the memory's notes, not for the docs.
 - Level 1, applied in v3.0.0 (the user's decision; a factual correction, docs/06): `docs/00`'s
-  *Selective loading* says the docs are imported and loaded whole at every launch, and that
+  *Selective loading* says the docs are imported and loaded at every launch, and that
   selective loading applies to the rest — the memory's notes, the session notes a task points
-  at, the files it reads besides —; `CLAUDE.md`'s heading over the docs says the same.
+  at, the files it reads besides —; `CLAUDE.md`'s heading over the docs says the same. The
+  release's security gate added that an imported file loads without its frontmatter and its
+  block-level HTML comments — observed, the memory page saying so of `CLAUDE.md`'s comments —,
+  and the `TREE.md` template's legend.
 - Proposal, Level 2, OPEN: whether to stop importing the docs — pointers without `@`, read on
   demand —, weighing salience (IMP-117: a rule loaded and still missed) against the context
   every session pays.
 - Expected benefit / risk: a doc that tells the truth about its own cost. Level 2's risk:
   rules read less often.
 - Kin: IMP-117 (salience, not loading).
+
+### IMP-125 — The self-tests run in the projects: against their answers, in their shells
+- Date: 2026-10-15 | Origin: the 3.0.0 rehearsal and its security gate —
+  [[2026-10-15-harvest-retro-3.0.0]]
+- Observed problem: two tests of this release passed here and were wrong about the projects.
+  The hooks' Case 7, written red first in task 6, took the project's own `hooks-install.sh`
+  for one with the formatting slot open: `make test-scripts` failed in every project that
+  answered that slot, before the other self-tests ran — found by the release's manual
+  rehearsal, never by the CI, which runs the suite only here, where every slot is open. The
+  upgrade check's Case 11 ran `SETUP.md`'s blocks under the test's own `set -euo pipefail`,
+  where a pipe returns its first failure: a re-run with a mistyped tag, which a user's shell
+  lets through to `payload: OK`, passed there. `docs/02` asks a test of an external tool for
+  the users' configurations; a project's answers and a user's shell are configurations too.
+- Proposal: (1) `CONTRIBUTING.md`: a self-test that reads a HYBRID file builds the states it
+  measures from the copy under test — the slot open and answered — and checks that each
+  reached the program; a test that runs a block a user pastes runs it in a shell of its own,
+  with the shell's defaults. (2) A check in the CI: the payload at HEAD grafted into a scratch
+  project with the slots a script reads answered — the formatting slot, the protected
+  branches, the branch names —, and `make test-scripts` run there.
+- Expected benefit / risk: the class caught at every push, not at a release's rehearsal.
+  Risk: a longer CI run.
+- Kin: IMP-088 (the upgrade rehearsed with LF and CRLF), `docs/02`'s bullet on the users'
+  configurations.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
