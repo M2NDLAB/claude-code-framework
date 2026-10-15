@@ -55,10 +55,11 @@
 #      SETUP.md, the backlog, a dated session note) nor the hooks the install generates in
 #      .git/, with the platform's own grep.
 #  11. step 1 of a greenfield graft — its blocks read from SETUP.md and run on a throwaway
-#      framework: the repository starts with its empty commit; the copy is the tag's, not a
-#      later commit's nor a file the framework does not track, keeps the scripts executable
-#      and leaves the framework's memory out but for LEARNINGS.md's template, with the
-#      platform's own tar.
+#      framework, each in a shell of its own, as a user's: the repository starts with its
+#      empty commit; the copy is the tag's, not a later commit's nor a file the framework
+#      does not track, keeps the scripts executable and leaves the framework's memory out but
+#      for LEARNINGS.md's template, with the platform's own tar; run again with a mistyped
+#      tag, it stops before writing.
 # Run it from anywhere: bash tools/test-upgrade-check.sh
 set -euo pipefail
 
@@ -694,11 +695,13 @@ copy_block="$(printf '%s\n' "${step1}" | awk '/^: "\$\{FW:\?\}" && test/{f=1} f{
 [ -n "${start_block}" ] && [ -n "${copy_block}" ] || fail "step 1: a block of SETUP.md not found"
 P11="${workdir}/project11"
 mkdir -p "${P11}"
+# Each block runs in a shell of its own, as a user's: without this test's errexit and
+# pipefail, a pipe returns its last command's status.
 ( cd "${P11}" \
     && export GIT_AUTHOR_NAME=self-test GIT_AUTHOR_EMAIL=self-test@example.invalid \
        GIT_COMMITTER_NAME=self-test GIT_COMMITTER_EMAIL=self-test@example.invalid \
-    && eval "${start_block}" && git switch -q -c chore/graft-framework \
-    && FW="${FW11}" && eval "${copy_block}" ) > "${out}" 2>&1 \
+    && bash -c "${start_block}" && git switch -q -c chore/graft-framework \
+    && FW="${FW11}" bash -c "${copy_block}" ) > "${out}" 2>&1 \
   || fail "step 1's blocks did not run to their end"
 has "root: OK"
 has "payload: OK"
@@ -712,4 +715,15 @@ grep -qx '# Index' "${P11}/CLAUDE.md" && ! grep -q 'after the tag' "${P11}/CLAUD
 [ -f "${P11}/.claude/memory/sessions/README.md" ] || fail "step 1: the copy lost the sessions guide"
 [ "$(grep -c '^### IMP-' "${P11}/.claude/memory/LEARNINGS.md")" = 1 ] || fail "step 1: LEARNINGS.md kept an entry of the framework"
 [ "$(grep -c '^## ' "${P11}/.claude/memory/LEARNINGS.md")" = 4 ] || fail "step 1: LEARNINGS.md lost one of its four titles"
-echo "PASS (upgrade-check step 1): the repository starts with its empty commit; the copy is the tag's, its script executable, nothing untracked, no memory of the framework but LEARNINGS.md's template."
+# The copy run again over the first, its tag mistyped: bsdtar takes an empty archive for a
+# good one, so the chain must stop before it writes, and the line that proves the copy stay
+# silent over the files the first run left.
+cp "${P11}/.claude/memory/LEARNINGS.md" "${workdir}/learnings11.before"
+retag_block="$(printf '%s\n' "${copy_block}" | sed 's/v1\.0\.0/v1.0.9/g')"
+if ( cd "${P11}" && FW="${FW11}" bash -c "${retag_block}" ) > "${out}" 2>&1; then
+  fail "step 1: the copy ran to its end with a tag that does not exist"
+fi
+hasnt "payload: OK"
+cmp -s "${workdir}/learnings11.before" "${P11}/.claude/memory/LEARNINGS.md" \
+  || fail "step 1: a run with a mistyped tag rewrote LEARNINGS.md"
+echo "PASS (upgrade-check step 1): the repository starts with its empty commit; the copy is the tag's, its script executable, nothing untracked, no memory of the framework but LEARNINGS.md's template; run again with a mistyped tag, it stops and writes nothing."

@@ -83,10 +83,13 @@ same list of images, which the framework's documentation check holds to the work
 **Start the repository first.** The graft goes on a branch of its own and reaches the
 integration branch like any deliverable, so that branch must exist on the remote before it.
 Create the remote empty — no README, no licence — and run two blocks from the new project's
-directory: the first local, the second the publication. The branch names are the ROLES of
-`docs/04` (*Branching model*): `develop` and `main` by default; in a trunk-based project the
-two are one branch, so drop `<stable>` from both blocks. No hook exists yet: the commit's
-message is given ready, in the Conventional Commits form.
+directory, in your own terminal: the first local, the second the publication — no `pre-push`
+and no project settings exist yet to refuse a push an agent would run. The branch names are
+the ROLES of `docs/04` (*Branching model*): `develop` and `main` by default; in a trunk-based
+project the two are one branch, so drop `<stable>` from both blocks. No hook of the framework
+exists yet, and one your own git configuration brings (`init.templateDir`, a global
+`core.hooksPath`) may run: the commit's message is given ready, in the Conventional Commits
+form.
 
 ```bash
 git init -b <integration> \
@@ -108,7 +111,10 @@ model create the integration branch from it (`git switch -c <integration>`) and 
 (`git push -u origin <integration>`); in a trunk-based one the clone's branch already is
 the integration branch. The forge's files are the project's own: where the copy below
 collides with one of them — a `.gitignore` the forge wrote —, reconcile it as the brownfield
-section says, never overwrite it.
+section says, never overwrite it. The copy writes over a file of the same name (measured with
+the forge's `.gitignore`): there, extract the archive into a scratch directory instead,
+`tar -x -C <dir>`, as a brownfield graft does, and bring each file over, `.gitignore`
+merged.
 
 Then open the graft's branch, `git switch -c chore/graft-framework`: everything that follows
 is committed there, and integrated at step 4.
@@ -135,6 +141,7 @@ chain:
 : "${FW:?}" && test "$(git rev-parse --show-toplevel)" -ef "$(pwd -P)" \
   && test "$(git -C "${FW:?}" rev-parse --path-format=absolute --git-common-dir)" \
     != "$(git rev-parse --path-format=absolute --git-common-dir)" \
+  && git -C "${FW:?}" rev-parse -q --verify "refs/tags/vX.Y.Z^{commit}" >/dev/null \
   && git -C "${FW:?}" archive vX.Y.Z -- .claude CLAUDE.md Makefile commitlint.config.cjs .gitignore .gitattributes scripts \
     ':(exclude).claude/memory/LEARNINGS.md' ':(exclude,glob).claude/memory/sessions/[0-9]*' | tar -x \
   && git -C "${FW:?}" show vX.Y.Z:.claude/memory/LEARNINGS.md \
@@ -143,12 +150,18 @@ chain:
   && test -x scripts/hooks-install.sh && test -f .claude/settings.json && echo "payload: OK"
 ```
 
-The last line is what proves the copy: a pipe returns `tar`'s status, 0 even when
-`git archive` failed — a tag mistyped, a path left out. Anything git does not track in the
-clone stays behind, and so does the framework's own memory — its IMP entries and its dated
-session notes, the live part of its repository: `LEARNINGS.md` is derived from the tag's own
-file, its header, its four titles and its format comment, so the project's IMPs start from
-001. The optional `SECURITY.md` scaffold is read the same way,
+The tag is checked before anything is written: with a mistyped one the chain stops there
+(measured). The last line proves that the copy landed in a new project: a pipe returns
+`tar`'s status — 0 for an empty archive with macOS's `tar` —, so without it a failed
+`git archive` would pass unseen. It looks for two files, not for every one, and over an
+earlier copy it would find that copy's: run the chain once. A known limit: `git archive` also
+applies the `export-ignore` attributes of the clone's `.git/info/attributes` and of your
+global or system attributes file, and an entry there leaves a payload file out without a
+word. Anything git does not track in the clone stays behind, and so does the framework's own
+memory — its IMP entries and its dated session notes, the live part of its repository:
+`LEARNINGS.md` is derived from the tag's own file, its header, its four titles and its format
+comment, so the project's IMPs start from 001. The optional `SECURITY.md` scaffold is read
+the same way,
 `git -C "${FW:?}" show vX.Y.Z:SECURITY.md > SECURITY.md`. A framework received as an
 export, without git history, has no tag to read by: it is copied as it is. On a brownfield
 graft the archive goes into a scratch directory outside the project, `tar -x -C <dir>`,
