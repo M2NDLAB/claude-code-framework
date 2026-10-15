@@ -105,23 +105,6 @@ tags: [improvement]
   state, and the expected case no longer invites a deviation. Risk: none known — an agent's
   push is refused by the `pre-push` before any ref moves.
 
-### IMP-108 — The prerequisite check is run "from the framework's clone"
-- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
-  project (the project's entry 002, 2026-10-14): step 0 of a greenfield graft
-- Observed problem: `SETUP.md` §0 runs `bash scripts/check-prerequisites.sh` "from the
-  framework's clone or from the project once step 1 has copied `scripts/`". From the
-  clone it is the working tree's script — what the upgrade forbids. The extract-to-scratch
-  recipe exists only in the upgrade's Precondition.
-- Proposal: §0 shows the same extraction as the upgrade —
-  `git -C "${FW:?}" show vX.Y.Z:scripts/check-prerequisites.sh > "${T:?}/check-prerequisites.sh" && bash "${T:?}/check-prerequisites.sh"`
-  — or says to run it after step 1's copy.
-- Expected benefit / risk: one rule for reading the framework in every path of `SETUP.md`.
-  Risk: none.
-- Kin: IMP-050 (points 1-2), IMP-107.
-- Status: APPROVED on 2026-10-15 — option (b): the check runs from the project's root at the
-  end of step 1, after the copy; not an extraction at §0, which would need `FW` and `T` before
-  the guide defines them and fails for an export.
-
 ### IMP-123 — The shipped allow list admits more than reading
 - Date: 2026-10-15 | Origin: the retro's agents, the P1 lens on the shipped `settings.json` —
   [[2026-10-15-harvest-retro-3.0.0]]
@@ -2087,6 +2070,18 @@ line on; older entries are not backfilled.
   with a commit after its tag, a file it does not track, a dated note and IMP entries: the
   copy is the tag's and leaves all of them behind — measured here on macOS, and by the CI on
   its three images with each one's own git and tar.
+
+### IMP-108 — The prerequisite check is run "from the framework's clone" → applied on 2026-10-15
+- Origin: a test project's harvest, the project's entry 002 ([[2026-10-14-test-project-harvest]];
+  the retro, [[2026-10-15-harvest-retro-3.0.0]]) — §0 ran the check "from the framework's
+  clone", its working tree, and from there the check's line on line ends read the clone, not
+  the project.
+- Applied (option (b)): §0 says to run the check from the project's root at the end of step 1,
+  once the copy by tag has brought `scripts/`; step 1 ends with that command, its line-end
+  verdict then reading the project and the `.gitattributes` the copy brought. Not an
+  extraction at §0, which would need `FW` and `T` before the guide defines them and fails for
+  an export. The script is unchanged: the framework's CI still runs it from the clone.
+- Verified: the documentation check passes; README's and §3's pointers to §0 still hold.
 
 ## Deferred (not rejected — resumed at the right time)
 

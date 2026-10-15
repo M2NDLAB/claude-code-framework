@@ -37,7 +37,7 @@ The tools, by name; how to install each one depends on your platform.
   in any editor.
 
 **Check them** with `bash scripts/check-prerequisites.sh` — without make, from the
-framework's clone or from the project once step 1 has copied `scripts/`. It runs each tool
+project's root at the end of step 1, once the copy by tag has brought `scripts/`. It runs each tool
 above and compares its version with the minimum, names the platform and whether the CI
 below verifies it — the release and the architecture of one of its images; on Windows it
 names the image and says no more, Git Bash's `uname` giving a build, not an edition —, and
@@ -182,6 +182,10 @@ give the scripts theirs as you add them,
 `git add --chmod=+x -- scripts/*.sh scripts/*.mjs`, or they enter the history as `100644` —
 not executable in a teammate's checkout on macOS or Linux, and a mode failure in every
 check of a future upgrade.
+
+Last, check the prerequisites from the project's root, with the copy step 1 has just made:
+`bash scripts/check-prerequisites.sh` (§0). Run from there, its line about line ends reads
+the project's repository and the `.gitattributes` the copy brought, not the clone's.
 
 ## 2. Fill in the `[TO BE DEFINED AT SETUP]` slots
 
