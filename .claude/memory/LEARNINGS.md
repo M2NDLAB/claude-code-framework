@@ -267,31 +267,6 @@ tags: [improvement]
   answer); the `ask` bullet keeps its two files and a pointer; the points of use in `SETUP.md`
   and the checkpoint's step 3. Why IMP-075's rule was not enough: the retro's note.
 
-### IMP-118 — The setup marker does not tell a slot from a mention
-- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
-  project (the project's entry 012, 2026-10-14): the user's review of a greenfield graft,
-  and again at the first deliverable's retro
-- Observed problem: `SETUP.md` §2's grep for the setup marker returns the slots AND the
-  prose that mentions the marker (the `Makefile`'s line 4, `CLAUDE.md`'s rule 9, …). The
-  agent rewrote the `Makefile`'s line 4, which was not a slot — in a HYBRID file one more
-  line to reconcile at the next upgrade. §2's *Convention* says it "holds for slots, not
-  for prose that merely names the marker" but gives no mechanical way to tell them apart.
-  Also: `docs/00`'s end-of-deliverable cycle, step 2, "(the concrete list is
-  `[TO BE DEFINED AT SETUP]`)", is a mention, so the graft left it, yet it reads as an
-  OPEN slot after `docs/03` answered it.
-- Proposal: a distinct form for mentions (e.g. `«TO BE DEFINED AT SETUP»` or "the setup
-  marker") so the grep returns slots only; `/lint-memory`'s check 10 and `upgrade-check.sh`
-  adopt the same distinction.
-- Expected benefit / risk: the grep becomes a to-do list; no method line rewritten by
-  mistake. Risk: a migration of the prose in the framework's own files.
-- Kin: IMP-031 (markers on one physical line, the known false positives declared).
-- Status: APPROVED on 2026-10-15 — the literal marker only in a slot §2 lists: the mentions
-  rephrased, `docs/00`'s slot-shaped line a pointer to `docs/03`, the code matching a split
-  form. The user's choices: variant Y, `docs/04`'s two slot-shaped lines stay slots; and
-  inventory's *Markers* section compares the marker lines, not the net counts per file, so a
-  mention removed cannot hide a slot the same file gained. Not the guillemets: the greps and
-  `MARKER_RE` match the bare words, brackets or not.
-
 ### IMP-119 — Trunk-based: no home for memory-only commits between deliverables
 - Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
   project (the project's entry 013, 2026-10-14): the first deliverable's retro of a
@@ -2110,6 +2085,38 @@ line on; older entries are not backfilled.
   now `inventory` shows it as a HYBRID and `post` holds it to no `vY` text; the suite green.
 - Consequence: every later change to `docs/02`-`04` keeps CONTRIBUTING's distance from their
   slots, and the release's rehearsal answers them inline.
+
+### IMP-118 — The setup marker does not tell a slot from a mention → applied on 2026-10-15
+- Origin: a test project's harvest, the project's entry 012 ([[2026-10-14-test-project-harvest]];
+  the retro, [[2026-10-15-harvest-retro-3.0.0]]) — §2's grep printed the slots and the prose
+  that names the marker alike: the `Makefile`'s line 4 was rewritten as if it were a slot,
+  `docs/00`'s list pointer read as an open slot, `CLAUDE.md`'s rule 9 lines surfaced at a real
+  upgrade. Of the payload's 40 markers, 28 were slots, 9 mentions, 3 slot-shaped lines.
+- Applied: the literal marker is written only in a slot §2 lists. The mentions are rephrased —
+  `CLAUDE.md`'s rule 9, the `Makefile`'s line 4, `lint-memory.md`'s check 10 and line 63,
+  `docs/00`'s closing note, `SECURITY.md`'s header, `README.md`'s two —; `docs/00`'s
+  slot-shaped line points to `03-security-gate.md`; `docs/04`'s two slot-shaped lines stay
+  slots (variant Y, the user's: no conflict where a project answered them, with `docs/04`
+  now HYBRID). §2's grep and Step 4's leave out a kept `SETUP.md`, the backlog and the dated
+  notes; the *Convention* box says every line the grep prints from the framework's files is a
+  slot; §2's `docs/03` item stops naming `00-overview.md`, which holds no slot any more.
+  `CONTRIBUTING.md` states the convention; the documentation check fails a marker in a METHOD
+  file and drops the exception `lint-memory.md` needed. The inventory by lines, the user's
+  choice: `tools/upgrade-check.sh` compares the marker LINES of each file between the tags,
+  not their count, in `inventory`'s *Markers* section, in `post`'s slots added and in
+  `invariant`'s re-opened slot — a renamed file against its old path. Not the guillemets:
+  the greps and `MARKER_RE` match the words, brackets or not.
+- Verified: red first — on a throwaway framework whose release drops a mention and adds a slot
+  in the same file, the counting check showed nothing and the line check shows the slot, in
+  `inventory` and in `post`; the new case 10 runs §2's grep, read from `SETUP.md`, on a
+  project with slots and the records it excludes: the three slots only — here with macOS's
+  BSD grep and ugrep, on the other systems in the CI; the payload's markers are 30 slots, and
+  no METHOD file holds one; the suite green.
+- Consequence for an upgrade across 3.0.0: `inventory` reports the dropped mentions once as
+  removed marker lines, not slots, and from a `vX` before v1.3.2 it still shows the
+  `Makefile`'s protected-branches slot, which a count masked; where a project rewrote a
+  mention or answered `docs/00`'s line inline, its 3-way meets a conflict there, to keep
+  `vY`'s line — named in the CHANGELOG's *Upgrading* note.
 
 ## Deferred (not rejected — resumed at the right time)
 

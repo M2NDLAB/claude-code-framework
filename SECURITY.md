@@ -1,9 +1,9 @@
 # Security Policy
 
 > **Two levels.** This file is the security policy of the FRAMEWORK REPO and, at the
-> same time, the skeleton to copy into a project built on the framework: the
-> `[TO BE DEFINED AT SETUP]` parts are filled in by the project; for the framework
-> the values declared here apply.
+> same time, the skeleton to copy into a project built on the framework: the parts the
+> setup marker marks are filled in by the project; for the framework the values declared
+> here apply.
 
 ## Reporting a vulnerability
 

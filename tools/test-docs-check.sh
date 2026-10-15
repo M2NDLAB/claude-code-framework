@@ -33,8 +33,8 @@
 #      cited by any of its forms (curly quotes, a bare file name and §N included) — in a
 #      doc, in a script's comment wrapped over two lines, in a script's message — that
 #      resolve to nothing: each fails; an example's path does not;
-#   7. lists — a slot §2 never names, a slot added with its §2 item unchanged, a payload
-#      file without a class (now or at a tag), a class bullet, Step 2's pathspec, what step
+#   7. lists — a slot §2 never names, a slot added with its §2 item unchanged, a slot in a
+#      METHOD file, a payload file without a class (now or at a tag), a class bullet, Step 2's pathspec, what step
 #      1 and the "Outside the upgrade payload" box say is not copied, the counts and
 #      numberings in prose, the sections of the backlog, the subcommands wherever listed,
 #      the copy list, the commit types, the title and label tables, a minimum or
@@ -132,7 +132,7 @@ has "docs-check: 0 FAIL"
 floor 'N commands, N process targets' 8
 floor 'no framework IMP number in N payload files' 30
 floor 'N pointers? out of the payload' 15
-floor 'N markers in the full form' 30
+floor 'N markers in the full form' 25
 floor 'N tags and N entries match' 19
 floor 'N mentions of a framework release' 20
 floor 'N Markdown links' 5
@@ -432,9 +432,10 @@ echo "PASS (docs-check, links): links, anchors, escapes, wikilinks, @-imports, c
 c="$(copy list-unnamed)"
 printf '\nThe retro cadence is [TO BE DEFINED AT SETUP].\n' >> "${c}/.claude/commands/fw/retro.md"
 run 1 "${c}"
-fails 2 ".claude/commands/fw/retro.md:"
+fails 3 ".claude/commands/fw/retro.md:"
 has "a slot SETUP.md §2 never names"
 has "but its §2 item is unchanged"
+has "a marker in a METHOD file"
 c="$(copy list-tripwire)"
 printf '# [TO BE DEFINED AT SETUP] — one more slot of the stack.\n' >> "${c}/.gitignore"
 run 1 "${c}"

@@ -34,6 +34,11 @@ This repo applies to itself the method it describes (`.claude/docs/`):
 - **Non-negotiable agnosticism**: the template contains no project-specific
   instances (stack, names, concrete values); where concreteness is needed, use
   `[TO BE DEFINED AT SETUP]`.
+- **The setup marker marks slots only.** In the payload the literal marker is written only
+  in a slot step 2 of `SETUP.md` lists: prose calls it the setup marker, and code that must
+  match it writes a split form (`TO BE DEFINED A[T] SETUP`), so every line the setup and
+  upgrade greps print from the framework's files is a slot to fill. The documentation check
+  fails a marker in a METHOD file, which an upgrade would overwrite.
 - **`tools/` holds this repository's own tools**, outside the payload: the upgrade's
   verification script, the documentation check and their self-tests (`tools/README.md`).
   `make test-scripts` runs the documentation check here, after its self-test: what it

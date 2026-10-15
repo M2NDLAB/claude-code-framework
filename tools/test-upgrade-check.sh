@@ -41,11 +41,16 @@
 #   8. read-only — the four subcommands run to their end and leave the project and the
 #      framework exactly as they were (scripts/repo-snapshot.sh, the tracked files, the
 #      index, the config, the hooks).
-#   9. renames — on a throwaway framework whose v2.0.0 moves its commands under
-#      .claude/commands/fw/, as the real one's v3.0.0 does: inventory names each rename by
-#      what the project holds (a customised copy with its merge's measure, an untouched one
-#      to bring over), never as a deletion; post fails while an old command file remains,
-#      and passes the orphans once it is gone.
+#   9. renames and marker lines — on a throwaway framework whose v2.0.0 moves its commands
+#      under .claude/commands/fw/, as the real one's v3.0.0 does, and in CLAUDE.md drops a
+#      mention of the marker while it adds a slot: inventory names each rename by what the
+#      project holds (a customised copy with its merge's measure, an untouched one to bring
+#      over), never as a deletion, and shows the slot the unchanged count would hide; post
+#      asks for that slot's answer, fails while an old command file remains, and passes the
+#      orphans once it is gone.
+#  10. the marker grep — read from SETUP.md's step 2 and run as a project runs it: it prints
+#      the slots, the legacy one included, and none of the records it excludes (a kept
+#      SETUP.md, the backlog, a dated session note), with the platform's own grep.
 # Run it from anywhere: bash tools/test-upgrade-check.sh
 set -euo pipefail
 
@@ -564,7 +569,7 @@ echo "PASS (upgrade-check read-only): the project and the framework unchanged; w
 FW9="${workdir}/fw9"
 P9="${workdir}/project9"
 g init -q -b main "${FW9}"
-put "${FW9}" CLAUDE.md '# Index\n'
+put "${FW9}" CLAUDE.md '# Index\nThe slots are marked [TO BE DEFINED AT SETUP].\n'
 put "${FW9}" .claude/commands/checkpoint.md 'checkpoint\nIntegration branch: <integration>\nAn unchanged line.\nStep two.\n'
 put "${FW9}" .claude/commands/sos.md 'sos\n'
 put "${FW9}" .claude/memory/STATE.md '# STATE\n'
@@ -573,6 +578,8 @@ mkdir -p "${FW9}/.claude/commands/fw"
 g -C "${FW9}" mv .claude/commands/checkpoint.md .claude/commands/fw/checkpoint.md
 g -C "${FW9}" mv .claude/commands/sos.md .claude/commands/fw/sos.md
 put "${FW9}" .claude/commands/fw/checkpoint.md 'checkpoint\nIntegration branch: <integration>\nAn unchanged line.\nStep two, with the file tools.\n'
+# The mention goes, a slot comes: one marker line before and after, a count would see nothing.
+put "${FW9}" CLAUDE.md '# Index\nThe slots carry the setup marker.\nStack: [TO BE DEFINED AT SETUP]\n'
 g -C "${FW9}" add -A && g -C "${FW9}" commit -q -m "feat!: 2.0.0" && g -C "${FW9}" tag -a v2.0.0 -m v2.0.0
 mkdir -p "${P9}"
 g -C "${FW9}" archive v1.0.0 -- .claude CLAUDE.md | tar -x -C "${P9}"
@@ -583,15 +590,38 @@ has "edge case 2: renamed in v2.0.0: .claude/commands/checkpoint.md -> .claude/c
 has "3-way: 0 conflict(s), 0 of 4 lines in conflict"
 has "edge case 2: renamed in v2.0.0: .claude/commands/sos.md -> .claude/commands/fw/sos.md — the project's copy is v1.0.0's"
 hasnt "edge case 1:"
+has "added in CLAUDE.md(+1)"
+hasnt "fw/checkpoint.md(+"
 # The migration half done: the merged command in its new place, the old sos.md still there.
+g -C "${FW9}" show v2.0.0:CLAUDE.md > "${P9}/CLAUDE.md"
 put "${P9}" .claude/commands/fw/checkpoint.md 'checkpoint\nIntegration branch: main\nAn unchanged line.\nStep two, with the file tools.\n'
 g -C "${FW9}" show v2.0.0:.claude/commands/fw/sos.md > "${P9}/.claude/commands/fw/sos.md"
 rm "${P9}/.claude/commands/checkpoint.md"
 FW="${FW9}" T="${T_DIR}" run 1 "${P9}" post v1.0.0 v2.0.0
 has "FAIL   .claude/commands/sos.md is the old place of .claude/commands/fw/sos.md (edge case 2): remove it once merged — until then Claude Code runs it under its bare name"
 hasnt ".claude/commands/checkpoint.md is the old place"
+has "CHECK  v2.0.0 added 1 slot(s) to CLAUDE.md"
 rm "${P9}/.claude/commands/sos.md"
 FW="${FW9}" T="${T_DIR}" run 1 "${P9}" post v1.0.0 v2.0.0
 has "OK     no orphan of a file v2.0.0 removed or renamed"
 hasnt "is the old place of"
-echo "PASS (upgrade-check renames): inventory names each rename by what the project holds, with the merge's measure, never as a deletion; post fails while an old command file remains."
+echo "PASS (upgrade-check renames and marker lines): inventory names each rename by what the project holds, with the merge's measure, never as a deletion, and a slot a mention's removal would hide in the count; post asks for it, and fails while an old command file remains."
+
+# --- Case 10: the marker grep -----------------------------------------------------------
+# The grep of SETUP.md's step 2, read from the guide as a project reads it, run with the
+# platform's own grep on a project that holds slots and the records the grep leaves out.
+grep_line="$(awk '/^## 2\./{f=1} /^## 3\./{f=0} f && /^grep -rnE /{print; exit}' "${REPO_ROOT}/SETUP.md")"
+[ -n "${grep_line}" ] || fail "marker grep: no grep line in SETUP.md's step 2"
+G="${workdir}/grep-project"
+put "${G}" CLAUDE.md 'Stack: [TO BE DEFINED AT SETUP]\n'
+put "${G}" docs/legacy.md 'Old: [DA DEFINIRE AL SETUP]\n'
+put "${G}" .claude/memory/decisions/README.md 'ADR home: [TO BE DEFINED AT SETUP]\n'
+put "${G}" SETUP.md 'prose that names the [TO BE DEFINED AT SETUP] marker\n'
+put "${G}" .claude/memory/LEARNINGS.md 'an entry that names the [TO BE DEFINED AT SETUP] marker\n'
+put "${G}" .claude/memory/sessions/2026-01-02-start.md 'a note that names the [TO BE DEFINED AT SETUP] marker\n'
+( cd "${G}" && eval "${grep_line}" ) | sed 's#^\./##' | LC_ALL=C sort > "${out}" || true
+printf '%s\n' '.claude/memory/decisions/README.md:1:ADR home: [TO BE DEFINED AT SETUP]' \
+  'CLAUDE.md:1:Stack: [TO BE DEFINED AT SETUP]' 'docs/legacy.md:1:Old: [DA DEFINIRE AL SETUP]' \
+  | LC_ALL=C sort > "${workdir}/grep.expected"
+diff "${workdir}/grep.expected" "${out}" >/dev/null || fail "marker grep: it printed other lines than the three slots"
+echo "PASS (upgrade-check marker grep): SETUP.md's grep prints the slots, the legacy one included, and none of the records it leaves out."

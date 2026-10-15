@@ -379,16 +379,25 @@ renamed_to() { awk -F'\t' -v p="$2" '$1 == p { print $2; exit }' "$1"; }
 header_region() { awk '/^## /{exit} /^updated: /{print "updated: <date>"; next} {print}' "$1"; }
 # conflict_lines <file>: the lines inside the conflict markers of a merge's output.
 conflict_lines() { awk '/^<<<<<<< /{f=1} f{c++} /^>>>>>>> /{f=0} END{print c+0}' "$1"; }
-# marker_count <tag> <path>: the slot markers of a framework file at a tag — for
-# LEARNINGS.md, of its header region only: the framework's own entries are live, and their
-# prose names the marker.
-marker_count() {
-  if [ "$2" = .claude/memory/LEARNINGS.md ]; then
-    fw show "$1:$2" 2>/dev/null | header_region /dev/stdin | grep -oE "${MARKER_RE}" | wc -l | tr -d ' '
-  else
-    fw show "$1:$2" 2>/dev/null | grep -oE "${MARKER_RE}" | wc -l | tr -d ' '
-  fi
+# marker_lines <tag> <path>: the lines of a framework file at a tag that carry the slot
+# marker, trimmed and sorted — for LEARNINGS.md, of its header region only: the framework's
+# own entries are live, and their prose names the marker.
+marker_lines() {
+  { if [ "$2" = .claude/memory/LEARNINGS.md ]; then
+      fw show "$1:$2" 2>/dev/null | header_region /dev/stdin
+    else
+      fw show "$1:$2" 2>/dev/null
+    fi; } | grep -E "${MARKER_RE}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | LC_ALL=C sort
 }
+# markers_added <vX> <path at vX> <vY> <path at vY>: how many marker lines vY's file holds
+# that vX's lacks — the path at vX is a renamed file's old one. Lines, not a count: a
+# release that drops a mention of the marker and adds a slot in the same file keeps the
+# count, and a count would hide the slot (from a vX before v1.3.2, the Makefile's).
+markers_added() {
+  LC_ALL=C comm -13 <(marker_lines "$1" "$2") <(marker_lines "$3" "$4") | wc -l | tr -d ' '
+}
+# renamed_from <renames file> <path>: the old path a rename led to <path> from, or nothing.
+renamed_from() { awk -F'\t' -v p="$2" '$2 == p { print $1; exit }' "$1"; }
 # file_markers <file>: the slot markers of a project file, by occurrence.
 file_markers() { grep -oE "${MARKER_RE}" "$1" 2>/dev/null | wc -l | tr -d ' '; }
 # labels_renamed <tag>: whether the tag's LEARNINGS format uses the field labels of v1.1.0
@@ -558,13 +567,19 @@ cmd_inventory() {
     fi
   done < "${d}/renames"
 
-  section "Markers — slots added or removed between ${vx} and ${vy}"
-  local added="" removed="" mx my
+  section "Markers — slots added or removed between ${vx} and ${vy}, line by line"
+  local added="" removed="" na nr from
   while IFS= read -r path; do
     case "$(classify "${path}")" in METHOD | HYBRID | TEMPLATE | LEARNINGS) ;; *) continue ;; esac
-    mx="$(marker_count "${vx}" "${path}")"; my="$(marker_count "${vy}" "${path}")"
-    [ "${my}" -gt "${mx}" ] && added="${added} ${path}(+$((my - mx)))"
-    [ "${mx}" -gt "${my}" ] && removed="${removed} ${path}(-$((mx - my)))"
+    # A renamed file is compared with its old path, under its new name.
+    [ -n "$(renamed_to "${d}/renames" "${path}")" ] && continue
+    from="$(renamed_from "${d}/renames" "${path}")"
+    marker_lines "${vx}" "${from:-${path}}" > "${d}/markers.x"
+    marker_lines "${vy}" "${path}" > "${d}/markers.y"
+    na="$(LC_ALL=C comm -13 "${d}/markers.x" "${d}/markers.y" | wc -l | tr -d ' ')"
+    nr="$(LC_ALL=C comm -23 "${d}/markers.x" "${d}/markers.y" | wc -l | tr -d ' ')"
+    [ "${na}" -gt 0 ] && added="${added} ${path}(+${na})"
+    [ "${nr}" -gt 0 ] && removed="${removed} ${path}(-${nr})"
   done < "${d}/paths"
   if [ -n "${added}" ] && [ -n "${removed}" ]; then
     check "markers removed in${removed} and added in${added}: a slot may have MOVED — if the project answered it in the old file, carry the answer to the new one first (edge case 8)"
@@ -726,7 +741,7 @@ cmd_invariant() {
     pg ls-files --others --exclude-standard -- .claude/memory | awk '{ print "A\t" $0 }'
   } > "${d}/changes"
   [ -s "${d}/changes" ] || ok "no change under .claude/memory/"
-  local st path class bad mnow mrest mx my added
+  local st path class bad mnow mrest added
   while IFS=$'\t' read -r st path; do
     [ -n "${path}" ] || continue
     class="$(classify "${path}")"
@@ -748,8 +763,7 @@ cmd_invariant() {
         # than vY itself added (none, when vY removed or moved one).
         mnow="$(file_markers "${path}")"
         mrest="$(pg show "${restore}:${path}" 2>/dev/null | grep -oE "${MARKER_RE}" | wc -l | tr -d ' ')"
-        mx="$(marker_count "${vx}" "${path}")"; my="$(marker_count "${vy}" "${path}")"
-        added=$((my - mx)); [ "${added}" -ge 0 ] || added=0
+        added="$(markers_added "${vx}" "${path}" "${vy}" "${path}")"
         [ $((mnow - mrest)) -le "${added}" ] \
           || fail "${path}: a slot the project had answered is open again — re-apply its answer" ;;
       LEARNINGS)
@@ -914,7 +928,7 @@ cmd_post() {
   fi
 
   section "Slots — markers broken by a wrap, and the slots ${vy} added"
-  local mx my
+  local na from
   while IFS= read -r path; do
     case "$(classify "${path}")" in METHOD | HYBRID | TEMPLATE) ;; *) continue ;; esac
     [ -f "${path}" ] || continue
@@ -924,9 +938,10 @@ cmd_post() {
     while IFS= read -r line; do
       fail "${path}:${line} — a marker broken by a line wrap: keep it on one line"
     done < "${d}/broken"
-    mx="$(marker_count "${vx}" "${path}")"; my="$(marker_count "${vy}" "${path}")"
-    if [ "${my}" -gt "${mx}" ]; then
-      check "${vy} added $((my - mx)) slot(s) to ${path}: confirm the project's answer is in place, not the framework's default:"
+    from="$(renamed_from "${d}/renames" "${path}")"
+    na="$(markers_added "${vx}" "${from:-${path}}" "${vy}" "${path}")"
+    if [ "${na}" -gt 0 ]; then
+      check "${vy} added ${na} slot(s) to ${path}: confirm the project's answer is in place, not the framework's default:"
       lf "${path}" | grep -nE -A1 "${MARKER_RE}" | sed 's/^/       | /'
     fi
   done < "${d}/paths.vy"

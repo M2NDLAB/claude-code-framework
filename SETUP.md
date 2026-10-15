@@ -123,12 +123,19 @@ check of a future upgrade.
 ## 2. Fill in the `[TO BE DEFINED AT SETUP]` slots
 
 Look for the markers in the template:
-`grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" .`
+
+```bash
+grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" --exclude=SETUP.md --exclude=LEARNINGS.md --exclude='[0-9][0-9][0-9][0-9]-*' .
+```
 
 > **Convention (grep visibility).** A `[TO BE DEFINED AT SETUP]` *slot* to be filled
 > in ALWAYS sits on **a single physical line**: if word wrap breaks it at the end of a
 > line it escapes the grep above — and the one in Step 4 of the upgrade — and silently
-> stays unfilled. This holds for slots, not for prose that merely names the marker.
+> stays unfilled. This holds for slots, not for prose that merely names the marker. In
+> the framework's own files the literal marker appears in slots only — prose calls it the
+> setup marker —, so every line the grep prints from them is a slot to fill; its
+> exclusions leave out what records the marker rather than marks a slot: a copy of this
+> guide kept in the project, the backlog of `LEARNINGS.md`, the dated session notes.
 > `/fw:lint-memory` has a sentinel that flags broken slots (check 10). The grep also
 > accepts the legacy Italian marker, so a project grafted before the English marker
 > was introduced is still covered.
@@ -160,8 +167,7 @@ Here is the complete list, grouped by file:
       formatter/linter, where the documentation lives, production artifact format.
       (It is often enough to define them in CLAUDE.md and leave a pointer here.)
 - [ ] `03-security-gate.md`: explicit list of the sensitive components (aligned with
-      CLAUDE.md rule 8) — the same list `00-overview.md` points to in step 2 of the
-      end-of-deliverable cycle.
+      CLAUDE.md rule 8) — the list step 2 of the end-of-deliverable cycle points to.
 - [ ] `04-git-workflow.md`: branching model, **if** different from main/develop/feat;
       the merge form the project adopts — Pull Request or the `/fw:integrate` block
       (*Merge*); what the project's public contract is, the criterion of a MAJOR
@@ -800,7 +806,8 @@ the project stands against them (`=vX`, `=vY`, `diverged`, `absent`) and, for a 
 both sides changed, the measure of its 3-way (conflicts, and lines in conflict out of
 the total); the flags of the edge cases (a customised METHOD file, a file deleted or
 renamed, one changed in several releases, a mode); the slots added, removed or moved
-between the tags, and the changes of the §2 checklist — derived from the tags, never
+between the tags — compared line by line, so a mention of the marker that a release drops
+hides no slot it adds —, and the changes of the §2 checklist — derived from the tags, never
 from a hand-written list; the memory's titles and field labels to rename; and the
 *Upgrading* notes of the releases in between, oldest first. It is the input of Step 3.
 
@@ -1017,9 +1024,9 @@ leaves it alone. Real verification:
 
 The slots `vY` added, removed or MOVED are in `inventory`'s *Markers* section, and a new
 or re-worded item of the §2 checklist in the next one: both derived from the tags. Then
-`grep -rnE "TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP" .` lists every marker still in
-the project, to be filled in with the project's answers (reuse the dialogue of step 2
-of this guide); a slot that moved to another file is edge case 8. The dual-form grep
+step 2's grep, run from the project root, lists every marker still in the project, to be
+filled in with the project's answers (reuse the dialogue of step 2 of this guide); a
+slot that moved to another file is edge case 8. The dual-form grep
 matters here: a project grafted before the English marker existed still carries the
 Italian one.
 

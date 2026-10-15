@@ -1,7 +1,7 @@
 # Framework process commands — stack-agnostic.
 # `make` or `make help` for the list.
 # The project's build/test/run targets do NOT belong here: add them in the
-# "[TO BE DEFINED AT SETUP]" section at the bottom.
+# project's section at the bottom.
 
 .DEFAULT_GOAL := help
 

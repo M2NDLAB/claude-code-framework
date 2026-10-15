@@ -878,6 +878,11 @@ function checkLists() {
   for (const a of arms) for (const g of a.patterns) {
     if (!g.includes('*') && !seen.has(g)) report('list', UPGRADE_CHECK, 1, `classify() names ${g}, a file no release and no working tree holds`)
   }
+  // No slot in a METHOD file: an upgrade overwrites such a file with vY's text, and post sees
+  // no answer it would re-open there. A slot belongs to a HYBRID, merged three ways.
+  for (const p of PAYLOAD.filter((f) => classOf(f) === 'METHOD' && slotsOf(f) > 0)) {
+    report('list', p, lines(p).findIndex((l) => /TO BE DEFINED AT SETUP|DA DEFINIRE AL SETUP/.test(l)) + 1 || 1, 'a marker in a METHOD file: an upgrade overwrites it, so a slot goes in a HYBRID file and prose names the setup marker')
+  }
   const BULLETS = { METHOD: ['METHOD'], HYBRID: ['HYBRID'], 'MEMORY TEMPLATES': ['TEMPLATE', 'LEARNINGS'], 'PROJECT-MEMORY': ['PROJECT-MEMORY', 'LEARNINGS'] }
   const model = region(SETUP, /^### The mental model/, /^> \*\*Why hybrids/)
   const current = FILES.filter(underPayload)
@@ -1162,7 +1167,6 @@ const ALLOW = [
   { check: 'link', file: '.claude/docs/04-git-workflow.md', text: '`secrets/`', reason: 'a generic example of where secrets live' },
   { check: 'link', file: SETUP, text: '`adr/`', reason: 'an example of where a project keeps its ADRs' },
   // Lists.
-  { check: 'list', file: '.claude/commands/fw/lint-memory.md', text: 'a slot SETUP.md §2 never names', reason: 'its markers are prose: check 10 names the marker it hunts, no slot' },
   { check: 'list', file: SETUP, text: '§2 names .claude/memory/LEARNINGS.md', reason: 'an action at setup (empty the live memory), not a slot' },
   { check: 'list', file: SETUP, text: '§2 names .claude/memory/STATE.md', reason: 'a template the first command populates, not a slot' },
   { check: 'list', file: SETUP, text: '§2 names .claude/memory/INDEX.md', reason: 'a template the first command populates, not a slot' },

@@ -45,14 +45,14 @@ It runs on macOS, Linux and Windows (Git Bash, from Git for Windows): the framew
 own CI verifies the three at every push — the prerequisites and what exactly is
 verified are in `SETUP.md`, §0.
 
-In short (the full guide, with the list of every `[TO BE DEFINED AT SETUP]` to fill
-in, is in **[SETUP.md](SETUP.md)**):
+In short (the full guide, with the list of every setup slot to fill in, is in
+**[SETUP.md](SETUP.md)**):
 
 1. **Copy** the framework contents into the root of your new project (the
    `.claude/` folder, plus `CLAUDE.md`, `Makefile`, `commitlint.config.cjs`,
    `.gitignore`, `.gitattributes`, `scripts/`), then create the provenance pin
    `.claude/framework-version` with the version you just copied (`SETUP.md`, step 1).
-2. **Fill in the `[TO BE DEFINED AT SETUP]`** — above all in `CLAUDE.md` (project
+2. **Fill in the setup slots** — above all in `CLAUDE.md` (project
    name, stack, technical rules, sensitive components) and in the spots listed in
    `SETUP.md`. By hand, or in dialogue with Claude Code, which interviews you and
    writes the answers down (see `SETUP.md`, step 2).

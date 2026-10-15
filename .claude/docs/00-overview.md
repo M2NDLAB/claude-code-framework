@@ -76,7 +76,7 @@ Definition of Done and the commit are enough.
 2. **`/fw:security-review` — CONDITIONAL: only if the deliverable is under the gate.**
    Under the gate = sensitive — auth/authz, payments/money, personal data, the
    enforcement edge, surfaces that act on behalf of a client (the concrete list is
-   `[TO BE DEFINED AT SETUP]`) —, or a deliverable whose product asserts a security
+   in `03-security-gate.md`) —, or a deliverable whose product asserts a security
    property (`03-security-gate.md`, *The lenses of the gate*). Under the gate this is a
    GATE: HIGH/CRITICAL findings are resolved BEFORE going on. Otherwise, skip it — and
    write the verdict anyway, one line with its reason, in the session note
@@ -156,4 +156,4 @@ Definition of Done and the commit are enough.
 
 > The project's technology choices (language, framework, build, datastore, tests) do
 > NOT live here: they live in `CLAUDE.md`, section *"Project-specific technical
-> rules"*, and in the spots marked `[TO BE DEFINED AT SETUP]`.
+> rules"*, and in the spots the setup marker marks.

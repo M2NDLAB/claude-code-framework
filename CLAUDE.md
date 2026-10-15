@@ -69,13 +69,13 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
    - **ARTIFACTS: always English.** Everything that lands in the repo — code,
      comments, documentation, memory, future commit messages, IMP entries, session
      notes — is written in English. This is deliberately NOT a
-     [TO BE DEFINED AT SETUP] slot. The framework is opinionated here on purpose:
+     setup slot. The framework is opinionated here on purpose:
      English artifacts are the universal practice of open source, and they keep a
      project readable, greppable and portable beyond the people who started it. The
      trade-off is stated openly rather than hidden — on this one axis the framework
      imposes instead of staying agnostic, and it accepts the cost.
    - **INTERACTION: yours.** The language the agent speaks with you in session is a
-     [TO BE DEFINED AT SETUP] slot in the technical rules below. Talking to you in
+     setup slot in the technical rules below. Talking to you in
      your own language costs the repo nothing, so nothing is imposed.
    The rule applies from the graft, or from the upgrade that brought it, onwards: to
    the method's artifacts and to the new ones the project produces; what already
