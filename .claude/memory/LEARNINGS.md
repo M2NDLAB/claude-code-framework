@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-10-14
+updated: 2026-10-15
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -121,6 +121,11 @@ tags: [improvement]
 - Expected benefit / risk: the graft copies exactly the pinned version, modes included;
   the pin's commit is true by construction. Risk: none known.
 - Kin: IMP-050 (points 1-2), the same rule for the upgrade.
+- Status: APPROVED on 2026-10-15 (the retro, [[2026-10-15-harvest-retro-3.0.0]]) — with
+  IMP-113, one block of §1: the copy by tag (`git archive`, the live memory excluded), a guard
+  on the directory, the pin from the same literal tag, a check line, since the pipe returns
+  tar's status; brownfield extracts into `T`; the plain `tar -x` the CI already runs, one form
+  for the method.
 
 ### IMP-108 — The prerequisite check is run "from the framework's clone"
 - Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
@@ -135,6 +140,9 @@ tags: [improvement]
 - Expected benefit / risk: one rule for reading the framework in every path of `SETUP.md`.
   Risk: none.
 - Kin: IMP-050 (points 1-2), IMP-107.
+- Status: APPROVED on 2026-10-15 — option (b): the check runs from the project's root at the
+  end of step 1, after the copy; not an extraction at §0, which would need `FW` and `T` before
+  the guide defines them and fails for an export.
 
 ### IMP-109 — `SETUP.md` §1 names `develop` as if it were mandatory
 - Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
@@ -146,6 +154,8 @@ tags: [improvement]
   default, or `main` alone for trunk-based — `docs/04`)".
 - Expected benefit / risk: no contradiction for a trunk-based project. Risk: none.
 - Kin: IMP-008 (the branches as roles), which §1 predates in this sentence.
+- Status: APPROVED on 2026-10-15 — in the same edit as IMP-110: the integration branch named
+  when it is created, after `docs/04`'s *Branching model*, and recorded at §2.
 
 ### IMP-110 — Where the graft commit of a NEW project goes
 - Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
@@ -165,66 +175,10 @@ tags: [improvement]
   test's record, which can only be written after the graft commit).
 - Expected benefit / risk: the first commit and the first push are prescribed, not
   improvised. Risk: none known.
-
-### IMP-111 — Framework reads outside the working directory prompt in every session: a stable read-only rule
-- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
-  project (the project's entry 005, 2026-10-14): a greenfield graft and the following
-  deliverables; measured by the user in manual mode in a later, new session
-- Observed problem: the upgrade's Precondition makes the agent restate `FW=` and read with
-  `git -C "${FW:?}" show <tag>:<file>`. Measured in manual mode: `FW="$HOME/…"`, an absolute
-  `FW=`, and a literal `git -C /abs/path show …` ALL ask for confirmation — the cause is git
-  run on a repository outside the working directory, not the syntax (the variable forms add
-  "A variable in braces … can't be checked before it runs"). The prompt's option "Yes,
-  allow reading from <dir> from this project" writes NO rule to any settings file, and in a
-  new session, in manual mode, the same literal-path read asked again: the grant is
-  session-scoped. (In auto mode reads do not prompt, so the measurement is taken in manual
-  mode.)
-- Checked against Claude Code's documentation (its *permissions* and *settings* pages, read
-  2026-10-14, not measured): `.claude/settings.local.json` is personal, per-project,
-  unversioned, above `.claude/settings.json` in precedence, and `permissions.allow` lists
-  merge; "A `*` in a Bash rule matches any text, including spaces"; the space before a
-  trailing `*` is part of the rule; "A rule must match each subcommand independently" (so
-  `| head -1` is covered by head's built-in read-only status); a rule `git push *` does not
-  match `git -C . push`, so `-C <path>` must be spelled in the rule; `additionalDirectories`
-  grants "file access only". NOT stated by the documentation: that an allow rule silences
-  the out-of-directory prompt for `git -C`.
-- Trade-off: a permission rule matches the command TEXT, so it matches only a literal path;
-  `git -C "${FW:?}" …` never matches and prompts anyway. With a literal path there is no
-  variable that can be empty, so the guard of `${FW:?}` (the v1.2.1 collision) has no object
-  for those reads.
-- Proposal: the graft adds, once, in the project's `.claude/settings.local.json` (personal:
-  the path is the user's), under `permissions.allow`, one rule per read command, the
-  absolute path written out: `"Bash(git -C /abs/path/to/framework show *)"`,
-  `"Bash(git -C /abs/path/to/framework ls-tree *)"`,
-  `"Bash(git -C /abs/path/to/framework grep *)"` — nothing wider (never
-  `git -C <path> *`, which admits writes). `SETUP.md` §0/§1 give the block; the agent's
-  framework reads (Precondition, `docs/04`) use the literal absolute path, which the rules
-  can match; `${FW:?}` stays for the human's blocks. `SETUP.md` says "an absolute path, not
-  `~`" and warns that `git grep` with an unquoted glob still prompts in manual mode. Before
-  applying: measure in manual mode that the rules silence the prompt.
-- Note at recording (2026-10-14, the user — lens P1, to be verified, not measured): the
-  proposal is not read-only as written. A rule on `git -C <fw> grep *` admits
-  `git grep -O<command>`, which runs a command; a rule on `git -C <fw> show *` admits
-  `--output=<file>`, which writes a file. `ls-tree` is harmless. The proposal is to be
-  narrowed or guarded before it is applied.
-- Expected benefit / risk: reads by tag, which the method mandates, stop being the noisiest
-  part of every session. Risk: a grant wider than reading — the note above shows that
-  `show` and `grep` already are; `git -C` on the clone must never reach a write
-  (Precondition rule 1).
-- Kin: IMP-050 (points 1-2), IMP-054 (a rule matches text, not the program).
-
-### IMP-112 — The command style of framework reads (shell functions, long chains) adds prompts
-- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
-  project (the project's entry 006, 2026-10-14): a greenfield graft
-- Observed problem: the agent wrote framework reads as shell functions
-  (`g(){ git -C "${FW:?}" show "<tag>:$1"; }; g …`) and as long `;`/`&&` chains with echo
-  separators; Claude Code flagged them ("brace with quote character") and asked
-  confirmation for read-only work. In zsh, `echo ======` fails (`=word` is a command-path
-  expansion).
-- Proposal: `docs/04` (or the upgrade's Precondition) gives a style rule for framework
-  reads: one plain `git -C … show <tag>:<path>` per call, no shell functions, no long
-  chains; several reads as parallel tool calls.
-- Expected benefit / risk: fewer prompts, no loss of safety. Risk: more tool calls.
+- Status: APPROVED on 2026-10-15 — form A, the user's, not the entry's exception: the user's
+  empty initial commit, before §1, and the first push, in two blocks; a remote the forge
+  initialised with a README or a licence is the starting point instead; then the graft on a
+  branch of its own, the project's first deliverable. `docs/04` unchanged.
 
 ### IMP-113 — The graft copies the framework's LIVE memory, then asks to empty it by hand
 - Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
@@ -243,6 +197,12 @@ tags: [improvement]
 - Expected benefit / risk: no forgettable manual step; no framework IMP can leak into a
   project's harvest. Risk: none known.
 - Kin: IMP-024 (the declared hybrid regime), IMP-049 (payload purity).
+- Status: APPROVED on 2026-10-15 — option (a), inside IMP-107's block: the archive leaves out
+  `LEARNINGS.md` and the dated notes, `LEARNINGS.md` is derived from the tag's own file
+  (header, the four titles, the format comment); §2's EMPTY OUT becomes a check, which also
+  covers an export. The harvest risk the entry names does not hold: no framework entry carries
+  the marker, and `/harvest-framework` excludes the format comment's line. The harms that do:
+  the numbering, `/retro` and `/lint-memory` over the framework's entries and notes.
 
 ### IMP-114 — `hooks-install` says "enable formatting" to a project that chose none
 - Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
@@ -256,6 +216,10 @@ tags: [improvement]
   `Makefile`'s help says "formatting: see the pre-commit hook".
 - Expected benefit / risk: no false reminder at every hooks run. Risk: none — the change
   sits near a slot, so IMP-088's distance rule applies.
+- Status: APPROVED on 2026-10-15 — the reminder printed only while the generated pre-commit
+  carries the formatting slot's marker, matched without writing it; the generated hooks
+  unchanged; the `Makefile`'s help takes `CLAUDE.md`'s wording; the test inside the hooks'
+  Case 7.
 
 ### IMP-115 — `SETUP.md` asks to fill the slots of `docs/02`-`04`, the upgrade classes them METHOD
 - Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
@@ -271,6 +235,9 @@ tags: [improvement]
 - Expected benefit / risk: a greenfield project's first upgrade has no edge case 7 by
   construction. Risk: moving the slots is a migration (edge case 8) for existing projects.
 - Kin: IMP-050 (points 3-4), IMP-088.
+- Status: APPROVED on 2026-10-15 — option (b): `docs/02`, `03` and `04` classed HYBRID,
+  nothing to migrate; option (a) would move their slots into `CLAUDE.md`, a migration close
+  to the breaking criterion.
 
 ### IMP-116 — `integrate.md`: "replace the placeholders" is ambiguous, and trunk-based is not covered
 - Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
@@ -286,6 +253,9 @@ tags: [improvement]
   branch".
 - Expected benefit / risk: one reading of the command. Risk: none.
 - Kin: IMP-008, IMP-019.
+- Status: APPROVED on 2026-10-15 — the run-time reading, in a paragraph of the command's
+  introduction that touches no answered line; trunk-based: the tag on the single branch, no
+  promotion; `CONTRIBUTING.md` keeps the placeholder lines answered for the earlier grafts.
 
 ### IMP-117 — The slots of the method's files filled with `sed -i`, not with the file tools
 - Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
@@ -308,6 +278,12 @@ tags: [improvement]
 - Expected benefit / risk: no collateral damage, and the `ask` checkpoint on the
   boundary's files is not bypassed by a bulk shell edit. Risk: more tool calls at setup.
 - Kin: IMP-075 — its rule held in the text and was not followed at the point of use.
+- Status: APPROVED on 2026-10-15 — the user's form: a short rule 10 in `CLAUDE.md`, pointing
+  to `docs/04`'s *Operating rules for Claude Code*, not in *Persistent memory*: it concerns
+  every file setup copies, not the memory alone. There, the reason (precision), the scope (the
+  files setup copies) and a closed exception (a whole-file write a procedure prints, never an
+  answer); the `ask` bullet keeps its two files and a pointer; the points of use in `SETUP.md`
+  and the checkpoint's step 3. Why IMP-075's rule was not enough: the retro's note.
 
 ### IMP-118 — The setup marker does not tell a slot from a mention
 - Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
@@ -327,6 +303,12 @@ tags: [improvement]
 - Expected benefit / risk: the grep becomes a to-do list; no method line rewritten by
   mistake. Risk: a migration of the prose in the framework's own files.
 - Kin: IMP-031 (markers on one physical line, the known false positives declared).
+- Status: APPROVED on 2026-10-15 — the literal marker only in a slot §2 lists: the mentions
+  rephrased, `docs/00`'s slot-shaped line a pointer to `docs/03`, the code matching a split
+  form. The user's choices: variant Y, `docs/04`'s two slot-shaped lines stay slots; and
+  inventory's *Markers* section compares the marker lines, not the net counts per file, so a
+  mention removed cannot hide a slot the same file gained. Not the guillemets: the greps and
+  `MARKER_RE` match the bare words, brackets or not.
 
 ### IMP-119 — Trunk-based: no home for memory-only commits between deliverables
 - Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
@@ -344,6 +326,12 @@ tags: [improvement]
   branch integrated with the no-tag block". One rule for both branching models.
 - Expected benefit / risk: no improvised exception at every between-deliverables note.
   Risk: none known.
+- Status: APPROVED on 2026-10-15 — the user's form: a record made while no deliverable is open
+  goes on a branch of its own, never onto the integration branch; a branch whose diff touches
+  only `.claude/memory/**` is exempt from the gate and from `/retro`, and is integrated with the
+  no-tag block and the CI green — the criterion is mechanical, on the diff —; with any other
+  file, the full cycle. `CONTRIBUTING.md` adopts the same rule: ten memory-only commits went
+  straight onto this repository's `main`.
 
 ### IMP-120 — Is a deliverable that is not "heavy" closed with the full cycle?
 - Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
@@ -362,6 +350,9 @@ tags: [improvement]
 - Expected benefit / risk: no doubt on when `/retro` and `/checkpoint` are due. Risk:
   slightly more ritual for small integrated fixes (`/retro` is a no-op without friction).
 - Kin: IMP-006 (the single end-of-deliverable cycle).
+- Status: APPROVED on 2026-10-15 — a deliverable is a unit of work that goes to integration,
+  whatever its size; heaviness decides the plan only; the exemption of a memory-only branch is
+  IMP-119's.
 
 ### IMP-121 — A question left for the user in a session note does not reach STATE, so resumption misses it
 - Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
@@ -381,6 +372,84 @@ tags: [improvement]
 - Expected benefit / risk: a resumption from STATE alone surfaces every pending question.
   Risk: a longer *Caution* section — each entry is closed when answered.
 - Kin: IMP-014 (debts with a trigger, surviving the rewrites of STATE).
+- Status: APPROVED on 2026-10-15 — on the side that writes `STATE.md`: the checkpoint's step 3
+  checks that every open thread of the notes it writes has an entry in *Caution & open issues*
+  with its trigger, and the session-note format says the same; cited by *Format*, never by
+  *Follow-up*, which sits inside the fenced template.
+
+### IMP-122 — The framework's commands hide Claude Code's built-in ones: the `fw` namespace
+- Date: 2026-10-15 | Origin: the user's reading and measurement, 2026-10-15 —
+  [[2026-10-15-harvest-retro-3.0.0]]
+- Observed problem: two of the framework's command names are Claude Code's own.
+  `/security-review` is a built-in command, which Claude can also invoke through the Skill
+  tool; `/checkpoint` is a built-in alias of `/rewind` (the commands page: "`/rewind` | …
+  Aliases: `/checkpoint`, `/undo`"). The skills page, *Resolve skills that share a name*: "In
+  a local terminal session, your skill replaces the built-in command, but not its aliases."
+  Measured by the user in a throwaway folder, Claude Code v2.1.299: `/security-review` runs the
+  framework's command, which hides the built-in one; `/checkpoint` runs the framework's command
+  too, which hides the alias — against the page's "not its aliases", a behaviour no page states
+  and that may change. Every project that uses the framework loses two of Anthropic's commands
+  and nothing says so; a built-in named later like another framework command would do the
+  same.
+- Proposal (the user's decision): every framework command moves into the `fw` namespace,
+  `.claude/commands/fw/<name>.md` → `/fw:<name>` — the skills page, *How a skill gets its
+  command name*: "File in a subdirectory of `.claude/commands/` | Subdirectory path relative
+  to `commands/` with each `/` replaced by `:`, then the file name without extension". Names
+  and references change, not the commands' logic; the session notes already written stay as
+  they are. `CONTRIBUTING.md`: a new framework command goes under `fw/` only, with a link to
+  the page of the built-in commands. `SETUP.md` describes the migration for the projects — the
+  old command files removed, the references updated; until then they keep hiding the
+  built-ins —; `upgrade-check.sh` flags the old command files left; the CHANGELOG declares the
+  incompatible change, with its migration step.
+- `fw` checked on 2026-10-15, the pages fetched as Markdown: no built-in command or bundled
+  skill named so, or starting so, and no use of the word in the commands, skills and plugins
+  pages; no plugin named `fw` installed on the maintainer's machine, nor among the 6,708 plugin
+  names of its marketplace cache. Residuals: a plugin named `fw` would namespace its skills as
+  `/fw:<name>` too ("plugin skills are namespaced as `/plugin-name:skill-name`"), and a nested
+  `.claude/skills/` under a project directory named `fw` is listed as `/fw:<name>` when its
+  names clash.
+- Expected benefit / risk: no framework command can hide a built-in one, nor be hidden by one,
+  by construction. Risk: a MAJOR — every command renamed —; every project migrates once, at its
+  upgrade.
+- Status: APPROVED on 2026-10-15 (the user's decision), for v3.0.0.
+
+### IMP-123 — The shipped allow list admits more than reading
+- Date: 2026-10-15 | Origin: the retro's agents, the P1 lens on the shipped `settings.json` —
+  [[2026-10-15-harvest-retro-3.0.0]]
+- Observed problem: `docs/04`'s *Permission configuration* says `allow` holds "only
+  read-only commands", and the shipped list holds `Bash(git diff:*)`, `Bash(git log:*)` and
+  `Bash(tree:*)`. In git's and tree's man pages — read, not measured —: `git diff` and
+  `git log` take `--output=<file>`, which writes a file, and `--ext-diff`, which runs a
+  configured program; `git diff --no-index` — explicit, or implied when a path lies outside
+  the working tree — reads any file, `.env` included, while the `Read(.env)` deny binds the
+  Read tool only; `tree -o <file>` writes a file. A rule matches the command's text, so each of
+  these forms runs with no prompt.
+- Proposal: (a) in v3.0.0, `docs/04`'s claim narrowed and the limit declared where the claim
+  lives (the user's decision); (b) the mechanical restriction — narrower rules, deny pairs,
+  fewer entries — measured before it is chosen.
+- Expected benefit / risk: the allow list says what it grants; later, it grants reading only.
+  Risk: a narrower list asks more often.
+- Resumption trigger, for (b): IMP-111's measurement session, which runs these forms as control
+  cases; or an agent seen running one of them at work, whichever comes first.
+- Kin: IMP-111 (the same lens on the framework's reads), IMP-054 (a rule matches the text, not
+  the program).
+
+### IMP-124 — The docs' selective loading against `CLAUDE.md`'s imports
+- Date: 2026-10-15 | Origin: the retro's agents (theme C) — [[2026-10-15-harvest-retro-3.0.0]]
+- Observed problem: `docs/00`'s *Selective loading* says to load only the files the task
+  needs, `CLAUDE.md` being the index. `CLAUDE.md` writes the seven docs and `STATE.md` as
+  `@`-imports, which Claude Code expands and loads into the context at launch (its memory
+  page, read in a saved copy, not measured): every session starts with all of them, about
+  1,450 lines — the retro's own sessions carried all seven docs. The selective part holds for
+  the memory's notes, not for the docs.
+- Proposal: Level 1, in v3.0.0 (the user's decision) — `docs/00` describes what happens: the
+  docs load at every launch through `CLAUDE.md`'s imports; selective loading applies to the
+  memory's notes and to what the task reads besides. Level 2, OPEN: whether to stop importing
+  the docs — pointers without `@`, read on demand —, weighing salience (IMP-117: a rule loaded
+  and still missed) against the context every session pays.
+- Expected benefit / risk: a doc that tells the truth about its own cost. Level 2's risk:
+  rules read less often.
+- Kin: IMP-117 (salience, not loading).
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
@@ -1910,6 +1979,11 @@ line on; older entries are not backfilled.
   on 2026-10-14: each goes through unblocked, while `exec`, `nice`, `nohup` and `xargs -n1`
   before a git write are blocked ([[2026-10-13-backlog-retro-2.2.0]]); its comments changed,
   no line of its code.
+- Evidence after application, 2026-10-15 — no proposal ([[2026-10-15-harvest-retro-3.0.0]]):
+  the guard lets a delegated agent's `git grep -O<cmd>` through — `grep` is classed as a
+  read, and `-O` runs a program —, a form no agent was seen writing at work; and it refused a
+  retro agent's `git --man-path 2>/dev/null`, a read, taking the redirection after git's
+  global options for the subcommand — a false positive, on the safe side.
 
 ### IMP-075 — Auto mode and the framework's boundaries → applied on 2026-10-14, commit 4c03a05
 - Origin: [[2026-10-11-multiplatform-1.5.0]] — the user ran `/auto-mode-setup` on 2026-10-11:
@@ -2377,6 +2451,96 @@ line on; older entries are not backfilled.
   output; (2) the next change to the `Makefile`'s reset-task line. The `Makefile` is HYBRID:
   that line sits three lines below the `PROTECTED_BRANCHES` slot, and the comment on `YES` is
   the line right above the slot — the change keeps both as they are (IMP-088).
+
+### IMP-111 — Framework reads outside the working directory prompt in every session: a stable read-only rule → deferred on 2026-10-15
+- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
+  project (the project's entry 005, 2026-10-14): a greenfield graft and the following
+  deliverables; measured by the user in manual mode in a later, new session
+- Observed problem: the upgrade's Precondition makes the agent restate `FW=` and read with
+  `git -C "${FW:?}" show <tag>:<file>`. Measured in manual mode: `FW="$HOME/…"`, an absolute
+  `FW=`, and a literal `git -C /abs/path show …` ALL ask for confirmation — the cause is git
+  run on a repository outside the working directory, not the syntax (the variable forms add
+  "A variable in braces … can't be checked before it runs"). The prompt's option "Yes,
+  allow reading from <dir> from this project" writes NO rule to any settings file, and in a
+  new session, in manual mode, the same literal-path read asked again: the grant is
+  session-scoped. (In auto mode reads do not prompt, so the measurement is taken in manual
+  mode.)
+- Checked against Claude Code's documentation (its *permissions* and *settings* pages, read
+  2026-10-14, not measured): `.claude/settings.local.json` is personal, per-project,
+  unversioned, above `.claude/settings.json` in precedence, and `permissions.allow` lists
+  merge; "A `*` in a Bash rule matches any text, including spaces"; the space before a
+  trailing `*` is part of the rule; "A rule must match each subcommand independently" (so
+  `| head -1` is covered by head's built-in read-only status); a rule `git push *` does not
+  match `git -C . push`, so `-C <path>` must be spelled in the rule; `additionalDirectories`
+  grants "file access only". NOT stated by the documentation: that an allow rule silences
+  the out-of-directory prompt for `git -C`.
+- Trade-off: a permission rule matches the command TEXT, so it matches only a literal path;
+  `git -C "${FW:?}" …` never matches and prompts anyway. With a literal path there is no
+  variable that can be empty, so the guard of `${FW:?}` (the v1.2.1 collision) has no object
+  for those reads.
+- Proposal: the graft adds, once, in the project's `.claude/settings.local.json` (personal:
+  the path is the user's), under `permissions.allow`, one rule per read command, the
+  absolute path written out: `"Bash(git -C /abs/path/to/framework show *)"`,
+  `"Bash(git -C /abs/path/to/framework ls-tree *)"`,
+  `"Bash(git -C /abs/path/to/framework grep *)"` — nothing wider (never
+  `git -C <path> *`, which admits writes). `SETUP.md` §0/§1 give the block; the agent's
+  framework reads (Precondition, `docs/04`) use the literal absolute path, which the rules
+  can match; `${FW:?}` stays for the human's blocks. `SETUP.md` says "an absolute path, not
+  `~`" and warns that `git grep` with an unquoted glob still prompts in manual mode. Before
+  applying: measure in manual mode that the rules silence the prompt.
+- Note at recording (2026-10-14, the user — lens P1, to be verified, not measured): the
+  proposal is not read-only as written. A rule on `git -C <fw> grep *` admits
+  `git grep -O<command>`, which runs a command; a rule on `git -C <fw> show *` admits
+  `--output=<file>`, which writes a file. `ls-tree` is harmless. The proposal is to be
+  narrowed or guarded before it is applied.
+- Expected benefit / risk: reads by tag, which the method mandates, stop being the noisiest
+  part of every session. Risk: a grant wider than reading — the note above shows that
+  `show` and `grep` already are; `git -C` on the clone must never reach a write
+  (Precondition rule 1).
+- Kin: IMP-050 (points 1-2), IMP-054 (a rule matches text, not the program).
+- P1, verified on 2026-10-15 by the retro's agents in git 2.54.0's man pages — read, not
+  measured ([[2026-10-15-harvest-retro-3.0.0]]; the verification and the protocol in full in
+  the agents' output beside that note): confirmed and widened. A rule on `git -C <fw> show *`
+  admits a write (`--output`), launches by flag (`--ext-diff`, `--textconv`,
+  `--show-signature`) and by configuration (`log.showSignature`, `gpg.program`), and reads
+  past the tag (`:<path>` is the index, `HEAD:` the checkout); one on `grep *` admits a launch
+  (`-O`) and the working tree (a grep given no tree); `ls-tree` and `rev-parse` admit neither.
+  The home the proposal names, `settings.local.json`, contradicts the "start empty" of
+  `docs/04` and of `SETUP.md`'s §2: a definitive rule amends them.
+- Deferred on 2026-10-15 (the retro; the user's decision): no definitive rule before the
+  measurement, which runs after v3.0.0's tag, in a dedicated session, in manual mode —
+  candidates A (allow and deny rules) and B (a fixed prefix closed by `--end-of-options`)
+  first, C (a wrapper that validates the tag and the path) only if both fail S2, D
+  (`additionalDirectories`) recorded. The protocol, as its verifier corrected it: S1, the
+  reads, silent in two fresh sessions; S2, the writes and the launches, prompted or refused;
+  S3, the residuals no rule text closes; S4, IMP-112's style cases; a throwaway clone as `FW`,
+  every prompt answered No, the checks before and after from the user's own terminal. The
+  next upgrade runs with the confirmations.
+- Resumption trigger: the measurement run and recorded — a session note with Claude Code's
+  and git's versions, each candidate's rules verbatim, a table of case by candidate — and its
+  evidence line here; the rule is proposed at the retro that follows.
+
+### IMP-112 — The command style of framework reads (shell functions, long chains) adds prompts → deferred on 2026-10-15
+- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
+  project (the project's entry 006, 2026-10-14): a greenfield graft
+- Observed problem: the agent wrote framework reads as shell functions
+  (`g(){ git -C "${FW:?}" show "<tag>:$1"; }; g …`) and as long `;`/`&&` chains with echo
+  separators; Claude Code flagged them ("brace with quote character") and asked
+  confirmation for read-only work. In zsh, `echo ======` fails (`=word` is a command-path
+  expansion).
+- Proposal: `docs/04` (or the upgrade's Precondition) gives a style rule for framework
+  reads: one plain `git -C … show <tag>:<path>` per call, no shell functions, no long
+  chains; several reads as parallel tool calls.
+- Expected benefit / risk: fewer prompts, no loss of safety. Risk: more tool calls.
+- Evidence on 2026-10-15 (the retro's agents): zsh's `=word` expansion confirmed in zsh's
+  documentation and in the agents' own shell (zsh 5.9, EQUALS on: `echo ======` fails), and an
+  unbraced `$t:scripts/…` is read as the `:s` modifier. As written, the rule would contradict
+  `SETUP.md`'s own blocks that read the framework in chains that stop at the first failure.
+- Deferred on 2026-10-15 (the retro; the user's decision), with IMP-111: its benefit is not
+  measured and rides on IMP-111 — in manual mode every read outside the working directory
+  prompts. If adopted, a rule for the agent's ad-hoc framework reads only, the procedure's
+  blocks exempt.
+- Resumption trigger: IMP-111's measurement, with its S4 cases; decided at the same retro.
 
 ## Rejected (with the reason — so they are not re-proposed)
 

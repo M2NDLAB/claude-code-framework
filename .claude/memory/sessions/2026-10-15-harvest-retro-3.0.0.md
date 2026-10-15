@@ -134,6 +134,81 @@ tags: [session, retro, imp, plan, security-gate]
     scratchpad is not durable —, then the phases listed, then the work; stop before
     `/integrate`'s blocks.
 
+## Why IMP-075's rule was not enough (IMP-117)
+The causes the retro found, the user's question, each with its evidence in the agents'
+output:
+1. Off the point of use: the rule is the tail of `docs/04`'s `ask` bullet, in a section about
+   the settings; `SETUP.md`'s §2, §4, Step 3 and Step 4 say what to write, never how.
+2. Its reason reaches two files: "skips the checkpoint" holds for `settings.json` and the
+   guard only; the harm it should prevent — a stale line number writes the wrong line, with no
+   error — is named nowhere.
+3. Its list is short: `.claude/`, `CLAUDE.md`, `scripts/` — not the `Makefile`, which was
+   written with `sed`.
+4. Its exception is open: "a procedure that writes them by design" — setup is a procedure of
+   `SETUP.md` too.
+5. A standing instruction of the runtime says the opposite: auto mode's text invites `sed` and
+   heredocs, all session long (the retro's own context carried it); its own carve-out for exact
+   replacements was not heeded either.
+6. The procedure hands out coordinates: §2's and Step 4's `grep -rn` print file and line, the
+   input of `sed -i '<N>s…'` (inferred).
+7. Nothing checks it: no step reads the diff of the answers — the user's review found the
+   damage.
+8. Salience, not loading: after the graft `docs/04` loads in every session through
+   `CLAUDE.md`'s imports, about 1,450 lines with the rule one clause among them; the crossing
+   from the project's code to the memory, the checkpoint's step 3, has no reminder.
+9. Never exercised: its verification read text and merges, not behaviour.
+The remedy, one layer per cause: text at every point of use, a check of the answers' diff, the
+reason, the scope and a closed exception in `docs/04`'s *Operating rules*, a short rule 10 in
+`CLAUDE.md`, the checkpoint's step 3. Not adopted: a hook that parses shell text (beyond the
+threat model), a path-scoped rule, an `ask` rule on `sed -i`. If it happens again, the next
+step is a mechanism, not more text.
+
+## Pre-flight readings (task 2)
+- **Claude Code's pages**, fetched as Markdown on 2026-10-15 (`skills.md`, `commands.md`,
+  `plugins.md`, `plugins-reference.md` under code.claude.com/docs/en/), read, not measured:
+  - the skills page, *How a skill gets its command name*: "File in a subdirectory of
+    `.claude/commands/` | Subdirectory path relative to `commands/` with each `/` replaced by
+    `:`, then the file name without extension | `.claude/commands/frontend/component.md` →
+    `/frontend:component`" — the decision's premise holds;
+  - the same page, *Resolve skills that share a name*: "In a local terminal session, your skill
+    replaces the built-in command, but not its aliases" — the user's measurement found the
+    alias `/checkpoint` taken all the same: page and behaviour disagree, and the namespace makes
+    the question moot;
+  - the commands page: "`/rewind` | … Aliases: `/checkpoint`, `/undo`"; `/security-review` is a
+    built-in row;
+  - plugins: "plugin skills are namespaced as `/plugin-name:skill-name`"; the reserved names are
+    `anthropic-skills` (synced skills) and, for plugins, names that pass as Anthropic's own.
+- **`fw` against everything else**: no built-in command or bundled skill named `fw` or starting
+  so, among the 119 commands of the commands page's table; the word appears in none of the four pages; no
+  plugin named `fw` installed here, none among the 6,708 plugin names of the local marketplace
+  cache. Residuals, declared in IMP-122: a plugin named `fw`; a nested `.claude/skills/` under a
+  project directory named `fw`.
+- **The project upgraded next**, read read-only with `git -C` and file reads, nothing written
+  there; its form only:
+  - the pin: `version` without the `v` — `preflight`'s error, with its suggestion —, `commit`
+    v1.2.0's own;
+  - trunk-based on its main branch, the two roles coinciding, a dormant historical remote branch
+    protected too;
+  - the eight command files at the top of `.claude/commands/`, tracked: three as v1.2.0's
+    (`integrate.md` among them, its branch placeholders and its slot left as they are — the
+    run-time reading, de facto), five customised (`checkpoint.md`'s two placeholders answered
+    inline; `harvest-framework.md`, `lint-memory.md`, `new-component.md`,
+    `security-review.md` edited);
+  - `docs/00`'s slot-shaped line and its mention both rewritten inline; `docs/02`'s five slots
+    and `docs/03`'s answered inline; `docs/04`, four of five answered inline — its reading
+    convention answered for trunk-based —, the branching-model pointer left open;
+  - `CLAUDE.md`: four slots answered, the two mentions of rule 9 left as they are;
+  - the `Makefile`: the mention at its line 4 rewritten, the project's section answered; the
+    protected branches answered in `reset-task.sh`, before v1.3.2 moved them to the `Makefile`;
+  - the formatting slot answered; no `.gitattributes` (a graft before v1.5.0), LF line ends; no
+    `.claude/skills/`.
+- **What follows for this release**: inventory by lines is needed by this very upgrade — from
+  v1.2.0, the `Makefile`'s net marker count would hide the protected branches' slot —; IMP-118's
+  pointer and prose in `docs/00` meet two declared conflicts there; the namespace's migration is
+  a rename with a 3-way for a customised command (base the old path at `vX`, theirs the `fw/`
+  path at `vY`, mine the project's old file), the old file removed after; the fixture of the
+  rehearsal reproduces this form, with none of the project's names or contents.
+
 ## The bump — recomputed under IMP-074
 - The rename moves every command to a new name: "removing or renaming a command" is the first
   item of the framework's breaking criterion (`CONTRIBUTING.md`), and every project must
@@ -143,7 +218,7 @@ tags: [session, retro, imp, plan, security-gate]
   Confirmed again at `/integrate`, on the final content.
 
 ## Plan (one commit per IMP applied)
-- [ ] 1. This note — the brief, the retro's outcome and gaps, the user's decisions, the bump, the plan — and the agents' output beside it — commit: —
+- [x] 1. This note — the brief, the retro's outcome and gaps, the user's decisions, the bump, the plan — and the agents' output beside it — commit: 08a492a
 - [ ] 2. The registrations in `LEARNINGS.md` — IMP-107..121's outcomes (13 approved with their forms; IMP-111 and IMP-112 deferred with their trigger and the P1 verification), IMP-122, IMP-123 and IMP-124 recorded, the evidence on IMP-083 —; the pre-flight readings in this note: Claude Code's pages on command names, `fw` against the built-in commands and the plugins, the project upgraded next (its form only) — commit: —
 - [ ] 3. IMP-122, the `fw` namespace: the eight commands under `.claude/commands/fw/`, every reference, the classes (the old paths kept for the inventory), the old files flagged by `upgrade-check.sh`, the migration in `SETUP.md`, the documentation check and the self-tests, `CONTRIBUTING.md`'s rule — commit: —
 - [ ] 4. Classes and markers: IMP-115 (`docs/02`-`04` HYBRID), IMP-118 (variant Y; the mentions; the greps; lint check 10; inventory by lines) — commit: —
