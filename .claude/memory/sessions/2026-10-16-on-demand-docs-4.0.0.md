@@ -202,7 +202,7 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
 - [x] 8. `.claude/rules/fw-code-quality.md` (a Read of `docs/02` at its moment, no `@`: task 2) and `.claude/rules/fw-boundary.md`; classes, README's tree, TREE's legend, step 2's pathspec, a coverage check of the globs; docs-check fails an `@` in a method rule — commit: 634d10d
 - [x] 9. The commands: step-1 Reads by section, the compaction line, descriptions with triggers, the frontmatter policy, `LEARNINGS.md` read by section, `/fw:sos` on an ARCHITECT RESPONSE, `/fw:security-review` named against the built-in, `/fw:checkpoint`'s STATE budget (D5a), `/fw:lint-memory`'s STATE size check (D5b), its glob and import checks — commit: 40e15a5
 - [x] 10. The gate's check in `/fw:integrate`, the PR form included; the limits declared in `docs/03` — commit: d5a33c2
-- [x] 11. The core in `.claude/rules/fw-core.md` — D1's two conditions held at task 2 —; `CLAUDE.md` the project's own and its class; `docs/00` *Selective loading*; every `@` of the method's files removed, `STATE.md`'s included; the rules' citations re-pointed; docs-check strict, with the pointers resolved to headings — commit: —
+- [x] 11. The core in `.claude/rules/fw-core.md` — D1's two conditions held at task 2 —; `CLAUDE.md` the project's own and its class; `docs/00` *Selective loading*; every `@` of the method's files removed, `STATE.md`'s included; the rules' citations re-pointed; docs-check strict, with the pointers resolved to headings — commit: 9b9175f; the measurements of the fifth turn recorded after it
 - [ ] 12. `SETUP.md` (the migration from 3.x, the single jump from 1.2.0, `STATE.md` reduced by the first checkpoint after the upgrade, step 4, the brownfield rows), `README.md`, `CONTRIBUTING.md`, `SECURITY.md` — commit: —
 - [ ] 13. `/fw:security-review`, adversarial, its perimeter named: the claims about what loads, the gate's check, `state-inject.sh` and its wiring, the migration of the answers — commit: —
 - [ ] 14. The retro; the CHANGELOG's 4.0.0 entry with IMP-127's erratum; the rehearsal on a clone tagged v4.0.0 — from 3.0.0 with every answer in place, and from 1.2.0 in the synthetic form of the project upgraded next, LF and CRLF —, the new fixed cost measured; the checkpoint — commit: —
@@ -370,6 +370,66 @@ cache write 198,631 tokens, all Haiku 5.5. The transcripts stay where Claude Cod
   against ≈99,200 ≈ 35.0k before (−78%). Every delegated agent: core + `CLAUDE.md`, 18,661
   ≈ 6.7k, against 33.7k (−80%). The draft's 6.4k grew with the answers' nine lines, the
   `CLAUDE.md` template's examples and the core's additions above.
+
+## The fifth turn — the user's answers (translated from Italian)
+- "Review of the core: approved." Approved too: the two guards and the tree's check in block 1,
+  the triggers in the descriptions (+265 tokens, `/fw:new-component` out of the listing),
+  `CLAUDE.md` HYBRID with its title and stack lines unchanged.
+- Two measurements before task 12, at most three `claude -p` runs, their cost reported: (1)
+  "the slot in fw-code-quality.md's paths does not load because of a side effect of the glob,
+  and that is inferred, not measured" — with the marker open the rule must not load when Claude
+  reads a code file and the frontmatter must give no warning, with a compiled glob it must
+  load; a warning or another behaviour, and a form that depends on nothing undocumented is
+  chosen; (2) "the −78% is a ÷2.8 estimate and will end up in the CHANGELOG: for the DoD (point
+  10) it needs the measurement" — the tokens written to the cache at the first request, as the
+  61,459 of the day before, for the main session and for a general-purpose subagent; "the
+  CHANGELOG carries the measured numbers".
+- Then tasks 12-14 and the cycle. "The gate applies: the deliverable touches the boundary
+  (guard, hook, settings, state-inject.sh), with a reviewer other than the author." The
+  *Upgrading* note gives the projects the concrete steps of the expected conflict on
+  `CLAUDE.md`: rules 1-10 leave because they are in the core, the answers go to *The answers
+  the method reads*, `STATE.md`'s titles take the method's form, a `STATE.md` over the budget is
+  condensed by the first `/fw:checkpoint` after the upgrade, never by the upgrade itself. "Stop
+  when /fw:integrate has printed block 0: not further."
+
+## Measured before task 12 — three `claude -p` runs
+Three scratch clones of this repository, each run read back from its transcript's request
+records and usage (deduplicated by request): A, this branch at `9b9175f`, the slot open; B,
+`main` at `0c71b6f` (v3.0.0 and its record); C, this branch with `fw-code-quality.md`'s
+`paths` compiled to `scripts/**/*.sh`. A and B on Opus 5.5 — the main session's model —, the
+same prompt: Read `scripts/repo-snapshot.sh`, then one general-purpose subagent replying with
+one word.
+
+| First request | v3.0.0 (B) | This branch (A) | Difference |
+|---|---:|---:|---:|
+| Main session: input tokens in all (cache write + cache read + uncached) | 57,932 (47,211 + 10,719 + 2) | 30,373 (19,652 + 10,719 + 2) | −27,559 (−48%) |
+| General-purpose subagent, idem | 54,264 (46,726 + 7,536 + 2) | 27,256 (27,254 + 0 + 2) | −27,008 (−50%) |
+
+- The 10,719 tokens both main sessions read from the cache are the common prefix — the
+  system prompt and the tools, identical in A and B —; the rest differs only by the
+  framework's files, so the differences are the framework's alone. The subagent's 7,536 read in
+  B and 0 in A are a cache effect (B's subagent found part of its prefix written by A's), not
+  content: the totals are the comparable figures.
+- The ratio this measurement gives: about 77,300 fewer characters at launch (≈99,200 →
+  21,912) for 27,559 fewer tokens — 2.80 characters per token in the main session; 76,991
+  characters (95,652 → 18,661) for 27,008 tokens in the subagent, 2.85. The ÷2.8 of the
+  estimates holds; the framework's own part at launch, derived with it, is ≈7.8k tokens in the
+  main session and ≈6.6k in a subagent, against ≈35k and ≈33.6k. Derived, not measured: no
+  run without the framework.
+- The 61,459 of 2026-10-16 (this session's first request, 61,459 written + 26,826 read) also
+  held the user's long first message: not comparable with A and B.
+- The slot: in A, after the Read of a code file, no request carried `fw-code-quality.md`; in
+  C, the request after the same Read carried it, as a `nested_memory` attachment. Neither
+  debug log (`--debug-file`, 359 lines in A) nor stderr held a warning on a rule, a glob or a
+  frontmatter — stderr held only the untrusted workspace's notice that the `allow` rules were
+  ignored. The open slot's non-match rests on the bracket expression Claude Code's memory page
+  documents ("Glob syntax treats `[` as the start of a bracket expression"): the form stays. A
+  one-letter file at the root would match it; not measured.
+- Also seen in A and C: the new SessionStart wiring ran under Claude Code itself
+  (`hook_success`, the banner, *Caution & open issues* first), and the core was in the main
+  session's and the subagent's first request.
+- Cost, at list price: $1.0786 — A $0.3787 and B $0.6938 on Opus 5.5, C $0.0061 on Haiku 5.5;
+  input 18, output 1,326, cache read 202,333, cache write 182,775 tokens.
 
 ## Proposals
 - None new: IMP-124's Level 2 is decided, IMP-126 widened by the user's decision.
