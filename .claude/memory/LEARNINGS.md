@@ -157,51 +157,6 @@ tags: [improvement]
 - Kin: IMP-088 (the upgrade rehearsed with LF and CRLF), `docs/02`'s bullet on the users'
   configurations.
 
-### IMP-126 — Block 0 has no written form
-- Date: 2026-10-15 | Origin: v3.0.0's integration — [[2026-10-15-harvest-retro-3.0.0]],
-  recorded in [[2026-10-15-3.0.0-record]]
-- Observed problem: `CONTRIBUTING.md`'s *The CI, before the merge — block 0* says what block 0
-  does — push the branch, wait for the CI green on the three platforms — in a sentence and one
-  command, `git push -u origin <branch>`; `fw/integrate.md` gives blocks 1 and 2 a written form,
-  block 0 has none. At v3.0.0 the main session wrote it from `docs/04`'s rules, and five
-  read-only verifiers corrected the draft: the tree's check passed when `git status` failed,
-  the push had no guard on the tip the CI was to test, the prose named neither 0b's marker nor
-  the ban on commits until block 2. Every round writes block 0 anew — v2.2.0 ran four —, and a
-  draft can miss what the last one fixed.
-- Proposal: `CONTRIBUTING.md` gives block 0 its form, as `fw/integrate.md` does blocks 1 and 2:
-  two blocks and one line between them. 0a, read-only: the fetch, then checks that each print a
-  fixed line — the tree clean, fail-closed (`test -z "$(git status --porcelain || echo
-  FAILED)"`), the tip and `origin/<integration>` at their expected shas, the log of what the
-  push makes public and its count: at the first push `origin/<integration>..<branch>` and the
-  remote branch's absence read live (`git ls-remote --exit-code`, exit 2), at a later round
-  `origin/<branch>..<branch>`. 0b: a guard on the tip, `git push -u origin <branch>`, a marker
-  line. The prose: no commit or amend on the branch until block 2 — block 1 checks the tree the
-  CI tested —, no PR, the remote branch deleted by block 2 only.
-- Evidence beside the approved scope, for the retro to weigh — from the verification of v3.0.0's
-  blocks 1 and 2, outside the approval: block 1 gained two guards after the fetch
-  (`origin/<integration>` and the remote branch still at the shas block 0 pushed) and its tree's
-  check inside the chain, before `git tag -a`, so a tree the CI did not test is never tagged;
-  `fw/integrate.md`'s checks outside the chain print a false `tag on <integration>: OK` when run
-  outside any repository, both sides of the `test` empty; a guard in block 2 would need
-  `fw/integrate.md`'s step 5 changed, which holds block 2 to the push and the deletion.
-- Expected benefit / risk: block 0 copied from a reviewed form, not rewritten at every round.
-  Risk: none known — the form is this repository's only; a project's CI is the project's own.
-- Status: APPROVED on 2026-10-15 — the user's words, translated from Italian: "On the IMP to
-  give block 0 a written form in CONTRIBUTING.md: I agree, record it at the first checkpoint
-  after the merge, together with the two record commits to add to the plan." Applied in a
-  deliverable of its own: `CONTRIBUTING.md` is no record, so its change takes the full cycle,
-  and no tag — a file that serves this repository only. When: the user's call.
-- Evidence, 2026-10-16 — the integration of `chore/memory-3.0.0-record`: block 0 pushed
-  `5e43676` (CI run 38918692260); block 1 merged 31 seconds later, before the CI had any result,
-  its wait written in prose only; block 2 published `main` at `0c71b6f` (CI run 38918804679).
-  Both runs ended green, so nothing needed repair. The user's position, translated from Italian:
-  "block 1 should check by itself that the CI on the tip is green, instead of relying on the
-  written wait." Recorded in [[2026-10-16-on-demand-docs-4.0.0]].
-- Decision, 2026-10-16 (the user's, translated from Italian): "IMP-126 enters v4.0.0 with
-  commits of its own, including the check of the CI inside block 1's chain" — the evidence
-  above promoted to a decision. It supersedes "a deliverable of its own" and "no tag" above:
-  its commits are tasks 3 and 4 of v4.0.0's plan.
-
 ### IMP-127 — The 3.0.0 entry claims a change to `LEARNINGS.md`'s format comment
 - Date: 2026-10-15 | Origin: v3.0.0's integration, the check of its blocks 1 and 2 —
   [[2026-10-15-harvest-retro-3.0.0]], recorded in [[2026-10-15-3.0.0-record]]
@@ -2203,6 +2158,36 @@ line on; older entries are not backfilled.
 - Verified: the documentation check passes. The forms are read in git's and tree's manuals,
   not measured. Corrected on the way: the entry as recorded said the `Read` deny binds the
   Read tool only, which the page contradicts.
+
+### IMP-126 — Block 0 has no written form, and block 1 trusts a wait written in prose → applied on 2026-10-16, commit 245fcae
+- Origin: v3.0.0's integration ([[2026-10-15-harvest-retro-3.0.0]], recorded in
+  [[2026-10-15-3.0.0-record]]) — `CONTRIBUTING.md` gave block 0 a sentence and one command;
+  every round wrote it anew from `docs/04`'s rules, and at v3.0.0 five read-only verifiers
+  corrected the draft: the tree's check passed when `git status` failed, the push had no guard
+  on the tip, the prose named neither 0b's marker nor the ban on commits until block 2. Then the
+  integration of `chore/memory-3.0.0-record`, 2026-10-16: block 0 pushed `5e43676` (CI run
+  38918692260) and block 1 merged 31 seconds later, before the CI had any result — both runs
+  ended green. The user's position, translated from Italian: "block 1 should check by itself
+  that the CI on the tip is green, instead of relying on the written wait"
+  ([[2026-10-16-on-demand-docs-4.0.0]]).
+- Approved on 2026-10-15 (block 0's form); the user's decision of 2026-10-16, translated:
+  "IMP-126 enters v4.0.0 with commits of its own, including the check of the CI inside block
+  1's chain" — tasks 3 and 4 of v4.0.0's plan.
+- Applied: `CONTRIBUTING.md`, *Block 0's form* — 0a read-only, the fetch and the checks each
+  printing a fixed line (the tree clean, fail-closed; the tip and `origin/main` at their shas;
+  the remote branch absent, read live, or at a later round at the tip pushed last; the log and
+  its count), the line between the blocks, 0b pushing only the tip 0a checked, and the three
+  rules from 0b to block 2. *Block 1 here* — `fw/integrate.md`'s block 1 with four checks inside
+  its chain: `origin/main` and the remote branch still at block 0's shas, the CI's verdict on
+  the tip read with `gh run list` (fail-closed: only the latest push run of `test.yml` on that
+  branch and commit, completed with success, lets the chain go on), and the merge's tree equal
+  to the tip's before the tag. The two guards and the tree's place in the chain are the form
+  v3.0.0's verifiers gave block 1, which the CI's check needs to name the tip it reads.
+- Verified: the documentation check passes; the CI's line run read-only in bash and zsh —
+  green on `feff389`, refused on a failed run (`7d2052b`) and on a commit never pushed; a run
+  still going not measured.
+- Left for the retro, beside the scope: `fw/integrate.md`'s checks outside the chain print a
+  false `tag on <integration>: OK` when run outside any repository.
 
 ## Deferred (not rejected — resumed at the right time)
 
