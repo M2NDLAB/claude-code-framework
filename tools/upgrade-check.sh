@@ -141,6 +141,7 @@ classify() {
     .claude/commands/sos.md | \
     scripts/README.md | scripts/reset-task.sh | scripts/agent-git-guard.mjs | \
     scripts/repo-snapshot.sh | scripts/test-hooks-install.sh | \
+    scripts/state-inject.sh | scripts/test-state-inject.sh | \
     scripts/test-agent-git-guard.sh | scripts/test-repo-snapshot.sh | \
     scripts/check-prerequisites.sh | scripts/test-check-prerequisites.sh | \
     scripts/test-reset-task.sh | commitlint.config.cjs)

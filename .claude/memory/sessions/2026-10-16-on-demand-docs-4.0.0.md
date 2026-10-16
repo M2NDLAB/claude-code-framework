@@ -196,8 +196,8 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
 - [x] 2. The measurements, in a scratch project outside the repository, at most five `claude -p` runs: an unconditional rule after a `/compact` and in a general-purpose subagent's first request (D1), and in a session started in a subdirectory; an `@`-import inside a path-scoped rule, at launch or with the rule (D4); a path rule at each matching read and around a Write; the SessionStart hook on `compact`; recorded here with their cost (*Task 2 — the measurements*) — commit: 64ec691
 - [x] 3. IMP-126: `CONTRIBUTING.md` gives block 0 its written form — commit: 245fcae
 - [x] 4. IMP-126: block 1 checks the CI of the tip inside its chain (D6); IMP-126 moved to Applied, its heading taking this task's sha with the next commit — commit: 45ef9e9
-- [x] 5. `/fw:plan`, reading `docs/01`; its class, the inventories, the tests — commit: —
-- [ ] 6. `scripts/state-inject.sh`, a hermetic self-test (the template, legacy titles, no titles, over the budget, CRLF, a missing file), its class and inventories; the SessionStart wiring in `settings.json` and an `ask` rule on the script, both through the user's approval — commit: —
+- [x] 5. `/fw:plan`, reading `docs/01`; its class, the inventories, the tests — commit: cd358ac
+- [x] 6. `scripts/state-inject.sh`, a hermetic self-test (the template, legacy titles, no titles, over the budget, CRLF, a missing file), its class and inventories; the SessionStart wiring in `settings.json` and an `ask` rule on the script, both through the user's approval — commit: —
 - [ ] 7. The setup answers of `docs/02`-`04` move to `CLAUDE.md`'s technical rules, one marked line each; the slots become pointers and the three docs METHOD; `SETUP.md` §2, the classes, edge cases 7 and 8; `upgrade-check` checks that an answer at `vX` has its new home at `vY` — `refactor!` with a BREAKING CHANGE footer — commit: —
 - [ ] 8. `.claude/rules/fw-code-quality.md` (a Read of `docs/02` at its moment, no `@`: task 2) and `.claude/rules/fw-boundary.md`; classes, README's tree, TREE's legend, step 2's pathspec, a coverage check of the globs; docs-check fails an `@` in a method rule — commit: —
 - [ ] 9. The commands: step-1 Reads by section, the compaction line, descriptions with triggers, the frontmatter policy, `LEARNINGS.md` read by section, `/fw:sos` on an ARCHITECT RESPONSE, `/fw:security-review` named against the built-in, `/fw:checkpoint`'s STATE budget (D5a), `/fw:lint-memory`'s STATE size check (D5b), its glob and import checks — commit: —
@@ -283,6 +283,40 @@ second Read of a matching file, an interactive session's approval of external im
 
 Cost of the five runs, at list price: $0.0493 — input 33,624, output 11,480, cache read 482,972,
 cache write 198,631 tokens, all Haiku 5.5. The transcripts stay where Claude Code keeps them.
+
+## The fourth turn — the user's answers (translated from Italian)
+- D4's mechanism confirmed — a rule that has `docs/02` Read, no `@` — with two conditions:
+  "(1) 02's prohibitions (exceptions never swallowed, validation at the edge, the why in the
+  comments, the Definition of Done) stand in the core, not only in 02: a prohibition does not
+  move to an on-demand load. (2) If the rule uses `paths:`, the globs of the code files depend
+  on the stack: either they are a [TO BE DEFINED AT SETUP] slot, or the rule stays without
+  `paths`. No concrete globs in the framework." The docs-check ban on `@` in a method rule:
+  approved.
+- D5(b) extended: `/fw:lint-memory` also flags a `STATE.md` without *Caution & open issues*.
+  "(1) The hook must not truncate in silence: if the section is missing, it says so in one
+  line; if STATE exceeds the budget, it prints the Caution first, then a line with how many
+  characters it cut and the instruction to read the file. (2) A test checks that the hook's
+  whole output, budget plus headers, stays under 10,000 characters with a margin. If 8,000
+  leaves no margin, lower it and tell me."
+- "Go for task 3 and the following ones. Stop after the task that writes the core
+  (`fw-core.md` and the new `CLAUDE.md`)" — with the core's full text, its characters and
+  tokens, and what left the launch context and where it is now. "If you reach the step that
+  prepares block 0 before that point, stop there."
+
+## Measured along the tasks
+- Task 4: the CI's line of block 1, read-only, in bash and zsh — `completed/success` on
+  `feff389`; `completed/failure` on `7d2052b` refused; a commit never pushed gives `/`, refused;
+  an unknown workflow an HTTP 404, refused. A run in progress not measured.
+- Task 6: `state-inject.sh` on the template prints 1,580 characters (the raw file, comments
+  included, 3,266). The longest output its rules allow — no *Caution* section and a cut, both
+  notices — measured at 8,289 characters: 1,711 under the hook's cap, so the budget stays at
+  8,000. On a 81,440-character file of accented and astral text it printed 6,927 — the cut is
+  taken in bytes, so multibyte text shows less than the budget, never more. Two mutants of the
+  script killed by its self-test: the budget raised to 9,500 (9,679 printed, over the test's
+  9,000) and the open issues no longer first. macOS's `iconv` rejected a valid output (Python
+  and Node.js decode it): the test decodes with Node.js's strict decoder, with a control.
+  gawk and mawk, the CI's awks on Linux and Windows, not run here: block 0's CI is their first
+  run, the Windows form of the project's path in the wiring's case included.
 
 ## Proposals
 - None new: IMP-124's Level 2 is decided, IMP-126 widened by the user's decision.

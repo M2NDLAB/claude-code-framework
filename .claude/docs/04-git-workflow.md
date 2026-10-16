@@ -447,7 +447,8 @@ what Claude Code may run without asking. Keep them **clean and specific**:
   Windows the shell stays Git Bash's, the one the framework's scripts and hooks are written
   for. The guard reads PowerShell's commands too, for a developer who turns the tool on.
 - **`ask`**: an edit to the boundary's own files — `.claude/settings.json` and
-  `scripts/agent-git-guard.mjs` — asks the human in every permission mode, auto mode and
+  `scripts/agent-git-guard.mjs` —, and to `scripts/state-inject.sh`, which decides what every
+  session is shown of the memory at its start, asks the human in every permission mode, auto mode and
   `bypassPermissions` included — dontAsk refuses it instead —, unless a mod approves the
   call or a PermissionRequest hook answers in the user's place, in a session that loaded
   the project's settings (*Enforcement of the execution boundary*); Claude Code's

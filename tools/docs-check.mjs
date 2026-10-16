@@ -1094,6 +1094,8 @@ const LEGACY = [
     'PRONTO PER INTEGRAZIONE', 'RACCOLTA PER IL FRAMEWORK', 'FINE REPORT', 'FINE RESPONSE', 'FINE RISPOSTA', 'FINE RACCOLTA',
     '<branch-integrazione>']
     .map((t) => ({ text: t, where: /^(SETUP\.md|CHANGELOG\.md|tools\/|\.claude\/memory\/(LEARNINGS\.md|sessions\/))/ })),
+  // The STATE.md of a project not yet brought to the method's titles, as the hook reads it.
+  ...['Attenzione / problemi aperti', 'Branch attivi'].map((t) => ({ text: t, where: /^scripts\/test-state-inject\.sh$/ })),
 ]
 // The identifiers of history inside code spans — a branch, a commit subject — are names,
 // not prose; so are the frontmatter's branch: and tags: values.

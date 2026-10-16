@@ -665,7 +665,7 @@ makes the framework's own self-test fail:
 
 - **METHOD** (pure framework, brought to `vY`): `.claude/docs/00-01` and
   `.claude/docs/05-06`, the non-customised commands in `.claude/commands/fw/`, `scripts/reset-task.sh`,
-  `scripts/agent-git-guard.mjs`, `scripts/repo-snapshot.sh`,
+  `scripts/agent-git-guard.mjs`, `scripts/repo-snapshot.sh`, `scripts/state-inject.sh`,
   `scripts/check-prerequisites.sh`, the self-tests `scripts/test-*.sh`,
   `scripts/README.md`, `commitlint.config.cjs`.
 - **HYBRID** (a framework part that evolves + a project part to preserve, reconciled):
@@ -1129,7 +1129,8 @@ leaves it alone. Real verification:
 - `make test-scripts` green. It also checks `.claude/settings.json` against the guard:
   the wiring of `scripts/agent-git-guard.mjs` on Bash, PowerShell and Monitor, the
   PowerShell tool kept off (`CLAUDE_CODE_USE_POWERSHELL_TOOL=0`) and the two `ask` rules on
-  the boundary's own files. A failure there means the merged settings lost them — repair
+  the boundary's own files; and against the SessionStart hook: `scripts/state-inject.sh`
+  wired with no matcher, and the `ask` rule on it. A failure there means the merged settings lost them — repair
   the settings, never the test: the self-test (METHOD) and `settings.json` (HYBRID) arrive
   in the same upgrade and check each other.
 

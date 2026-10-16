@@ -99,12 +99,13 @@ collide with Claude Code's own.
 │   ├── hooks-install.sh       gitleaks + commitlint + pre-push push boundary (always) + formatting (example)
 │   ├── agent-git-guard.mjs    PreToolUse guard: delegated agents read-only on git
 │   ├── repo-snapshot.sh       before/after fingerprint around delegated agents
+│   ├── state-inject.sh        what the SessionStart hook prints of STATE.md: open issues first, within a budget
 │   ├── reset-task.sh          surgical cleanup of the interrupted task
 │   ├── check-prerequisites.sh the prerequisites: each tool run, its version against its minimum
 │   ├── test-*.sh              hermetic self-tests (make test-scripts)
 │   └── README.md
 └── .claude/
-    ├── settings.json          SessionStart hook (injects STATE.md) + PreToolUse guard + session marker + permissions
+    ├── settings.json          SessionStart hook (STATE.md, via scripts/state-inject.sh) + PreToolUse guard + session marker + permissions
     ├── docs/                  00-overview, 01-task-planning ... 06-self-improvement
     ├── commands/              /fw:plan /fw:checkpoint /fw:integrate /fw:sos /fw:retro /fw:security-review /fw:new-component /fw:lint-memory /fw:harvest-framework (all in fw/)
     └── memory/                STATE, TREE, INDEX, LEARNINGS (template) + 4 subfolders
