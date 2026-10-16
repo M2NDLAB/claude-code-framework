@@ -151,6 +151,58 @@ tags: [improvement]
 - Kin: IMP-088 (the upgrade rehearsed with LF and CRLF), `docs/02`'s bullet on the users'
   configurations.
 
+### IMP-126 — Block 0 has no written form
+- Date: 2026-10-15 | Origin: v3.0.0's integration — [[2026-10-15-harvest-retro-3.0.0]],
+  recorded in [[2026-10-15-3.0.0-record]]
+- Observed problem: `CONTRIBUTING.md`'s *The CI, before the merge — block 0* says what block 0
+  does — push the branch, wait for the CI green on the three platforms — in a sentence and one
+  command, `git push -u origin <branch>`; `fw/integrate.md` gives blocks 1 and 2 a written form,
+  block 0 has none. At v3.0.0 the main session wrote it from `docs/04`'s rules, and five
+  read-only verifiers corrected the draft: the tree's check passed when `git status` failed,
+  the push had no guard on the tip the CI was to test, the prose named neither 0b's marker nor
+  the ban on commits until block 2. Every round writes block 0 anew — v2.2.0 ran four —, and a
+  draft can miss what the last one fixed.
+- Proposal: `CONTRIBUTING.md` gives block 0 its form, as `fw/integrate.md` does blocks 1 and 2:
+  two blocks and one line between them. 0a, read-only: the fetch, then checks that each print a
+  fixed line — the tree clean, fail-closed (`test -z "$(git status --porcelain || echo
+  FAILED)"`), the tip and `origin/<integration>` at their expected shas, the log of what the
+  push makes public and its count: at the first push `origin/<integration>..<branch>` and the
+  remote branch's absence read live (`git ls-remote --exit-code`, exit 2), at a later round
+  `origin/<branch>..<branch>`. 0b: a guard on the tip, `git push -u origin <branch>`, a marker
+  line. The prose: no commit or amend on the branch until block 2 — block 1 checks the tree the
+  CI tested —, no PR, the remote branch deleted by block 2 only.
+- Evidence beside the approved scope, for the retro to weigh — from the verification of v3.0.0's
+  blocks 1 and 2, outside the approval: block 1 gained two guards after the fetch
+  (`origin/<integration>` and the remote branch still at the shas block 0 pushed) and its tree's
+  check inside the chain, before `git tag -a`, so a tree the CI did not test is never tagged;
+  `fw/integrate.md`'s checks outside the chain print a false `tag on <integration>: OK` when run
+  outside any repository, both sides of the `test` empty; a guard in block 2 would need
+  `fw/integrate.md`'s step 5 changed, which holds block 2 to the push and the deletion.
+- Expected benefit / risk: block 0 copied from a reviewed form, not rewritten at every round.
+  Risk: none known — the form is this repository's only; a project's CI is the project's own.
+- Status: APPROVED on 2026-10-15 — the user's words, translated from Italian: "On the IMP to
+  give block 0 a written form in CONTRIBUTING.md: I agree, record it at the first checkpoint
+  after the merge, together with the two record commits to add to the plan." Applied in a
+  deliverable of its own: `CONTRIBUTING.md` is no record, so its change takes the full cycle,
+  and no tag — a file that serves this repository only. When: the user's call.
+
+### IMP-127 — The 3.0.0 entry claims a change to `LEARNINGS.md`'s format comment
+- Date: 2026-10-15 | Origin: v3.0.0's integration, the check of its blocks 1 and 2 —
+  [[2026-10-15-harvest-retro-3.0.0]], recorded in [[2026-10-15-3.0.0-record]]
+- Observed problem: the CHANGELOG's 3.0.0 entry, *Upgrading from 2.2.0*, lists among the memory
+  templates "the header and format comment of `LEARNINGS.md`: merged 3-way". Between v2.2.0
+  and v3.0.0 only the header changed — its line on `/fw:harvest-framework` —; the section
+  titles did not, and the format comment is byte-identical (`cmp` on the comment as each tag
+  holds it). A record wider than its data (`docs/02`, Definition of Done, point 10), found after
+  the tag. Its cost to a project is nil: the 3-way of an unchanged comment keeps the project's.
+- Proposal: the next release's entry corrects it under *Errata — corrections to entries already
+  published*, and the 3.0.0 entry gains, at its end, the line *Corrected in X.Y.Z, Errata.* —
+  the form 1.3.2 used for 1.1.0. `inventory` prints a release's note from its *Upgrading*
+  paragraph to the entry's end, read in `vY`'s CHANGELOG: the line reaches every later upgrade
+  that crosses 3.0.0. The tag's own text stays as it is.
+- Expected benefit / risk: the upgrade notes claim what changed, no more. Risk: none.
+- Status: APPROVED on 2026-10-15 — the user's brief: corrected in the next release.
+
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
 - Date: YYYY-MM-DD | Origin: [[<session note>]] — <problem>
