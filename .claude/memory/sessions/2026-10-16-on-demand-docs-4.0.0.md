@@ -193,8 +193,8 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
 
 ## Plan (one commit per task)
 - [x] 1. The assessment, the user's data and decisions, the scorecard's baselines and this plan; IMP-124's decision, IMP-126's 2026-10-16 evidence and the user's decision, in `LEARNINGS.md`; the merge `0c71b6f` reconciled — commit: 95f9216
-- [x] 2. The measurements, in a scratch project outside the repository, at most five `claude -p` runs: an unconditional rule after a `/compact` and in a general-purpose subagent's first request (D1), and in a session started in a subdirectory; an `@`-import inside a path-scoped rule, at launch or with the rule (D4); a path rule at each matching read and around a Write; the SessionStart hook on `compact`; recorded here with their cost (*Task 2 — the measurements*) — commit: —
-- [ ] 3. IMP-126: `CONTRIBUTING.md` gives block 0 its written form — commit: —
+- [x] 2. The measurements, in a scratch project outside the repository, at most five `claude -p` runs: an unconditional rule after a `/compact` and in a general-purpose subagent's first request (D1), and in a session started in a subdirectory; an `@`-import inside a path-scoped rule, at launch or with the rule (D4); a path rule at each matching read and around a Write; the SessionStart hook on `compact`; recorded here with their cost (*Task 2 — the measurements*) — commit: 64ec691
+- [x] 3. IMP-126: `CONTRIBUTING.md` gives block 0 its written form — commit: —
 - [ ] 4. IMP-126: block 1 checks the CI of the tip inside its chain (D6) — commit: —
 - [ ] 5. `/fw:plan`, reading `docs/01`; its class, the inventories, the tests — commit: —
 - [ ] 6. `scripts/state-inject.sh`, a hermetic self-test (the template, legacy titles, no titles, over the budget, CRLF, a missing file), its class and inventories; the SessionStart wiring in `settings.json` and an `ask` rule on the script, both through the user's approval — commit: —

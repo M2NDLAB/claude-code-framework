@@ -111,6 +111,55 @@ Atomic means all or nothing: if the remote branch is already gone, git refuses t
 push and publishes nothing — drop `:<branch>` and run it again. A
 project's `/fw:integrate` knows nothing of this: a project's CI is the project's own.
 
+**Block 0's form** (IMP-126). The agent prints it as `fw/integrate.md` prints blocks 1 and 2,
+by `docs/04`'s *Execution boundary and blocks for the user*: two blocks and one line of plain
+text between them, every placeholder replaced by a value read live — `<root>` the
+repository's absolute path, `<branch>` the feature branch, `<tip>` its full sha, `<base>`
+`origin/main`'s full sha, `<N>` the commits the push makes public. Before printing, the agent
+reads those commits — their messages, diffs and tree — for a secret, a project's name and a
+path of this machine: the push publishes them for good. 0a is read-only, the fetch and then
+the checks, each printing a fixed line:
+
+```
+cd <root> &&
+git fetch origin &&
+echo "block 0: fetched"
+test -z "$(git status --porcelain || echo FAILED)" && echo "tree: clean"
+test "$(git rev-parse <branch>)" = <tip> && echo "tip: OK (<tip, short>)"
+test "$(git rev-parse origin/main)" = <base> && echo "origin/main: OK (<base, short>)"
+git ls-remote --exit-code origin refs/heads/<branch>; test $? = 2 && echo "remote branch: absent, OK"
+git --no-pager log --oneline origin/main..<branch>
+test "$(git rev-list --count origin/main..<branch>)" = <N> && echo "count: OK (<N>)"
+```
+
+The tree's check is fail-closed: a `git status` that fails prints `FAILED`, never an empty
+string. At a later round — the CI red, its fixes committed, the new tip pushed again — the
+remote branch exists: its line becomes
+`test "$(git rev-parse origin/<branch>)" = <the tip pushed last> && echo "remote branch: OK"`,
+and the log and the count read `origin/<branch>..<branch>`, what the push adds. Then the
+line, outside the blocks: copy 0b only if 0a printed `block 0: fetched`, `tree: clean`, the
+tip's, `origin/main`'s and the remote branch's lines and `count: OK (<N>)`, with the log of
+the N commits; if one is missing, do not publish — report which. 0b pushes only the tip 0a
+checked:
+
+```
+cd <root> &&
+test "$(git rev-parse <branch>)" = <tip> &&
+git push -u origin <branch> &&
+echo "block 0: pushed"
+```
+
+Both from the user's own terminal (`docs/04`, *Enforcement of the execution boundary*). If
+`block 0: pushed` does not appear, the output comes back to the agent, with no retry under
+other options; 0a is not run again after a push that succeeded, its remote branch no longer
+absent. From 0b to block 2, three rules: no commit or amend on the branch — block 1 merges
+the tree the CI tested, not even a CHANGELOG date moved past midnight —; no pull request —
+the link GitHub prints at the push is ignored —; the remote branch deleted by block 2's
+atomic push only. The agent then reads the CI run on `<tip>` with `gh`, read-only, until its
+three jobs end, in their logs and not only their conclusion — the documentation check's FAIL
+and CHECK counts among them. Red: the fixes in new commits, and the new tip through block 0
+again. Green: `/fw:integrate`'s blocks.
+
 **No required status checks on `main` — a motivated choice.** The ruleset of `main` does
 not require the CI's checks. `/fw:integrate`'s merge commit is new — block 1 creates it
 locally, with `--no-ff` — and the CI has no result for it when block 2 pushes it: a
