@@ -133,6 +133,7 @@ classify() {
     .claude/docs/00-overview.md | .claude/docs/01-task-planning.md | \
     .claude/docs/05-escalation-protocol.md | .claude/docs/06-self-improvement.md | \
     .claude/commands/fw/harvest-framework.md | .claude/commands/fw/lint-memory.md | \
+    .claude/commands/fw/plan.md | \
     .claude/commands/fw/retro.md | .claude/commands/fw/security-review.md | \
     .claude/commands/fw/sos.md | \
     .claude/commands/harvest-framework.md | .claude/commands/lint-memory.md | \

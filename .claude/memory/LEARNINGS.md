@@ -2159,7 +2159,7 @@ line on; older entries are not backfilled.
   not measured. Corrected on the way: the entry as recorded said the `Read` deny binds the
   Read tool only, which the page contradicts.
 
-### IMP-126 — Block 0 has no written form, and block 1 trusts a wait written in prose → applied on 2026-10-16, commit 245fcae
+### IMP-126 — Block 0 has no written form, and block 1 trusts a wait written in prose → applied on 2026-10-16, commits 245fcae, 45ef9e9
 - Origin: v3.0.0's integration ([[2026-10-15-harvest-retro-3.0.0]], recorded in
   [[2026-10-15-3.0.0-record]]) — `CONTRIBUTING.md` gave block 0 a sentence and one command;
   every round wrote it anew from `docs/04`'s rules, and at v3.0.0 five read-only verifiers

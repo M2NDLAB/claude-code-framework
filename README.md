@@ -63,7 +63,7 @@ In short (the full guide, with the list of every setup slot to fill in, is in
    suggested command is in `SETUP.md`.
 
 From there on you work with the cycle described in `.claude/docs/00-overview.md`:
-plan → execute task by task → [if under the gate] `/fw:security-review` → `/fw:retro` →
+plan (`/fw:plan`) → execute task by task → [if under the gate] `/fw:security-review` → `/fw:retro` →
 `/fw:checkpoint` → `/fw:integrate` (push decided by the human); if you get stuck,
 `/fw:sos`. The method's commands live under `.claude/commands/fw/`, so their names never
 collide with Claude Code's own.
@@ -106,7 +106,7 @@ collide with Claude Code's own.
 └── .claude/
     ├── settings.json          SessionStart hook (injects STATE.md) + PreToolUse guard + session marker + permissions
     ├── docs/                  00-overview, 01-task-planning ... 06-self-improvement
-    ├── commands/              /fw:checkpoint /fw:integrate /fw:sos /fw:retro /fw:security-review /fw:new-component /fw:lint-memory /fw:harvest-framework (all in fw/)
+    ├── commands/              /fw:plan /fw:checkpoint /fw:integrate /fw:sos /fw:retro /fw:security-review /fw:new-component /fw:lint-memory /fw:harvest-framework (all in fw/)
     └── memory/                STATE, TREE, INDEX, LEARNINGS (template) + 4 subfolders
 ```
 

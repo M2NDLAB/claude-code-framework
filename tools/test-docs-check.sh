@@ -266,7 +266,7 @@ run 1 "${c}"
 has "the test-scripts recipe lacks scripts/test-extra.sh"
 c="$(copy inv-guards)"
 edit "${c}/CLAUDE.md" '^- Slash commands: ' '- Commands of the method: '
-edit "${c}/README.md" 'commands/              /fw:checkpoint' 'cmds/                  /fw:checkpoint'
+edit "${c}/README.md" 'commands/              /fw:plan' 'cmds/                  /fw:plan'
 edit "${c}/Makefile" 'bash scripts/' 'bash scriptz/'
 run 1 "${c}"
 has 'no "- Slash commands:" item in Quick commands'

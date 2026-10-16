@@ -91,7 +91,7 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
     the permission mode suggests (04-git-workflow.md, *Operating rules for Claude Code*).
 
 ## Quick commands
-- Slash commands: `/fw:checkpoint`, `/fw:integrate`, `/fw:sos`, `/fw:retro`,
+- Slash commands: `/fw:plan`, `/fw:checkpoint`, `/fw:integrate`, `/fw:sos`, `/fw:retro`,
   `/fw:security-review`, `/fw:new-component`, `/fw:lint-memory`, `/fw:harvest-framework`
 - `make hooks-install` — install the git hooks (gitleaks + commitlint + the pre-push push boundary)
 - `make test-scripts` — self-test of the framework scripts (hooks-install, the agent git guard, repo-snapshot, the prerequisite check, reset-task)

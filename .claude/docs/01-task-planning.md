@@ -2,7 +2,8 @@
 
 PERMANENT protocol for running heavy prompts in a way that survives interruptions
 (usage limits, crashes, deliberate stops). The goal: NEVER lose more than a single
-task of work, and resume without reconstructing anything by hand.
+task of work, and resume without reconstructing anything by hand. The `/fw:plan` command
+runs it: it reads this doc, then plans or resumes.
 
 > Where `plans/` and `decisions/` stay clean templates — the framework's own
 > repository — a heavy deliverable keeps its plan and its structural decision in its
