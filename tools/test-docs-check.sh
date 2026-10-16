@@ -47,7 +47,9 @@
 #      fail; a quote, a legacy form, an accented name and a co-author's trailer do not;
 #   9. the allow-list — an exception whose cause is gone fails, and an exception never
 #      hides another finding of the same line;
-#  10. read-only — a run leaves the copy exactly as it was.
+#  10. read-only — a run leaves the copy exactly as it was;
+#  11. rules — an @-import in a method rule, and a glob of its `paths` that matches no
+#      tracked file, each fail; one inside a code span does not.
 # Run it from anywhere: bash tools/test-docs-check.sh
 set -euo pipefail
 
@@ -131,6 +133,7 @@ note="$(cd "${base}" && ls .claude/memory/sessions/2*.md | tail -1)"
 run 0 "${base}"
 has "docs-check: 0 FAIL"
 floor 'N commands, N process targets' 8
+floor 'N method rules' 2
 floor 'no framework IMP number in N payload files' 30
 floor 'N pointers? out of the payload' 15
 floor 'N markers in the full form' 25
@@ -635,3 +638,17 @@ run 0 "${c}"
 fingerprint "${c}" > "${workdir}/after.txt"
 diff "${workdir}/before.txt" "${workdir}/after.txt" >/dev/null || fail "a run changed the copy it checked"
 echo "PASS (docs-check, read-only): a run leaves the repository exactly as it was."
+
+# --- Case 11: rules ---------------------------------------------------------------------------
+c="$(copy rule-import)"
+printf '\nSee @.claude/docs/04-git-workflow.md first.\n' >> "${c}/.claude/rules/fw-boundary.md"
+run 1 "${c}"
+fails 1 "@.claude/docs/04-git-workflow.md: an import in a method rule loads its file at every launch"
+c="$(copy rule-import-span)"
+printf '\nNever write `see @.claude/docs/04-git-workflow.md` here.\n' >> "${c}/.claude/rules/fw-boundary.md"
+run 0 "${c}"
+c="$(copy rule-glob)"
+edit "${c}/.claude/rules/fw-boundary.md" '"scripts/hooks-install\.sh"' '"scripts/no-such-file.sh"'
+run 1 "${c}"
+fails 1 'the glob "scripts/no-such-file.sh" matches no tracked file'
+echo "PASS (docs-check, rules): an @-import in a method rule and a glob matching no file fail; a code span does not."

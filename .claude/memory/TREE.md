@@ -32,6 +32,7 @@ tags: [structure]
 | Path | What it contains |
 |---|---|
 | .claude/docs/ | process documentation (the "method") — imported by `CLAUDE.md`, loaded at every launch |
+| .claude/rules/ | the method's rules, loaded by Claude Code: `fw-code-quality` with the project's code files, `fw-boundary` with the boundary's files |
 | .claude/commands/fw/ | slash commands of the method, `/fw:<name>` — listed in `CLAUDE.md`, "Quick commands" |
 | .claude/memory/ | this memory: [[STATE]], [[TREE]], [[INDEX]], [[LEARNINGS]], sessions/, decisions/, components/, plans/ |
 | <path> | <what it contains> |

@@ -256,6 +256,12 @@ Here is the complete list, grouped by file:
       speaks with you in session. The language of the ARTIFACTS is not configurable —
       it is always English (rule 9); only this axis is yours.
 
+### `.claude/rules/`
+- [ ] `rules/fw-code-quality.md`: the globs of the project's code files, one per item of its
+      `paths`, in place of the marker — the rule then has Claude Read `docs/02` when it
+      works on them. Left open, the rule never loads, and the core alone sends Claude to
+      `docs/02` before the first edit of code. The method's other rules have no slot.
+
 ### `.claude/commands/fw/`
 - [ ] `fw/checkpoint.md`: patterns to ignore for `tree`, name of the integration branch — its
       placeholders `<pattern-to-ignore-for-the-stack>` and `<integration>`, then the
@@ -659,14 +665,15 @@ makes the framework's own self-test fail:
 
 - **METHOD** (pure framework, brought to `vY`): `.claude/docs/00-06` — from v4.0.0 the
   docs hold no answer: `docs/02`-`04` point at the index's *The answers the method reads*
-  (edge case 8) —, the non-customised commands in `.claude/commands/fw/`, `scripts/reset-task.sh`,
+  (edge case 8) —, `.claude/rules/fw-boundary.md`, the non-customised commands in
+  `.claude/commands/fw/`, `scripts/reset-task.sh`,
   `scripts/agent-git-guard.mjs`, `scripts/repo-snapshot.sh`, `scripts/state-inject.sh`,
   `scripts/check-prerequisites.sh`, the self-tests `scripts/test-*.sh`,
   `scripts/README.md`, `commitlint.config.cjs`.
 - **HYBRID** (a framework part that evolves + a project part to preserve, reconciled):
   `CLAUDE.md`, `.claude/settings.json`, `scripts/hooks-install.sh`, `.gitignore`,
-  `.gitattributes`, `Makefile`, and the commands customised at setup
-  (`fw/checkpoint.md`, `fw/integrate.md`, `fw/new-component.md`).
+  `.gitattributes`, `Makefile`, `.claude/rules/fw-code-quality.md` (its globs), and the
+  commands customised at setup (`fw/checkpoint.md`, `fw/integrate.md`, `fw/new-component.md`).
 - **MEMORY TEMPLATES** (the method's own files inside `.claude/memory/`, reconciled 3-way
   like the hybrids): the four guide READMEs — the `README.md` of `components/`,
   `decisions/`, `plans/` and `sessions/` — and, of `LEARNINGS.md`, its HEADER (the lines
@@ -874,7 +881,7 @@ complementary sources:
   framework's memory:
 
   ```bash
-  git -C "${FW:?}" diff vX vY -- .claude/docs .claude/commands .claude/settings.json \
+  git -C "${FW:?}" diff vX vY -- .claude/docs .claude/rules .claude/commands .claude/settings.json \
     CLAUDE.md scripts Makefile commitlint.config.cjs .gitignore .gitattributes \
     .claude/memory/components/README.md .claude/memory/decisions/README.md \
     .claude/memory/plans/README.md .claude/memory/sessions/README.md

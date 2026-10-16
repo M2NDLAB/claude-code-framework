@@ -107,6 +107,7 @@ collide with Claude Code's own.
 └── .claude/
     ├── settings.json          SessionStart hook (STATE.md, via scripts/state-inject.sh) + PreToolUse guard + session marker + permissions
     ├── docs/                  00-overview, 01-task-planning ... 06-self-improvement
+    ├── rules/                 fw-code-quality (on the project's code files), fw-boundary (on the boundary's files)
     ├── commands/              /fw:plan /fw:checkpoint /fw:integrate /fw:sos /fw:retro /fw:security-review /fw:new-component /fw:lint-memory /fw:harvest-framework (all in fw/)
     └── memory/                STATE, TREE, INDEX, LEARNINGS (template) + 4 subfolders
 ```

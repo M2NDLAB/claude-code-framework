@@ -198,8 +198,8 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
 - [x] 4. IMP-126: block 1 checks the CI of the tip inside its chain (D6); IMP-126 moved to Applied, its heading taking this task's sha with the next commit — commit: 45ef9e9
 - [x] 5. `/fw:plan`, reading `docs/01`; its class, the inventories, the tests — commit: cd358ac
 - [x] 6. `scripts/state-inject.sh`, a hermetic self-test (the template, legacy titles, no titles, over the budget, CRLF, a missing file), its class and inventories; the SessionStart wiring in `settings.json` and an `ask` rule on the script, both through the user's approval — commit: 389271a
-- [x] 7. The setup answers of `docs/02`-`04` move to `CLAUDE.md`'s technical rules, one marked line each; the slots become pointers and the three docs METHOD; `SETUP.md` §2, the classes, edge cases 7 and 8; `upgrade-check` checks that an answer at `vX` has its new home at `vY` — `refactor!` with a BREAKING CHANGE footer — commit: —
-- [ ] 8. `.claude/rules/fw-code-quality.md` (a Read of `docs/02` at its moment, no `@`: task 2) and `.claude/rules/fw-boundary.md`; classes, README's tree, TREE's legend, step 2's pathspec, a coverage check of the globs; docs-check fails an `@` in a method rule — commit: —
+- [x] 7. The setup answers of `docs/02`-`04` move to `CLAUDE.md`'s technical rules, one marked line each; the slots become pointers and the three docs METHOD; `SETUP.md` §2, the classes, edge cases 7 and 8; `upgrade-check` checks that an answer at `vX` has its new home at `vY` — `refactor!` with a BREAKING CHANGE footer — commit: 8a9a1c1
+- [x] 8. `.claude/rules/fw-code-quality.md` (a Read of `docs/02` at its moment, no `@`: task 2) and `.claude/rules/fw-boundary.md`; classes, README's tree, TREE's legend, step 2's pathspec, a coverage check of the globs; docs-check fails an `@` in a method rule — commit: —
 - [ ] 9. The commands: step-1 Reads by section, the compaction line, descriptions with triggers, the frontmatter policy, `LEARNINGS.md` read by section, `/fw:sos` on an ARCHITECT RESPONSE, `/fw:security-review` named against the built-in, `/fw:checkpoint`'s STATE budget (D5a), `/fw:lint-memory`'s STATE size check (D5b), its glob and import checks — commit: —
 - [ ] 10. The gate's check in `/fw:integrate`, the PR form included; the limits declared in `docs/03` — commit: —
 - [ ] 11. The core in `.claude/rules/fw-core.md` — D1's two conditions held at task 2 —; `CLAUDE.md` the project's own and its class; `docs/00` *Selective loading*; every `@` of the method's files removed, `STATE.md`'s included; the rules' citations re-pointed; docs-check strict, with the pointers resolved to headings — commit: —
@@ -325,6 +325,14 @@ cache write 198,631 tokens, all Haiku 5.5. The transcripts stay where Claude Cod
   read-only commands of the stack belong in `settings.json`'s `allow`, so that slot left the
   doc with no marked line. The self-test's new case 12, red with the table emptied (its first
   `edge case 8` line missing), green with it.
+- Task 8: D4's condition (2) — no concrete glob of code files in the framework — taken as a
+  slot: `fw-code-quality.md`'s `paths` holds the setup marker, quoted, until a project answers
+  it. Claude Code reads a `[` as the start of a bracket expression (`memory.md`), so the open
+  slot matches only a one-letter file at the root: the rule does not load, and the core's
+  table sends Claude to `docs/02` alone. The rule is HYBRID; `fw-boundary.md`, on four of the
+  framework's own files, METHOD. The docs check's new family: no `@`-import in a method rule
+  outside code spans, each concrete glob matching a tracked file — its self-test's case 11
+  plants both defects.
 
 ## Proposals
 - None new: IMP-124's Level 2 is decided, IMP-126 widened by the user's decision.

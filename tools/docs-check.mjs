@@ -1199,6 +1199,65 @@ const ALLOW = [
   { check: 'italian', file: `${NOTES}2026-07-17-audit-preintegrate-closeout-v0.3.0.md`, line: '(nota); lavoro su', reason: 'a frontmatter value the translation of the memory missed; the memory is not rewritten' },
 ]
 
+// --- The method's rules ------------------------------------------------------------------
+// A rule of the method (.claude/rules/fw-*.md) imports nothing: an @-import inside a rule with
+// `paths` was measured loading its file at every launch, before the rule itself (the v4.0.0
+// session note, task 2) — the cost the rules exist to avoid; the rule tells Claude to Read
+// the file instead. Claude Code imports `@path` outside code spans and fenced code. And each
+// concrete glob of a rule's `paths` matches a tracked file: one that matches nothing is a rule
+// that never loads. A slot's marker is no glob: setup answers it.
+const METHOD_RULE = /^\.claude\/rules\/fw-[^/]+\.md$/
+// ruleGlobs(p): the `paths` of a rule's frontmatter, each with its line — a YAML list, or the
+// comma-separated string Claude Code also accepts.
+function ruleGlobs(p) {
+  const ls = lines(p)
+  if (ls[0] !== '---') return []
+  const end = ls.indexOf('---', 1)
+  const out = []
+  const unquote = (s) => s.trim().replace(/^(["'])(.*)\1$/, '$2')
+  let inList = false
+  for (let i = 1; i < end; i++) {
+    const l = ls[i]
+    const key = /^paths:\s*(.*)$/.exec(l)
+    if (key) {
+      inList = !key[1].trim()
+      if (!inList) for (const g of key[1].split(',')) out.push({ glob: unquote(g), line: i + 1 })
+      continue
+    }
+    if (!inList || /^\s*(#.*)?$/.test(l)) continue
+    const item = /^\s+-\s+(.*)$/.exec(l)
+    if (item) out.push({ glob: unquote(item[1]), line: i + 1 })
+    else inList = false
+  }
+  return out
+}
+// globToRe(g): a rule's glob as a regular expression over the repository's paths — `**/` any
+// depth or none, `*` and `?` within a segment, `{a,b}` either.
+const globToRe = (g) => new RegExp(`^${g.replace(/[.+^$()|\\]/g, '\\$&')
+  .replace(/\{([^}]*)\}/g, (m, a) => `(?:${a.split(',').join('|')})`)
+  .replace(/\*\*\//g, '\u0000').replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*').replace(/\?/g, '[^/]')
+  .replace(/\u0000/g, '(?:.*/)?')}$`)
+function checkRules() {
+  section('Rules — the method\'s rules import nothing, and each of their globs matches a file')
+  const rules = FILES.filter((f) => METHOD_RULE.test(f))
+  if (!rules.length) report('rule', null, 0, 'no method rule under .claude/rules/: the extraction is wrong')
+  let globs = 0
+  for (const p of rules) {
+    for (const u of units(p, allMask(p))) {
+      for (const m of blankOut(u.text, CODE_SPAN).matchAll(/(?:^|\s)@([\w.~/-]+)/g)) {
+        report('rule', p, u.at[m.index], `@${m[1]}: an import in a method rule loads its file at every launch, before the rule — have Claude Read it instead`)
+      }
+    }
+    for (const g of ruleGlobs(p)) {
+      if (MARKER_RE.test(g.glob)) continue
+      globs++
+      const re = globToRe(g.glob)
+      if (!FILES.some((f) => re.test(f))) report('rule', p, g.line, `the glob "${g.glob}" matches no tracked file: the rule would never load`)
+    }
+  }
+  settle('rule', `${plural(rules.length, 'method rule')}, no @-import, ${plural(globs, 'glob')} each matching a tracked file`)
+}
+
 // --- The allow-list itself ---------------------------------------------------------------
 function checkAllowList() {
   section('The allow-list — every declared exception still matches something')
@@ -1214,6 +1273,7 @@ checkImpNumbers()
 checkPointers()
 checkShortSlots()
 checkInventories()
+checkRules()
 checkChangelog()
 checkCurrentVersion()
 checkLinks()
