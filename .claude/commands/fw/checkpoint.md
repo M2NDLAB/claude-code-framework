@@ -35,7 +35,9 @@ values, then deletes this paragraph: [TO BE DEFINED AT SETUP].
      line with a pointer; each *Caution & open issues* entry is one line with its trigger
      and a pointer to the note that holds the detail. Measure it after the rewrite:
      `bash scripts/state-inject.sh | tail -n 1` must not be the line that says characters
-     were not shown. AFTER the rewrite check also that the
+     were not shown. One exception: the checkpoint that closes an upgrade of the framework
+     (the framework's `SETUP.md`, Step 6) updates STATE without condensing it — the first
+     checkpoint after the upgrade's merge does. AFTER the rewrite check also that the
      pre-existing entries of "Caution & open issues" are still present or
      knowingly closed (a critical debt must not die in a rewrite)
      and that every entry has its explicit TRIGGER, never a generic one;

@@ -473,7 +473,7 @@ has '"the five guide READMEs"'
 has '"+ 5 subfolders"'
 has 'the header says "nine cases"'
 c="$(copy list-setup)"
-edit "${c}/SETUP.md" '`CLAUDE\.md`, `\.claude/settings\.json`, `scripts/hooks-install\.sh`' '`.claude/settings.json`, `scripts/hooks-install.sh`'
+edit "${c}/SETUP.md" '`CLAUDE\.md` — from v4\.0\.0 the' 'The index — from v4.0.0 the'
 edit "${c}/SETUP.md" 'CLAUDE\.md scripts Makefile commitlint' 'CLAUDE.md scripts commitlint'
 edit "${c}/SETUP.md" '`CHANGELOG\.md`, `tools/` and `\.github/` are NOT copied' '`CHANGELOG.md`, the checks and `.github/` are NOT copied'
 edit "${c}/SETUP.md" 'So are `tools/` —' 'So are the checks —'

@@ -217,7 +217,8 @@ the general rule is `.claude/docs/04-git-workflow.md`, *Versioning*, "When the
 documentation IS the product"). A deliverable is a release, with a tag, when it changes
 what projects receive:
 - the PAYLOAD that setup copies (`SETUP.md`, step 1): `.claude/` as setup copies it —
-  commands, docs, settings and the memory's starting files, not the framework's own IMP
+  the rules, the method's core among them, commands, docs, settings and the memory's
+  starting files, not the framework's own IMP
   entries and session notes —, `CLAUDE.md`, `Makefile`, `commitlint.config.cjs`,
   `.gitignore`, `.gitattributes`, `scripts/`; and the `SECURITY.md` scaffold setup offers;
 - what a project's setup and upgrade take from this repo at a tag without copying it:

@@ -27,9 +27,11 @@ version receives fixes (`git tag -l`).
 
 The defences live in the method, they are not duplicated here:
 
-- anti-secret baseline: **gitleaks** pre-commit hook (`make hooks-install`,
-  rule 1 of the method's core, `.claude/rules/fw-core.md`); on a repo with pre-existing history it is completed by
-  the one-off `gitleaks detect` scan of the entire history
+- anti-secret baseline: **gitleaks** pre-commit hook (`make hooks-install`, rule 1 of
+  the method's core, `.claude/rules/fw-core.md`); on a repo with pre-existing history it
+  is completed by the one-off `gitleaks detect` scan of the entire history
   (`.claude/docs/03-security-gate.md`);
 - mandatory review on sensitive components: **security gate**,
-  `.claude/docs/03-security-gate.md` (command `/fw:security-review`).
+  `.claude/docs/03-security-gate.md` (command `/fw:security-review`), its verdict read by
+  `/fw:integrate` before it prints its blocks — a check the agent applies, not an
+  enforcement (*The check at integration*).
