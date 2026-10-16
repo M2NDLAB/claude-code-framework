@@ -67,7 +67,7 @@ project. The entry's number and its source note's date stay, still anonymous.
 ### <title of the lesson>              (was IMP-<nnn> in this project, <YYYY-MM-DD>)
 - Origin: <generic and anonymous context>
 - Observed problem: <...>
-- Proposal: <what to change IN the framework: CLAUDE.md / docs/NN / command / hook / process>
+- Proposal: <what to change IN the framework: the core / docs/NN / command / hook / process>
 - Expected benefit / risk: <...>
 
 ### <title of the next lesson>         (was IMP-<nnn> in this project, <YYYY-MM-DD>)

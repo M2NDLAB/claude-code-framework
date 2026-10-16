@@ -334,7 +334,8 @@ command does not matter:
   from the session's primary working directory, with no parent-directory fallback: a
   session started in a subdirectory of the repository, or moved there with `/cd`, loads none
   of it — no guard, no `deny` or `ask` rule, no `AGENT_GIT_BOUNDARY`, no SessionStart hook —,
-  and nothing says so, while `CLAUDE.md` still loads from the directories above.
+  and nothing says so, while `CLAUDE.md` and the method's core, `.claude/rules/fw-core.md`,
+  still load from the directories above (the core measured on 2026-10-16).
   `--setting-sources` without `project` does the same, and managed settings'
   `allowManagedHooksOnly` runs only the managed hooks. The `pre-push` still refuses such a
   session's push: `CLAUDECODE` is set in the processes Claude Code starts. Start Claude Code

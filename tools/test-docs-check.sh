@@ -48,10 +48,11 @@
 #   9. the allow-list — an exception whose cause is gone fails, and an exception never
 #      hides another finding of the same line;
 #  10. read-only — a run leaves the copy exactly as it was;
-#  11. rules and commands — an @-import in a method rule or a method command, a glob of a
-#      rule's `paths` that matches no tracked file, a `model` in a command's frontmatter,
-#      and `disable-model-invocation` on a command other than /fw:new-component each fail;
-#      an @ inside a code span does not.
+#  11. rules and commands — an @-import in a method rule or a method command, a pointer to
+#      docs/04 in the core with no section or with one the doc lacks, a glob of a rule's
+#      `paths` that matches no tracked file, a `model` in a command's frontmatter, and
+#      `disable-model-invocation` on a command other than /fw:new-component each fail; an @
+#      inside a code span does not.
 # Run it from anywhere: bash tools/test-docs-check.sh
 set -euo pipefail
 
@@ -144,7 +145,6 @@ floor 'N tags and N entries match' 19
 floor 'N mentions of a framework release' 20
 floor 'N Markdown links' 5
 floor 'N wikilinks' 100
-floor 'N @-imports' 8
 floor 'N cited paths' 300
 floor 'N section titles' 40
 floor 'the class table at N tags' 19
@@ -264,7 +264,7 @@ printf 'Notes.\n' > "${c}/NOTES.md"
 printf '#!/usr/bin/env bash\n' > "${c}/tools/extra.sh"
 printf '\nRun `/nonexistent` first.\n' >> "${c}/README.md"
 run 1 "${c}"
-has "the process documentation of CLAUDE.md lacks .claude/docs/07-extra.md"
+has "the docs of the core's table lacks .claude/docs/07-extra.md"
 has "the Structure tree under the root lacks NOTES.md"
 has "the table of tools/README.md lacks extra.sh"
 has "/nonexistent: no such command"
@@ -273,7 +273,7 @@ printf '#!/usr/bin/env bash\n' > "${c}/scripts/test-extra.sh"
 run 1 "${c}"
 has "the test-scripts recipe lacks scripts/test-extra.sh"
 c="$(copy inv-guards)"
-edit "${c}/CLAUDE.md" '^- Slash commands: ' '- Commands of the method: '
+edit "${c}/.claude/rules/fw-core.md" '^- Slash commands: ' '- Commands of the method: '
 edit "${c}/README.md" 'commands/              /fw:plan' 'cmds/                  /fw:plan'
 edit "${c}/Makefile" 'bash scripts/' 'bash scriptz/'
 run 1 "${c}"
@@ -645,14 +645,22 @@ fingerprint "${c}" > "${workdir}/after.txt"
 diff "${workdir}/before.txt" "${workdir}/after.txt" >/dev/null || fail "a run changed the copy it checked"
 echo "PASS (docs-check, read-only): a run leaves the repository exactly as it was."
 
-# --- Case 11: rules ---------------------------------------------------------------------------
+# --- Case 11: rules and commands -------------------------------------------------------------
 c="$(copy rule-import)"
-printf '\nSee @.claude/docs/04-git-workflow.md first.\n' >> "${c}/.claude/rules/fw-boundary.md"
+printf '\nSee @.claude/docs/02-code-quality.md first.\n' >> "${c}/.claude/rules/fw-boundary.md"
 run 1 "${c}"
-fails 1 "@.claude/docs/04-git-workflow.md: an import in a method rule loads its file at every launch"
+fails 1 "@.claude/docs/02-code-quality.md: an import in a method rule loads its file at every launch"
 c="$(copy rule-import-span)"
-printf '\nNever write `see @.claude/docs/04-git-workflow.md` here.\n' >> "${c}/.claude/rules/fw-boundary.md"
+printf '\nNever write `see @.claude/docs/02-code-quality.md` here.\n' >> "${c}/.claude/rules/fw-boundary.md"
 run 0 "${c}"
+c="$(copy rule-section)"
+edit "${c}/.claude/rules/fw-core.md" '\*Rollback — choosing the right tool\*' 'the rollback section'
+run 1 "${c}"
+fails 1 "a pointer to docs/04 with no section of it"
+c="$(copy rule-section-gone)"
+edit "${c}/.claude/rules/fw-core.md" '\*Rollback — choosing the right tool\*' '*Rollback — no such section*'
+run 1 "${c}"
+has 'has no section "Rollback — no such section"'
 c="$(copy rule-glob)"
 edit "${c}/.claude/rules/fw-boundary.md" '"scripts/hooks-install\.sh"' '"scripts/no-such-file.sh"'
 run 1 "${c}"
@@ -669,4 +677,4 @@ c="$(copy command-uninvoked)"
 edit "${c}/.claude/commands/fw/retro.md" '^---\ndescription:' $'---\ndisable-model-invocation: true\ndescription:'
 run 1 "${c}"
 fails 1 "disable-model-invocation: only .claude/commands/fw/new-component.md is kept out of Claude's reach"
-echo "PASS (docs-check, rules and commands): an @-import in a method rule or command, a glob matching no file, a command key outside the policy each fail; a code span does not."
+echo "PASS (docs-check, rules and commands): an @-import in a method rule or command, a pointer to docs/04 without its section or with a missing one, a glob matching no file, a command key outside the policy each fail; a code span does not."

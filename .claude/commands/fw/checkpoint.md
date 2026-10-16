@@ -12,7 +12,8 @@ values, then deletes this paragraph: [TO BE DEFINED AT SETUP].
    context has been compacted since, read them again before the next step.
 2. `git status` and `git diff --stat`: list what has changed and check that there
    are no unexpected or suspicious files (secrets, environment files, build artefacts).
-3. Update the memory (.claude/memory/), with the file tools (`CLAUDE.md`, rule 10):
+3. Update the memory (.claude/memory/), with the file tools (rule 10 of the core,
+   `.claude/rules/fw-core.md`):
    - create/update today's session note with what was done and why. Its frontmatter
      follows `sessions/README.md`, plus the two fields written by the main session:
      `model: '<model id as the runtime exposes it>'` (verbatim, ALWAYS single-quoted,
@@ -51,7 +52,7 @@ values, then deletes this paragraph: [TO BE DEFINED AT SETUP].
      `tree -L 3 --dirsfirst -I '<pattern-to-ignore-for-the-stack>'`
      (fallback if `tree` is missing: `git ls-files`) and realign the legend;
    - update INDEX.md if there are new notes to link.
-4. Project documentation ("documentation updated" rule of CLAUDE.md):
+4. Project documentation (rule 5 of the core, "documentation with the change"):
    - if the project doc EXISTS: check whether the changes touch user-facing
      features, operating procedures, APIs or deploy, and update the relevant pages —
      concise but real, no placeholders;

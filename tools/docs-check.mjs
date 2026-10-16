@@ -96,6 +96,7 @@ const SCAFFOLDS = ['SECURITY.md']
 const LEARNINGS = '.claude/memory/LEARNINGS.md'
 const CHANGELOG = 'CHANGELOG.md'
 const SETUP = 'SETUP.md'
+const CORE = '.claude/rules/fw-core.md'
 const underPayload = (p) => PAYLOAD_PATHS.some((r) => p === r || p.startsWith(`${r}/`))
 const isLiveNote = (p) => /^\.claude\/memory\/sessions\/(?!README\.md$)[^/]+$/.test(p)
 const isPayload = (p) => SCAFFOLDS.includes(p) || (underPayload(p) && !isLiveNote(p))
@@ -475,9 +476,10 @@ function checkInventories() {
   for (const p of FILES.filter((f) => /^\.claude\/commands\/.+\.md$/.test(f) && !f.startsWith('.claude/commands/fw/'))) {
     report('inventory', p, 1, `a command outside .claude/commands/fw/: it would run under a name Claude Code may also use`)
   }
-  const slash = item('CLAUDE.md', /^- Slash commands:/)
-  if (!slash) report('inventory', 'CLAUDE.md', 1, 'no "- Slash commands:" item in Quick commands')
-  else compareSets('inventory', 'CLAUDE.md', slash.line, 'the Slash commands of Quick commands', commands,
+  // The method's commands and targets are listed in its core, the rule every session loads.
+  const slash = item(CORE, /^- Slash commands:/)
+  if (!slash) report('inventory', CORE, 1, 'no "- Slash commands:" item in Quick commands')
+  else compareSets('inventory', CORE, slash.line, 'the Slash commands of Quick commands', commands,
     new Set(backticked(slash.text).filter((t) => t.startsWith('/'))), '.claude/commands/')
   const { tree, line: treeLine } = readmeTree()
   const cmdLine = region('README.md', /^### Structure/, /^## /).find((l) => /commands\/\s+\//.test(l.text))
@@ -495,8 +497,8 @@ function checkInventories() {
   // The process targets, wherever they are listed.
   const targets = processTargets()
   if (targets.size < 3) report('inventory', 'Makefile', 1, `only ${targets.size} process targets found: the recipe test is wrong`)
-  const quick = region('CLAUDE.md', /^## Quick commands/, /^(## |---)/)
-  compareSets('inventory', 'CLAUDE.md', quick[0]?.line ?? 1, 'Quick commands', targets,
+  const quick = region(CORE, /^## Quick commands/, /^(## |---)/)
+  compareSets('inventory', CORE, quick[0]?.line ?? 1, 'Quick commands', targets,
     new Set(quick.flatMap((l) => [...l.text.matchAll(/`make ([a-z][a-z0-9-]*)/g)].map((m) => m[1]))), 'the Makefile\'s process targets')
   const mk = region('README.md', /^### Structure/, /^## /).find((l) => /Makefile\s/.test(l.text))
   if (mk) compareSets('inventory', 'README.md', mk.line, 'the Structure tree\'s Makefile line', targets,
@@ -521,10 +523,11 @@ function checkInventories() {
     compareSets('inventory', readme, rows[0]?.line ?? 1, `the table of ${readme}`,
       new Set([...childrenOf(dir)].filter((c) => c !== 'README.md')), new Set(rows.map((r) => r.m[1])), `${dir}/`)
   }
-  // The docs CLAUDE.md indexes.
-  compareSets('inventory', 'CLAUDE.md', lines('CLAUDE.md').findIndex((l) => l.includes('@.claude/docs/')) + 1,
-    'the process documentation of CLAUDE.md', new Set(FILES.filter((p) => /^\.claude\/docs\/[^/]+\.md$/.test(p))),
-    new Set((text('CLAUDE.md').match(/@\.claude\/docs\/[^\s)]+\.md/g) ?? []).map((t) => t.slice(1))), '.claude/docs/')
+  // The docs the core's table sends Claude to: every doc of the method is reachable from it,
+  // since none is imported any more.
+  const table = region(CORE, /^## Read at the moment it is needed/, /^## /)
+  compareSets('inventory', CORE, table[0]?.line ?? 1, 'the docs of the core\'s table', new Set(FILES.filter((p) => /^\.claude\/docs\/[^/]+\.md$/.test(p))),
+    new Set(table.flatMap((l) => backticked(l.text)).filter((t) => /^\.claude\/docs\/[^/]+\.md$/.test(t))), '.claude/docs/')
   // The README's tree: every directory it opens lists its tracked children, globs expanded;
   // a directory listed without children is summarised on its own line.
   for (const [dir, listed] of tree) {
@@ -1271,6 +1274,19 @@ function checkRules() {
     for (const k of keys) {
       if (!COMMAND_KEYS.has(k.key)) report('rule', p, k.line, `${k.key}: a key a method's command does not carry (description, argument-hint, and disable-model-invocation on ${COMMAND_UNINVOKED} only)`)
       else if (k.key === 'disable-model-invocation' && p !== COMMAND_UNINVOKED) report('rule', p, k.line, `disable-model-invocation: only ${COMMAND_UNINVOKED} is kept out of Claude's reach`)
+    }
+  }
+  // docs/04 is read by section (the user's decision D3, v4.0.0): in the core and the rules,
+  // which every session holds, a pointer to it names a section the doc has.
+  const d04 = '.claude/docs/04-git-workflow.md'
+  const titles04 = headings(d04).map((h) => h.title)
+  for (const p of rules) {
+    for (const u of units(p, allMask(p))) {
+      if (!/04-git-workflow\.md|docs\/04\b/.test(u.text)) continue
+      const named = [...u.text.replace(/\*\*[^*]+\*\*/g, ' ').matchAll(/\*([^*\n]+)\*/g)].map((m) => m[1].trim())
+      if (!named.some((t) => titles04.some((h) => h === t || h.startsWith(t)))) {
+        report('rule', p, u.at[u.text.search(/04-git-workflow\.md|docs\/04\b/)], `a pointer to docs/04 with no section of it: name the section to read — the doc is read by section`)
+      }
     }
   }
   for (const p of rules) {

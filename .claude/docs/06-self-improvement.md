@@ -40,7 +40,8 @@ When you observe: recurring friction (the same question/error across several
 sessions), a rule that is ambiguous or in conflict with another, a process step that
 wastes time without benefit, a missing convention that would have prevented a bug,
 the opportunity for a new slash command or hook:
-1. Do NOT modify `CLAUDE.md`, the rules in the docs, the commands or `settings.json`.
+1. Do NOT modify the method's rules — its core and the other files of `.claude/rules/` —,
+   `CLAUDE.md`, the rules in the docs, the commands or `settings.json`.
 2. Record an IMP-nnn proposal in `LEARNINGS.md` (problem → proposal → benefit).
 3. If it is urgent or blocking: flag it to the user at the end of the task; otherwise
    it stays in the backlog for the retrospective (`/fw:retro`).
@@ -64,12 +65,13 @@ configuration is in force, or why. **The agent proposes, the human disposes.**
 ## Applying approved proposals
 
 When the user approves an IMP (directly or through an escalation answer):
-1. Apply the change in the right file (`CLAUDE.md` / doc / command / config).
+1. Apply the change in the right file (the core `.claude/rules/fw-core.md` / `CLAUDE.md` /
+   doc / command / config).
 2. Move the IMP into "Applied" with the date and the commit sha, rewritten in its final
    form (the format comment of `LEARNINGS.md` says how).
 3. A dedicated commit: `chore(claude): apply IMP-nnn — <title>`.
-4. If the change alters a numbered rule of `CLAUDE.md`: check that the other rules
-   and the docs stay coherent (no orphan references).
+4. If the change alters a numbered rule of the core: check that the other rules, the
+   docs and the commands that cite it by number stay coherent (no orphan references).
 
 ## The bridge to the framework — "framework-bound" lessons
 

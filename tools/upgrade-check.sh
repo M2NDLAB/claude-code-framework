@@ -135,7 +135,7 @@ classify() {
     .claude/docs/02-code-quality.md | .claude/docs/03-security-gate.md | \
     .claude/docs/04-git-workflow.md | \
     .claude/docs/05-escalation-protocol.md | .claude/docs/06-self-improvement.md | \
-    .claude/rules/fw-boundary.md | \
+    .claude/rules/fw-boundary.md | .claude/rules/fw-core.md | \
     .claude/commands/fw/harvest-framework.md | .claude/commands/fw/lint-memory.md | \
     .claude/commands/fw/plan.md | \
     .claude/commands/fw/retro.md | .claude/commands/fw/security-review.md | \
@@ -484,7 +484,7 @@ file_markers() { grep -oE "${MARKER_RE}" "$1" 2>/dev/null | wc -l | tr -d ' '; }
 # the pipe's buffer — the framework's own, from v1.3.0 on.
 labels_renamed() { fw show "$1:.claude/memory/LEARNINGS.md" 2>/dev/null | grep '^- Date:' >/dev/null; }
 
-# The memory's FORMAT lines (CLAUDE.md, rule 9): what v1.1.0 translated, old form -> new.
+# The memory's FORMAT lines (the core's rule 9): what v1.1.0 translated, old form -> new.
 # One "old<TAB>new" pair per line; the short forms are those seen in projects.
 TITLE_TABLE='## Stato avanzamento	## Progress
 ## Cosa esiste adesso	## What exists now

@@ -53,7 +53,7 @@ HOOKS_DIR="${git_common_dir}/hooks"
 # The prerequisite check, for what the hooks need (--hooks: make is not among it), each tool
 # RUN, not only found, from the repository's top level, where it reads the line ends. A tool
 # missing or not starting stops the install before any hook is written — gitleaks is rule 1
-# of CLAUDE.md, not optional —, and so does a gitleaks below its security minimum or whose
+# of the method's core, not optional —, and so does a gitleaks below its security minimum or whose
 # version cannot be read; any other version below its minimum is shown, and the install
 # goes on.
 if [[ ! -f "${REPO_ROOT}/scripts/check-prerequisites.sh" ]]; then

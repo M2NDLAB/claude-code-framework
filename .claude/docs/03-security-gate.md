@@ -4,7 +4,7 @@ Security has two levels in this framework:
 
 1. **An automatic baseline** — the pre-commit hook runs secret scanning (gitleaks)
    on the changes staged for a `git commit`, and refuses the commit when it finds a
-   secret (rule 1 of `CLAUDE.md`), from the moment it is installed and while git reads
+   secret (rule 1 of the core, `.claude/rules/fw-core.md`), from the moment it is installed and while git reads
    it. Its limits include the commits git creates itself — a rebase's `--continue`,
    `git am`, a cherry-pick or a revert that applies cleanly —, which do not run it, a
    commit made with `-n` (`--no-verify`), which the shipped `allow` rule runs with no prompt
@@ -56,7 +56,8 @@ finds them before they reach integration.
 ## The check at integration
 
 The gate is never activated by a file's path: it holds in every session, from the method's
-core, loaded at every launch, on the categories above — in doubt, under the gate. And the
+core (`.claude/rules/fw-core.md`, rule 8), loaded at every launch, on the categories above —
+in doubt, under the gate. And the
 session note that closes a deliverable records its verdict, the review's outcome and the tip
 it reviewed (`.claude/memory/sessions/README.md`, *The security gate's line*), which
 `/fw:integrate` reads before it prints its blocks — in the Pull Request form, before the

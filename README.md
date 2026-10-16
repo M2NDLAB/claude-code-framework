@@ -82,7 +82,7 @@ collide with Claude Code's own.
 
 ```
 .
-├── CLAUDE.md                  index + process rules + technical rules [TO BE DEFINED]
+├── CLAUDE.md                  the project's: the answers the method reads + technical rules [TO BE DEFINED]
 ├── README.md                  this file
 ├── SETUP.md                   how to start from scratch, list of the [TO BE DEFINED]
 ├── LICENSE                    MIT — covers the framework, not the projects using it
@@ -106,8 +106,8 @@ collide with Claude Code's own.
 │   └── README.md
 └── .claude/
     ├── settings.json          SessionStart hook (STATE.md, via scripts/state-inject.sh) + PreToolUse guard + session marker + permissions
-    ├── docs/                  00-overview, 01-task-planning ... 06-self-improvement
-    ├── rules/                 fw-code-quality (on the project's code files), fw-boundary (on the boundary's files)
+    ├── docs/                  00-overview, 01-task-planning ... 06-self-improvement — read when a task needs them
+    ├── rules/                 fw-core (the method's core, every launch), fw-code-quality (on the project's code files), fw-boundary (on the boundary's files)
     ├── commands/              /fw:plan /fw:checkpoint /fw:integrate /fw:sos /fw:retro /fw:security-review /fw:new-component /fw:lint-memory /fw:harvest-framework (all in fw/)
     └── memory/                STATE, TREE, INDEX, LEARNINGS (template) + 4 subfolders
 ```

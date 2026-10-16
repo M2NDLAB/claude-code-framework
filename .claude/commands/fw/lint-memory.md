@@ -57,9 +57,9 @@ a rule: then it is a process bug, not a memory bug, and it goes to escalation/IM
     from the inventory; an entry LISTED but non-existent. ONLY the enumerated
     lists are checked — never the prose mentions elsewhere (it is the enumeration that avoids
     list-vs-prose false positives):
-    (a) files in `.claude/commands/fw/`, each the command `/fw:<name>` ↔ the "Quick
-        commands" list of `CLAUDE.md` and, where present, the `commands/` line of the
-        "Structure" of `README.md`;
+    (a) files in `.claude/commands/fw/`, each the command `/fw:<name>` ↔ the *Quick
+        commands* list of the core, `.claude/rules/fw-core.md`, and, where present, the
+        `commands/` line of the "Structure" of `README.md`;
     (b) PROCESS targets of the `Makefile` ↔ the same lists. Process ones = the
         recipe invokes a script from `scripts/` (STRUCTURAL anchoring, not
         positional: it holds even when the setup fills in or removes the

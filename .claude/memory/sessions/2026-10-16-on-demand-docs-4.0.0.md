@@ -201,8 +201,8 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
 - [x] 7. The setup answers of `docs/02`-`04` move to `CLAUDE.md`'s technical rules, one marked line each; the slots become pointers and the three docs METHOD; `SETUP.md` §2, the classes, edge cases 7 and 8; `upgrade-check` checks that an answer at `vX` has its new home at `vY` — `refactor!` with a BREAKING CHANGE footer — commit: 8a9a1c1
 - [x] 8. `.claude/rules/fw-code-quality.md` (a Read of `docs/02` at its moment, no `@`: task 2) and `.claude/rules/fw-boundary.md`; classes, README's tree, TREE's legend, step 2's pathspec, a coverage check of the globs; docs-check fails an `@` in a method rule — commit: 634d10d
 - [x] 9. The commands: step-1 Reads by section, the compaction line, descriptions with triggers, the frontmatter policy, `LEARNINGS.md` read by section, `/fw:sos` on an ARCHITECT RESPONSE, `/fw:security-review` named against the built-in, `/fw:checkpoint`'s STATE budget (D5a), `/fw:lint-memory`'s STATE size check (D5b), its glob and import checks — commit: 40e15a5
-- [x] 10. The gate's check in `/fw:integrate`, the PR form included; the limits declared in `docs/03` — commit: —
-- [ ] 11. The core in `.claude/rules/fw-core.md` — D1's two conditions held at task 2 —; `CLAUDE.md` the project's own and its class; `docs/00` *Selective loading*; every `@` of the method's files removed, `STATE.md`'s included; the rules' citations re-pointed; docs-check strict, with the pointers resolved to headings — commit: —
+- [x] 10. The gate's check in `/fw:integrate`, the PR form included; the limits declared in `docs/03` — commit: d5a33c2
+- [x] 11. The core in `.claude/rules/fw-core.md` — D1's two conditions held at task 2 —; `CLAUDE.md` the project's own and its class; `docs/00` *Selective loading*; every `@` of the method's files removed, `STATE.md`'s included; the rules' citations re-pointed; docs-check strict, with the pointers resolved to headings — commit: —
 - [ ] 12. `SETUP.md` (the migration from 3.x, the single jump from 1.2.0, `STATE.md` reduced by the first checkpoint after the upgrade, step 4, the brownfield rows), `README.md`, `CONTRIBUTING.md`, `SECURITY.md` — commit: —
 - [ ] 13. `/fw:security-review`, adversarial, its perimeter named: the claims about what loads, the gate's check, `state-inject.sh` and its wiring, the migration of the answers — commit: —
 - [ ] 14. The retro; the CHANGELOG's 4.0.0 entry with IMP-127's erratum; the rehearsal on a clone tagged v4.0.0 — from 3.0.0 with every answer in place, and from 1.2.0 in the synthetic form of the project upgraded next, LF and CRLF —, the new fixed cost measured; the checkpoint — commit: —
@@ -217,6 +217,17 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
   in 3.0.0.
 - The draft core and the research results live in the session's scratchpad, not durable: the
   decisions and numbers they hold are in this note.
+- The fourth turn's instruction: go from task 3 on, and stop after task 11 — the core and the
+  new `CLAUDE.md` — with the core's full text, its characters and tokens, and what left the
+  launch context; stop earlier at a step that prepares block 0. None did: no push before task
+  11, the CI's line of task 4 measured on runs already on GitHub.
+- For task 14's *Upgrading* note: `fw/checkpoint.md`'s step 1 changed one blank line away
+  from the paragraph setup deletes — a weak separator, a likely conflict in a project's 3-way;
+  `CLAUDE.md`'s method part (rules, imports, quick commands) left in one hunk that holds rules
+  5 and 8, which projects answered — a conflict by construction, resolved by edge case 8.
+- IMP-124 moves to Applied at the checkpoint (task 14), with the release's commits.
+- Not run here: gawk and mawk on `state-inject.sh`, the wiring's Windows path — block 0's CI
+  is their first run.
 
 ## The previous merge, reconciled
 - 2026-10-16: `chore/memory-3.0.0-record` integrated. Block 0 pushed `5e43676` (CI run
@@ -344,6 +355,21 @@ cache write 198,631 tokens, all Haiku 5.5. The transcripts stay where Claude Cod
   `disable-model-invocation`. Its own floor of `@`-imports fell from 15 to the 8 `CLAUDE.md`
   still holds; task 11 removes those. `/fw:lint-memory` gained checks 12 (STATE's budget and
   its *Caution* title) and 13 (the rules' globs, the imports and their cost).
+- Task 11: the core, `.claude/rules/fw-core.md`, 15,301 characters in 168 lines — the draft v3
+  of task 1 (rebuilt from the reviewers' map of 126 rules) without its technical rules, plus
+  `docs/02`'s prohibitions spelled out (D4's condition 1), the banner's 8,000 characters and
+  its cut line, the boundary's and the rollback's rows, `docs/03` and `docs/05` reachable from
+  the table; a sentence-level diff against the draft found one qualifier dropped (a review
+  through `git diff`), restored. `CLAUDE.md`, the project's: 3,360 characters (its title and
+  stack lines unchanged, projects answered them). The payload holds 0 `@`-imports. The docs
+  check reads the slash commands, the `make` targets and the docs' index from the core, and
+  in the core and the rules every pointer to `docs/04` must name a section the doc has.
+- The framework at every session start, estimated (÷2.8, band 2.6-2.9), not measured with
+  `/context`: core 15,301 + `CLAUDE.md` 3,360 + the template's `STATE.md` through the hook
+  1,660 + the `fw:` lines of the skill listing 1,591 = 21,912 characters ≈ 7.8k tokens,
+  against ≈99,200 ≈ 35.0k before (−78%). Every delegated agent: core + `CLAUDE.md`, 18,661
+  ≈ 6.7k, against 33.7k (−80%). The draft's 6.4k grew with the answers' nine lines, the
+  `CLAUDE.md` template's examples and the core's additions above.
 
 ## Proposals
 - None new: IMP-124's Level 2 is decided, IMP-126 widened by the user's decision.

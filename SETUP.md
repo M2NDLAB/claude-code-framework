@@ -231,7 +231,7 @@ Two equivalent modes — pick the one you prefer:
   `[TO BE DEFINED AT SETUP]`, and you complete it whenever you like. (See also the
   variant of the first command, step 4.) It writes each answer with its file tools, an
   edit of the slot's own text — never `sed -i`, a line number or a script: the grep's
-  output is the list of what to fill, not a set of coordinates (`CLAUDE.md`, rule 10).
+  output is the list of what to fill, not a set of coordinates (the core's rule 10, `.claude/rules/fw-core.md`).
   Stage what step 1 copied before the interview; after it, `git diff` shows what the
   interview wrote, the memory's initialisation beside the answers — read it before
   staging it.
@@ -241,8 +241,8 @@ Here is the complete list, grouped by file:
 ### `CLAUDE.md` (the most important one)
 - [ ] Header: **project name**, **stack**, **repo**.
 - [ ] *The answers the method reads*, one line each: **Documentation** — where the
-      project documentation lives (rule 5); **Sensitive components** — those under the
-      security gate (rule 8, `docs/03`); **Branches** — the integration and stable
+      project documentation lives (the core's rule 5); **Sensitive components** — those
+      under the security gate (the core's rule 8, `docs/03`); **Branches** — the integration and stable
       branches, and the model if it is not main/develop/feat; **Merge** — Pull Request or
       the `/fw:integrate` block; **Public contract** — the criterion of a MAJOR; **Doc
       comments**, **Error format**, **Formatter / linter** and **Production artifact**,
@@ -254,7 +254,7 @@ Here is the complete list, grouped by file:
       *your* project.
 - [ ] **Interaction language** (in the technical rules): which language the agent
       speaks with you in session. The language of the ARTIFACTS is not configurable —
-      it is always English (rule 9); only this axis is yours.
+      it is always English (the core's rule 9); only this axis is yours.
 
 ### `.claude/rules/`
 - [ ] `rules/fw-code-quality.md`: the globs of the project's code files, one per item of its
@@ -665,7 +665,8 @@ makes the framework's own self-test fail:
 
 - **METHOD** (pure framework, brought to `vY`): `.claude/docs/00-06` — from v4.0.0 the
   docs hold no answer: `docs/02`-`04` point at the index's *The answers the method reads*
-  (edge case 8) —, `.claude/rules/fw-boundary.md`, the non-customised commands in
+  (edge case 8) —, `.claude/rules/fw-core.md` (the method's core, loaded at every launch),
+  `.claude/rules/fw-boundary.md`, the non-customised commands in
   `.claude/commands/fw/`, `scripts/reset-task.sh`,
   `scripts/agent-git-guard.mjs`, `scripts/repo-snapshot.sh`, `scripts/state-inject.sh`,
   `scripts/check-prerequisites.sh`, the self-tests `scripts/test-*.sh`,
@@ -956,7 +957,7 @@ from a hand-written list; the memory's titles and field labels to rename; and th
   re-apply the project's customisations, listed from the diff against `vX`'s copy and
   sorted by what they are: prose is rewritten freely, VALUES (slot answers, names,
   identifiers) stay identical, strings a program reads stay byte for byte — each one an
-  edit with the file tools on its own text (`CLAUDE.md`, rule 10). Where the line
+  edit with the file tools on its own text (the core's rule 10, `.claude/rules/fw-core.md`). Where the line
   falls is a human call, informed by the table: the measure, not the file's name,
   decides.
 - **METHOD** → after the pre-flight of edge case 7 — and edge case 8, if `vY` moved a
@@ -1077,7 +1078,7 @@ from a hand-written list; the memory's titles and field labels to rename; and th
 > shared working tree*). The READING can be spread across them (inventories, diffs by tag, a review);
 > the branch, `git merge-file`, the commits and any throwaway clone for a dry run stay
 > with the main session. Its edits — an answer, a value re-applied, a conflict's
-> resolution, a renamed title — are made with the file tools (`CLAUDE.md`, rule 10); the
+> resolution, a renamed title — are made with the file tools (the core's rule 10, `.claude/rules/fw-core.md`); the
 > copies from the tag, `git merge-file`, the line-end rewrite and the header's splice are
 > the procedure's whole-file writes. An edit to `.claude/settings.json` or
 > `scripts/agent-git-guard.mjs` through the file tools asks the human (the `ask` rules),
@@ -1086,7 +1087,7 @@ from a hand-written list; the memory's titles and field labels to rename; and th
 > not. Where `vY` changes a
 > RULE (rather than being a factual correction), Level 2 of `docs/06` kicks in: it is
 > PROPOSED, not applied silently — *"Never rewrite your own rules on your own
-> initiative"* (`CLAUDE.md`, rule 6).
+> initiative"* (the core's rule 6).
 
 ### Step 4 — Re-sync the hooks and audit the markers
 
@@ -1255,7 +1256,7 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
      `STATE.md` and `LEARNINGS.md`, and the field labels of the IMP entries
      (`- Origin:`, `- Observed problem:`, …), are FORMAT lines that the method reads by
      name (`/fw:checkpoint`, `/fw:lint-memory`, `/fw:retro`, `/fw:harvest-framework`, `docs/03`,
-     `docs/06`). Format is method (`CLAUDE.md`, rule 9): the project's titles and labels
+     `docs/06`). Format is method (the core's rule 9): the project's titles and labels
      take `vY`'s form — the rename is mandatory, and a map from old to new is not an
      alternative. Do not wait for a `vY` that renames them: COMPARE at every upgrade,
      since a project can carry the format of any earlier release (v1.1.0 translated it,
