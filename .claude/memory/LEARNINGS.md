@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-10-15
+updated: 2026-10-16
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -127,6 +127,12 @@ tags: [improvement]
 - Expected benefit / risk: a doc that tells the truth about its own cost. Level 2's risk:
   rules read less often.
 - Kin: IMP-117 (salience, not loading).
+- Status: APPROVED on 2026-10-16 (Level 2) — the docs leave the imports in v4.0.0. Measured
+  first: about 35k tokens of the framework at every session start, a copy of 33.7k in every
+  subagent, `STATE.md` loaded twice, a command's `@` re-attaching its doc. The user's decisions
+  D1-D8 — the core's home, commands for the procedures, `docs/04` read by sections, `docs/02` in
+  place behind a rule, `STATE.md` with a budget — and the plan are in
+  [[2026-10-16-on-demand-docs-4.0.0]].
 
 ### IMP-125 — The self-tests run in the projects: against their answers, in their shells
 - Date: 2026-10-15 | Origin: the 3.0.0 rehearsal and its security gate —
@@ -185,6 +191,16 @@ tags: [improvement]
   after the merge, together with the two record commits to add to the plan." Applied in a
   deliverable of its own: `CONTRIBUTING.md` is no record, so its change takes the full cycle,
   and no tag — a file that serves this repository only. When: the user's call.
+- Evidence, 2026-10-16 — the integration of `chore/memory-3.0.0-record`: block 0 pushed
+  `5e43676` (CI run 38918692260); block 1 merged 31 seconds later, before the CI had any result,
+  its wait written in prose only; block 2 published `main` at `0c71b6f` (CI run 38918804679).
+  Both runs ended green, so nothing needed repair. The user's position, translated from Italian:
+  "block 1 should check by itself that the CI on the tip is green, instead of relying on the
+  written wait." Recorded in [[2026-10-16-on-demand-docs-4.0.0]].
+- Decision, 2026-10-16 (the user's, translated from Italian): "IMP-126 enters v4.0.0 with
+  commits of its own, including the check of the CI inside block 1's chain" — the evidence
+  above promoted to a decision. It supersedes "a deliverable of its own" and "no tag" above:
+  its commits are tasks 3 and 4 of v4.0.0's plan.
 
 ### IMP-127 — The 3.0.0 entry claims a change to `LEARNINGS.md`'s format comment
 - Date: 2026-10-15 | Origin: v3.0.0's integration, the check of its blocks 1 and 2 —
