@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Self-test of scripts/state-inject.sh AND of its wiring in .claude/settings.json (docs/00,
 # *Selective loading*). Eight cases:
-#   1. the shipped template: the banner, then *Caution & open issues*, no HTML comment, no
-#      cut;
+#   1. a STATE.md in the template's form, built here — the repository's own is a project's
+#      memory —: the banner, then *Caution & open issues*, no HTML comment, no cut;
 #   2. titles of another form — an older language's, or none at all —: one line says the
 #      section is missing, and every line of the file follows;
 #   3. over the budget — a long *Progress*, then a *Caution* of 37,000 characters on two
@@ -25,7 +25,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 INJECT="${SCRIPT_DIR}/state-inject.sh"
-TEMPLATE="${REPO_ROOT}/.claude/memory/STATE.md"
 BANNER='=== PROJECT MEMORY (STATE.md) ==='
 CAP=9000
 
@@ -39,6 +38,22 @@ NODE="$(command -v node || true)"
 
 workdir="$(mktemp -d)"
 trap 'rm -rf "${workdir}"' EXIT
+
+# A STATE.md in the template's form, built here: in a project the repository's own STATE.md
+# is the project's memory — any size, any content —, never the template (found by v4.0.0's
+# rehearsal, where a populated STATE.md failed this test's first case).
+TEMPLATE="${workdir}/template.md"
+{
+  printf -- '---\ntype: state\nupdated: YYYY-MM-DD\nbranch: <integration branch>\ntags: [state]\n---\n'
+  printf '# STATE — [PROJECT NAME]\n\n> **What this file is.** The entry point of the memory.\n>\n> Delete this block when you initialise the project.\n\n'
+  printf '> Updated: YYYY-MM-DD | Last: **<last thing completed>** | Index: [[INDEX]]\n\n'
+  printf '## Progress\n<!-- Checklist of goals.\n     Tick what is done. -->\n- [ ] 01 — <first block of work> ← NEXT\n\n'
+  printf '## What exists now\n<!-- What has been built. -->\n- Directory tree: see [[TREE]].\n\n'
+  printf '## Decisions made (not obvious from the code)\n- <decision> → reason.\n\n'
+  printf '## Documentation debt\n- <section to write>\n\n'
+  printf '## Caution & open issues\n<!-- Known traps, with their TRIGGER. -->\n- <open issue> — <reason> → <trigger>\n\n'
+  printf '## Active branches\n- **<integration branch>** = integration.\n'
+} > "${TEMPLATE}"
 
 # run <file>: the script's output for a file; the exit code must be 0.
 run() {
