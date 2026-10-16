@@ -617,11 +617,11 @@ g -C "${FW9}" archive v1.0.0 -- .claude CLAUDE.md | tar -x -C "${P9}"
 put "${P9}" .claude/commands/checkpoint.md 'checkpoint\nIntegration branch: main\nAn unchanged line.\nStep two.\n'
 g init -q -b main "${P9}" && g -C "${P9}" add -A && g -C "${P9}" commit -q -m "chore: graft the framework v1.0.0"
 FW="${FW9}" T="${T_DIR}" run 0 "${P9}" inventory v1.0.0 v2.0.0
-has "edge case 2: renamed in v2.0.0: .claude/commands/checkpoint.md -> .claude/commands/fw/checkpoint.md — customised in the project: merge it into .claude/commands/fw/checkpoint.md"
+has "edge case 2: renamed between v1.0.0 and v2.0.0: .claude/commands/checkpoint.md -> .claude/commands/fw/checkpoint.md — customised in the project: merge it into .claude/commands/fw/checkpoint.md"
 has "3-way: 0 conflict(s), 0 of 4 lines in conflict"
-has "edge case 2: renamed in v2.0.0: .claude/commands/sos.md -> .claude/commands/fw/sos.md — the project's copy is v1.0.0's"
-has "edge case 2: renamed in v2.0.0: .claude/commands/integrate.md -> .claude/commands/fw/integrate.md — the project's copy is v1.0.0's"
-has "edge case 2: renamed in v2.0.0: .claude/commands/retro.md -> .claude/commands/fw/retro.md — the project's copy is v1.0.0's"
+has "edge case 2: renamed between v1.0.0 and v2.0.0: .claude/commands/sos.md -> .claude/commands/fw/sos.md — the project's copy is v1.0.0's"
+has "edge case 2: renamed between v1.0.0 and v2.0.0: .claude/commands/integrate.md -> .claude/commands/fw/integrate.md — the project's copy is v1.0.0's"
+has "edge case 2: renamed between v1.0.0 and v2.0.0: .claude/commands/retro.md -> .claude/commands/fw/retro.md — the project's copy is v1.0.0's"
 hasnt "edge case 1:"
 has "added in CLAUDE.md(+1)"
 hasnt "fw/checkpoint.md(+"
@@ -631,7 +631,7 @@ hasnt "fw/checkpoint.md(+"
 T9B="${workdir}/T\\b9"
 mkdir -p "${T9B}"
 FW="${FW9}" T="${T9B}" run 0 "${P9}" inventory v1.0.0 v2.0.0
-has "edge case 2: renamed in v2.0.0: .claude/commands/retro.md -> .claude/commands/fw/retro.md — the project's copy is v1.0.0's"
+has "edge case 2: renamed between v1.0.0 and v2.0.0: .claude/commands/retro.md -> .claude/commands/fw/retro.md — the project's copy is v1.0.0's"
 hasnt "edge case 1:"
 # The migration half done: the merged command in its new place, retro.md moved, the old
 # sos.md and integrate.md still there.

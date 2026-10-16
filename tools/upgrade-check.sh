@@ -638,16 +638,16 @@ cmd_inventory() {
   local old new
   while IFS=$'\t' read -r old new; do
     if [ ! -f "${old}" ]; then
-      check "edge case 2: renamed in ${vy}: ${old} -> ${new} — the project holds no ${old}: bring ${new} over from ${vy}"
+      check "edge case 2: renamed between ${vx} and ${vy}: ${old} -> ${new} — the project holds no ${old}: bring ${new} over from ${vy}"
     elif [ "$(pg hash-object -- "${old}")" = "$(blob_at "${vx}" "${old}")" ]; then
-      check "edge case 2: renamed in ${vy}: ${old} -> ${new} — the project's copy is ${vx}'s: bring ${new} over from ${vy}, then git rm ${old}"
+      check "edge case 2: renamed between ${vx} and ${vy}: ${old} -> ${new} — the project's copy is ${vx}'s: bring ${new} over from ${vy}, then git rm ${old}"
     else
       fw show "${vx}:${old}" > "${d}/rename.base"
       fw show "${vy}:${new}" > "${d}/rename.theirs"
       lf "${old}" > "${d}/rename.mine"
       pg merge-file -p "${d}/rename.mine" "${d}/rename.base" "${d}/rename.theirs" > "${d}/rename.merged" 2>/dev/null
       n=$?
-      check "edge case 2: renamed in ${vy}: ${old} -> ${new} — customised in the project: merge it into ${new} (base ${vx}:${old}, theirs ${vy}:${new}), then git rm ${old}; 3-way: ${n} conflict(s), $(conflict_lines "${d}/rename.merged") of $(wc -l < "${d}/rename.merged" | tr -d ' ') lines in conflict"
+      check "edge case 2: renamed between ${vx} and ${vy}: ${old} -> ${new} — customised in the project: merge it into ${new} (base ${vx}:${old}, theirs ${vy}:${new}), then git rm ${old}; 3-way: ${n} conflict(s), $(conflict_lines "${d}/rename.merged") of $(wc -l < "${d}/rename.merged" | tr -d ' ') lines in conflict"
     fi
   done < "${d}/renames"
 

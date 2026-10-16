@@ -203,9 +203,9 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
 - [x] 9. The commands: step-1 Reads by section, the compaction line, descriptions with triggers, the frontmatter policy, `LEARNINGS.md` read by section, `/fw:sos` on an ARCHITECT RESPONSE, `/fw:security-review` named against the built-in, `/fw:checkpoint`'s STATE budget (D5a), `/fw:lint-memory`'s STATE size check (D5b), its glob and import checks — commit: 40e15a5
 - [x] 10. The gate's check in `/fw:integrate`, the PR form included; the limits declared in `docs/03` — commit: d5a33c2
 - [x] 11. The core in `.claude/rules/fw-core.md` — D1's two conditions held at task 2 —; `CLAUDE.md` the project's own and its class; `docs/00` *Selective loading*; every `@` of the method's files removed, `STATE.md`'s included; the rules' citations re-pointed; docs-check strict, with the pointers resolved to headings — commit: 9b9175f; the measurements of the fifth turn recorded after it
-- [x] 12. `SETUP.md` (the migration from 3.x, the single jump from 1.2.0, `STATE.md` reduced by the first checkpoint after the upgrade, step 4, the brownfield rows), `README.md`, `CONTRIBUTING.md`, `SECURITY.md` — commit: —
-- [ ] 13. `/fw:security-review`, adversarial, its perimeter named: the claims about what loads, the gate's check, `state-inject.sh` and its wiring, the migration of the answers — commit: —
-- [ ] 14. The retro; the CHANGELOG's 4.0.0 entry with IMP-127's erratum; the rehearsal on a clone tagged v4.0.0 — from 3.0.0 with every answer in place, and from 1.2.0 in the synthetic form of the project upgraded next, LF and CRLF —, the new fixed cost measured; the checkpoint — commit: —
+- [x] 12. `SETUP.md` (the migration from 3.x, the single jump from 1.2.0, `STATE.md` reduced by the first checkpoint after the upgrade, step 4, the brownfield rows), `README.md`, `CONTRIBUTING.md`, `SECURITY.md` — commit: af2a2ad
+- [ ] 13. The rehearsal on a clone tagged v4.0.0 — from 3.0.0 with every answer in place, and from 1.2.0 in the synthetic form of the project upgraded next, LF and CRLF — moved here from task 14, so that the gate reviews the tip that ships; then `/fw:security-review`, adversarial, its reviewer not the author, its perimeter named: the claims about what loads, the gate's check, `state-inject.sh` and its wiring, the migration of the answers — commit: 0afcb5b (the rehearsal's first fix), …
+- [ ] 14. The retro; the CHANGELOG's 4.0.0 entry with IMP-127's erratum and the measured first request; the rehearsal again on the CHANGELOG's commit; the checkpoint; then `/fw:integrate` up to block 0, no further (the fifth turn) — commit: —
 
 ## Resumption notes
 - The chat's "step 0" and "step 1" are tasks 1 and 2 here. The user's instruction: stop after
@@ -257,6 +257,14 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
    (the runtime's environment update said so) → a shell `cd` moves it → back at the root in the
    next call; whether the project's settings reload on such a move is not stated. Evidence for
    IMP-104.
+5. Task 12's first commit went in with the suite red: the chain ran `make test-scripts` and
+   the commit with `;` between them, so the commit did not depend on the suite → a case of
+   the docs check's own self-test edited a line task 12 had reworded → the case fixed, the
+   suite green, the commit amended before anything left the machine (`af2a2ad`); every later
+   commit chained with `&&`.
+6. The rehearsal's first fake secret passed the pre-commit → it was AWS's documented example
+   key, which gitleaks leaves alone on purpose → a token generated at run time, refused; the
+   throwaway commit undone in the scratch project.
 
 ## Factual doc corrections (Level 1, docs/06)
 - None applied. Suspected at task 1, from the review's reasoning: the signal "a session that
@@ -430,6 +438,59 @@ one word.
   session's and the subagent's first request.
 - Cost, at list price: $1.0786 — A $0.3787 and B $0.6938 on Opus 5.5, C $0.0061 on Haiku 5.5;
   input 18, output 1,326, cache read 202,333, cache write 182,775 tokens.
+
+## Task 13 — the rehearsal (3.0.0 → 4.0.0, and 1.2.0 → 4.0.0)
+- The fixture, synthetic, in the session's scratchpad (`rh4.*`): the framework cloned at the
+  branch's tip and tagged v4.0.0 in the clone only — moved once, onto `0afcb5b`, after the
+  first fix. Project A: a graft at v3.0.0 with every answer — `CLAUDE.md`'s title, stack,
+  rules 5 and 8 and its technical rules; `docs/02`'s five slots, `docs/03`'s, `docs/04`'s five;
+  the three setup commands; the `Makefile`; the formatting slot; `.gitignore`;
+  `decisions/README.md`; the allow list —, a `STATE.md` of 10,506 characters with the method's
+  titles, its hooks at v3.0.0; LF, and cloned again with `core.autocrlf` true. Project B: a
+  graft at v1.2.0 in the form of the project upgraded next, none of its names or contents —
+  the pin `version: 1.2.0` without its v, `grafted: n/d (retrofit …)`; trunk-based on `main`
+  with a dormant `dev` protected in `reset-task.sh`; `CLAUDE.md` with forty technical rules;
+  `docs/00` answered inline and its closing mention rewritten; `docs/02` and `03` inline,
+  `docs/04` four slots of five; four commands customised, three as shipped; formatting
+  "none"; no `.gitattributes`; a `STATE.md` of 56,928 bytes with the pre-English titles and a
+  *Caution* of two entries of about 17,500 characters each; LF, and cloned again with
+  `core.autocrlf` true.
+- The procedure as `SETUP.md` writes it, with the tag's `upgrade-check.sh`; the mechanical part
+  of Step 3 (METHOD and TEMPLATE files brought from the tag, HYBRID ones merged 3-way) by a
+  scratch script that follows the inventory's table; every answer, conflict and title by hand,
+  with the file tools.
+- A: preflight 0 FAIL. The inventory named the thirteen answers v4.0.0 moved, each with its
+  new line, and no edge case 7. `CLAUDE.md`'s 3-way: 2 conflicts, 150 of 159 lines — rebuilt
+  from v4.0.0 and the project's text re-applied, as Step 3 says of a file mostly in conflict.
+  Every other hybrid merged clean, `fw/checkpoint.md` included (its step 1 one blank line from
+  the setup paragraph the project had deleted: no conflict). The answer of `docs/04`'s last
+  slot went to `settings.json`'s `allow`. `invariant` 0 FAIL — the thirteen answers in their
+  lines, one CHECK for the `allow` answer —, `post` 0 FAIL. `STATE.md` untouched; its hook
+  printed *Caution* first and the cut line (2,300 of 10,298 characters not shown).
+- B: preflight's FAIL on the pin, the correction as the branch's first commit, then 0 FAIL.
+  The inventory named the eight renames — five customised, merged into `fw/`, two of them with
+  one conflict each where the project's last line met the release's last change, both kept —,
+  edge case 7 on `docs/00` (`vY`'s taken) and on `reset-task.sh`, whose protected branches
+  went to the `Makefile` first (`make -n reset-task YES=1` prints `main dev`), and twelve moved
+  answers. `CLAUDE.md`: 2 conflicts, 168 of 177 lines — rebuilt, its forty rules kept byte for
+  byte, its `/integrate` answer written as `/fw:integrate`. `LEARNINGS.md`'s header and format
+  comment merged by `SETUP.md`'s blocks, 0 conflicts. `STATE.md`'s six titles renamed,
+  nothing else: `invariant` says so; the hook printed 8,192 characters, *Caution* first, the
+  cut line naming 48,434 characters not shown. Step 4's grep found five slots — the
+  `Makefile`'s comment, the new globs, a `new-component` slot and `integrate`'s step 1 line
+  added after v1.2.0, `checkpoint`'s setup paragraph of v3.0.0 — answered. `invariant` 0
+  FAIL (one CHECK, the restore point's pin in its old form), `post` 0 FAIL.
+- Both: `make test-scripts` 13 PASS, a generated token refused by the pre-commit, a message
+  without a type refused; in B the old hooks kept as `.bak`.
+- CRLF: A's `.gitattributes` (v3.0.0) holds the framework's files to LF, so its Windows
+  checkout reads LF and its inventory is A's own. B's checkout carried CRLF: Step 3's
+  line-end step refused before `.gitattributes`, then took the framework's paths to LF and
+  left the project's own file CRLF; the inventory equal to LF's but for `.gitattributes`
+  itself, `invariant` and `post` equal, 13 PASS.
+- Two defects, each fixed: `test-state-inject.sh`'s first case read the project's own
+  `STATE.md` as the template and failed in A — IMP-125's class —, red with the shipped test,
+  green with one that builds its template (`0afcb5b`); the inventory said "renamed in v4.0.0"
+  of the commands v3.0.0 renamed — now "renamed between vX and vY".
 
 ## Proposals
 - None new: IMP-124's Level 2 is decided, IMP-126 widened by the user's decision.
