@@ -147,8 +147,9 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
 - **Always** — the core: the rules that hold in every turn, the Definition of Done,
   resumption, a table of the moments at which each doc is read, the boundary, delegation,
   the gate's trigger with its five categories. Where it lives is D1's measurement.
-- **By context** — `.claude/rules/fw-code-quality.md` (METHOD, fixed broad globs) loads
-  `docs/02` in place (D4; the mechanism is task 2's measurement); `.claude/rules/fw-boundary.md`
+- **By context** — `.claude/rules/fw-code-quality.md` (METHOD, fixed broad globs) tells Claude
+  to Read `docs/02` in place (D4). Not an `@`-import: task 2 measured an `@` inside a
+  path-scoped rule loaded at every launch, before the rule. `.claude/rules/fw-boundary.md`
   (paths on the boundary's files) points at `docs/04`'s *Enforcement…* and *Permission
   configuration*.
 - **Procedures** — commands in `.claude/commands/fw/` (`skills.md:16`: commands are skills);
@@ -191,17 +192,17 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
   passes 30k tokens.
 
 ## Plan (one commit per task)
-- [x] 1. The assessment, the user's data and decisions, the scorecard's baselines and this plan; IMP-124's decision, IMP-126's 2026-10-16 evidence and the user's decision, in `LEARNINGS.md`; the merge `0c71b6f` reconciled — commit: —
-- [ ] 2. The measurements, in a scratch project outside the repository, at most five `claude -p` runs: an unconditional rule after a `/compact` and in a general-purpose subagent's first request (D1), and in a session started in a subdirectory; an `@`-import inside a path-scoped rule, at launch or with the rule (D4); a path rule at each matching read and around a Write; the SessionStart hook on `compact`; recorded here with their cost — commit: —
+- [x] 1. The assessment, the user's data and decisions, the scorecard's baselines and this plan; IMP-124's decision, IMP-126's 2026-10-16 evidence and the user's decision, in `LEARNINGS.md`; the merge `0c71b6f` reconciled — commit: 95f9216
+- [x] 2. The measurements, in a scratch project outside the repository, at most five `claude -p` runs: an unconditional rule after a `/compact` and in a general-purpose subagent's first request (D1), and in a session started in a subdirectory; an `@`-import inside a path-scoped rule, at launch or with the rule (D4); a path rule at each matching read and around a Write; the SessionStart hook on `compact`; recorded here with their cost (*Task 2 — the measurements*) — commit: —
 - [ ] 3. IMP-126: `CONTRIBUTING.md` gives block 0 its written form — commit: —
 - [ ] 4. IMP-126: block 1 checks the CI of the tip inside its chain (D6) — commit: —
 - [ ] 5. `/fw:plan`, reading `docs/01`; its class, the inventories, the tests — commit: —
 - [ ] 6. `scripts/state-inject.sh`, a hermetic self-test (the template, legacy titles, no titles, over the budget, CRLF, a missing file), its class and inventories; the SessionStart wiring in `settings.json` and an `ask` rule on the script, both through the user's approval — commit: —
 - [ ] 7. The setup answers of `docs/02`-`04` move to `CLAUDE.md`'s technical rules, one marked line each; the slots become pointers and the three docs METHOD; `SETUP.md` §2, the classes, edge cases 7 and 8; `upgrade-check` checks that an answer at `vX` has its new home at `vY` — `refactor!` with a BREAKING CHANGE footer — commit: —
-- [ ] 8. `.claude/rules/fw-code-quality.md` (loading `docs/02` by task 2's mechanism) and `.claude/rules/fw-boundary.md`; classes, README's tree, TREE's legend, step 2's pathspec, a coverage check of the globs — commit: —
+- [ ] 8. `.claude/rules/fw-code-quality.md` (a Read of `docs/02` at its moment, no `@`: task 2) and `.claude/rules/fw-boundary.md`; classes, README's tree, TREE's legend, step 2's pathspec, a coverage check of the globs; docs-check fails an `@` in a method rule — commit: —
 - [ ] 9. The commands: step-1 Reads by section, the compaction line, descriptions with triggers, the frontmatter policy, `LEARNINGS.md` read by section, `/fw:sos` on an ARCHITECT RESPONSE, `/fw:security-review` named against the built-in, `/fw:checkpoint`'s STATE budget (D5a), `/fw:lint-memory`'s STATE size check (D5b), its glob and import checks — commit: —
 - [ ] 10. The gate's check in `/fw:integrate`, the PR form included; the limits declared in `docs/03` — commit: —
-- [ ] 11. The core — `.claude/rules/fw-core.md`, or `CLAUDE.md` if task 2 refutes D1's conditions —; `CLAUDE.md` the project's own and its class; `docs/00` *Selective loading*; every `@` of the method's files removed, `STATE.md`'s included; the rules' citations re-pointed; docs-check strict, with the pointers resolved to headings — commit: —
+- [ ] 11. The core in `.claude/rules/fw-core.md` — D1's two conditions held at task 2 —; `CLAUDE.md` the project's own and its class; `docs/00` *Selective loading*; every `@` of the method's files removed, `STATE.md`'s included; the rules' citations re-pointed; docs-check strict, with the pointers resolved to headings — commit: —
 - [ ] 12. `SETUP.md` (the migration from 3.x, the single jump from 1.2.0, `STATE.md` reduced by the first checkpoint after the upgrade, step 4, the brownfield rows), `README.md`, `CONTRIBUTING.md`, `SECURITY.md` — commit: —
 - [ ] 13. `/fw:security-review`, adversarial, its perimeter named: the claims about what loads, the gate's check, `state-inject.sh` and its wiring, the migration of the answers — commit: —
 - [ ] 14. The retro; the CHANGELOG's 4.0.0 entry with IMP-127's erratum; the rehearsal on a clone tagged v4.0.0 — from 3.0.0 with every answer in place, and from 1.2.0 in the synthetic form of the project upgraded next, LF and CRLF —, the new fixed cost measured; the checkpoint — commit: —
@@ -209,8 +210,9 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
 ## Resumption notes
 - The chat's "step 0" and "step 1" are tasks 1 and 2 here. The user's instruction: stop after
   task 2, before any task that changes the method.
-- Task 11's file depends on task 2's D1 measurements; task 8's loading mechanism on its D4
-  measurement. A measurement that cannot be taken is reported as such, never inferred.
+- Task 2 settled task 11's file (`.claude/rules/fw-core.md`) and task 8's mechanism (a Read
+  instruction, no `@`); the user confirms the latter before task 3. A measurement that cannot be
+  taken is reported as such, never inferred.
 - Fourteen tasks, at the edge of the healthy range: the cycle's steps are tasks 13 and 14, as
   in 3.0.0.
 - The draft core and the research results live in the session's scratchpad, not durable: the
@@ -246,14 +248,45 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
    IMP-104.
 
 ## Factual doc corrections (Level 1, docs/06)
-- None applied. Found: `CLAUDE.md`, `docs/04` and `SETUP.md` say a session that opens without
-  `STATE.md` injected did not load the settings — a signal that cannot fire while `CLAUDE.md`
-  imports `STATE.md`, which an ancestor `CLAUDE.md` brings into a subdirectory session where the
-  hook does not run. Task 11 removes the import; the statements are aligned there.
+- None applied. Suspected at task 1, from the review's reasoning: the signal "a session that
+  opens without `STATE.md` injected did not load the settings" (`CLAUDE.md`, `docs/04`,
+  `SETUP.md`) could not fire, an ancestor `CLAUDE.md` bringing the import into a subdirectory
+  session. Task 2's measurement does not confirm it: there the ancestor's import of a file
+  outside the subdirectory is external and was not loaded (`claude -p`; `memory.md:133`); an
+  interactive session's approval of external imports was not measured. No correction is due.
 - IMP-124 counts "1,347 lines" of docs; the seven files hold 1,313 at `0c71b6f`.
+
+## Task 2 — the measurements
+A scratch project outside the repository (a git repository with a `CLAUDE.md` importing a
+file, a rule without `paths`, a rule scoped to `src/**/*.py` that `@`-imports a file, a rule
+scoped to `gen/**`, a SessionStart hook printing its source), each file carrying a unique
+marker. Five `claude -p` runs on Haiku 5.5 (the context's composition does not depend on the
+model), read back from their transcripts' request records — what each API request carried,
+not what the model said.
+
+| Question | Result |
+|---|---|
+| D1 (b): a rule without `paths` in a general-purpose subagent's first request | **present**, with `CLAUDE.md` and its import; no SessionStart output there |
+| D1 (a): the same rule after a compaction | **present** — after a manual `/compact` and a resume (runs 2-3), and after an automatic compaction inside one process (run 5: `CLAUDE_CODE_AUTO_COMPACT_WINDOW=100000`, `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=50`; 51,067 tokens compacted to 5,042), re-injected with `CLAUDE.md`. The page says so too: "Project-root CLAUDE.md and unscoped rules — Re-injected from disk" (`context-window.md:1599`) |
+| A session started in a subdirectory of the repository | the root's rule without `paths` **present**, the ancestor `CLAUDE.md` present, its `@`-import of a file outside the subdirectory **absent** (an external import, not approved in `-p`), the project's SessionStart hook **not run** |
+| D4: an `@`-import inside a path-scoped rule | **loaded at launch**, in the main session and in the subagent, before the rule itself, and again after each compaction: such an import costs what a `CLAUDE.md` import costs |
+| A path-scoped rule | loaded with the first matching Read, once for two Reads in the same turn (a later, separate Read was not measured); after a Write of a new file it arrives in the next request, so the first write goes without it; after a compaction it reloads on demand, or comes back with the files re-read |
+| The SessionStart hook | run at `startup`, `resume` and `compact` (manual and automatic); after a resume followed by a compaction both outputs sat in the rebuilt context |
+
+What follows for the plan: D1's conditions hold, the core goes to `.claude/rules/fw-core.md`,
+and it reaches a subdirectory session too, where its missing-banner check is the one that
+fires. D4's rule cannot `@`-import `docs/02`: it tells Claude to Read it, and the core's table
+keeps the moment for the first write. Not measured, outside the five runs or no longer needed:
+an `@` attachment repeated by a second invocation, a backticked `@` in a command's body (the
+plan removes `@` from the bodies), a colon in a skill's `name` (D2 keeps commands), a separate
+second Read of a matching file, an interactive session's approval of external imports.
+
+Cost of the five runs, at list price: $0.0493 — input 33,624, output 11,480, cache read 482,972,
+cache write 198,631 tokens, all Haiku 5.5. The transcripts stay where Claude Code keeps them.
 
 ## Proposals
 - None new: IMP-124's Level 2 is decided, IMP-126 widened by the user's decision.
 
 ## Follow-up
-- Task 2, then stop: the user decides after the measurements.
+- Stop after task 2 (the user's instruction): the user confirms D4's mechanism — a Read
+  instruction in the rule, since an `@` there loads at every launch — before task 3.
