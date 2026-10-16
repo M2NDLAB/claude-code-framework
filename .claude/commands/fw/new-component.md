@@ -1,5 +1,6 @@
 ---
-description: Scaffold a new component/module according to the project's conventions
+description: Scaffold a new component/module according to the project's conventions - run by the user only
+disable-model-invocation: true
 ---
 Create a new component named $ARGUMENTS following the project's conventions EXACTLY.
 The specific structure and tools are [TO BE DEFINED AT SETUP]: document them in the

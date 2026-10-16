@@ -199,8 +199,8 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
 - [x] 5. `/fw:plan`, reading `docs/01`; its class, the inventories, the tests — commit: cd358ac
 - [x] 6. `scripts/state-inject.sh`, a hermetic self-test (the template, legacy titles, no titles, over the budget, CRLF, a missing file), its class and inventories; the SessionStart wiring in `settings.json` and an `ask` rule on the script, both through the user's approval — commit: 389271a
 - [x] 7. The setup answers of `docs/02`-`04` move to `CLAUDE.md`'s technical rules, one marked line each; the slots become pointers and the three docs METHOD; `SETUP.md` §2, the classes, edge cases 7 and 8; `upgrade-check` checks that an answer at `vX` has its new home at `vY` — `refactor!` with a BREAKING CHANGE footer — commit: 8a9a1c1
-- [x] 8. `.claude/rules/fw-code-quality.md` (a Read of `docs/02` at its moment, no `@`: task 2) and `.claude/rules/fw-boundary.md`; classes, README's tree, TREE's legend, step 2's pathspec, a coverage check of the globs; docs-check fails an `@` in a method rule — commit: —
-- [ ] 9. The commands: step-1 Reads by section, the compaction line, descriptions with triggers, the frontmatter policy, `LEARNINGS.md` read by section, `/fw:sos` on an ARCHITECT RESPONSE, `/fw:security-review` named against the built-in, `/fw:checkpoint`'s STATE budget (D5a), `/fw:lint-memory`'s STATE size check (D5b), its glob and import checks — commit: —
+- [x] 8. `.claude/rules/fw-code-quality.md` (a Read of `docs/02` at its moment, no `@`: task 2) and `.claude/rules/fw-boundary.md`; classes, README's tree, TREE's legend, step 2's pathspec, a coverage check of the globs; docs-check fails an `@` in a method rule — commit: 634d10d
+- [x] 9. The commands: step-1 Reads by section, the compaction line, descriptions with triggers, the frontmatter policy, `LEARNINGS.md` read by section, `/fw:sos` on an ARCHITECT RESPONSE, `/fw:security-review` named against the built-in, `/fw:checkpoint`'s STATE budget (D5a), `/fw:lint-memory`'s STATE size check (D5b), its glob and import checks — commit: —
 - [ ] 10. The gate's check in `/fw:integrate`, the PR form included; the limits declared in `docs/03` — commit: —
 - [ ] 11. The core in `.claude/rules/fw-core.md` — D1's two conditions held at task 2 —; `CLAUDE.md` the project's own and its class; `docs/00` *Selective loading*; every `@` of the method's files removed, `STATE.md`'s included; the rules' citations re-pointed; docs-check strict, with the pointers resolved to headings — commit: —
 - [ ] 12. `SETUP.md` (the migration from 3.x, the single jump from 1.2.0, `STATE.md` reduced by the first checkpoint after the upgrade, step 4, the brownfield rows), `README.md`, `CONTRIBUTING.md`, `SECURITY.md` — commit: —
@@ -333,6 +333,17 @@ cache write 198,631 tokens, all Haiku 5.5. The transcripts stay where Claude Cod
   framework's own files, METHOD. The docs check's new family: no `@`-import in a method rule
   outside code spans, each concrete glob matching a tracked file — its self-test's case 11
   plants both defects.
+- Task 9: no command carries an `@` any more; each reads its doc at its first step — by
+  section for `docs/04`, `docs/00` and `docs/06`'s bridge, whole for `docs/03`, `05` and
+  `06` at a retro — and again after a compaction. The `fw:` lines of the skill listing went
+  from 850 characters to 1,591 (≈0.3k → ≈0.6k tokens, in every session): nine commands, each
+  description with its trigger; `/fw:new-component` left the listing
+  (`disable-model-invocation`, "Description not in context", `skills.md:590`). The docs
+  check's family widened to the commands: no `@` in a method command, and a frontmatter of
+  `description`, `argument-hint` and — on `/fw:new-component` only —
+  `disable-model-invocation`. Its own floor of `@`-imports fell from 15 to the 8 `CLAUDE.md`
+  still holds; task 11 removes those. `/fw:lint-memory` gained checks 12 (STATE's budget and
+  its *Caution* title) and 13 (the rules' globs, the imports and their cost).
 
 ## Proposals
 - None new: IMP-124's Level 2 is decided, IMP-126 widened by the user's decision.

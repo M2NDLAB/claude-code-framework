@@ -1,12 +1,15 @@
 ---
-description: Full checkpoint - memory + documentation + Git commit
+description: Checkpoint - memory, documentation and a commit, in one go (docs/04). Use at the end of a task or a deliverable (the cycle's fourth step), and before a session ends
 ---
 Run the checkpoint procedure for the current work: $ARGUMENTS
 Setup replaces the placeholders below — `<integration>`, the integration branch, and
 `<pattern-to-ignore-for-the-stack>`, the pattern `tree` ignores — with the project's
 values, then deletes this paragraph: [TO BE DEFINED AT SETUP].
 
-1. Read @.claude/docs/04-git-workflow.md for the commit rules.
+1. Read the commit rules: the sections *WHEN to commit*, *Commit format — Conventional
+   Commits* and *Operating rules for Claude Code* of `.claude/docs/04-git-workflow.md` —
+   `grep -n '^## '` gives their lines, each read from its title to the next. If the
+   context has been compacted since, read them again before the next step.
 2. `git status` and `git diff --stat`: list what has changed and check that there
    are no unexpected or suspicious files (secrets, environment files, build artefacts).
 3. Update the memory (.claude/memory/), with the file tools (`CLAUDE.md`, rule 10):
@@ -23,7 +26,15 @@ values, then deletes this paragraph: [TO BE DEFINED AT SETUP].
    - at a deliverable's last checkpoint, the note's security-gate line
      (`sessions/README.md`, *Format*): the outcome, or "not applicable" with its reason;
    - update the components/ notes of the components touched;
-   - rewrite STATE.md with the current state; AFTER the rewrite check that the
+   - rewrite STATE.md with the current state, within its budget: the SessionStart hook
+     shows 8,000 characters of it, *Caution & open issues* first
+     (`scripts/state-inject.sh`), so STATE is a dashboard — the history (progress long
+     done, decisions with their story, the detail of an issue) moves to the session note
+     this checkpoint writes, or stays in the notes that already hold it, and STATE keeps one
+     line with a pointer; each *Caution & open issues* entry is one line with its trigger
+     and a pointer to the note that holds the detail. Measure it after the rewrite:
+     `bash scripts/state-inject.sh | tail -n 1` must not be the line that says characters
+     were not shown. AFTER the rewrite check also that the
      pre-existing entries of "Caution & open issues" are still present or
      knowingly closed (a critical debt must not die in a rewrite)
      and that every entry has its explicit TRIGGER, never a generic one;

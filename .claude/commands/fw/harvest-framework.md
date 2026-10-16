@@ -1,10 +1,12 @@
 ---
-description: Harvests the IMPs marked "Destination: framework" and prints a copyable block to re-propose to the framework repo — it only reads and prints, never clone/copy/push/cross-repo
+description: Harvests the IMPs marked "Destination: framework" into a copyable block for the framework repo - it only reads and prints (docs/06). Use when the user wants the project's lessons sent upstream
 ---
 Harvest the lessons destined for the FRAMEWORK and prepare the block to carry upstream,
 for: $ARGUMENTS (if $ARGUMENTS is empty: over the whole `LEARNINGS.md` backlog).
 
-See the bridge in @.claude/docs/06-self-improvement.md (*"The bridge to the framework"*).
+First Read the section *The bridge to the framework* of
+`.claude/docs/06-self-improvement.md` — `grep -n '^## '` gives its line, read from its title
+to the next —; if the context has been compacted since, read it again before the next step.
 Complementary to `/fw:retro`: `/fw:retro` RECORDS the IMPs (and puts the marker
 `Destination: framework` on them when the lesson is about the method);
 `/fw:harvest-framework` HARVESTS them to carry them upstream.

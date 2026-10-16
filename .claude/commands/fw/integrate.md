@@ -1,11 +1,16 @@
 ---
-description: Generates the "READY FOR INTEGRATION" blocks — paste-ready commands, merge + tag + checks then the push, without running them
+description: Prints the READY FOR INTEGRATION blocks - merge, tag and checks, then the push - without running them (docs/04). Use at the end of a deliverable, after /fw:checkpoint
 ---
 At the end of a deliverable, prepare the READY FOR INTEGRATION blocks for: $ARGUMENTS
 (if empty: for the current branch).
 
-Claude Code **does not push and does not merge** — that is a human action (see
-@.claude/docs/04-git-workflow.md). Here it COLLECTS the state with read-only commands
+First Read the sections *Merge*, *Versioning — SemVer on annotated tags* and *Execution
+boundary and blocks for the user* of `.claude/docs/04-git-workflow.md` — `grep -n '^## '`
+gives their lines, each read from its title to the next —; if the context has been
+compacted since, read them again before printing the blocks.
+
+Claude Code **does not push and does not merge** — that is a human action (docs/04,
+*Execution boundary and blocks for the user*). Here it COLLECTS the state with read-only commands
 and PRODUCES two blocks of exact commands, ready to paste. Run ONLY the read commands of
 steps 1-2, the CHANGELOG update of step 3 if the project keeps one (a local commit) and
 the read-only computations of step 4, its failure path included (*When the user reports a

@@ -1169,6 +1169,7 @@ const ALLOW = [
   // Inventories.
   { check: 'inventory', file: '*', text: '/clear: no such command', reason: 'a command of Claude Code itself, not one of the method' },
   { check: 'inventory', file: '*', text: '/cd: no such command', reason: 'a command of Claude Code itself, not one of the method' },
+  { check: 'inventory', file: '.claude/commands/fw/security-review.md', text: '/security-review: no such command', reason: 'Claude Code\'s built-in, named so that it is not taken for the gate' },
   { check: 'inventory', file: SETUP, text: '/tmp: no such command', reason: 'a directory, not a command' },
   // Links: names that are not meant to exist in this repository.
   { check: 'link', file: '*', text: '`.claude/framework-version`', reason: 'the provenance pin: created in a project at its graft, never here' },
@@ -1237,17 +1238,42 @@ const globToRe = (g) => new RegExp(`^${g.replace(/[.+^$()|\\]/g, '\\$&')
   .replace(/\{([^}]*)\}/g, (m, a) => `(?:${a.split(',').join('|')})`)
   .replace(/\*\*\//g, '\u0000').replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*').replace(/\?/g, '[^/]')
   .replace(/\u0000/g, '(?:.*/)?')}$`)
+// The frontmatter of a method's command: what it may carry. A `model` is a model switch at
+// every invocation, the whole history read again with no cache hit (Claude Code's
+// prompt-caching page); `effort`, `allowed-tools` and `hooks` change what the session runs
+// without the user's settings knowing; `disable-model-invocation` takes a command out of
+// Claude's reach, which only /fw:new-component, a scaffold with side effects, wants.
+const COMMAND_KEYS = new Set(['description', 'argument-hint', 'disable-model-invocation'])
+const COMMAND_UNINVOKED = '.claude/commands/fw/new-component.md'
+function frontmatterKeys(p) {
+  const ls = lines(p)
+  if (ls[0] !== '---') return []
+  return ls.slice(1, ls.indexOf('---', 1)).map((l, i) => ({ key: /^([\w-]+):/.exec(l)?.[1], line: i + 2 })).filter((k) => k.key)
+}
 function checkRules() {
-  section('Rules — the method\'s rules import nothing, and each of their globs matches a file')
+  section('Rules and commands — the method\'s rules and commands import nothing, each glob matches a file, each command\'s frontmatter keeps to its keys')
   const rules = FILES.filter((f) => METHOD_RULE.test(f))
+  const commands = FILES.filter((f) => /^\.claude\/commands\/fw\/[^/]+\.md$/.test(f))
   if (!rules.length) report('rule', null, 0, 'no method rule under .claude/rules/: the extraction is wrong')
+  if (!commands.length) report('rule', null, 0, 'no command under .claude/commands/fw/: the extraction is wrong')
   let globs = 0
-  for (const p of rules) {
+  for (const p of [...rules, ...commands]) {
+    const what = rules.includes(p) ? 'a method rule loads its file at every launch, before the rule' : 'a command attaches its file at every invocation, in a context that may already hold it'
     for (const u of units(p, allMask(p))) {
-      for (const m of blankOut(u.text, CODE_SPAN).matchAll(/(?:^|\s)@([\w.~/-]+)/g)) {
-        report('rule', p, u.at[m.index], `@${m[1]}: an import in a method rule loads its file at every launch, before the rule — have Claude Read it instead`)
+      for (const m of blankOut(u.text, CODE_SPAN).matchAll(/(?:^|\s)@([\w.~/-]*[\w~/-])/g)) {
+        report('rule', p, u.at[m.index], `@${m[1]}: an import in ${what} — have Claude Read it instead`)
       }
     }
+  }
+  for (const p of commands) {
+    const keys = frontmatterKeys(p)
+    if (!keys.some((k) => k.key === 'description')) report('rule', p, 1, 'a command without its description: Claude picks a command by it')
+    for (const k of keys) {
+      if (!COMMAND_KEYS.has(k.key)) report('rule', p, k.line, `${k.key}: a key a method's command does not carry (description, argument-hint, and disable-model-invocation on ${COMMAND_UNINVOKED} only)`)
+      else if (k.key === 'disable-model-invocation' && p !== COMMAND_UNINVOKED) report('rule', p, k.line, `disable-model-invocation: only ${COMMAND_UNINVOKED} is kept out of Claude's reach`)
+    }
+  }
+  for (const p of rules) {
     for (const g of ruleGlobs(p)) {
       if (MARKER_RE.test(g.glob)) continue
       globs++
@@ -1255,7 +1281,7 @@ function checkRules() {
       if (!FILES.some((f) => re.test(f))) report('rule', p, g.line, `the glob "${g.glob}" matches no tracked file: the rule would never load`)
     }
   }
-  settle('rule', `${plural(rules.length, 'method rule')}, no @-import, ${plural(globs, 'glob')} each matching a tracked file`)
+  settle('rule', `${plural(rules.length, 'method rule')} and ${plural(commands.length, 'command')}, no @-import, ${plural(globs, 'glob')} each matching a tracked file, each command's frontmatter within its keys`)
 }
 
 // --- The allow-list itself ---------------------------------------------------------------

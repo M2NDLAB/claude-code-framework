@@ -48,8 +48,10 @@
 #   9. the allow-list — an exception whose cause is gone fails, and an exception never
 #      hides another finding of the same line;
 #  10. read-only — a run leaves the copy exactly as it was;
-#  11. rules — an @-import in a method rule, and a glob of its `paths` that matches no
-#      tracked file, each fail; one inside a code span does not.
+#  11. rules and commands — an @-import in a method rule or a method command, a glob of a
+#      rule's `paths` that matches no tracked file, a `model` in a command's frontmatter,
+#      and `disable-model-invocation` on a command other than /fw:new-component each fail;
+#      an @ inside a code span does not.
 # Run it from anywhere: bash tools/test-docs-check.sh
 set -euo pipefail
 
@@ -133,7 +135,8 @@ note="$(cd "${base}" && ls .claude/memory/sessions/2*.md | tail -1)"
 run 0 "${base}"
 has "docs-check: 0 FAIL"
 floor 'N commands, N process targets' 8
-floor 'N method rules' 2
+floor 'N method rules and N commands' 2
+floor 'method rules and N commands' 9
 floor 'no framework IMP number in N payload files' 30
 floor 'N pointers? out of the payload' 15
 floor 'N markers in the full form' 25
@@ -141,7 +144,7 @@ floor 'N tags and N entries match' 19
 floor 'N mentions of a framework release' 20
 floor 'N Markdown links' 5
 floor 'N wikilinks' 100
-floor 'N @-imports' 15
+floor 'N @-imports' 8
 floor 'N cited paths' 300
 floor 'N section titles' 40
 floor 'the class table at N tags' 19
@@ -212,8 +215,10 @@ printf '\nRead `sessions/%s` first.\n' "${note##*/}" >> "${c}/.claude/commands/f
 printf '\nAs [[%s]] records.\n' "$(basename "${note}" .md)" >> "${c}/.claude/docs/02-code-quality.md"
 printf '\n@%s\n' "${note}" >> "${c}/.claude/commands/fw/sos.md"
 run 1 "${c}"
-nfails 8
+# Eight pointers out of the payload, and the @ in a method command a second time, as an import.
+nfails 9
 has ".claude/commands/fw/sos.md:"
+has "an import in a command attaches its file at every invocation"
 has '"../../SETUP.md" points at SETUP.md'
 has '"../../CONTRIBUTING.md" points at CONTRIBUTING.md'
 has "points at ${note}"
@@ -398,7 +403,8 @@ has "[[no-such-note]] names no note"
 has "\`scripts/no-such.sh\` names no file"
 has 'has no section "No such section"'
 c="$(copy links-more)"
-printf '\n@.claude/docs/99-none.md\n' >> "${c}/.claude/commands/fw/retro.md"
+# In CLAUDE.md, the project's to import from: in a method command an @ fails on its own.
+printf '\n@.claude/memory/99-none.md\n' >> "${c}/CLAUDE.md"
 {
   printf '\nSee [x](a%%zz.md).\n'
   printf '\nSee docs/04, "No such title".\n'
@@ -416,7 +422,7 @@ has 'SETUP.md has no section "No bare title"'
 has 'docs/04 has no section "No message title"'
 has "SETUP.md has no section §99"
 has 'has no section "No such wrapped title"'
-has "@.claude/docs/99-none.md: the import names no file"
+has "@.claude/memory/99-none.md: the import names no file"
 has "a malformed %-escape"
 has 'docs/04 has no section "No such title"'
 has 'has no section "No other title"'
@@ -651,4 +657,16 @@ c="$(copy rule-glob)"
 edit "${c}/.claude/rules/fw-boundary.md" '"scripts/hooks-install\.sh"' '"scripts/no-such-file.sh"'
 run 1 "${c}"
 fails 1 'the glob "scripts/no-such-file.sh" matches no tracked file'
-echo "PASS (docs-check, rules): an @-import in a method rule and a glob matching no file fail; a code span does not."
+c="$(copy command-import)"
+printf '\nSee @.claude/docs/05-escalation-protocol.md.\n' >> "${c}/.claude/commands/fw/sos.md"
+run 1 "${c}"
+fails 1 "@.claude/docs/05-escalation-protocol.md: an import in a command attaches its file at every invocation"
+c="$(copy command-model)"
+edit "${c}/.claude/commands/fw/retro.md" '^---\ndescription:' $'---\nmodel: haiku\ndescription:'
+run 1 "${c}"
+fails 1 "model: a key a method's command does not carry"
+c="$(copy command-uninvoked)"
+edit "${c}/.claude/commands/fw/retro.md" '^---\ndescription:' $'---\ndisable-model-invocation: true\ndescription:'
+run 1 "${c}"
+fails 1 "disable-model-invocation: only .claude/commands/fw/new-component.md is kept out of Claude's reach"
+echo "PASS (docs-check, rules and commands): an @-import in a method rule or command, a glob matching no file, a command key outside the policy each fail; a code span does not."
