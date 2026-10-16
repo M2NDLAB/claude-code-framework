@@ -9,6 +9,31 @@ boundary and blocks for the user* of `.claude/docs/04-git-workflow.md` — `grep
 gives their lines, each read from its title to the next —; if the context has been
 compacted since, read them again before printing the blocks.
 
+**Then, before anything else, the security gate's line** (docs/03, *The check at
+integration*). Find the note that closes this deliverable — the newest of the session notes
+the branch wrote: `git diff --no-renames --name-only origin/<integration>...HEAD --
+.claude/memory/sessions/` (without a remote, `<integration>...HEAD`) — and read its
+*Security gate* section. STOP, and say which of these holds, when:
+- the section is missing or says nothing: a forgotten gate (`sessions/README.md`, *The
+  security gate's line*);
+- it says "not applicable" while the branch's diff touches a component of the answer
+  **Sensitive components** in `CLAUDE.md`, or the deliverable asserts a security property
+  (docs/03, *The lenses of the gate*) — in doubt, under the gate; a branch whose diff
+  touches only `.claude/memory/` is exempt, and its line says so (docs/00, *Scope and
+  session hygiene*);
+- it names a review other than `/fw:security-review` — Claude Code's built-in
+  `/security-review` is not the gate —, or no reviewed tip;
+- the reviewed tip is not an ancestor of HEAD, or a commit after it touches a file outside
+  `.claude/memory/` and the `CHANGELOG.md` of step 3, if the project keeps one
+  (`git diff --no-renames --name-only <tip>..HEAD`): the review did not see it — run it
+  again on the new tip;
+- a HIGH or CRITICAL finding is open, or a MEDIUM one is neither resolved nor accepted in
+  `STATE.md` with its reason.
+Where the project merges by Pull Request (the answer **Merge** in `CLAUDE.md`), the same
+check runs before the branch goes up for its PR, and the note's line goes in the PR's
+description. The check reads what the note records: it is the agent's discipline, not an
+enforcement — a merge made outside this command skips it (docs/03).
+
 Claude Code **does not push and does not merge** — that is a human action (docs/04,
 *Execution boundary and blocks for the user*). Here it COLLECTS the state with read-only commands
 and PRODUCES two blocks of exact commands, ready to paste. Run ONLY the read commands of
@@ -165,6 +190,9 @@ the tag is not published either: find out why first — an SSH signature, for on
 verifies only with `gpg.ssh.allowedSignersFile` configured.
 
 ## 5. Final verification (print it as a checklist)
+- the security gate's line of the note that closes the deliverable was read before the
+  blocks, and holds: a verdict with its reason, under the gate `/fw:security-review` at a
+  tip no later commit outside the memory follows;
 - the merge commit header is within the commit-linter limit: **100 characters**
   (conventional default, not overridden in `commitlint.config.cjs`);
 - the merge commit type is a valid type (`feat`/`fix`/...), NEVER `merge:`;

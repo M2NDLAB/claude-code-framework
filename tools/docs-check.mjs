@@ -1169,7 +1169,7 @@ const ALLOW = [
   // Inventories.
   { check: 'inventory', file: '*', text: '/clear: no such command', reason: 'a command of Claude Code itself, not one of the method' },
   { check: 'inventory', file: '*', text: '/cd: no such command', reason: 'a command of Claude Code itself, not one of the method' },
-  { check: 'inventory', file: '.claude/commands/fw/security-review.md', text: '/security-review: no such command', reason: 'Claude Code\'s built-in, named so that it is not taken for the gate' },
+  { check: 'inventory', file: '*', text: '/security-review: no such command', reason: 'Claude Code\'s built-in, named so that it is not taken for the gate' },
   { check: 'inventory', file: SETUP, text: '/tmp: no such command', reason: 'a directory, not a command' },
   // Links: names that are not meant to exist in this repository.
   { check: 'link', file: '*', text: '`.claude/framework-version`', reason: 'the provenance pin: created in a project at its graft, never here' },

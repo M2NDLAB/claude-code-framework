@@ -53,6 +53,25 @@ green functional tests can still carry security defects the tests cannot see (a
 bypassed check, a spoof, an exposed administrative endpoint). Only a dedicated review
 finds them before they reach integration.
 
+## The check at integration
+
+The gate is never activated by a file's path: it holds in every session, from the method's
+core, loaded at every launch, on the categories above — in doubt, under the gate. And the
+session note that closes a deliverable records its verdict, the review's outcome and the tip
+it reviewed (`.claude/memory/sessions/README.md`, *The security gate's line*), which
+`/fw:integrate` reads before it prints its blocks — in the Pull Request form, before the
+branch goes up for its PR. It stops on a missing line; on "not applicable" for a deliverable
+that touches a sensitive component or asserts a security property; on a review other than
+`/fw:security-review`; on a commit after the reviewed tip that touches more than the memory
+and the CHANGELOG, if the project keeps one; and on a HIGH or CRITICAL finding still open.
+
+Its known limits, declared here where the claim lives: it is a check the agent applies, not
+an enforcement. A merge made outside `/fw:integrate` — a Pull Request merged on the forge, a
+merge typed by hand — never passes through it; and it reads what the note records, so a
+line that claims a review which did not run, or a verdict wider than the review's, passes
+it. A forge's required review or status check is the enforcement, where the project has
+one.
+
 ## The lenses of the gate
 
 A review that reads only what the code DOES can miss what the product SAYS, and the path a
