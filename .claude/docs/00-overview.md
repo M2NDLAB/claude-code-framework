@@ -84,7 +84,8 @@ lighter (*Scope and session hygiene*, below).
 2. **`/fw:security-review` — CONDITIONAL: only if the deliverable is under the gate.**
    Under the gate = sensitive — auth/authz, payments/money, personal data, the
    enforcement edge, surfaces that act on behalf of a client (the concrete list is
-   in `03-security-gate.md`) —, or a deliverable whose product asserts a security
+   the answer **Sensitive components** in `CLAUDE.md`, which `03-security-gate.md`
+   points at) —, or a deliverable whose product asserts a security
    property (`03-security-gate.md`, *The lenses of the gate*). Under the gate this is a
    GATE: HIGH/CRITICAL findings are resolved BEFORE going on. Otherwise, skip it — and
    write the verdict anyway, one line with its reason, in the session note

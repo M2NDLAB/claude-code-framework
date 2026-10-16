@@ -47,7 +47,7 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
    ARCHITECT RESPONSE block — carry it out per the protocol.
 5. **Documentation updated** TOGETHER with the change: a change that touches user
    features, procedures, APIs or deployment is not done until the documentation is
-   aligned (where the project documentation lives: [TO BE DEFINED AT SETUP]). Same
+   aligned (where the project documentation lives: the answer **Documentation**, below). Same
    logic as the memory. Until the project documentation exists, record the debt in
    STATE.md.
 6. **Self-improvement** per 06-self-improvement.md: FACTUAL corrections to the docs
@@ -62,7 +62,7 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
    task (`make reset-task`) and resume from the first unticked task. The commits
    of completed tasks are never touched.
 8. **Security gate** per 03-security-gate.md: on sensitive components
-   ([TO BE DEFINED AT SETUP]) run /fw:security-review BEFORE the PR; HIGH/CRITICAL
+   (the answer **Sensitive components**, below) run /fw:security-review BEFORE the PR; HIGH/CRITICAL
    findings resolved, MEDIUM resolved or accepted as debt in STATE.md (with the
    reason), LOW at least recorded.
 9. **Language** — two axes, and only one of them is yours to choose:
@@ -98,6 +98,22 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
 - `make reset-task` — discard the interrupted half-done task (keeps commits; the
   protected branches are the Makefile's `PROTECTED_BRANCHES`; `YES=1` without asking)
 
+## The answers the method reads
+
+> One line per answer the method's rules and docs read; setup fills each in place of its
+> setup marker (the framework's `SETUP.md`, step 2), and an answer may run on to the lines
+> below its own.
+
+- **Documentation** — where the project documentation lives (rule 5; `docs/02`, DoD point 7): [TO BE DEFINED AT SETUP]
+- **Sensitive components** — the components under the security gate (rule 8; `docs/03`): [TO BE DEFINED AT SETUP]
+- **Branches** — the integration and the stable branch, and the branching model if it is not the default (`docs/04`, *Branching model*): [TO BE DEFINED AT SETUP]
+- **Merge** — via Pull Request or via the `/fw:integrate` block (`docs/04`, *Merge*): [TO BE DEFINED AT SETUP]
+- **Public contract** — what the project promises its consumers, whose breaking is a MAJOR (`docs/04`, *Versioning*): [TO BE DEFINED AT SETUP]
+- **Doc comments** — the language's documentation-comment tool (`docs/02`, *Comments*): [TO BE DEFINED AT SETUP]
+- **Error format** — the structured, stable error format exposed to clients (`docs/02`, *Error handling*): [TO BE DEFINED AT SETUP]
+- **Formatter / linter** — what the pre-commit hook runs (`docs/02`; `scripts/hooks-install.sh`): [TO BE DEFINED AT SETUP]
+- **Production artifact** — its format for a deployable component (`docs/02`, DoD point 9): [TO BE DEFINED AT SETUP]
+
 ---
 
 ## Project-specific technical rules: [TO BE DEFINED AT SETUP]
@@ -116,8 +132,6 @@ Stack: [TO BE DEFINED AT SETUP] | Repo: [TO BE DEFINED AT SETUP]
 > - **API design**: versioning, error format, pagination, date/money formats, etc.
 > - **Data**: datastores in use, naming conventions, migration handling.
 > - **Tests**: framework, coverage thresholds, what requires an integration test.
-> - **Sensitive components** subject to the security gate (rule 8).
-> - **Where the project documentation lives** (rule 5).
 > - **Interaction language**: which language the agent speaks with you in session
 >   (rule 9). The language of the ARTIFACTS is not configurable — it is always
 >   English; only this axis is yours.

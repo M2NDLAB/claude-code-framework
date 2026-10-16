@@ -8,8 +8,8 @@ are stack-agnostic principles: the conventions specific to the chosen language g
 
 - Every public unit (class, module, exported function): a documentation comment with
   its responsibility, why it exists, its invariants, and a usage example if the API
-  is not obvious. *(The tool — the language's doc comment — is
-  [TO BE DEFINED AT SETUP].)*
+  is not obvious. *(The tool — the language's doc comment — is the project's answer
+  **Doc comments**: `CLAUDE.md`, *The answers the method reads*.)*
 - Every non-trivial public function: what it does, parameters with their constraints
   (range, null), what it throws/returns on error and when, side effects.
 - Blocks of complex logic: a comment BEFORE the block explaining the intent and why
@@ -29,7 +29,7 @@ are stack-agnostic principles: the conventions specific to the chosen language g
   swallow an error.
 - Error hierarchy: domain errors extend common bases; the application edge translates
   them into a uniform response format. Expose a structured, stable error format to
-  the client *(which one — [TO BE DEFINED AT SETUP])*, never stacktraces/queries/
+  the client *(which one — the answer **Error format** in `CLAUDE.md`)*, never stacktraces/queries/
   internal paths/library versions: the detail goes to the log (with a correlation
   id), the client gets the concise message.
 - Resources: always released safely (the language's idiomatic construct). I/O
@@ -61,7 +61,8 @@ are stack-agnostic principles: the conventions specific to the chosen language g
   that it is actively maintained. Prefer what is already in the project.
 - Formatting: applied automatically by the pre-commit hook (`make hooks-install`), so
   that drift does not accumulate and formatting-only commits are not needed. The tool
-  (formatter/linter) is [TO BE DEFINED AT SETUP] — see `scripts/hooks-install.sh`.
+  (formatter/linter) is the answer **Formatter / linter** in `CLAUDE.md` — see
+  `scripts/hooks-install.sh`.
   Never commit unformatted code.
 - Testing configuration: do not build configuration objects by hand in tests with
   long lists of positional/`null` values — adding a field would break every call
@@ -113,14 +114,14 @@ are stack-agnostic principles: the conventions specific to the chosen language g
 5. No new compiler/linter warnings.
 6. A schema migration if the data schema changed.
 7. Project documentation updated if the change touches user features, operational
-   procedures, APIs or deployment *(where the documentation lives —
-   [TO BE DEFINED AT SETUP])*; if the project documentation does not exist yet, the
+   procedures, APIs or deployment *(where the documentation lives — the answer
+   **Documentation** in `CLAUDE.md`)*; if the project documentation does not exist yet, the
    debt is recorded in `memory/STATE.md`.
 8. Memory updated and the commit made per `04-git-workflow.md` (the `/fw:checkpoint`
    command covers points 7 and 8 together).
 9. For a completed **deployable** component/app: the production artifact exists (e.g.
    a multi-stage container image, non-root runtime, or the equivalent for your
-   platform — [TO BE DEFINED AT SETUP]). This does NOT emerge from tests run in a
+   platform — the answer **Production artifact** in `CLAUDE.md`). This does NOT emerge from tests run in a
    development environment: it must be verified explicitly.
 10. The records claim no more than their data: a commit message, a changelog entry, the
     Verified part of an applied IMP is written after the last measurement it cites, and no

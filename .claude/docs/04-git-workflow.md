@@ -5,7 +5,8 @@ confirmation where indicated.
 
 ## Branching model
 
-> **Reading convention — branch names are [TO BE DEFINED AT SETUP].** In this doc and
+> **Reading convention — branch names are the project's: the answer Branches in
+> `CLAUDE.md`, *The answers the method reads*.** In this doc and
 > in the commands, **integration branch** (where features converge) and **stable
 > branch** (the released versions) are ROLES, not imposed names. The names `develop`
 > (integration) and `main` (stable) used below are the **example defaults**: choose
@@ -74,8 +75,8 @@ and in a template repo a concrete name stays there forever, breaking agnosticism
 ## Merge
 
 - Feature → `develop`: the merge is ALWAYS a human action, never performed by Claude
-  Code, in one of two forms — which one the project adopts is
-  [TO BE DEFINED AT SETUP]:
+  Code, in one of two forms — which one the project adopts is its answer **Merge** in
+  `CLAUDE.md`:
   - **via Pull Request** when a remote review flow exists (a team, a forge with
     mandatory review);
   - **via the `/fw:integrate` block** (a local `--no-ff` merge that the USER pastes and
@@ -142,7 +143,8 @@ Which files are shipped is part of the public contract below.
 **What a "breaking change" is — the MAJOR criterion.** SemVer is about the
 compatibility of the project's *public contract*: any change that forces a consumer
 to adapt in order to adopt the new version is breaking. WHAT that contract is depends
-on the project — [TO BE DEFINED AT SETUP] — but the criterion is one and the same:
+on the project — its answer **Public contract** in `CLAUDE.md` — but the criterion is one
+and the same:
 - a **code** project: the public signature of an API/CLI, a data or message format, a
   persistence schema, a configuration contract — breaking them is MAJOR;
 - a **method/tooling** project: removing or renaming a command, an incompatible change
@@ -180,8 +182,8 @@ on WHICH BRANCH the tag lives:
 > is REPLACED by these two regimes: in 0.x you tag on `develop`, from 1.0.0 on
 > `main`. No two conflicting instructions remain.
 
-> A different branching model (e.g. trunk-based, or different names —
-> [TO BE DEFINED AT SETUP])? The names change, the two regimes do not: pre-1.0 you
+> A different branching model (e.g. trunk-based, or different names — the answer
+> **Branches** in `CLAUDE.md`)? The names change, the two regimes do not: pre-1.0 you
 > tag on the working line, post-1.0 on the released line.
 
 **Tag and push hygiene (for the user who runs the commands).**
@@ -474,4 +476,5 @@ what Claude Code may run without asking. Keep them **clean and specific**:
   prompt more than an implicit, forgotten permission.
 
 > The read-only commands specific to your stack (build tool, package manager,
-> container CLI) are added to `allow` at setup — [TO BE DEFINED AT SETUP].
+> container CLI) are added to `allow` at setup, in `.claude/settings.json` itself (the
+> framework's `SETUP.md`, step 2).

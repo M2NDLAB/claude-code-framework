@@ -240,8 +240,14 @@ Here is the complete list, grouped by file:
 
 ### `CLAUDE.md` (the most important one)
 - [ ] Header: **project name**, **stack**, **repo**.
-- [ ] Rule 5: **where the project documentation lives**.
-- [ ] Rule 8: **which components are "sensitive"** (subject to the security gate).
+- [ ] *The answers the method reads*, one line each: **Documentation** — where the
+      project documentation lives (rule 5); **Sensitive components** — those under the
+      security gate (rule 8, `docs/03`); **Branches** — the integration and stable
+      branches, and the model if it is not main/develop/feat; **Merge** — Pull Request or
+      the `/fw:integrate` block; **Public contract** — the criterion of a MAJOR; **Doc
+      comments**, **Error format**, **Formatter / linter** and **Production artifact**,
+      which `docs/02` reads. The docs in `.claude/docs/` hold no answer of their own: they
+      point at these lines, so an upgrade brings them over whole.
 - [ ] Final section **"Project-specific technical rules"**: stack, build/test/lint/run
       commands, standard structure of a component, code conventions, API design,
       datastores, tests/coverage, deployment. This is where the framework becomes
@@ -249,20 +255,6 @@ Here is the complete list, grouped by file:
 - [ ] **Interaction language** (in the technical rules): which language the agent
       speaks with you in session. The language of the ARTIFACTS is not configurable —
       it is always English (rule 9); only this axis is yours.
-
-### `.claude/docs/`
-- [ ] `02-code-quality.md`: doc-comment tool, error format exposed to clients,
-      formatter/linter, where the documentation lives, production artifact format.
-      (It is often enough to define them in CLAUDE.md and leave a pointer here.)
-- [ ] `03-security-gate.md`: explicit list of the sensitive components (aligned with
-      CLAUDE.md rule 8) — the list step 2 of the end-of-deliverable cycle points to.
-- [ ] `04-git-workflow.md`: branching model, **if** different from main/develop/feat;
-      the merge form the project adopts — Pull Request or the `/fw:integrate` block
-      (*Merge*); what the project's public contract is, the criterion of a MAJOR
-      (*Versioning*).
-
-These three docs are HYBRID: an answer written inline, or a pointer to `CLAUDE.md` in place
-of the slot, survives every upgrade, which merges them three ways.
 
 ### `.claude/commands/fw/`
 - [ ] `fw/checkpoint.md`: patterns to ignore for `tree`, name of the integration branch — its
@@ -292,11 +284,13 @@ of the slot, survives every upgrade, which merges them three ways.
       package manager, container CLI) to reduce prompts — e.g. the build/test command.
       The baseline is already set (`allow`: git inspection + safe `add`/`commit`;
       `deny`: push, `reset --hard`, destructive deletions, reading secrets) — the
-      principles are in `04-git-workflow.md` ("Permission configuration"). The `env`
-      marker `AGENT_GIT_BOUNDARY` and the PreToolUse hook that runs
+      principles are in docs/04, *Permission configuration*. The `env` marker
+      `AGENT_GIT_BOUNDARY` and the PreToolUse hook that runs
       `scripts/agent-git-guard.mjs` are the method's boundary wiring, and the `ask`
-      rules on edits to these two files are its checkpoint: leave them in
-      (`04-git-workflow.md`, "Enforcement of the execution boundary").
+      rules on edits to these two files are its checkpoint; the SessionStart hook that
+      runs `scripts/state-inject.sh`, with the `ask` rule on that script, is how every
+      session receives the memory: leave them in (docs/04, *Enforcement of the execution
+      boundary*).
 - [ ] Leave `settings.local.json` out of version control (it is already in
       `.gitignore`) and start empty: personal permissions are NOT committed, no vague
       grants of the "stop asking for similar commands" kind.
@@ -572,8 +566,8 @@ On a pre-existing git history, before adopting the flow of `docs/04`:
 - [ ] **Branch topology**: faced with a dormant remote integration branch (e.g. an old
       `dev`), DECIDE and DECLARE the choice: trunk-based (the two roles coincide — a
       case `docs/04` provides for) or restoring the branch as the integration one.
-      Record the choice in the `[TO BE DEFINED AT SETUP]` slots of `docs/04` and in the
-      commands' parameters (`fw/checkpoint.md`, `fw/integrate.md` — step 2 of this guide).
+      Record the choice in the answer **Branches** of `CLAUDE.md` and in the commands'
+      parameters (`fw/checkpoint.md`, `fw/integrate.md` — step 2 of this guide).
 
 ### The first command becomes an ASSESSMENT that populates the memory
 
@@ -663,15 +657,15 @@ into one of these classes — file by file, the authority is the class table of
 `tools/upgrade-check.sh` (`classes <tag>` prints it), and a payload file without a class
 makes the framework's own self-test fail:
 
-- **METHOD** (pure framework, brought to `vY`): `.claude/docs/00-01` and
-  `.claude/docs/05-06`, the non-customised commands in `.claude/commands/fw/`, `scripts/reset-task.sh`,
+- **METHOD** (pure framework, brought to `vY`): `.claude/docs/00-06` — from v4.0.0 the
+  docs hold no answer: `docs/02`-`04` point at the index's *The answers the method reads*
+  (edge case 8) —, the non-customised commands in `.claude/commands/fw/`, `scripts/reset-task.sh`,
   `scripts/agent-git-guard.mjs`, `scripts/repo-snapshot.sh`, `scripts/state-inject.sh`,
   `scripts/check-prerequisites.sh`, the self-tests `scripts/test-*.sh`,
   `scripts/README.md`, `commitlint.config.cjs`.
 - **HYBRID** (a framework part that evolves + a project part to preserve, reconciled):
   `CLAUDE.md`, `.claude/settings.json`, `scripts/hooks-install.sh`, `.gitignore`,
-  `.gitattributes`, `Makefile`, the docs a project answers at setup (`.claude/docs/02-04`,
-  inline or with a pointer to the technical rules), and the commands customised at setup
+  `.gitattributes`, `Makefile`, and the commands customised at setup
   (`fw/checkpoint.md`, `fw/integrate.md`, `fw/new-component.md`).
 - **MEMORY TEMPLATES** (the method's own files inside `.claude/memory/`, reconciled 3-way
   like the hybrids): the four guide READMEs — the `README.md` of `components/`,
@@ -994,8 +988,8 @@ from a hand-written list; the memory's titles and field labels to rename; and th
   one that was REMOVED **disappears**; one that was MOVED or co-edited surfaces as a
   **conflict** to resolve by hand, with the file tools. Always re-apply the project's
   `[TO BE DEFINED AT SETUP]` answers (branch names, `tree` patterns, formatter, the
-  stack's allow-list, the answers in `docs/02`-`04`, the whole "Technical rules" section of
-  `CLAUDE.md`) — and if `vY`
+  stack's allow-list, *The answers the method reads* and the whole "Technical rules" section
+  of `CLAUDE.md`) — and if `vY`
   MOVED a slot to another file, see edge case 8 before merging either file. `.gitignore`
   is INTEGRATED (additive union: make sure the lines of the `vY` base —
   `git -C "${FW:?}" show vY:<path>` — are present without removing the project's), and
@@ -1375,9 +1369,10 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    per version.
 
 7. **Pre-flight: has the "pure METHOD" file been customised inline?** The METHOD class
-   assumes a file stays as the framework wrote it. (The docs a project answers at setup,
-   `docs/02`, `03` and `04`, are HYBRID from v3.0.0: their answers are merged, never
-   overwritten.) But if the project freely edited an otherwise pure file
+   assumes a file stays as the framework wrote it. (The answers `docs/02`, `03` and `04`
+   held — the three were HYBRID in v3.x — moved to `CLAUDE.md` in v4.0.0: that is edge case
+   8, not this one, and `inventory` names each answer instead of this flag.) But
+   if the project freely edited an otherwise pure file
    (`commitlint.config.cjs`, a doc, a command) that file is in fact a HYBRID, and the
    overwrite destroys its customisation silently. Before overwriting a METHOD-class file, **inspect** that it really is
    untouched with respect to `vX` — `vX`'s copy read by tag, then compared:
@@ -1402,6 +1397,15 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    says so, and `make test-scripts` proves the refusal (measured on a project grafted at
    v1.2.0). The *Upgrading* note of the release that moved the slot names both places
    (Step 2).
+
+   **v4.0.0 moved the answers of the docs.** The slots of `docs/02`, `03` and `04`, and those
+   of `CLAUDE.md`'s rules 5 and 8, became the lines of `CLAUDE.md`'s *The answers the method
+   reads* — one line per answer —, and the three docs METHOD. `inventory` names each slot the
+   project answered and the line its answer moves to; carry each answer there, with the
+   file tools, before the doc comes over from `vY` (a doc's own customisation beyond its
+   slots stays edge case 7's, moved to the technical rules or kept as a hybrid).
+   `invariant` then fails on an answer the restore point held whose new line is still open,
+   and `post` asks about a doc that still differs from `vY`'s.
 
 > **Outside the upgrade payload.** `LICENSE`, `CONTRIBUTING.md`, `CHANGELOG.md` are
 > files of the FRAMEWORK REPO (not copied into the project, step 1): do not push them

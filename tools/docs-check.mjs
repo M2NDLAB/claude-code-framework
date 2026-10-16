@@ -1181,6 +1181,7 @@ const ALLOW = [
   { check: 'list', file: SETUP, text: '§2 names .claude/memory/STATE.md', reason: 'a template the first command populates, not a slot' },
   { check: 'list', file: SETUP, text: '§2 names .claude/memory/INDEX.md', reason: 'a template the first command populates, not a slot' },
   { check: 'list', file: SETUP, text: '§2 names scripts/agent-git-guard.mjs', reason: 'named as boundary wiring to leave in place, not a slot' },
+  { check: 'list', file: SETUP, text: '§2 names scripts/state-inject.sh', reason: 'named as the memory\'s wiring to leave in place, not a slot' },
   { check: 'list', file: UPGRADE_CHECK, text: 'classify() names .claude/framework-version', reason: 'GRAFT-STATE: the pin exists only in a project' },
   { check: 'list', file: UPGRADE_CHECK, text: 'classify() names .claude/settings.local.json', reason: 'LOCAL: never versioned' },
   { check: 'list', file: 'README.md', text: 'the copy list names .claude/framework-version', reason: 'the pin step 1 creates, not a copied path' },

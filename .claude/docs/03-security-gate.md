@@ -28,8 +28,9 @@ authentication/authorisation, handling of payments or money, personal data, the 
 that performs enforcement (gateway/proxy), any surface that performs actions on
 behalf of a client (e.g. a tool/automation server).
 
-> **Which ones, concretely, in this project: [TO BE DEFINED AT SETUP].**
-> List here (or in `CLAUDE.md`) the components that fall under the gate.
+> **Which ones, concretely, in this project:** the answer **Sensitive components** in
+> `CLAUDE.md`, *The answers the method reads* — the list step 2 of the end-of-deliverable
+> cycle points to.
 
 ## How the gate works
 
