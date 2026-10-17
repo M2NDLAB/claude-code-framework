@@ -23,9 +23,11 @@ Plan, or resume, the work for: $ARGUMENTS
    one commit.
 5. Resume (*RESUMPTION*): read the plan; `git log --oneline` on its branch; verify — `git
    status`, the ticks against the commits, the branch's base; with uncommitted work, its
-   build, its tests and its diff against the plan —; then the half-done work: in a new
-   session discard it (`make reset-task YES=1`), in the same session after a pause keep it
-   only if the verification holds. Resume from the first unticked task: never redo a ticked
-   one, never recreate the branch.
+   build, its tests and its diff against the plan —; then the uncommitted work: in the same
+   session after a pause keep it if the verification holds; in a new session, or when the
+   verification fails, show it (`git status --untracked-files=all`, `git diff`) and keep it —
+   only the user discards it, `make reset-task` from their own terminal, never the agent with
+   `YES`. Resume from the first unticked task: never redo a ticked one, never recreate the
+   branch.
 6. When every task is ticked (PHASE 4): `status: completed`, then the end-of-deliverable
    cycle — the merge and the push stay the user's (`docs/04`).

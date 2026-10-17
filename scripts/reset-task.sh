@@ -8,7 +8,7 @@
 # cleanup for the task planning protocol (.claude/docs/01-task-planning.md).
 #
 # Usage:  make reset-task          # the project's protected branches (Makefile); asks
-#         make reset-task YES=1    # same, without asking (an agent has no terminal)
+#         make reset-task YES=1    # same, without asking: the user's, never an agent's
 #         ./scripts/reset-task.sh  # direct: PROTECTED_BRANCHES from the environment,
 #                                  # else main + develop, with a warning; asks
 # Self-test: scripts/test-reset-task.sh.
@@ -34,7 +34,7 @@ BRANCH=$(git branch --show-current)
 if [ -z "${PROTECTED_BRANCHES:-}" ]; then
   if [ "$AUTO" = "--yes" ]; then
     echo "❌ PROTECTED_BRANCHES is not set: refusing --yes with default protected branches."
-    echo "   The project's list is in the Makefile: run 'make reset-task YES=1'."
+    echo "   The project's list is in the Makefile: run 'make reset-task'."
     exit 1
   fi
   PROTECTED_BRANCHES="main develop"

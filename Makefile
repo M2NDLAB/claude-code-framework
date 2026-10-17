@@ -15,7 +15,8 @@ hooks-install: ## Install the git hooks (gitleaks + commitlint + the pre-push pu
 # stable branches (docs/04). Example defaults below. A plain `=`, not `?=`: an exported
 # environment variable must not silently replace the project's list; one run can still
 # override it on the command line: make reset-task PROTECTED_BRANCHES="main trunk".
-# YES=1 discards without asking — the form an agent uses (it has no terminal to answer).
+# YES=1 discards without asking — the user's form, never an agent's (the core's Resumption);
+# make reads YES from the environment too, and any non-empty value skips the question.
 PROTECTED_BRANCHES = main develop
 
 reset-task: ## Discard the interrupted half-done task, preserving branch and commits (YES=1: no prompt)
