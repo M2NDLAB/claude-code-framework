@@ -334,6 +334,10 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
   outside the subdirectory is external and was not loaded (`claude -p`; `memory.md:133`); an
   interactive session's approval of external imports was not measured. No correction is due.
 - IMP-124 counts "1,347 lines" of docs; the seven files hold 1,313 at `0c71b6f`.
+- Task 6's "the longest output its rules allow, 8,289 characters" (*Measured along the
+  tasks*) measured a cut from `## Progress`; a cut from a section titled past 80 characters
+  gave 8,361 with that script and 8,380 with the gate's fixes (2026-10-17) — the figure the
+  CHANGELOG states. Still under the self-test's 9,000.
 
 ## Task 2 — the measurements
 A scratch project outside the repository (a git repository with a `CLAUDE.md` importing a

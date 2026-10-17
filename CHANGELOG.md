@@ -7,6 +7,197 @@ SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [4.0.0] — 2026-10-17
+
+**Breaking: the method's core leaves `CLAUDE.md`, and the docs load when they are needed.**
+`CLAUDE.md` imported the seven docs and `STATE.md` (IMP-124): every session started with all of
+them, and every delegated agent received the same block, whatever the task. The rules that bind
+in every turn now live in `.claude/rules/fw-core.md`, a rule with no `paths`, which Claude Code
+loads at every launch, again after a compaction and in a delegated general-purpose agent —
+measured with `claude -p`, in a session started in a subdirectory too. The docs are read at the
+moments the core's table names, by section where they are long; each command reads the doc it
+applies at its first step; `STATE.md` reaches the session through the SessionStart hook within
+8,000 characters, its open issues first. `CLAUDE.md` becomes the project's own text: its title,
+its stack, *The answers the method reads* and its technical rules. Measured on Opus 5.5 with the
+same prompt, in scratch clones of this repository — its template's `CLAUDE.md` and `STATE.md`,
+Claude Code's own prompt and tools included —: the first request of a session went from 57,932
+input tokens with v3.0.0 to 30,373 (−27,559, −48%), a general-purpose subagent's from 54,264 to
+27,256 (−27,008, −50%). The framework's own part at launch, derived from those differences at
+the 2.80 characters per token they imply, went from about 35,000 tokens to about 7,800 in a
+session and from about 33,600 to about 6,600 in a subagent. Those runs measured the core before
+the release's security review, whose fixes added 976 characters to it — about 350 tokens at
+the same ratio, not measured. The answers `docs/02`-`04` held move to `CLAUDE.md`, and the three
+docs are METHOD again (*Upgrading*, below).
+
+### Added
+- **The method's core, `.claude/rules/fw-core.md`** (IMP-124): the ten rules — the code
+  quality's prohibitions spelled out, the Definition of Done —, memory and resumption, the
+  always-on working rules (the cycle, scope, the human's say on what cannot be undone,
+  commits, the boundary, delegation), the quick commands, and a table of the moments at which
+  each doc is read. A pointer `file`, *Section* means a grep of the doc's titles and a Read of
+  that section only, to the next title outside a code fence.
+- **`/fw:plan`**: it reads `docs/01`, judges the prompt's weight, writes and commits the plan,
+  runs one commit per task, and resumes an interrupted plan. Not Claude Code's built-in plan
+  mode.
+- **`scripts/state-inject.sh`, the SessionStart hook's script**: the banner, *Caution & open
+  issues* first — or one line saying the file has none —, then the preamble, *Active branches*,
+  *Progress* and the rest within 8,000 characters counted as Claude Code counts them, block
+  comments left out; past the budget one line says how many characters were not shown and to
+  Read the file. Claude Code caps a hook's output at 10,000 characters and past them shows a
+  path and a 2,000-character preview it never asks Claude to read. It exits 0 whatever happens;
+  a missing or unreadable file gets the banner and a line saying so, and a failed run — the
+  script missing, awk missing — the file's first 8,000 bytes and the line to Read it. A line
+  that is not valid UTF-8 counts one unit per byte. Its longest output — no *Caution* section,
+  a cut, the cut's section titled past 80 characters — was measured at 8,380 characters, and
+  its self-test holds every output to 9,000; the test reads the wiring from `settings.json`.
+  An `ask` rule guards the script.
+- **Two path-scoped rules**: `.claude/rules/fw-code-quality.md` has `docs/02` read when Claude
+  works on the project's code, whose globs are a setup slot — open, the rule does not load on
+  the project's files (measured on a Read), and the core alone covers the moment —;
+  `.claude/rules/fw-boundary.md` has `docs/04`'s two boundary sections read before an edit of
+  `settings.json`, the guard, `hooks-install.sh` or `state-inject.sh`. Neither imports
+  anything: an `@` inside a path-scoped rule was measured loading its file at every launch.
+- **`/fw:integrate` checks the security gate's line** of the closing note before its blocks —
+  in the Pull Request form, when the agent prepares the PR: no note the branch added for
+  itself, no line, "not applicable" for a deliverable that touches a sensitive component — the
+  method's own boundary among them — or asserts a security property, a review other than
+  `/fw:security-review` or no reviewed tip, a commit after the reviewed tip that touches a
+  shipped file — its own changelog commit aside —, an open HIGH or CRITICAL finding or an
+  unaccepted MEDIUM — each stops it. A check the agent applies, not an enforcement: `docs/03`,
+  *The check at integration*, declares its limits. `/fw:security-review`'s report opens with
+  the range it reviewed, and the gate line copies that tip.
+- **`CLAUDE.md`'s *The answers the method reads***: one line per answer — documentation,
+  sensitive components, branches, merge, public contract, doc comments, error format,
+  formatter and linter, production artifact.
+- **`/fw:lint-memory`**: check 12, `STATE.md` over its budget or without its *Caution & open
+  issues* title; check 13, a rule's glob that matches nothing, and every `@`-import with the
+  cost it adds.
+- **`upgrade-check.sh` follows the answers a release moved**: `inventory` names each slot the
+  project answered, quotes the answer and names the line it moves to, instead of edge case 7;
+  `invariant` fails while an answer's line is missing or still open, and asks for a
+  confirmation while the line does not hold the restore point's answer word for word; `post`
+  names edge case 8 for a doc left as it was.
+
+### Changed
+- **The commands read their docs**: no `@` in their bodies — an `@` re-attached the doc at every
+  invocation —, the doc read at step 1, by section where it is long, and again after a
+  compaction with the command's own file; `LEARNINGS.md` read by section, past the 25,000
+  tokens a single Read returns. Their descriptions say when to use each; `/fw:new-component`
+  leaves Claude's skill listing, a scaffold run by the user only. The `fw:` lines of the
+  listing went from 850 to 1,591 characters.
+- `/fw:checkpoint` keeps `STATE.md` within the hook's 8,000 characters, the history moving to
+  the session notes, and measures it after the rewrite from the repository's root, a failed
+  measurement never a pass — except the checkpoint that closes an upgrade, which never
+  condenses it.
+- The blocks for the user: the `-m` texts in single quotes, every push with
+  `--no-follow-tags`, block 1 on the sha the check ran on.
+- `/fw:sos` carries out a pasted ARCHITECT RESPONSE; `/fw:security-review` says it is the gate
+  and Claude Code's built-in `/security-review` is not.
+- `docs/00`'s *Selective loading* says what loads when; `docs/02`, `03` and `04` point at
+  `CLAUDE.md`'s answers and are METHOD; the citations of the old numbered rules point at the
+  core; `docs/06` names the core among the rules the agent never rewrites.
+- `SETUP.md`: the first command reads `docs/00`, not every doc; a host's `CLAUDE.md` and
+  `.claude/rules/` are kept at a graft; step 2's answers live in `CLAUDE.md`; step 3 gives
+  `CLAUDE.md`'s migration; step 6 puts an upgrade that changes the boundary's files under the
+  gate and starts Claude Code again after the merge; edge cases 6-8 say what v4.0.0 moves.
+
+### Fixed
+- Found by the release's rehearsal: the STATE injection's self-test read the project's own
+  `STATE.md` as the template, and failed in a project whose memory is over the budget — it
+  builds its template now; the inventory said a file was "renamed in vY" of a rename an
+  earlier release made — it says between which releases.
+- Found by the release's security review, before it shipped (four adversarial reviewers by
+  perimeter, each verified by a refuter; no HIGH or CRITICAL): the injection's fallbacks
+  printed the whole file, unbounded, and a missing `STATE.md` no banner; `invariant` passed an
+  answer left behind when another one closed its label's line, read an open slot with a
+  trailing blank as answered, and said nothing moved from a release before v1.1.0; the gate's
+  check missed the method's boundary and exempted shipped memory files and changelog text; the
+  core left out the human's say on what cannot be undone and two of `docs/02`'s prohibitions,
+  and claimed it loads in every delegated agent.
+
+### This repository
+- **Block 0 has a written form, and block 1 checks the CI** (IMP-126): `CONTRIBUTING.md` gives
+  block 0 its two blocks and the line between them, and block 1 its checks inside the chain —
+  `origin/main` and the remote and local branch at block 0's shas, the CI's verdict on the tip
+  read with `gh run list -R`, fail-closed, and the merge's tree equal to the tip's before the
+  tag.
+- The documentation check reads the commands, the targets and the docs' index from the core,
+  and fails an `@` in a method rule or command, a rule's glob that matches no file, a pointer
+  to `docs/04` in the core or a rule without a section the doc has, and a command frontmatter
+  key outside `description`, `argument-hint` and — on `/fw:new-component` only —
+  `disable-model-invocation`.
+
+### Errata — corrections to entries already published
+- **[3.0.0], `LEARNINGS.md`'s format comment** (IMP-127). That entry's *Upgrading* note lists
+  among the memory templates "the header and format comment of `LEARNINGS.md`: merged 3-way".
+  Between v2.2.0 and v3.0.0 only the header changed — its line on `/fw:harvest-framework` —;
+  the format comment is byte-identical, so its 3-way keeps the project's and changes nothing.
+
+**Upgrading from 3.0.0** (from an earlier release, also follow the entries in between — Step 2
+of the upgrade says how they combine; a jump from before v3.0.0 crosses the commands'
+namespace first, then this release, `SETUP.md` edge case 6):
+- **`CLAUDE.md` first — the breaking change, a conflict by construction.** Its 3-way conflicts
+  on most of the file — 150 of 159 lines in the rehearsal from 3.0.0, 168 of 177 from 1.2.0 —:
+  rebuild it from `vY` and re-apply the project's text (`SETUP.md`, Step 3, *`CLAUDE.md` from
+  v4.0.0*), in this order, each change with the file tools:
+  1. **The answers go to *The answers the method reads*.** `inventory` names each answer to
+     carry under edge case 8 — `CLAUDE.md`'s rules 5 and 8, the slots of `docs/02`, `03` and
+     `04` — with its text and its line; write each one there. **Documentation**, **Sensitive
+     components** and **Branches** take two answers each: the line holds both. The read-only
+     commands of the stack that `docs/04` held belong in `settings.json`'s `allow`.
+  2. **Rules 1-10 leave: they are in the core.** Take `vY`'s side of the method's part — the
+     imports of the docs and of `STATE.md`, the memory's section, the ten rules, the quick
+     commands. A line of the project's own there — a rule or an import it added — moves to its
+     technical rules; an `@`-import it keeps loads at every launch (`/fw:lint-memory`,
+     check 13).
+  3. **The project's text stays**: its title and stack lines, and its technical rules, as it
+     wrote them.
+  `invariant` fails on an answer whose line is missing or still open, and asks for a
+  confirmation where the line does not hold it word for word. From a release before v1.1.0,
+  whose slot lines are Italian, a CHECK names the files, and the answers are carried by hand.
+- **`docs/02`, `03` and `04` come over from the tag, once their answers are carried** — this
+  supersedes 3.0.0's "merged 3-way, never brought over": they are METHOD again. A
+  customisation of the project's beyond their slots moves to its technical rules (edge
+  case 7); `inventory` flags a doc whose moved slots are all open as edge case 7's.
+- **`STATE.md`'s titles take the method's form** — a project still on the pre-English titles
+  renames them (edge case 3 (b); `inventory` lists them) — and nothing else changes in it: **a
+  `STATE.md` over the hook's 8,000 characters is never condensed by the upgrade**, its own
+  checkpoint included. Until the first `/fw:checkpoint` after the upgrade's merge condenses it
+  — the history to the session notes, each open issue one line with its trigger —, the hook
+  shows its first 8,000 characters, *Caution & open issues* first, and a last line that sends
+  each session to the whole file.
+- **The upgrade is under the security gate**: it changes `.claude/settings.json`'s
+  SessionStart hook and adds `scripts/state-inject.sh`, both the method's boundary (the core's
+  rule 8). Run `/fw:security-review` on the upgrade branch's diff before its checkpoint; the
+  gate line names the reviewed tip, and `/fw:integrate` stops on "not applicable".
+- New METHOD files — bring them over from the tag: `.claude/rules/fw-core.md`,
+  `.claude/rules/fw-boundary.md`, `.claude/commands/fw/plan.md`, `scripts/state-inject.sh`,
+  `scripts/test-state-inject.sh`. Changed METHOD files: `.claude/docs/00`-`06`, the commands
+  the project left untouched, `scripts/README.md`.
+- A new HYBRID file with a slot: `.claude/rules/fw-code-quality.md` — answer its globs with
+  the project's code files (Step 4), or leave it open: the rule then does not load on the
+  project's files.
+- HYBRID files (3-way): `.claude/settings.json` — the SessionStart hook's command now runs
+  `scripts/state-inject.sh`, and an `ask` rule guards it —, the three setup commands, the
+  `Makefile` (its help line), `scripts/hooks-install.sh` (a comment). They merged clean in
+  the rehearsal, `fw/checkpoint.md` included, whose first step changed one blank line away
+  from the setup paragraph a project deletes.
+- **The markers.** `inventory` lists the slots removed from the docs and `CLAUDE.md`'s rules and
+  the nine lines and the globs added: the removed ones are the answers just carried.
+- **The §2 checklist**: the docs' items are gone, `CLAUDE.md`'s item names the answers, and
+  `rules/fw-code-quality.md` is new.
+- The memory templates: `components/README.md` and `sessions/README.md` (the gate line names
+  the tip the review's report names) — merged 3-way, as Step 3 says. The `STATE.md` and
+  `TREE.md` templates changed only for new projects.
+- `make hooks-install`: the generated hooks do not change.
+- **After the merge, start Claude Code again**: a running session, and the agents it
+  delegates to, keep the method it loaded at launch.
+- Rehearsed: from 3.0.0, on a project with every setup answer in place, with LF and with CRLF
+  line ends; from 1.2.0, on a synthetic project in the form of one seen in the field — the pin
+  without its `v`, trunk-based with a second protected branch, the docs answered inline, four
+  commands customised, a `STATE.md` of 57 KB with the pre-English titles. `make test-scripts`
+  green, `invariant` and `post` without a FAIL, every answer in its line.
+
 ## [3.0.0] — 2026-10-15
 
 **Breaking: the framework's commands are `/fw:<name>`.** The eight commands moved from
@@ -176,6 +367,8 @@ Step 2 of the upgrade says how they combine):
   customised. The conflicts above and one co-edit in a customised command, no other;
   `make test-scripts` green; `invariant` and `post` without a FAIL.
 - The new greenfield steps ask nothing of a project already grafted.
+
+*Corrected in 4.0.0, Errata.*
 
 ## [2.2.0] — 2026-10-14
 
