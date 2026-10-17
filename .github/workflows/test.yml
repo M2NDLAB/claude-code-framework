@@ -1,7 +1,8 @@
 # The framework's self-tests on the three platforms it supports. This file is the framework
 # repository's own: setup never copies .github/ into a project. Minimal on purpose — it runs
-# `make test-scripts`, the upgrade check's self-test, the prerequisite check and the
-# generated hooks with the real gitleaks and commitlint, and installs only what they need
+# `make test-scripts`, the upgrade check's self-test, the shipped self-tests inside a grafted
+# project, the prerequisite check and the generated hooks with the real gitleaks and
+# commitlint, and installs only what they need
 # beyond the images: GNU make on Windows, gitleaks on the three, each at a fixed version.
 # The real hooks' commit-msg makes npx fetch commitlint from the npm registry: its two
 # packages at their pin, their dependencies by the ranges they declare, no hash checked.
@@ -109,6 +110,13 @@ jobs:
       - name: The upgrade check's self-test
         if: ${{ !cancelled() }}
         run: bash tools/test-upgrade-check.sh
+      # The shipped self-tests inside a project grafted from this commit, every slot answered
+      # and the memory past its budget: here every slot is open, so a self-test that reads them
+      # only as they are here passes in no project but this one. Each must print its PASS line
+      # there, and the generator's own cases run too.
+      - name: The shipped self-tests inside a grafted project
+        if: ${{ !cancelled() }}
+        run: bash tools/test-rehearsal-project.sh
       # The shipped check against the runner's real tools: a tool missing or not starting
       # fails the step. On its own image it must name the image — verified on Linux and macOS,
       # named on Windows —, so its reading of sw_vers and os-release is proven on the images.

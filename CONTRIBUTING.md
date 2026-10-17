@@ -91,7 +91,9 @@ This repo applies to itself the method it describes (`.claude/docs/`):
   Where a change must land on such a line, the CHANGELOG's *Upgrading* note names the
   conflict and its resolution. Every release that changes a HYBRID file rehearses the
   upgrade before `/fw:integrate`, on a project with every setup answer in place, with LF and
-  with CRLF line ends.
+  with CRLF line ends: the projects `tools/rehearsal-project.sh` builds — `answered` at the
+  release before, `legacy` at the oldest release a project still runs —, rebuilt and
+  rehearsed again on the tip that ships, so the record names the commit it measured.
 
 ## This repo's git model (a declared exception)
 
@@ -111,8 +113,9 @@ foresees). Concretely:
   applies to the messages too, because pushed history is not rewritten.
 
 **The CI, before the merge — block 0.** The CI (`.github/workflows/test.yml`) runs
-`make test-scripts`, the upgrade check's self-test, the prerequisite check and the generated
-hooks with the real gitleaks and commitlint (`tools/test-real-hooks.sh`) on macOS, Linux and
+`make test-scripts`, the upgrade check's self-test, the shipped self-tests inside a project
+grafted from the pushed commit (`tools/test-rehearsal-project.sh`), the prerequisite check and
+the generated hooks with the real gitleaks and commitlint (`tools/test-real-hooks.sh`) on macOS, Linux and
 Windows, on what is pushed — and a deliverable's branch otherwise stays local until
 `/fw:integrate`. So, in
 this repository, the human runs a block 0 before `/fw:integrate`'s block 1: push the feature
