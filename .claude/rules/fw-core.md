@@ -157,7 +157,9 @@
   `--force-with-lease` on your own unshared feature branch. On a shared branch, rollback is
   `git revert`; a release broken in production: roll back the deployment first, revert the
   code after. The hooks are the boundary: `-n`/`--no-verify`,
-  `core.hooksPath` (a hook manager), edits to `.git/hooks/` or `.gitleaks*` take them out.
+  `core.hooksPath` (a hook manager), edits to `.git/hooks/` or `.gitleaks*` take them out —
+  never to get past a hook, `make hooks-install` and what the user decides aside: a hook's
+  refusal is fixed at its cause, or reported to the user.
   Conflicts: only trivial ones are resolved here — logic means stop and show both sides.
 - **Delegation**: delegated agents are read-only on git — `git show`/`git diff` instead of a
   checkout, `git --no-optional-locks status` —, EnterWorktree and ExitWorktree included;
