@@ -204,8 +204,8 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
 - [x] 10. The gate's check in `/fw:integrate`, the PR form included; the limits declared in `docs/03` — commit: d5a33c2
 - [x] 11. The core in `.claude/rules/fw-core.md` — D1's two conditions held at task 2 —; `CLAUDE.md` the project's own and its class; `docs/00` *Selective loading*; every `@` of the method's files removed, `STATE.md`'s included; the rules' citations re-pointed; docs-check strict, with the pointers resolved to headings — commit: 9b9175f; the measurements of the fifth turn recorded after it
 - [x] 12. `SETUP.md` (the migration from 3.x, the single jump from 1.2.0, `STATE.md` reduced by the first checkpoint after the upgrade, step 4, the brownfield rows), `README.md`, `CONTRIBUTING.md`, `SECURITY.md` — commit: af2a2ad
-- [ ] 13. The rehearsal on a clone tagged v4.0.0 — from 3.0.0 with every answer in place, and from 1.2.0 in the synthetic form of the project upgraded next, LF and CRLF — moved here from task 14, so that the gate reviews the tip that ships; then `/fw:security-review`, adversarial, its reviewer not the author, its perimeter named: the claims about what loads, the gate's check, `state-inject.sh` and its wiring, the migration of the answers — commit: 0afcb5b (the rehearsal's first fix), …
-- [ ] 14. The retro; the CHANGELOG's 4.0.0 entry with IMP-127's erratum and the measured first request; the rehearsal again on the CHANGELOG's commit; the checkpoint; then `/fw:integrate` up to block 0, no further (the fifth turn) — commit: —
+- [x] 13. The rehearsal on a clone tagged v4.0.0 — from 3.0.0 with every answer in place, and from 1.2.0 in the synthetic form of the project upgraded next, LF and CRLF — moved here from task 14, so that the gate reviews the tip that ships; then `/fw:security-review`, adversarial, its reviewer not the author, its perimeter named: the claims about what loads, the gate's check, `state-inject.sh` and its wiring, the migration of the answers — commit: 0afcb5b, b48e2a9 (the rehearsal's fixes); ed22e6b, 5845b88, ff5985a, c0eb73f (the first round's fixes); this note's gate section
+- [ ] 14. The CHANGELOG's 4.0.0 entry with IMP-127's erratum and the measured first request; the rehearsal again on the CHANGELOG's commit; the gate's second round on the fixes and the entry; the retro; the checkpoint; then `/fw:integrate` up to block 0, no further (the fifth turn) — commit: —
 
 ## Resumption notes
 - The chat's "step 0" and "step 1" are tasks 1 and 2 here. The user's instruction: stop after
@@ -243,6 +243,60 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
   SessionStart wiring of `settings.json` and the product's claims about what is in context.
   The verdict is written at its last checkpoint.
 
+### First round — `/fw:security-review`, reviewed `0c71b6f..b48e2a9`
+- How: a workflow (run `wf_3f4a0f11-bd4`, 8 agents, 1,559,293 tokens, 320 tool calls, a duration
+  of 35,502,785 ms as the workflow reported it), four read-only reviewers by perimeter — `state-inject.sh` and its
+  wiring, the claims about what loads, the gate's check in `/fw:integrate`, the migration of
+  the answers — each followed by a verifier briefed to REFUTE; none of them the author. Each
+  read `docs/03` and the user's decisions in this note by path. The snapshot before and after
+  was identical, `git diff` empty, HEAD `b48e2a9`.
+- Result: 40 findings; the verifiers confirmed 38 and refuted 2 (claims F7: a Read past
+  25,000 tokens pages with an explicit notice, measured; migration F7: the `>/dev/null` grep
+  drains its input, BSD grep measured and GNU grep by the CI of `0c71b6f`). After the
+  verifiers' grading: no HIGH or CRITICAL, 3 MEDIUM, 17 LOW, 18 INFO. Each confirmed one
+  checked by hand against the file before its fix; the fixes shown RED on `b48e2a9`.
+- MEDIUM, all resolved: gate-check M1 — a "not applicable" passed on a change to the method's
+  boundary when the project's answer listed only its modules (`c0eb73f`); gate-check M2 — after
+  the reviewed tip the check exempted shipped memory files and any changelog text
+  (`c0eb73f`); migration F1 — `invariant` said "its answer reached" from the marker's absence,
+  so of two answers on one label the second was lost under an OK (`5845b88`, RED: two OKs,
+  0 FAIL, 0 CHECK).
+- LOW, all resolved: state-inject SI-1 (the fallbacks unbounded), SI-2 (bytes that are not
+  UTF-8 counted as 0), SI-3 (no banner on a missing file) — `ed22e6b`; claims F1 (the human's
+  say on what cannot be undone, always loaded at v3.0.0, absent from the core), F2 (`docs/02`'s
+  ban on details shown to the client), F4 and gate-check I3 (the core "in every delegated
+  agent"), F6 (the section recipe cut at a fenced heading) — `ff5985a`; claims F8 = gate-check
+  M1; gate-check M3 (the reviewed tip's source), L1 (the note's selection), L3 (an accepted
+  MEDIUM where `STATE.md` is a template), L4 (free text in double quotes), L5 (`push.followTags`)
+  — `c0eb73f`, L4's rule in the core `ff5985a`; migration F2 (a trailing blank read as an
+  answer), F3 (a release before v1.1.0 read as nothing moved), F4 (edge case 8 decided by the
+  framework's file) — `5845b88`.
+- INFO: closed — state-inject SI-4 (the budget check made positive), SI-6 (docs/04: the script
+  is no protected path; the rules' leading slash read in Claude Code's permissions page on
+  2026-10-17, not measured), SI-7 (the cut line's numbers) — `ed22e6b`; claims F3 (granting a
+  permission is a moment of the boundary's row), F5 (the command's file read again after a
+  compaction), F10 (what README's numbers measured), F11 (the open slot's comment), F12 (the
+  documentation check is the framework's), migration F5 (the core's end-of-task rule and the
+  upgrade's checkpoint) — `ff5985a`; gate-check L2 (block 1 opens on the checked sha), I1
+  (`gh -R`), I2 (block 1's local branch, "every job"), I4 (the PR form's claim) — `c0eb73f`;
+  migration F6 in part (each label held to a line of HEAD's `CLAUDE.md`, `5845b88`).
+  Declared — SI-5 (a NUL byte, BSD awk) in the script's header, `ed22e6b`; migration F6's
+  other half: the slot lines are read at tags, which do not move, and the reviewer's probe
+  found 13 of 14 at each of v1.1.0-v3.0.0. Carried over, not introduced here, to the retro as
+  proposals: claims F9 (`make reset-task` at a new session's start whatever the uncommitted
+  work), F13 (the core describes `-n` but forbids it nowhere), migration F8 (a slot a conflict
+  resolution re-opens in a HYBRID file gets no FAIL).
+- Seen by two reviewers in their own context: a workflow agent received the instructions the
+  main session loaded at its launch — the old `CLAUDE.md` with its imports, no core —, not the
+  files on disk. The reviews read every file they judged from disk, by path; the core and
+  `SETUP.md` now say it (`ff5985a`).
+- Not covered by the round, by the reviewers' own lists: Windows and Git Bash (the CI is
+  their first run), gawk and busybox on the self-test, Claude Code's behaviour beyond its
+  pages (the hook's cap and preview, an interactive session), the real end-to-end upgrade
+  (the main session's rehearsal), and the CHANGELOG entry, not yet written.
+- Second round: the fixes `b48e2a9..` and the CHANGELOG entry, once written, by a reviewer
+  who is not the author — task 14, before the retro.
+
 ## Problems encountered → cause → solution
 1. The first draft of the core dropped rules — the definition of a sensitive component, the
    resumption protocol, the Definition of Done for tasks with no code — and its "STATE.md not
@@ -265,6 +319,12 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
 6. The rehearsal's first fake secret passed the pre-commit → it was AWS's documented example
    key, which gitleaks leaves alone on purpose → a token generated at run time, refused; the
    throwaway commit undone in the scratch project.
+7. A commit body's wrapped line opened with `root:` → commitlint read a footer there and
+   only warned, the core's commit rule broken → the message rewrapped and amended before
+   anything left the machine (`ed22e6b`), the suite run again in the same chain.
+8. The Edit tool turned the `\u00XX` escapes of a test's JavaScript into the characters
+   themselves, a C1 control among them → the documentation check failed on the guillemets →
+   the bytes written as numbers, every edited file checked for control characters.
 
 ## Factual doc corrections (Level 1, docs/06)
 - None applied. Suspected at task 1, from the review's reasoning: the signal "a session that
