@@ -20,17 +20,19 @@
 #     numbers count what it would show, the comments left out, not the file's size.
 # Characters are counted as Claude Code's own JavaScript counts them, in UTF-16 units (a
 # character outside the Basic Multilingual Plane counts two), on the bytes in the C locale,
-# so the count is the same with every awk and every locale on UTF-8 text. A line that is
-# not valid UTF-8 counts one unit per byte, never less than a decoder makes of it; a NUL
+# so the count is the same in every locale on UTF-8 text, with the awks it has run with —
+# macOS's and those of the CI's Linux and Windows images; busybox's never ran. A line that
+# is not valid UTF-8 counts one unit per byte, never less than a decoder makes of it; a NUL
 # byte ends a line for some awks (BSD awk drops the rest of it): STATE.md is UTF-8 text,
 # as Claude's file tools write it. CRLF line ends are read as LF.
 # The budget leaves the banner, the notices and the margin under the 10,000: the self-test
 # holds the whole output to 9,000 at most (scripts/test-state-inject.sh).
 #
 # It never fails the session: it exits 0 whatever happens. A missing or unreadable file
-# gets the banner and one line saying so; if its own processing fails it prints the banner,
-# the file's first BUDGET bytes as they are — never more units than bytes — and the line
-# to Read it.
+# gets the banner and one line saying so; if its own processing fails it prints the banner
+# and, once head has read the file, its first BUDGET bytes as they are — never more units
+# than bytes —, or else one line saying it cannot be read; then the line to Read it. That
+# fallback needs nothing beyond bash and head.
 #
 # Usage: bash scripts/state-inject.sh [<path of STATE.md>]
 #   default: "$CLAUDE_PROJECT_DIR/.claude/memory/STATE.md", or the relative path without it.
@@ -144,9 +146,13 @@ END {
 
 if out="$(LC_ALL=C awk -v budget="${BUDGET}" -v banner="${BANNER}" "${program}" "${state}" 2>/dev/null)" && [ -n "${out}" ]; then
   printf '%s\n' "${out}"
-else
+elif head -c 1 "${state}" >/dev/null 2>&1; then
+  # The notice says bytes follow only once head has read the file: one the -r test passed can
+  # still refuse a read — an ACL under Git Bash, whose noacl mount reports the mode bits only.
   printf '%s\n' "${BANNER}" "(scripts/state-inject.sh could not process the file: its first ${BUDGET} bytes follow, as they are.)"
   head -c "${BUDGET}" "${state}"
   printf '\n%s\n' "${READ_IT}"
+else
+  printf '%s\n' "${BANNER}" '(scripts/state-inject.sh could not process STATE.md, nor read it: check its permissions.)' "${READ_IT}"
 fi
 exit 0
