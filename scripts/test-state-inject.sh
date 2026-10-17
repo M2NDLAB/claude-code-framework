@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Self-test of scripts/state-inject.sh AND of its wiring in .claude/settings.json (docs/00,
-# *Selective loading*). Eight cases:
+# *Selective loading*). Nine cases:
 #   1. a STATE.md in the template's form, built here — the repository's own is a project's
 #      memory —: the banner, then *Caution & open issues*, no HTML comment, no cut;
 #   2. titles of another form — an older language's, or none at all —: one line says the
@@ -10,12 +10,17 @@
 #      the characters not shown counted exactly in UTF-16 units, as Node.js counts them, and
 #      the whole output at most 9,000 characters, under the hook's cap of 10,000;
 #   4. CRLF line ends: the same output as LF;
-#   5. a missing file: the line that says the memory is not initialised;
+#   5. a missing file: the banner, then the line that says the memory is not initialised; an
+#      unreadable one: the banner, the line that says so and the line to Read it;
 #   6. a comment never closed, and one inside a code fence: kept as they are;
-#   7. the script's own processing failing (no awk): the banner, a notice and the whole file;
+#   7. the script's own processing failing (no awk): the banner, a notice, the file's first
+#      8,000 bytes and the line to Read it — a long file held to the cap too;
 #   8. the wiring, read from settings.json: a SessionStart hook with no matcher runs the
 #      script from the project's directory — in its Windows form too, where cygpath exists —
-#      and falls back to the whole file when the script is missing; the ask rule on it.
+#      and falls back to the file's first 8,000 bytes and the line to Read it when the script
+#      is missing; the ask rule on it;
+#   9. a file that is not UTF-8 — stray continuation bytes, Windows-1252 —: counted one unit
+#      per byte, cut with its notice, the output held to the cap.
 # Every case exits 0: the hook never fails a session.
 #
 # HERMETIC: throwaway files under mktemp; the wired command is READ from settings.json, never
@@ -26,6 +31,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 INJECT="${SCRIPT_DIR}/state-inject.sh"
 BANNER='=== PROJECT MEMORY (STATE.md) ==='
+READ_IT='=== Read .claude/memory/STATE.md whole before acting on what it holds. ==='
 CAP=9000
 
 fail() {
@@ -73,7 +79,7 @@ under_cap() {
   [[ ${n} -le ${CAP} ]] || fail "$2: ${n} characters printed, over ${CAP}"
 }
 # cut_line: the last line, if it is the notice of a cut.
-cut_line() { printf '%s\n' "$1" | grep -E '^=== STATE\.md: [0-9]+ of its [0-9]+ characters' || true; }
+cut_line() { printf '%s\n' "$1" | grep -E '^=== STATE\.md: [0-9]+ of [0-9]+ characters not shown' || true; }
 
 # --- Case 1 — the shipped template ------------------------------------------------------------
 out1="$(run "${TEMPLATE}")"
@@ -106,8 +112,8 @@ check_cut() {
   local line shown total want printed
   line="$(cut_line "$3")"
   [[ -n "${line}" ]] || fail "$1: no notice of the cut"
-  shown="$(printf '%s\n' "${line}" | sed -E 's/^=== STATE\.md: ([0-9]+) of its ([0-9]+) .*/\1/')"
-  total="$(printf '%s\n' "${line}" | sed -E 's/^=== STATE\.md: ([0-9]+) of its ([0-9]+) .*/\2/')"
+  shown="$(printf '%s\n' "${line}" | sed -E 's/^=== STATE\.md: ([0-9]+) of ([0-9]+) .*/\1/')"
+  total="$(printf '%s\n' "${line}" | sed -E 's/^=== STATE\.md: ([0-9]+) of ([0-9]+) .*/\2/')"
   want="$(tr -d '\r' < "$2" | units)"
   [[ "${total}" -eq "${want}" ]] || fail "$1: the notice counts ${total} characters, Node.js ${want}"
   printed="$(printf '%s\n' "$3" | grep -vxF "${BANNER}" | grep -v '^=== STATE\.md: ' | grep -v 'no "## Caution & open issues" section' | units)"
@@ -162,7 +168,19 @@ grep -q $'\r$' "${workdir}/crlf.md" || fail "CRLF: the test's file has no CR (th
 
 # --- Case 5 — a missing file --------------------------------------------------------------------
 out5="$(run "${workdir}/absent.md")"
-printf '%s\n' "${out5}" | grep -q '^Memory not initialised' || fail "a missing file: no line says the memory is not initialised"
+[[ "$(printf '%s\n' "${out5}" | sed -n 1p)" == "${BANNER}" ]] || fail "a missing file: the first line is not the banner"
+printf '%s\n' "${out5}" | sed -n 2p | grep -q '^Memory not initialised' || fail "a missing file: no line says the memory is not initialised"
+printf '## Caution & open issues\n- x\n' > "${workdir}/unreadable.md"
+chmod 000 "${workdir}/unreadable.md"
+if [[ -r "${workdir}/unreadable.md" ]]; then
+  echo "note (state inject): the unreadable file skipped — this user reads a mode-000 file (root, or Windows)" >&2
+else
+  out5b="$(run "${workdir}/unreadable.md")"
+  [[ "$(printf '%s\n' "${out5b}" | sed -n 1p)" == "${BANNER}" ]] || fail "an unreadable file: the first line is not the banner"
+  printf '%s\n' "${out5b}" | grep -q 'cannot be read' || fail "an unreadable file: no line says so"
+  [[ "$(printf '%s\n' "${out5b}" | tail -n 1)" == "${READ_IT}" ]] || fail "an unreadable file: the last line does not say to Read it"
+fi
+chmod 600 "${workdir}/unreadable.md"
 
 # --- Case 6 — a comment never closed, and one in a code fence -----------------------------------
 printf '## Caution & open issues\n- x\n```\n<!-- inside a fence -->\n```\n<!-- never closed\n- y\n' > "${workdir}/comments.md"
@@ -171,17 +189,27 @@ printf '%s\n' "${out6}" | grep -qxF '<!-- inside a fence -->' || fail "a comment
 printf '%s\n' "${out6}" | grep -qxF '<!-- never closed' || fail "a comment never closed was left out"
 printf '%s\n' "${out6}" | grep -qxF -- '- y' || fail "the text after a comment never closed was left out"
 
-# --- Case 7 — the processing fails: the whole file -----------------------------------------------
+# --- Case 7 — the processing fails: the file's first 8,000 bytes ------------------------------------
 mkdir -p "${workdir}/bin"
-for t in cat bash; do ln -s "$(command -v "${t}")" "${workdir}/bin/${t}"; done
-set +e
-out7="$(PATH="${workdir}/bin" "${workdir}/bin/bash" "${INJECT}" "${TEMPLATE}")"
-rc=$?
-set -e
-[[ ${rc} -eq 0 ]] || fail "no awk: exit ${rc}"
-[[ "$(printf '%s\n' "${out7}" | sed -n 1p)" == "${BANNER}" ]] || fail "no awk: the first line is not the banner"
-printf '%s\n' "${out7}" | grep -q 'could not process the file' || fail "no awk: no notice"
-[[ "$(printf '%s\n' "${out7}" | tail -n +3)" == "$(cat "${TEMPLATE}")" ]] || fail "no awk: the file is not printed whole"
+for t in head bash; do ln -s "$(command -v "${t}")" "${workdir}/bin/${t}"; done
+# no_awk <file>: the script run with a PATH that has no awk.
+no_awk() {
+  local out rc
+  set +e
+  out="$(PATH="${workdir}/bin" "${workdir}/bin/bash" "${INJECT}" "$1")"
+  rc=$?
+  set -e
+  [[ ${rc} -eq 0 ]] || fail "no awk: exit ${rc} on $1"
+  [[ "$(printf '%s\n' "${out}" | sed -n 1p)" == "${BANNER}" ]] || fail "no awk: the first line is not the banner"
+  printf '%s\n' "${out}" | sed -n 2p | grep -q 'could not process the file' || fail "no awk: no notice"
+  [[ "$(printf '%s\n' "${out}" | tail -n 1)" == "${READ_IT}" ]] || fail "no awk: the last line does not say to Read the file"
+  printf '%s\n' "${out}"
+}
+out7="$(no_awk "${TEMPLATE}")"
+[[ "$(printf '%s\n' "${out7}" | sed -n '3,$p' | sed '$d')" == "$(cat "${TEMPLATE}")" ]] || fail "no awk: a file under 8,000 bytes is not printed whole"
+out7b="$(no_awk "${workdir}/long-progress.md")"
+[[ "$(printf '%s\n' "${out7b}" | sed -n 3p)" == "$(sed -n 1p "${workdir}/long-progress.md")" ]] || fail "no awk, a long file: its head does not follow the notice"
+under_cap "${out7b}" "no awk, a long file"
 
 # --- Case 8 — the wiring --------------------------------------------------------------------------
 wired="$("${NODE}" -e '
@@ -211,6 +239,26 @@ fi
 rm "${project}/scripts/state-inject.sh"
 out8b="$(hook "${project}" 2>/dev/null)" || fail "the wiring: it fails when the script is missing"
 [[ "$(printf '%s\n' "${out8b}" | sed -n 1p)" == "${BANNER}" ]] || fail "the wiring, the script missing: the first line is not the banner"
-printf '%s\n' "${out8b}" | grep -qF -- '- the one debt that matters' || fail "the wiring, the script missing: the file is not printed"
+[[ "$(printf '%s\n' "${out8b}" | sed -n 3p)" == "$(sed -n 1p "${workdir}/long-progress.md")" ]] || fail "the wiring, the script missing: the file's head is not printed"
+[[ "$(printf '%s\n' "${out8b}" | tail -n 1)" == "${READ_IT}" ]] || fail "the wiring, the script missing: the last line does not say to Read the file"
+under_cap "${out8b}" "the wiring, the script missing"
 
-echo "PASS (state inject): the template and the titles of other forms printed with the open issues first or their absence said, the cut counted in UTF-16 units and the output held to ${CAP} characters, CRLF, a missing file, the comments, a failed run printing the whole file, and the wiring read from settings.json."
+# --- Case 9 — not UTF-8 ---------------------------------------------------------------------------
+# A Caution of stray continuation bytes, lines of NBSP bytes, then Windows-1252 punctuation: a
+# decoder makes a replacement character of each, which the UTF-8 count would have taken for 0.
+"${NODE}" -e '
+const p = [Buffer.from("## Caution & open issues\n- x"), Buffer.alloc(60000, 0x80), Buffer.from("\n")];
+for (let i = 0; i < 400; i++) p.push(Buffer.from("- issue "), Buffer.alloc(200, 0xa0), Buffer.from("\n"));
+for (let i = 0; i < 600; i++) p.push(Buffer.from("- caf"), Buffer.from([0xe9, 0x20, 0x97, 0x20, 0xab, 0x20, 0xbb, 0x20, 0xb0, 0x0a]));
+process.stdout.write(Buffer.concat(p));
+' > "${workdir}/not-utf8.md"
+out9="$(run "${workdir}/not-utf8.md")"
+[[ "$(printf '%s\n' "${out9}" | sed -n 2p)" == "## Caution & open issues" ]] || fail "not UTF-8: the open issues are not first"
+[[ -n "$(cut_line "${out9}")" ]] || fail "not UTF-8: no notice of the cut"
+under_cap "${out9}" "not UTF-8"
+for _ in $(seq 1 12); do tail -n 600 "${workdir}/not-utf8.md"; done > "${workdir}/cp1252.md"
+out9b="$(run "${workdir}/cp1252.md")"
+[[ -n "$(cut_line "${out9b}")" ]] || fail "Windows-1252: no notice of the cut"
+under_cap "${out9b}" "Windows-1252"
+
+echo "PASS (state inject): the template and the titles of other forms printed with the open issues first or their absence said, the cut counted in UTF-16 units and the output held to ${CAP} characters, CRLF, a missing or unreadable file, the comments, a failed run held to 8,000 bytes, the wiring read from settings.json, and a file that is not UTF-8."

@@ -37,7 +37,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/scripts/state-inject.sh\" || { echo '=== PROJECT MEMORY (STATE.md) ==='; echo '(scripts/state-inject.sh could not run: the whole file follows)'; cat \"${CLAUDE_PROJECT_DIR:-.}/.claude/memory/STATE.md\"; }"
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/scripts/state-inject.sh\" || { echo '=== PROJECT MEMORY (STATE.md) ==='; echo '(scripts/state-inject.sh could not run: the first 8000 bytes of STATE.md follow, as they are)'; head -c 8000 \"${CLAUDE_PROJECT_DIR:-.}/.claude/memory/STATE.md\"; echo; echo '=== Read .claude/memory/STATE.md whole before acting on what it holds. ==='; }"
           }
         ]
       }

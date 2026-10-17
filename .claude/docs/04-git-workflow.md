@@ -461,9 +461,14 @@ what Claude Code may run without asking. Keep them **clean and specific**:
   through a shell command is outside it (and outside the threat model): a redirection or a
   `tee` into `.claude/` meets Claude Code's protected-path check instead — prompted, or
   routed to auto mode's classifier, by mode —, while `sed -i`, a script or a program's
-  `--output` meets only the check of the command itself, and the guard's file is no
-  protected path — one more reason for the rule every file setup copies follows
-  (*Operating rules for Claude Code*).
+  `--output` meets only the check of the command itself, and neither the guard's file nor
+  `scripts/state-inject.sh` is a protected path — both are code the hooks run at every
+  call or session start, with no tool check of their own —: one more reason for the rule
+  every file setup copies follows (*Operating rules for Claude Code*). A rule's path with
+  one leading slash resolves, in the project's settings, from the session's primary working directory
+  — the repository's root, where the method starts Claude Code — (Claude Code's
+  permissions page, read on 2026-10-17): read, not measured; no edit of either file has
+  been seen to prompt.
 - **A local, UNVERSIONED file.** Personal permissions live in `settings.local.json`
   (already in `.gitignore`) and start out **empty**: what is shared and reasoned about
   lives in the versioned file; ad-hoc grants stay local and do not pollute the

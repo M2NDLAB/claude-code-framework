@@ -33,9 +33,12 @@ values, then deletes this paragraph: [TO BE DEFINED AT SETUP].
      done, decisions with their story, the detail of an issue) moves to the session note
      this checkpoint writes, or stays in the notes that already hold it, and STATE keeps one
      line with a pointer; each *Caution & open issues* entry is one line with its trigger
-     and a pointer to the note that holds the detail. Measure it after the rewrite:
-     `bash scripts/state-inject.sh | tail -n 1` must not be the line that says characters
-     were not shown. One exception: the checkpoint that closes an upgrade of the framework
+     and a pointer to the note that holds the detail. Measure it after the rewrite, from
+     the repository's root whatever the shell's directory: `r="$(git rev-parse
+     --show-toplevel)" && bash "$r/scripts/state-inject.sh" "$r/.claude/memory/STATE.md"`
+     — its first line must be the banner `=== PROJECT MEMORY (STATE.md) ===`, and no line
+     may open with `=== STATE.md: `, the line that says characters were not shown; any
+     other output is a measurement that failed, never a pass. One exception: the checkpoint that closes an upgrade of the framework
      (the framework's `SETUP.md`, Step 6) updates STATE without condensing it — the first
      checkpoint after the upgrade's merge does. AFTER the rewrite check also that the
      pre-existing entries of "Caution & open issues" are still present or

@@ -76,9 +76,12 @@ a rule: then it is a process bug, not a memory bug, and it goes to escalation/IM
     of the framework is not among them).
 12. **`STATE.md` within its budget, its open issues first.** The SessionStart hook shows
     8,000 characters of it, *Caution & open issues* first (`scripts/state-inject.sh`):
-    `wc -m .claude/memory/STATE.md` gives its size, and `bash scripts/state-inject.sh | tail
-    -n 1` prints a line saying how many characters were not shown when it is over. Over the
-    budget is a finding: propose the reduction `/fw:checkpoint` describes — the history to
+    `wc -m .claude/memory/STATE.md` gives its size, and `r="$(git rev-parse
+    --show-toplevel)" && bash "$r/scripts/state-inject.sh" "$r/.claude/memory/STATE.md"`
+    what the hook prints: its first line must be the banner, and a line opening with `===
+    STATE.md: ` says how many characters were not shown — comments not counted, so not
+    `wc -m`'s number. No banner is a measurement that failed: report it, never as within
+    the budget. Over the budget is a finding: propose the reduction `/fw:checkpoint` describes — the history to
     the session notes, each open issue one line with its trigger and a pointer — and apply
     it only with the user's confirmation, since it rewrites the dashboard. A `STATE.md` with
     no section titled exactly `## Caution & open issues` is a finding too: its open issues
