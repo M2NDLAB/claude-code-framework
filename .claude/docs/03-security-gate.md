@@ -96,9 +96,14 @@ deliverable whose product asserts a security property is under the gate for that
   files the change touched.
 - **The real path.** A gate on an external tool covers what the tool does by itself on the
   way to its effect: what its configuration — the user's included — makes it do, and what it
-  updates, writes or fetches unasked, read at its source or in its documentation. Each such
-  path is closed by the tool's own off-switch, compensated, or declared as a known limit; a
-  path left unread is a gap of the gate.
+  updates, writes or fetches unasked, read at its source or in its documentation; and where
+  and when it reads the configuration the gate relies on — the files, the directory it starts
+  from, the moment it reads them (a delegated agent gets the instructions its session last
+  loaded, not the files on disk), the flags and settings that skip them. Each such path is
+  closed by the tool's own off-switch, compensated, or declared as a known limit; a path left
+  unread is a gap of the gate. A statement about an external tool rests on its source's own
+  text, the passage quoted in the record — never on a summary of it, a model's answer about
+  a page included.
 
 ## When the review must be adversarial (author ≠ judge)
 
