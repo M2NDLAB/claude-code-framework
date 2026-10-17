@@ -288,9 +288,12 @@ Here is the complete list, grouped by file:
 
 ### `.claude/settings.json`
 - [ ] Add to `allow` ONLY the **read-only** commands of your tools (build tool,
-      package manager, container CLI) to reduce prompts — e.g. the build/test command.
-      The baseline is already set (`allow`: git inspection + safe `add`/`commit`;
-      `deny`: push, `reset --hard`, destructive deletions, reading secrets) — the
+      package manager, container CLI) to reduce prompts — e.g. the build/test command —,
+      each as narrow as it can be: in auto mode an allow rule is resolved before the
+      classifier, so an argument its prefix did not anticipate goes through unseen.
+      The baseline is already set (`allow`: `git status`, `git add`, `git commit` — git's
+      reads are Claude Code's built-in read-only set —; `deny`: push, `reset --hard`,
+      destructive deletions, reading secrets) — the
       principles are in docs/04, *Permission configuration*. The `env` marker
       `AGENT_GIT_BOUNDARY` and the PreToolUse hook that runs
       `scripts/agent-git-guard.mjs` are the method's boundary wiring, and the `ask`

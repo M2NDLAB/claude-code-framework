@@ -348,7 +348,11 @@ command does not matter:
   `allowManagedHooksOnly` runs only the managed hooks. The `pre-push` still refuses such a
   session's push: `CLAUDECODE` is set in the processes Claude Code starts. Start Claude Code
   at the repository's root; a session that opens without `STATE.md` injected did not load
-  the settings, or runs no hook.
+  the settings, or runs no hook. A Bash `cd` into a subdirectory moves the shell, not the
+  session: the guard, an `ask` rule anchored with one leading slash and a `deny` rule all
+  held after one (a `claude -p` run, measured on 2026-10-17); `/cd` moves the session, and
+  the new directory's project settings replace the repository's (Claude Code's permissions
+  page, *Move the session to another directory*) — not measured.
 - **What Claude Code can put above the guard and the rules** — read in its documentation
   on 2026-10-14, not measured. A mod the user installs that handles `tool.check` — mods are
   on by default, in the terminal from Claude Code v2.1.287 and in the Desktop app from
@@ -426,12 +430,26 @@ main session, and usually in the same working tree.
 The versioned permissions (`.claude/settings.json`) are the safety net that decides
 what Claude Code may run without asking. Keep them **clean and specific**:
 
-- **`allow`**: the inspection commands (`status`, `diff`, `log`, the tree map), and
-  `git branch`, `git add` and `git commit`, which act on the local history only. Nothing
-  else: the point is to reduce prompts for harmless operations, not for the ones that touch
-  shared state. A rule matches the command's text, not what the program does
-  (*Enforcement of the execution boundary*), so an allowed command also runs, with no
-  prompt, in its forms that write, read past the repository or run a configured program.
+- **`allow`**: `git status`, `git add` and `git commit` — the commit cycle, which acts on
+  the local history only. The reads need no rule: Claude Code "recognizes a built-in set of
+  Bash commands as read-only and runs them without a permission prompt in every mode", `ls`,
+  `cat`, `grep`, `find`, `diff` and "read-only forms of `git`" among them (its *Configure
+  permissions* page, read on 2026-10-17), and a prefix rule on `git diff`, `git log` or
+  `git branch` would add only their forms that are not read-only; the page does not list
+  which forms of git the set holds, and one it does not prompts in manual mode. `tree` is
+  not named in it: it prompts in manual mode, as does `git branch <name>`, once per
+  deliverable, and both meet the classifier in auto mode. Nothing else: the point is to
+  reduce prompts for harmless operations, not for the ones that touch shared state. A rule
+  matches the command's text, not what the program does (*Enforcement of the execution
+  boundary*), and in auto mode Claude Code resolves it before its classifier: "a narrow
+  rule can still let a destructive argument through without the classifier seeing it, for
+  example a script path or flag the rule's prefix didn't anticipate" (its *Configure auto
+  mode* page, *Route all shell commands through the classifier*, read on 2026-10-17). So an
+  allowed command also runs, with no prompt and unseen by the classifier, in its forms that
+  write, read past the repository or run a configured program. The same page's switch,
+  `autoMode.classifyAllShell`, which suspends every Bash allow rule in auto mode, is read
+  only from the user's settings, the managed ones and `--settings`: the user's choice, not
+  the project's.
   The guard refuses, in every session, the ones its self-test holds (*Enforcement of the
   execution boundary*, the row *No hook taken out*): `--output=<file>` of `git diff`, `git
   log` and `git show`, which writes any file, the boundary's own included
@@ -448,12 +466,11 @@ what Claude Code may run without asking. Keep them **clean and specific**:
   not a program that opens a file itself: whether they stop git or `tree` reading `.env` is
   not stated. A known limit, read in the tools' manuals and in Claude Code's permissions
   pages on 2026-10-15 — of these forms `tree --fromfile` measured, which printed a file's
-  line, and on 2026-10-17 the spellings git and tree take —; narrower rules wait for a
-  measurement of what Claude Code prompts for.
+  line, and on 2026-10-17 the spellings git and tree take.
 - **`deny`**: all **destructive or irreversible** operations — push (including
   `--force`), `reset --hard`, deletions (`clean`, `branch -D`, `rm -rf`), and
   **reading secrets** (`.env`, `secrets/`, credential files). `deny` takes precedence
-  over `allow`: an allowed `git branch:*` is still blocked on `-D`. A deny rule stops
+  over `allow`: a project's own `Bash(git branch:*)` is still blocked on `-D`. A deny rule stops
   the usual spelling only (*Enforcement of the execution boundary*): it is kept for its
   instant answer, not as the boundary. No wildcard variants: `Bash(git * push *)` still
   lets a quoted, absolute-path or scripted push through, and denies `git stash push`.
@@ -479,10 +496,14 @@ what Claude Code may run without asking. Keep them **clean and specific**:
   `scripts/state-inject.sh` is a protected path — both are code the hooks run at every
   call or session start, with no tool check of their own —: one more reason for the rule
   every file setup copies follows (*Operating rules for Claude Code*). A rule's path with
-  one leading slash resolves, in the project's settings, from the session's primary working directory
-  — the repository's root, where the method starts Claude Code — (Claude Code's
-  permissions page, read on 2026-10-17): read, not measured; no edit of either file has
-  been seen to prompt.
+  one leading slash resolves, in the project's settings, from the session's primary working
+  directory — the repository's root, where the method starts Claude Code — (Claude Code's
+  permissions page, read on 2026-10-17). Measured on 2026-10-17: in a `claude -p` run whose
+  prompts were answered No, an edit of the guard was refused ("requires approval") while an
+  edit of a file no rule names went through, before and after a Bash `cd` into `scripts/`;
+  and the user, in auto mode — where an edit of a project file passes unprompted unless a
+  rule asks —, was prompted for an edit of `scripts/state-inject.sh`. The prompt on
+  `settings.json` proves nothing of its rule: it is a protected path.
 - **A local, UNVERSIONED file.** Personal permissions live in `settings.local.json`
   (already in `.gitignore`) and start out **empty**: what is shared and reasoned about
   lives in the versioned file; ad-hoc grants stay local and do not pollute the
