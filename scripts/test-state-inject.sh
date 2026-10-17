@@ -138,6 +138,11 @@ out3d="$(run "${workdir}/no-caution.md")"
 printf '%s\n' "${out3d}" | sed -n 2p | grep -q 'no "## Caution & open issues" section' || fail "a long file with no Caution: no line says the section is missing"
 check_cut "a long file with no Caution" "${workdir}/no-caution.md" "${out3d}"
 under_cap "${out3d}" "a long file with no Caution"
+# The same, the cut's section titled past the 80 characters its notice quotes: the longest.
+{ printf '# STATE\n\n## %s\n' "$(printf 'A%.0s' $(seq 1 120))"; sed -n '/^- \[x\]/p' "${workdir}/no-caution.md"; } > "${workdir}/long-title.md"
+out3e="$(run "${workdir}/long-title.md")"
+printf '%s\n' "$(cut_line "${out3e}")" | grep -q 'AAAA\.\.\. on\.' || fail "a long title: the notice does not cut it at 80 characters"
+under_cap "${out3e}" "a long title"
 # A Caution of 37,000 characters in two entries, each one line: its head is shown.
 long_line() { local s=''; for _ in $(seq 1 "$2"); do s="${s}$1"; done; printf '%s' "${s}"; }
 entry="$(long_line 'an open issue described at length, with its history; ' 340)"
