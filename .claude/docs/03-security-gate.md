@@ -7,8 +7,9 @@ Security has two levels in this framework:
    secret (rule 1 of the core, `.claude/rules/fw-core.md`), from the moment it is installed and while git reads
    it. Its limits include the commits git creates itself — a rebase's `--continue`,
    `git am`, a cherry-pick or a revert that applies cleanly —, which do not run it, a
-   commit made with `-n` (`--no-verify`), which the shipped `allow` rule runs with no prompt
-   (`04-git-workflow.md`, *Permission configuration*), and a hook manager that sets
+   commit made with `-n` (`--no-verify`) where the guard does not see it — from the user's
+   own terminal, a script, a session whose guard cannot run (`04-git-workflow.md`,
+   *Enforcement of the execution boundary*) —, and a hook manager that sets
    `core.hooksPath` after the install, which takes it out
    (`04-git-workflow.md`, *Enforcement of the execution boundary*); the scan's own limits
    are listed in the framework's `SETUP.md`, *What the pre-commit's scan reads*. On a repo with

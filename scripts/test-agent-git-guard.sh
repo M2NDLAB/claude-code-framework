@@ -3,17 +3,19 @@
 # (docs/04, "Delegated agents and the shared working tree").
 #
 # Contract under test: a delegated agent (hook input carrying agent_id) is read-only on
-# git; the main session is never restricted. When the guard itself FAILS — a crash, a
-# missing guard file, a missing `node` — the wiring blocks a delegated agent (exit 2,
-# fail-closed) and, in the main session, exits 1: a non-blocking error that Claude Code
-# shows in the transcript with the FIRST line of stderr, which the wiring makes its own
-# clear message. The guard has no job in the main session (its push boundary is the
-# pre-push). Claude Code treats a PreToolUse hook's non-zero exit other than 2 as
-# "proceed" (measured on 2.1.283: exit 1, exit 127, a timeout), so the wiring, not the
-# guard, decides the failure case.
+# git; in EVERY session, the main one included, the forms that take a hook out and the ones
+# an allow rule would let past a prompt and auto mode's classifier are refused (section 3),
+# and nothing else of the main session. When the guard itself FAILS — a crash, a missing
+# guard file, a missing `node` — the wiring blocks a delegated agent (exit 2, fail-closed)
+# and, in the main session, exits 1: a non-blocking error that Claude Code shows in the
+# transcript with the FIRST line of stderr, which the wiring makes its own clear message.
+# The main session's push boundary is the pre-push, not the guard. Claude Code treats a
+# PreToolUse hook's non-zero exit other than 2 as "proceed" (measured on 2.1.283: exit 1,
+# exit 127, a timeout), so the wiring, not the guard, decides the failure case.
 #
-# It FAILS if the guard stops blocking a write or starts blocking a read or the main
-# session — through Bash, PowerShell or Monitor —, if the wiring disappears from
+# It FAILS if the guard stops blocking a write or starts blocking a read — through Bash,
+# PowerShell or Monitor —, stops refusing one of section 3's forms in either session or
+# starts refusing the main session's ordinary work, if the wiring disappears from
 # settings.json or the PowerShell tool is no longer off there, if a broken guard lets an
 # agent through, blocks the main session or stays silent there, or if the first line of a
 # failure is not the wiring's own message.
@@ -295,9 +297,96 @@ crlf_case allowed PowerShell 'git log\r\ngit --no-optional-locks status\r\n'
 # Bash keeps a \r as a character: before CRLF, a backslash escapes the \r, and the line ends.
 crlf_case blocked Bash 'git log -1 \\\r\ngit checkout main'
 
-# --- 3. Main session: never restricted (pushes are the pre-push hook's job, not this one) --
-for c in 'git switch -c feat/x' 'git commit -m "x"' 'git push origin main'; do
+# --- 3. Every session, the main one included: the forms that take a hook out, and the ones --
+# an allow rule would let run with no prompt and, in auto mode, past the classifier, which
+# never sees what an allow rule approved (docs/04, "Permission configuration"). Each one is
+# refused for the main session and for an agent alike, a long option also as a prefix git
+# takes (measured on git 2.54.0: `--no-veri`, `--forc`, `--mov`).
+EVERY_SESSION_REFUSED=(
+  'git commit -n -m x'
+  'git commit -an -m x'
+  'git commit -nm x'
+  'git commit --no-verify -m x'
+  'git commit -m x --no-veri'
+  'git push --no-verify origin main'
+  'git -C . push --no-verify origin main'
+  'git merge --no-verify feature'
+  'git -c core.hooksPath=/dev/null commit -m x'
+  'git -c CORE.HOOKSPATH=/dev/null commit -m x'
+  'git --config-env=core.hooksPath=HOOKS commit -m x'
+  'GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.hooksPath GIT_CONFIG_VALUE_0=/dev/null git commit -m x'
+  'git config core.hooksPath /dev/null'
+  'git config --local core.hooksPath .husky'
+  'git config set core.hooksPath /dev/null'
+  'git branch -D old'
+  'git branch -d -f old'
+  'git branch -df old'
+  'git branch --delete --force old'
+  'git branch --dele --forc old'
+  'git branch -f other HEAD~1'
+  'git branch --force other HEAD~1'
+  'git branch -m old new'
+  'git branch -M old new'
+  'git branch --move old new'
+  'git branch --mov old new'
+  'git branch -C old new'
+  'git diff --output=d.txt'
+  'git diff --output d.txt'
+  'git log -1 -p --output=../x'
+  'git show --output=.claude/settings.json HEAD'
+  'git diff --no-index /etc/hosts /dev/null'
+  'tree -o out.txt'
+  'tree -ao out.txt .'
+  'tree -L 2 -R'
+  'tree --fromfile list.txt'
+  'tree --fromtabfile list.txt'
+  'git status && git commit -n -m x'
+  'timeout 30 git commit --no-verify -m x'
+  'echo "$(git diff --output=x)"'
+  'cd sub && tree -o ../out.txt'
+  '/usr/bin/git commit -n -m x'
+)
+for c in "${EVERY_SESSION_REFUSED[@]}"; do
+  blocked "main session not refused: ${c}" "$(hook_input "${c}")"
+  blocked "agent not refused: ${c}" "$(hook_input "${c}" agent)"
+done
+for c in 'git commit -n -m x' 'git push --no-verify' 'git diff --output=d.txt'; do
+  blocked "main session not refused (PowerShell): ${c}" "$(hook_input "${c}" '' PowerShell)"
+done
+
+# --- 3b. The main session's ordinary work goes through, next to those forms ----------------
+# (pushes are the pre-push hook's job, not this one).
+MAIN_ALLOWED=(
+  'git switch -c feat/x'
+  'git commit -m "x"'
+  'git commit -am x'
+  "git commit -m '-n is the message here'"
+  'git commit -mn'
+  'git commit -F msg.txt'
+  'git commit --amend --no-edit'
+  'git branch feat/x'
+  'git branch -d merged'
+  'git branch --delete merged'
+  'git branch -c old copy'
+  'git branch -uorigin/main'
+  "git branch --format='%(refname)' --list"
+  'git push origin main'
+  'git push -n origin main'
+  'git log -n 5 --oneline'
+  "git grep -n -e '--no-verify' -- docs"
+  'git diff --stat'
+  'git diff --name-only origin/main...HEAD'
+  'git config core.hooksPath'
+  'git config --show-origin --get core.hooksPath'
+  'git config --unset core.hooksPath'
+  'tree -L 2'
+  'tree -a -I node_modules'
+  'git status'
+)
+for c in "${MAIN_ALLOWED[@]}"; do
   expect 0 "main session blocked: ${c}" "${REPO_ROOT}" "$(hook_input "${c}")"
+done
+for c in 'git switch -c feat/x' 'git commit -m "x"' 'git push origin main'; do
   expect 0 "main session blocked (PowerShell): ${c}" "${REPO_ROOT}" "$(hook_input "${c}" '' PowerShell)"
 done
 
@@ -340,4 +429,4 @@ expect 2 "a healthy guard's block stands (escaped agent_id key)" "${REPO_ROOT}" 
 expect 1 "a main session with agent_type only (broken guard)" "${workdir}/empty" \
   '{"tool_name":"Bash","tool_input":{"command":"git log -1"},"cwd":"/tmp","agent_type":"reviewer"}'
 
-echo "PASS (agent git guard): ${#AGENT_WRITES[@]} agent writes blocked, ${#AGENT_READS[@]} reads allowed, through PowerShell ${#PS_WRITES[@]} and ${#PS_READS[@]}, ${crlf_cases} CRLF cases whose CR node received, main session free; a broken guard (node missing / file missing / crash / bad input) blocks agents and shows a non-blocking error to the main session."
+echo "PASS (agent git guard): ${#AGENT_WRITES[@]} agent writes blocked, ${#AGENT_READS[@]} reads allowed, through PowerShell ${#PS_WRITES[@]} and ${#PS_READS[@]}, ${crlf_cases} CRLF cases whose CR node received; ${#EVERY_SESSION_REFUSED[@]} forms refused in every session, the main one included, and ${#MAIN_ALLOWED[@]} of the main session's commands next to them allowed; a broken guard (node missing / file missing / crash / bad input) blocks agents and shows a non-blocking error to the main session."
