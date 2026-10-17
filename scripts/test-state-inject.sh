@@ -11,10 +11,11 @@
 #      the whole output at most 9,000 characters, under the hook's cap of 10,000;
 #   4. CRLF line ends: the same output as LF;
 #   5. a missing file: the banner, then the line that says the memory is not initialised; an
-#      unreadable one: the banner, the line that says so and the line to Read it;
+#      unreadable one: the banner, the line that says so and the line to Read it — skipped,
+#      said aloud, where the user reads a mode-000 file (root, Windows);
 #   6. a comment never closed, and one inside a code fence: kept as they are;
-#   7. the script's own processing failing (no awk): the banner, a notice, the file's first
-#      8,000 bytes and the line to Read it — a long file held to the cap too;
+#   7. the script's own processing failing (an awk that cannot run): the banner, a notice, the
+#      file's first 8,000 bytes and the line to Read it — a long file held to the cap too;
 #   8. the wiring, read from settings.json: a SessionStart hook with no matcher runs the
 #      script from the project's directory — in its Windows form too, where cygpath exists —
 #      and falls back to the file's first 8,000 bytes and the line to Read it when the script
@@ -168,7 +169,11 @@ printf 'x\xc3\n' | "${NODE}" -e 'const c = []; process.stdin.on("data", (d) => c
 
 # --- Case 4 — CRLF line ends --------------------------------------------------------------------
 sed 's/$/\r/' "${TEMPLATE}" > "${workdir}/crlf.md"
-grep -q $'\r$' "${workdir}/crlf.md" || fail "CRLF: the test's file has no CR (the case would prove nothing)"
+# The CR counted by Node, on the bytes: Git Bash's grep does not see a line-ending CR (measured
+# in the CI on Windows, here and in v1.5.0).
+has_cr() { "${NODE}" -e 'process.exit(require("fs").readFileSync(process.argv[1]).includes(13) ? 0 : 1)' "$1"; }
+has_cr "${workdir}/crlf.md" || fail "CRLF: the test's file has no CR (the case would prove nothing)"
+! has_cr "${TEMPLATE}" || fail "control: the LF template holds a CR — the check above proves nothing"
 [[ "$(run "${workdir}/crlf.md")" == "${out1}" ]] || fail "CRLF: the output differs from LF's"
 
 # --- Case 5 — a missing file --------------------------------------------------------------------
@@ -178,7 +183,8 @@ printf '%s\n' "${out5}" | sed -n 2p | grep -q '^Memory not initialised' || fail 
 printf '## Caution & open issues\n- x\n' > "${workdir}/unreadable.md"
 chmod 000 "${workdir}/unreadable.md"
 if [[ -r "${workdir}/unreadable.md" ]]; then
-  echo "note (state inject): the unreadable file skipped — this user reads a mode-000 file (root, or Windows)" >&2
+  # Git Bash's chmod sets no read permission on Windows, and root reads anything.
+  echo "SKIP (unreadable file): this user reads a mode-000 file — root, or Windows, where chmod takes no read permission away"
 else
   out5b="$(run "${workdir}/unreadable.md")"
   [[ "$(printf '%s\n' "${out5b}" | sed -n 1p)" == "${BANNER}" ]] || fail "an unreadable file: the first line is not the banner"
@@ -195,13 +201,17 @@ printf '%s\n' "${out6}" | grep -qxF '<!-- never closed' || fail "a comment never
 printf '%s\n' "${out6}" | grep -qxF -- '- y' || fail "the text after a comment never closed was left out"
 
 # --- Case 7 — the processing fails: the file's first 8,000 bytes ------------------------------------
+# awk that cannot run: a stub first on PATH that exits 127, as the hooks' self-test fakes a
+# broken make. Not a PATH of links without awk: Git Bash's `ln -s` copies a binary away from the
+# DLLs it loads (measured in the CI on Windows, scripts/test-agent-git-guard.sh).
 mkdir -p "${workdir}/bin"
-for t in head bash; do ln -s "$(command -v "${t}")" "${workdir}/bin/${t}"; done
-# no_awk <file>: the script run with a PATH that has no awk.
+printf '#!/usr/bin/env bash\necho "awk: error while loading shared libraries" >&2\nexit 127\n' > "${workdir}/bin/awk"
+chmod +x "${workdir}/bin/awk"
+# no_awk <file>: the script run where awk cannot run.
 no_awk() {
   local out rc
   set +e
-  out="$(PATH="${workdir}/bin" "${workdir}/bin/bash" "${INJECT}" "$1")"
+  out="$(PATH="${workdir}/bin:${PATH}" bash "${INJECT}" "$1")"
   rc=$?
   set -e
   [[ ${rc} -eq 0 ]] || fail "no awk: exit ${rc} on $1"
