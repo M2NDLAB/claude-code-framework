@@ -2,7 +2,7 @@
 date: 2026-10-16
 task: v4.0.0 — the method's docs leave CLAUDE.md's imports and load when needed; the token-cost assessment, the user's decisions D1-D8, the plan, then the measurements of task 2
 branch: feat/on-demand-docs
-status: in-progress
+status: completed
 model: 'claude-opus-5-5'
 turns: 3
 tags: [session, plan, context, imp, gate]
@@ -205,7 +205,7 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
 - [x] 11. The core in `.claude/rules/fw-core.md` — D1's two conditions held at task 2 —; `CLAUDE.md` the project's own and its class; `docs/00` *Selective loading*; every `@` of the method's files removed, `STATE.md`'s included; the rules' citations re-pointed; docs-check strict, with the pointers resolved to headings — commit: 9b9175f; the measurements of the fifth turn recorded after it
 - [x] 12. `SETUP.md` (the migration from 3.x, the single jump from 1.2.0, `STATE.md` reduced by the first checkpoint after the upgrade, step 4, the brownfield rows), `README.md`, `CONTRIBUTING.md`, `SECURITY.md` — commit: af2a2ad
 - [x] 13. The rehearsal on a clone tagged v4.0.0 — from 3.0.0 with every answer in place, and from 1.2.0 in the synthetic form of the project upgraded next, LF and CRLF — moved here from task 14, so that the gate reviews the tip that ships; then `/fw:security-review`, adversarial, its reviewer not the author, its perimeter named: the claims about what loads, the gate's check, `state-inject.sh` and its wiring, the migration of the answers — commit: 0afcb5b, b48e2a9 (the rehearsal's fixes); ed22e6b, 5845b88, ff5985a, c0eb73f (the first round's fixes); this note's gate section
-- [ ] 14. The CHANGELOG's 4.0.0 entry with IMP-127's erratum and the measured first request; the rehearsal again on the CHANGELOG's commit; the gate's second round on the fixes and the entry; the retro; the checkpoint; then `/fw:integrate` up to block 0, no further (the fifth turn) — commit: —
+- [x] 14. The CHANGELOG's 4.0.0 entry with IMP-127's erratum and the measured first request; the rehearsal again on the CHANGELOG's commit; the gate's second round on the fixes and the entry; the retro; the checkpoint; then `/fw:integrate` up to block 0, no further (the fifth turn) — commit: 9a92d94, 88e2757 (the entry); 9615698, 0470ebd, d26e549 (the second round); 5c6f07b (the third); the retro's and this checkpoint's
 
 ## Resumption notes
 - The chat's "step 0" and "step 1" are tasks 1 and 2 here. The user's instruction: stop after
@@ -239,9 +239,14 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
   branch's blocks is done. The timing is IMP-126's evidence (`LEARNINGS.md`).
 
 ## Security gate
-- Pending: the deliverable is under the gate — it changes the gate's activation, the
-  SessionStart wiring of `settings.json` and the product's claims about what is in context.
-  The verdict is written at its last checkpoint.
+- `/fw:security-review` at `5c6f07b` — `0c71b6f..5c6f07b` reviewed in four rounds
+  (`..b48e2a9`, `..88e2757`, `..d26e549`, `..5c6f07b`), its reviewers never the author: no
+  HIGH or CRITICAL; 3 MEDIUM and 28 LOW resolved, every INFO closed, declared where its claim
+  lives, or carried to the retro (IMP-128 to IMP-134); the last round found nothing above
+  INFO. Under the gate because the deliverable changes the method's boundary — the
+  SessionStart wiring of `settings.json`, `scripts/state-inject.sh` —, the gate's own check,
+  and the product's claims about what is in context. After `5c6f07b` only `.claude/memory/`
+  changes: the retro's entries and this note.
 
 ### First round — `/fw:security-review`, reviewed `0c71b6f..b48e2a9`
 - How: a workflow (run `wf_3f4a0f11-bd4`, 8 agents, 1,559,293 tokens, 320 tool calls, a duration
@@ -296,6 +301,104 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
   (the main session's rehearsal), and the CHANGELOG entry, not yet written.
 - Second round: the fixes `b48e2a9..` and the CHANGELOG entry, once written, by a reviewer
   who is not the author — task 14, before the retro.
+
+### Second round — `/fw:security-review`, reviewed `b48e2a9..88e2757`
+- How: two independent reviewers by the Agent tool, none of them the author, each briefed with
+  the user's decisions verbatim and told to read `docs/03`, the review's command and this
+  note from disk — their startup context held an older core, as the first round saw —; each
+  verified its own findings before reporting. Code and boundary: 240,402 tokens, 60 tool
+  calls, 1,071,498 ms. Claims and the CHANGELOG entry: 274,440 tokens, 97 tool calls,
+  1,358,276 ms. Snapshot before and after identical, `git diff` empty, HEAD `88e2757`.
+- Result: no HIGH, CRITICAL or MEDIUM; 9 LOW, 12 INFO, each checked by hand against the file.
+  Of the first round's findings the code reviewer judged SI-4, F1 and F6 partly closed (R2-2,
+  code R2-1, F6's declared half) and the rest closed; the claims reviewer F2 and migration F5
+  partly (claims R2-2, R2-4).
+- Resolved — code: R2-1 (`invariant` found an answer in the line's own description, so
+  "via Pull Request" passed with nothing carried; RED on `88e2757`, `9615698`), R2-2 (the
+  positive budget check passed on the fallbacks, the banner opening every path; `0470ebd`),
+  R2-4 (busybox `diff` prints no normal format: `answer_at` reads `-U0`; `9615698`), R2-5
+  (block 1's rebase after the tip pin: `<base>` pinned after the fetch; `0470ebd`), R2-3 and
+  R2-6 (the longest output's figure; the greenfield push and quotes; `d26e549`, `0470ebd`).
+  Claims: R2-1 (the subagent's derived share at 2.85, its own runs' ratio; `d26e549`), R2-2
+  (the core keeps rule 2's prohibitions, the CHANGELOG and `fw-code-quality.md` say so;
+  `0470ebd`, `d26e549` — whether `docs/02`'s other "never"s join rule 2 is the user's,
+  IMP-132), R2-3 (Step 6 commits the reconciliation and the pin before the review;
+  `0470ebd`), R2-4 (the core in the user's terms, lint-memory proposes no reduction on an
+  upgrade's branch; `0470ebd`), R2-5 (the rehearsal rerun on the tip that ships, below), R2-6
+  (the boundary as the core names it), R2-7 (`LEARNINGS.md` by its diff); INFO R2-8 (an import
+  measured at one invocation), R2-9, R2-10 (an agent keeps what the session last loaded, at
+  launch or at a compaction), R2-11 (the erratum names the header's date), R2-12 (docs 00-04
+  and 06; the Makefile's recipe), R2-13, R2-14 — `0470ebd`, `d26e549`.
+- Declared: `88e2757`'s message says the Upgrading steps follow "the order the user asked
+  for"; the entry puts the answers first, the order edge case 8 needs, where the user's list
+  put rules 1-10 first. A local commit's message, left as it is. R2-15: the core changed after
+  the user's approval — the list, each change with its finding, goes to the user with block 0.
+- Not covered by the round, by the reviewers' own lists: gawk and Git Bash (the CI), the unit
+  of the hook's 10,000 cap (Claude Code's page says characters; the outputs reach 8,386
+  UTF-16 units, up to 14,211 bytes for astral text), `git push --no-follow-tags` with an
+  explicit tag and `gh -R` against `GH_REPO` (read, not run), an interactive session.
+
+### The rehearsal again, on `d26e549` (task 14)
+- A from 3.0.0 and B from 1.2.0 rebuilt from scratch by the task 13 builder, Step 3 driven by
+  the inventory; the files Step 3 leaves to a human taken from the first rehearsal where `vY`
+  did not change them since (`CLAUDE.md`, `STATE.md`, B's `Makefile`, `reset-task.sh`,
+  `LEARNINGS.md`), reconciled again where it did.
+- A: preflight 0 FAIL; every hybrid 3-way clean — `fw/checkpoint.md`, `fw/integrate.md` with
+  its placeholders, `settings.json`, `Makefile`, `hooks-install.sh`; `inventory` quotes 13
+  answers, the 4.0.0 Upgrading note printed; `invariant` 0 FAIL, 1 CHECK (the stack's read-only
+  commands, which belong in `settings.json`), every other answer found word for word; `post`
+  0 FAIL, 3 CHECK; `make test-scripts` 13 PASS; `CLAUDE.md`'s 3-way 150 of 159 lines.
+- B: the pin without its `v` fails preflight, corrected by a commit, then 0 FAIL; renames 0
+  conflicts but two co-edits at a command's end, both sides kept; docs/00 2 conflicts, edge
+  case 7, resolved as in task 13 (vY's, its answer in **Sensitive components**); `invariant`
+  0 FAIL, 2 CHECK — **Branches** holds "main only, trunk-based" for "main, trunk-based", and
+  **Merge** "the /fw:integrate block" for "the /integrate block": confirmed by hand, the
+  re-phrasing of the carrying —; `post` 0 FAIL, 9 CHECK; 13 PASS; the hook prints 8,211
+  characters, the open issues first; `CLAUDE.md`'s 3-way 168 of 177.
+- CRLF: copies of both, every text file with CRLF — the same verdicts as LF in `inventory`,
+  `invariant` and `post`.
+- Not rehearsed: a project that replaced `fw/integrate.md`'s placeholders throughout (the
+  Upgrading note says what to expect), Windows.
+
+### Third round — `/fw:security-review`, reviewed `88e2757..d26e549`
+- One independent reviewer, not the author, briefed as the second round's (220,265 tokens, 69
+  tool calls, 1,010,931 ms); snapshot identical, `git diff` empty, HEAD `d26e549`.
+- Result: no HIGH, CRITICAL or MEDIUM; 1 LOW, 1 LOW/INFO, 5 INFO, checked by hand. Of the
+  second round's findings it judged code R2-5 and claims R2-5, R2-7 partly closed, the rest
+  closed; it recomputed every figure of the entry (1,029 = 16,330 − 15,301; 35,400, 7,800,
+  33,600, 6,500, 370) and found them exact, the longest hook output 8,354 + 2 × the digits of
+  the cut line's numbers.
+- Resolved in `5c6f07b`: F1 (LOW: block 1's base pin blind to a base already stale when
+  `/fw:integrate` runs — under the gate the computation requires the base to be an ancestor of
+  the reviewed tip, or stops for a rebase and a new review); F3 (`LEARNINGS.md`'s `updated:`
+  date no shipped change); F5 (where the boundary is named); F6 (a command's import measured at
+  one invocation, in `lint-memory` and the docs check); F7 (an Explore or a Plan agent skips
+  the rules with no `paths`). Declared: F4, a description the project re-worded is searched
+  whole by `invariant`, in the code and in `SETUP.md`. F2 (LOW/INFO: the rehearsal on the tip
+  that ships recorded nowhere) — the rehearsal sections here.
+
+### The rehearsal on `5c6f07b`
+- The same as on `d26e549`, rebuilt from scratch: A preflight 0 FAIL, every hybrid clean,
+  `invariant` 0 FAIL / 1 CHECK, `post` 0 FAIL / 3 CHECK, 13 PASS, 13 answers quoted; B
+  preflight 0 FAIL / 1 CHECK (`grafted: n/d`), `invariant` 0 FAIL / 2 CHECK — the two
+  re-phrased answers above —, `post` 0 FAIL / 9 CHECK, 13 PASS, 12 answers; `CLAUDE.md`'s 3-way
+  150 of 159 and 168 of 177; with CRLF, the same verdicts in `inventory`, `invariant` and
+  `post` for both.
+
+### Fourth round — `/fw:security-review`, reviewed `d26e549..5c6f07b`
+- One reviewer, not the author (140,371 tokens, 38 tool calls, 781,002 ms); snapshot
+  identical, `git diff` empty, HEAD `5c6f07b`.
+- Result: no HIGH, CRITICAL, MEDIUM or LOW; the third round's F1 and F3-F7 closed; 4 INFO,
+  checked by hand. I1 — the stale-base stop is written in step 4's computation only, not in
+  step 5's list, `docs/03`'s list or the CHANGELOG: an under-claim, the check doing more than
+  the texts say, left as it is. I2 — that stop fires after step 3 has committed the
+  changelog's move: it fails loudly, the new review reading the entry; IMP-133. I3 —
+  `CONTRIBUTING.md`'s memory-only rule counts `LEARNINGS.md`'s `updated:` date as payload,
+  which `integrate.md` now sets aside; `CONTRIBUTING.md` ships to no project, but the check's
+  letter counts every path outside `.claude/memory/`, so it changes on a later branch;
+  IMP-134. I4 — here a rebased feature branch has no push path after block 0 (carried over):
+  the user's decision, IMP-134.
+- The reviewed tip is `5c6f07b`: nothing after it touches a path outside `.claude/memory/`.
 
 ## Problems encountered → cause → solution
 1. The first draft of the core dropped rules — the definition of a sensitive component, the
@@ -563,8 +666,22 @@ one word.
   of the commands v3.0.0 renamed — now "renamed between vX and vY".
 
 ## Proposals
-- None new: IMP-124's Level 2 is decided, IMP-126 widened by the user's decision.
+- At task 1: none new — IMP-124's Level 2 decided, IMP-126 widened by the user's decision.
+- The retro (task 14), in `LEARNINGS.md`: IMP-128 (a new session discards only the plan's
+  half-task), IMP-129 (the core forbids `-n`), IMP-130 (a slot re-opened in a HYBRID file
+  fails `invariant`), IMP-131 (a check passes on a datum, never on a missing alarm), IMP-132
+  (`docs/02`'s other prohibitions: the user decides whether they join rule 2), IMP-133 (the
+  stale-base stop before step 3's changelog commit), IMP-134 (this repository's
+  `CONTRIBUTING.md`: the `updated:` date, and a rebased branch after block 0); new evidence on
+  IMP-125 and IMP-105. IMP-124 and IMP-127 applied.
 
 ## Follow-up
 - Stop after task 2 (the user's instruction): the user confirms D4's mechanism — a Read
-  instruction in the rule, since an `@` there loads at every launch — before task 3.
+  instruction in the rule, since an `@` there loads at every launch — before task 3. Done:
+  confirmed in the fourth turn.
+- For the user with block 0, before it runs: the core changed after the user's approval of
+  its text ("Revisione del nucleo: approvato") — `git diff 9b9175f..5c6f07b --
+  .claude/rules/fw-core.md`, each change tied to a finding in *Security gate*; the decisions
+  of IMP-132 and IMP-134 (I4); the open IMPs of the retro.
+- Block 0 is printed and not run (the fifth turn: stop when `/fw:integrate` has printed it).
+  The CI's three jobs on the pushed tip are their first run on Windows, Git Bash and gawk.
