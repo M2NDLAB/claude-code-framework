@@ -7,7 +7,9 @@
 #   1. classes — every payload file of THIS repository's HEAD has a class (with a floor on
 #      the counts, so an empty or broken listing cannot pass), and a file added to the
 #      payload without one makes it fail; each label of the answers a release moved opens a
-#      line of HEAD's CLAUDE.md.
+#      line of HEAD's CLAUDE.md; and each entry of the table of moved answers, against this
+#      repository's own tags, holds its slot's line whole at the release before the move, not
+#      at the move, and its home at the move.
 #   2. preflight — on a throwaway framework (tags v1.0.0, v1.0.1, v1.1.0) and a project
 #      grafted at v1.0.0: a sound pin passes; a version without its v, a commit that is
 #      the tag object, a commit of another release, an unset FW or FW = the project fail;
@@ -70,8 +72,14 @@
 #      are all open; a release whose slot lines the table does not know (v2.9.0 here, as the
 #      Italian ones before v1.1.0) never reads as nothing moved; invariant fails while an
 #      answer the restore point held has its new line still open, asks while the line does
-#      not hold it word for word — two answers on one label, one carried —, and passes once
-#      each is carried; post names edge case 8 for a doc left as it was.
+#      not hold it word for word — two answers on one label, one carried, or an answer glued
+#      to a longer word —, and passes once each is carried; post names edge case 8 for a doc
+#      left as it was.
+#  13. the value v1.3.2 moved — on a throwaway framework whose v1.3.1 writes reset-task.sh's
+#      protected branches as the real one does, and whose v1.3.2 moves them to the Makefile:
+#      inventory names edge case 8 with the project's value, never edge case 7, and leaves
+#      the default alone; invariant fails while the Makefile's line holds the default, and
+#      passes once it holds the project's value.
 # Run it from anywhere: bash tools/test-upgrade-check.sh
 set -euo pipefail
 
@@ -134,7 +142,31 @@ git -C "${REPO_ROOT}" show HEAD:CLAUDE.md > "${workdir}/claude-head.md"
 while IFS= read -r label; do
   grep -qF -- "- **${label}**" "${workdir}/claude-head.md" || fail "moved_slots: no line **${label}** in HEAD's CLAUDE.md"
 done <<< "${labels}"
-echo "PASS (upgrade-check classes): every payload file of HEAD has a class; a new one without fails; each label of the moved answers opens a line of HEAD's CLAUDE.md."
+# Each entry of the table against THIS repository's own tags: the slot's line whole in the old
+# file at a release before the move — a line written two ways has an entry per form, each
+# from its own releases —, gone from it at the move, and its home in the new file at the move:
+# a line typed wrong would otherwise read as "nothing moved" in every project.
+eval "$(sed -n '/^moved_slots() {$/,/^}$/p' "${CHECK}")"
+n_moved=0
+while IFS=$'\t' read -r rel old line new label default; do
+  found=""
+  while IFS= read -r t; do
+    git -C "${REPO_ROOT}" show "${t}:${old}" > "${workdir}/slot.old" 2>/dev/null || continue
+    if grep -qxF -- "${line}" "${workdir}/slot.old"; then found="${t}"; break; fi
+  done < <(git -C "${REPO_ROOT}" tag --list 'v*' --sort=-v:refname | awk -v r="${rel}" 'f { print } $0 == r { f = 1 }')
+  [ -n "${found}" ] || fail "moved_slots: no tag before ${rel} has the line '${line}' in ${old}"
+  git -C "${REPO_ROOT}" show "${rel}:${old}" > "${workdir}/slot.moved" 2>/dev/null || : > "${workdir}/slot.moved"
+  ! grep -qxF -- "${line}" "${workdir}/slot.moved" || fail "moved_slots: ${rel}:${old} still has the line '${line}': no move"
+  if [ -n "${label}" ]; then
+    if [ -n "${default}" ]; then home="${label}"; else home="- **${label}**"; fi
+    git -C "${REPO_ROOT}" show "${rel}:${new}" > "${workdir}/slot.new" 2>/dev/null || fail "moved_slots: no ${new} at ${rel}"
+    awk -v p="${home}" 'index($0, p) == 1 { f = 1 } END { exit !f }' "${workdir}/slot.new" \
+      || fail "moved_slots: no line of ${rel}:${new} opens with '${home}'"
+  fi
+  n_moved=$((n_moved + 1))
+done < <(moved_slots)
+[ "${n_moved}" -ge 15 ] || fail "moved_slots: ${n_moved} entries read, fewer than the table's 15"
+echo "PASS (upgrade-check classes): every payload file of HEAD has a class; a new one without fails; each label of the moved answers opens a line of HEAD's CLAUDE.md; each of the ${n_moved} moved slots is where the table says at this repository's own tags."
 
 # --- The fixture: a throwaway framework with three releases, a project grafted at v1.0.0
 FWD="${workdir}/fw"
@@ -816,6 +848,12 @@ put "${P12}" CLAUDE.md "# Index\nStack: bash\n5. Documentation updated:\n   alig
 FW="${FW12}" T="${T12}" run 0 "${P12}" invariant v3.0.0 v4.0.0 "${RESTORE12}"
 has "OK     CLAUDE.md: its answer ('the docs/ folder') is on CLAUDE.md's line **Documentation**"
 has "OK     .claude/docs/02-code-quality.md: its answer ('the wiki') is on CLAUDE.md's line **Documentation**"
+# An answer found only glued to a longer word — 'shdoc' inside 'shdocs' — is not on the line:
+# a CHECK that quotes it, never an OK.
+put "${P12}" CLAUDE.md "# Index\nStack: bash\n5. Documentation updated:\n   aligned (where the project documentation lives: the answer **Documentation**, below). Same\n   logic as the memory.\n\n## The answers the method reads\n- **Documentation** — where it lives: the docs/ folder, and\n  the wiki for the guides\n- **Merge** — the form: the /fw:integrate block\n- **Doc comments** — the tool: shdocs\n- **Error format** — the format: ${M}\n"
+FW="${FW12}" T="${T12}" run 0 "${P12}" invariant v3.0.0 v4.0.0 "${RESTORE12}"
+has "CHECK  .claude/docs/02-code-quality.md: '${M}.)*' was answered at the restore point with 'shdoc', which CLAUDE.md's line **Doc comments** does not hold word for word"
+hasnt "its answer ('shdoc')"
 # The line itself gone from the new home: a FAIL too.
 put "${P12}" CLAUDE.md "# Index\nStack: bash\n\n## The answers the method reads\n- **Merge** — the form: the /fw:integrate block\n- **Doc comments** — the tool: shdoc\n- **Error format** — the format: ${M}\n"
 FW="${FW12}" T="${T12}" run 1 "${P12}" invariant v3.0.0 v4.0.0 "${RESTORE12}"
@@ -869,4 +907,56 @@ sed 's/^\(- \*\*Merge\*\* .*\):$/\1: via Pull Request/' "${P12E}/CLAUDE.md" > "$
 cp "${workdir}/claude12e.md" "${P12E}/CLAUDE.md"
 FW="${FW12}" T="${T12}" run 0 "${P12E}" invariant v3.0.0 v4.0.0 "${RESTORE12E}"
 has "OK     .claude/docs/04-git-workflow.md: its answer ('via Pull Request') is on CLAUDE.md's line **Merge**"
-echo "PASS (upgrade-check moved answers): inventory names each answered slot v4.0.0 moved, with its answer and its new line, edge case 7 only for a doc whose moved slots are all open — a trailing blank or a re-flow still open —, and a release whose slot lines it does not know; invariant fails while an answer the restore point held has no home or an open one, asks while the line does not hold it word for word — two answers on one label —, and passes once each is carried; post names edge case 8 for a doc left behind."
+echo "PASS (upgrade-check moved answers): inventory names each answered slot v4.0.0 moved, with its answer and its new line, edge case 7 only for a doc whose moved slots are all open — a trailing blank or a re-flow still open —, and a release whose slot lines it does not know; invariant fails while an answer the restore point held has no home or an open one, asks while the line does not hold it word for word — two answers on one label, an answer glued to a longer word —, and passes once each is carried; post names edge case 8 for a doc left behind."
+
+# --- Case 13: the value v1.3.2 moved ----------------------------------------------------------
+# reset-task.sh's line of v1.3.1 is the real one, byte for byte, as the Makefile's of v1.3.2:
+# the protected branches are a value, answered by rewriting the default, never by the marker.
+FW13="${workdir}/fw13"
+P13="${workdir}/project13"
+T13="${workdir}/T13"
+mkdir -p "${T13}"
+g init -q -b main "${FW13}"
+put "${FW13}" CLAUDE.md '# Index\n'
+put "${FW13}" .claude/memory/STATE.md '# STATE\n'
+put "${FW13}" scripts/reset-task.sh "#!/usr/bin/env bash\n# ${M} adapt the list to your model (integration branch +\n# stable branch).\nPROTECTED_BRANCHES=\"\${PROTECTED_BRANCHES:-main develop}\"\necho reset\n"
+put "${FW13}" Makefile 'reset-task:\n\tbash scripts/reset-task.sh\n'
+g -C "${FW13}" add -A && g -C "${FW13}" commit -q -m "feat: 1.3.1" && g -C "${FW13}" tag -a v1.3.1 -m v1.3.1
+put "${FW13}" scripts/reset-task.sh '#!/usr/bin/env bash\nif [ -z "${PROTECTED_BRANCHES:-}" ]; then\n  PROTECTED_BRANCHES="main develop"\nfi\necho reset\n'
+put "${FW13}" Makefile "# ${M} the branches reset-task must never touch.\nPROTECTED_BRANCHES = main develop\n\nreset-task:\n\tPROTECTED_BRANCHES=\"\$(PROTECTED_BRANCHES)\" bash scripts/reset-task.sh\n"
+g -C "${FW13}" add -A && g -C "${FW13}" commit -q -m "fix: 1.3.2" && g -C "${FW13}" tag -a v1.3.2 -m v1.3.2
+grep -qxF 'PROTECTED_BRANCHES="${PROTECTED_BRANCHES:-main develop}"' "${FW13}/scripts/reset-task.sh" && fail "the fixture: v1.3.2's reset-task.sh still holds v1.3.1's line"
+g -C "${FW13}" show v1.3.1:scripts/reset-task.sh | grep -qxF 'PROTECTED_BRANCHES="${PROTECTED_BRANCHES:-main develop}"' || fail "the fixture: v1.3.1's reset-task.sh lacks the real line"
+# The project, grafted at v1.3.1, protects main and dev.
+mkdir -p "${P13}"
+g -C "${FW13}" archive v1.3.1 -- .claude CLAUDE.md scripts Makefile | tar -x -C "${P13}"
+sed 's/:-main develop}/:-main dev}/' "${P13}/scripts/reset-task.sh" > "${workdir}/reset13.sh" && cp "${workdir}/reset13.sh" "${P13}/scripts/reset-task.sh"
+g init -q -b main "${P13}" && g -C "${P13}" add -A && g -C "${P13}" commit -q -m "chore: graft the framework v1.3.1"
+RESTORE13="$(g -C "${P13}" rev-parse HEAD)"
+FW="${FW13}" T="${T13}" run 0 "${P13}" inventory v1.3.1 v1.3.2
+has "CHECK  edge case 8: scripts/reset-task.sh: the value of 'PROTECTED_BRANCHES=\"\${PROTECTED_BRANCHES:-main develop}\"' is the project's ('main dev') — v1.3.2 moved it: carry it to Makefile, the line that opens with 'PROTECTED_BRANCHES =', before scripts/reset-task.sh is reconciled"
+has "edge case 8: scripts/reset-task.sh is METHOD in v1.3.2 and the project answered slots of it a release moved (below)"
+hasnt "edge case 7: scripts/reset-task.sh"
+# Both files brought over from v1.3.2 as they are: the Makefile holds the default, the
+# project's list is lost — a FAIL.
+for f in scripts/reset-task.sh Makefile; do g -C "${FW13}" show "v1.3.2:${f}" > "${P13}/${f}"; done
+FW="${FW13}" T="${T13}" run 1 "${P13}" invariant v1.3.1 v1.3.2 "${RESTORE13}"
+has "FAIL   scripts/reset-task.sh: the restore point held 'main dev', and Makefile's line 'PROTECTED_BRANCHES =' still holds the default 'main develop': carry the value there (edge case 8)"
+# The value carried: an OK.
+sed 's/^PROTECTED_BRANCHES = main develop$/PROTECTED_BRANCHES = main dev/' "${P13}/Makefile" > "${workdir}/make13" && cp "${workdir}/make13" "${P13}/Makefile"
+FW="${FW13}" T="${T13}" run 0 "${P13}" invariant v1.3.1 v1.3.2 "${RESTORE13}"
+has "OK     scripts/reset-task.sh: its value ('main dev') is on Makefile's line 'PROTECTED_BRANCHES ='"
+# The same Makefile with CRLF line ends, as a Windows checkout writes it: the same verdict.
+awk '{ printf "%s\r\n", $0 }' "${P13}/Makefile" > "${workdir}/make13.crlf" && cp "${workdir}/make13.crlf" "${P13}/Makefile"
+grep -q $'\r$' "${P13}/Makefile" || fail "the fixture: the Makefile has no CRLF line end"
+FW="${FW13}" T="${T13}" run 0 "${P13}" invariant v1.3.1 v1.3.2 "${RESTORE13}"
+has "OK     scripts/reset-task.sh: its value ('main dev') is on Makefile's line 'PROTECTED_BRANCHES ='"
+# A project that kept the default: nothing to carry.
+P13B="${workdir}/project13b"
+mkdir -p "${P13B}"
+g -C "${FW13}" archive v1.3.1 -- .claude CLAUDE.md scripts Makefile | tar -x -C "${P13B}"
+g init -q -b main "${P13B}" && g -C "${P13B}" add -A && g -C "${P13B}" commit -q -m "chore: graft the framework v1.3.1"
+FW="${FW13}" T="${T13}" run 0 "${P13B}" inventory v1.3.1 v1.3.2
+has "INFO   scripts/reset-task.sh: 'PROTECTED_BRANCHES=\"\${PROTECTED_BRANCHES:-main develop}\"' is open in the project: nothing to carry"
+hasnt "the value of"
+echo "PASS (upgrade-check moved value): inventory names edge case 8 for the protected branches v1.3.2 moved, with the project's value and the Makefile's line, never edge case 7, and leaves the default alone; invariant fails while the Makefile holds the default, and passes once it holds the project's value."

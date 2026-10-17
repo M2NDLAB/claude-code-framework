@@ -1450,7 +1450,10 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    command with the list it passes, the script run directly falls back to its defaults and
    says so, and `make test-scripts` proves the refusal (measured on a project grafted at
    v1.2.0). The *Upgrading* note of the release that moved the slot names both places
-   (Step 2).
+   (Step 2). The upgrade check knows this move by its value: `inventory` quotes the list
+   the project wrote in place of `reset-task.sh`'s default and names the `Makefile`'s
+   `PROTECTED_BRANCHES =` line it goes to, and `invariant` fails while that line still holds
+   the default where the restore point held another list.
 
    **v4.0.0 moved the answers of the docs.** The slots of `docs/02`, `03` and `04`, and those
    of `CLAUDE.md`'s rules 5 and 8, became the lines of `CLAUDE.md`'s *The answers the method
@@ -1464,7 +1467,8 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    line holds both. `invariant` then fails on an answer the restore point held whose new
    line is missing or still open, and asks for a confirmation where the line does not hold
    the restore point's answer word for word — read past `vY`'s own description, as long as
-   the line keeps it as `vY` wrote it —; `post` asks about a doc that still differs from
+   the line keeps it as `vY` wrote it, and whole: an answer found only glued to a longer word
+   ("main" in "mainline") is not on the line —; `post` asks about a doc that still differs from
    `vY`'s. From a release before v1.1.0, whose slot lines are Italian, the check knows no
    line: a CHECK names the files, and the answers are found by the marker and carried by hand.
 
