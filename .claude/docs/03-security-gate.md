@@ -67,7 +67,8 @@ that touches a sensitive component — the method's own boundary among them — 
 security property; on a review other than `/fw:security-review`, or no reviewed tip; on a
 commit after the reviewed tip that touches a file the project ships, the commit of its own
 step 3 aside; on a HIGH or CRITICAL finding still open, and on a MEDIUM neither
-resolved nor accepted.
+resolved nor accepted; and on an integration branch that moved since the branch was based,
+before its step 3 commits a changelog entry under a version computed on the old base.
 
 Its known limits, declared here where the claim lives: it is a check the agent applies, not
 an enforcement. A merge made outside `/fw:integrate` — a Pull Request merged on the forge, a
