@@ -219,6 +219,10 @@ tags: [improvement]
   core now says.
 - Expected benefit / risk: the principle applied to the letter. Risk: a longer core, loaded in
   every session and agent.
+- The Architect's comment (the user, 2026-10-17, translated from Italian): only the silent
+  workaround joins rule 2; the formatting — the tooling does it —, the magic numbers, the
+  domain and the infrastructure, and the release of resources stay in `docs/02`.
+- Status: deferred on 2026-10-17 to the cleanup deliverable, IMP-135 — decided there.
 
 ### IMP-133 — The stale-base stop comes after step 3's changelog commit
 - Date: 2026-10-17 | Origin: v4.0.0's security gate, fourth round, I2 —
@@ -252,6 +256,23 @@ tags: [improvement]
 - Expected benefit / risk: the rule as the check reads it, and a way out of the stop. Risk of
   (2)'s lease push: it rewrites a branch the CI reads — pinned to the pushed sha, it moves
   nothing else.
+- Status: deferred on 2026-10-17 to the cleanup deliverable, IMP-135 — decided there.
+
+### IMP-135 — The cleanup before the first derived project's upgrade
+- Date: 2026-10-17 | Origin: v4.0.0's integration, the user's decision —
+  [[2026-10-17-4.0.0-record]]
+- Observed problem: v4.0.0 shipped with a backlog of open proposals — IMP-086, IMP-104 to
+  IMP-106, IMP-125, IMP-128 to IMP-134 — and with the limits its security gate declared
+  rather than fixed, round after round. The first derived project's upgrade, 1.2.0 → 4.0.0 in
+  one jump, would run on a method whose open questions nobody has decided.
+- Proposal: the next deliverable is a cleanup — every open IMP and every finding of v4.0.0's
+  gate decided (applied, deferred with its trigger, or rejected with its reason) before the
+  upgrade of the first derived project. Its table, each item with its source and where it
+  stands: [[2026-10-17-4.0.0-record]], *The cleanup's table*.
+- Expected benefit / risk: the upgrade lands on a method with no open question. Risk: a
+  release of decisions only, which delays the upgrade by one deliverable.
+- Status: APPROVED on 2026-10-17 (the user's decision) — the next deliverable, which the user
+  opens in a new session; not `STATE.md`, a clean template here (`CONTRIBUTING.md`).
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
