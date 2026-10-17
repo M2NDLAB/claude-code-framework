@@ -43,7 +43,7 @@
   those checks hold. A `chore: wip` commit is never undone without the user.
 - **End of a task**: a session note in `sessions/`, the `components/` notes touched,
   `STATE.md` rewritten within its 8,000 characters — the history moves to the notes, save at
-  the checkpoint that closes a framework upgrade, which leaves the reduction to the next one;
+  a framework upgrade, which never condenses it: the first checkpoint after its merge does;
   every *Caution & open issues* entry survives or is knowingly closed, one line with its
   trigger, and every open thread of the note has its entry —, `TREE.md` if the structure
   changed. **A task
@@ -163,11 +163,12 @@
   report, never repair it. One independent agent first; a fan-out only where being wrong is
   costly, with a stall budget fixed before the run — past it, stop. A brief quotes the user's
   decisions verbatim and tells the agent to Read, by path and section, every doc it must apply
-  — a general-purpose agent sees this core and `CLAUDE.md` as the main session loaded them,
-  not a change made since (seen at v4.0.0's gate), never the docs; an Explore or a Plan agent
-  skips `CLAUDE.md` (Claude Code's docs), so its brief quotes the rules it must keep (for a
-  review: `.claude/docs/03-security-gate.md` and `STATE.md`'s *Caution & open issues*); a
-  multi-agent report names what it did not cover, checked by hand or reported.
+  — a general-purpose agent sees this core and `CLAUDE.md` as the main session last loaded
+  them, at its launch or last compaction, not a change made since (seen at v4.0.0's gate),
+  never the docs; an Explore or a Plan agent skips `CLAUDE.md` and this core (Claude Code's
+  docs), so its brief quotes the rules it must keep (for a review:
+  `.claude/docs/03-security-gate.md` and `STATE.md`'s *Caution & open issues*); a multi-agent
+  report names what it did not cover, checked by hand or reported.
 - **Evidence**: decide from the real artifact, not from memory; a fix is shown RED → GREEN.
 
 ## Quick commands

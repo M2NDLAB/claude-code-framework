@@ -93,7 +93,7 @@ form.
 
 ```bash
 git init -b <integration> \
-  && git commit --allow-empty -m "chore: start the repository" \
+  && git commit --allow-empty -m 'chore: start the repository' \
   && git branch <stable> \
   && git remote add origin <the remote's URL> \
   && test "$(git rev-list --count <integration>)" = 1 && echo "root: OK"
@@ -102,13 +102,13 @@ git init -b <integration> \
 Once the first block has printed `root: OK`, publish:
 
 ```bash
-git push --atomic -u origin <integration> <stable>
+git push --atomic --no-follow-tags -u origin <integration> <stable>
 ```
 
 If the forge created the remote with a first commit — a README or a licence made from its
 web interface —, start from that commit instead: clone the remote, and in a two-branch
 model create the integration branch from it (`git switch -c <integration>`) and publish it
-(`git push -u origin <integration>`); in a trunk-based one the clone's branch already is
+(`git push --no-follow-tags -u origin <integration>`); in a trunk-based one the clone's branch already is
 the integration branch. The forge's files are the project's own: where the copy below
 collides with one of them — a `.gitignore` the forge wrote —, reconcile it as the brownfield
 section says, never overwrite it. The copy writes over a file of the same name (measured with
@@ -1212,9 +1212,11 @@ certain; unknown `grafted` → `n/a (retrofit YYYY-MM-DD)`. The pin lives outsid
 `.claude/memory/`: the closed list of Step 5 needs no entry for it.
 
 An upgrade that changes the boundary's files — `.claude/settings.json`, the guard, the hooks,
-`scripts/state-inject.sh`, as v4.0.0's does — is under the gate (the core's rule 8): run
-`/fw:security-review` on the upgrade branch's diff before the checkpoint, and `/fw:integrate`
-stops on a "not applicable" there.
+`scripts/state-inject.sh`, as v4.0.0's does — is under the gate (the core's rule 8), in this
+order: commit the reconciliation with the pin (`chore: upgrade the framework from vX to vY`);
+run `/fw:security-review` on the upgrade branch's diff — its report names that commit as the
+reviewed tip —; then `/fw:checkpoint`, which touches only `.claude/memory/`. `/fw:integrate`
+stops on a "not applicable" there, and on a shipped file committed after the review.
 `/fw:checkpoint` (the upgrade's session note — `vX→vY`, what was reconciled, what the user
 decided, and its security-gate line with the reason, since an upgrade rewrites the security
 baseline: the hooks, the permissions, a destructive guard; `STATE.md` with the updated
@@ -1226,8 +1228,8 @@ product features/fixes → bump **"no tag"** (`chore`, internal work, not a rele
 declare it and omit the tag. The merge of the upgrade branch and the push are HUMAN
 actions. If something does not add up at review time, the branch is thrown away: the
 memory is safe in the pre-upgrade commit. After the merge, start Claude Code again before the
-next deliverable: a running session, and the agents it delegates to, keep the method it
-loaded at launch — the old one's rules (seen at v4.0.0's gate).
+next deliverable: a running session, and the agents it delegates to, keep the method it last
+loaded — at its launch or its last compaction —, the old one's rules (seen at v4.0.0's gate).
 
 ### Edge cases (to be handled explicitly)
 

@@ -78,12 +78,15 @@ a rule: then it is a process bug, not a memory bug, and it goes to escalation/IM
     8,000 characters of it, *Caution & open issues* first (`scripts/state-inject.sh`):
     `wc -m .claude/memory/STATE.md` gives its size, and `r="$(git rev-parse
     --show-toplevel)" && bash "$r/scripts/state-inject.sh" "$r/.claude/memory/STATE.md"`
-    what the hook prints: its first line must be the banner, and a line opening with `===
-    STATE.md: ` says how many characters were not shown — comments not counted, so not
-    `wc -m`'s number. No banner is a measurement that failed: report it, never as within
-    the budget. Over the budget is a finding: propose the reduction `/fw:checkpoint` describes — the history to
-    the session notes, each open issue one line with its trigger and a pointer — and apply
-    it only with the user's confirmation, since it rewrites the dashboard. A `STATE.md` with
+    what the hook prints: its first line the banner, its second `## Caution & open issues`
+    or the line saying the file has none — any other output is a measurement that failed:
+    report it, never as within the budget —, and a line opening with `=== STATE.md: ` says
+    how many characters were not shown — comments not counted, so not `wc -m`'s number.
+    Over the budget is a finding: propose the reduction `/fw:checkpoint` describes — the
+    history to the session notes, each open issue one line with its trigger and a pointer —
+    and apply it only with the user's confirmation, since it rewrites the dashboard; on a
+    framework upgrade's branch, before its merge, report the size and propose nothing — the
+    first `/fw:checkpoint` after the merge condenses it, never the upgrade. A `STATE.md` with
     no section titled exactly `## Caution & open issues` is a finding too: its open issues
     reach no session first — the hook says so in one line —; propose the title, or moving
     the entries that belong there under it.

@@ -65,7 +65,8 @@ the same in the memory: a closing note without the line is a forgotten gate. The
 one the review's report names (`Reviewed: <base>..<sha>`), never a later HEAD: a fix
 committed after the review is a new tip, reviewed again.
 `/fw:integrate` reads the line before it prints its blocks, and stops on a missing line, on
-a review other than the method's, and on a commit the review did not see. Notes written
+a review other than the method's, and on a commit of a shipped file the review did not see.
+Notes written
 before this line existed stay valid as they are.
 
 ## The `model` and `turns` fields

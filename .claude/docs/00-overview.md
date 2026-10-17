@@ -30,10 +30,11 @@ that now holds for the method itself:
 - **Always**: the method's core, `.claude/rules/fw-core.md` — a rule with no `paths`, which
   Claude Code loads at every launch, again after a compaction and in a delegated
   general-purpose agent (measured on 2026-10-16; an Explore or a Plan agent skips
-  `CLAUDE.md`, by Claude Code's docs, and the core is not measured there) — and the project's
-  `CLAUDE.md`. A delegated agent receives them as the main session loaded them: a change made
-  since reaches it at the session's next launch (seen at v4.0.0's gate). The core holds every
-  rule that binds in every turn and a table of the moments at which each doc is read.
+  `CLAUDE.md` and the project's rules, by Claude Code's docs) — and the project's
+  `CLAUDE.md`. A delegated agent receives them as the main session last loaded them, at its
+  launch or its last compaction: a change made since reaches it after the next one (seen at
+  v4.0.0's gate). The core holds every rule that binds in every turn and a table of the
+  moments at which each doc is read.
 - **At the session's start**: `STATE.md`, through the SessionStart hook
   (`scripts/state-inject.sh`): at most 8,000 characters, its *Caution & open issues* first,
   and a line saying what was not shown when the file is longer. It is not imported.
@@ -42,10 +43,10 @@ that now holds for the method itself:
   doc at its first step; a path-scoped rule of `.claude/rules/` when Claude reads or edits a
   file it matches.
 - **Never**: an `@`-import of a method's file. Claude Code expands an import at launch, in a
-  rule with `paths` too (measured on 2026-10-16), and a command's import again at each
-  invocation: the cost the loading above avoids. The framework's documentation check fails one
-  in a method rule or command; in a project, `/fw:lint-memory` (check 13) lists every import
-  with its cost.
+  rule with `paths` too (measured on 2026-10-16), and a command's import at its invocation
+  (measured once): the cost the loading above avoids. The framework's documentation check
+  fails one in a method rule or command; in a project, `/fw:lint-memory` (check 13) lists
+  every import with its cost.
 
 The memory follows the same rule: the notes of only the components the task touches, the
 session notes it points at, the files it reads besides. What a compaction drops — a file read

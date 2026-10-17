@@ -11,6 +11,6 @@ paths:
 
 You are working on the project's code. Before the first edit of code in this task — and
 again after a compaction —, Read `.claude/docs/02-code-quality.md` whole, unless this
-session already holds it: the core keeps its prohibitions and the Definition of Done, the
-doc holds the rest — the comments' rules, error handling, the patterns, the tests that
-demonstrate.
+session already holds it: the core keeps the prohibitions of its rule 2 and the Definition
+of Done, the doc holds the rest — the comments' rules, error handling, the patterns, the
+tests that demonstrate, and the prohibitions among them.

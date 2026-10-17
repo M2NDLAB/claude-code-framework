@@ -37,11 +37,12 @@ values, then deletes this paragraph: [TO BE DEFINED AT SETUP].
      and a pointer to the note that holds the detail. Measure it after the rewrite, from
      the repository's root whatever the shell's directory: `r="$(git rev-parse
      --show-toplevel)" && bash "$r/scripts/state-inject.sh" "$r/.claude/memory/STATE.md"`
-     — its first line must be the banner `=== PROJECT MEMORY (STATE.md) ===`, and no line
-     may open with `=== STATE.md: `, the line that says characters were not shown; any
-     other output is a measurement that failed, never a pass. One exception: the checkpoint that closes an upgrade of the framework
-     (the framework's `SETUP.md`, Step 6) updates STATE without condensing it — the first
-     checkpoint after the upgrade's merge does. AFTER the rewrite check also that the
+     — its first line must be the banner `=== PROJECT MEMORY (STATE.md) ===`, its second
+     `## Caution & open issues` or the line saying the file has none, and no other line may
+     open with `===` — the cut's line, or a fallback's line to Read the file —; any other
+     output is a measurement that failed, never a pass. One exception: the checkpoint that
+     closes an upgrade of the framework (the framework's `SETUP.md`, Step 6) updates STATE
+     without condensing it — the first checkpoint after the upgrade's merge does. AFTER the rewrite check also that the
      pre-existing entries of "Caution & open issues" are still present or
      knowingly closed (a critical debt must not die in a rewrite)
      and that every entry has its explicit TRIGGER, never a generic one;
