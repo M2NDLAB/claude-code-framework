@@ -462,19 +462,82 @@ moved_slots() {
 # between vX and vY, and the slot's line in vX's old file — written to <out>. Each file is
 # read whole before grep: a grep -q on a pipe would kill git show under pipefail.
 moved_here() {
-  local rel old line new label releases tmp="$3.vx"
+  local rel old line new label releases tmp="$3.vx" seen=" "
   releases=" $(releases_between "$1" "$2" | tr '\n' ' ') "
   : > "$3"
+  : > "$3.unknown"
   moved_slots > "$3.all"
   while IFS=$'\t' read -r rel old line new label; do
     case "${releases}" in *" ${rel} "*) ;; *) continue ;; esac
     fw show "$1:${old}" > "${tmp}" 2>/dev/null || continue
     grep -qxF -- "${line}" "${tmp}" || continue
     printf '%s\t%s\t%s\t%s\t%s\n' "${rel}" "${old}" "${line}" "${new}" "${label}" >> "$3"
+    seen="${seen}${rel} "
+  done < "$3.all"
+  # A release in between none of whose slot lines vX's files hold — a vX before v1.1.0 wrote
+  # them in Italian —: its old files go to <out>.unknown, for a search by the marker, never
+  # for an "OK, nothing moved".
+  while IFS=$'\t' read -r rel old line new label; do
+    case "${releases}" in *" ${rel} "*) ;; *) continue ;; esac
+    case "${seen}" in *" ${rel} "*) continue ;; esac
+    grep -qxF -- "${rel}"$'\t'"${old}" "$3.unknown" || printf '%s\t%s\n' "${rel}" "${old}" >> "$3.unknown"
   done < "$3.all"
 }
 # short <line>: a slot's line as a finding quotes it, its indentation trimmed.
 short() { printf '%s' "$1" | sed -e 's/^[[:space:]]*//'; }
+# clip <text>: a quoted answer, cut at 80 characters.
+clip() { printf '%s\n' "$1" | awk '{ if (length($0) > 80) print substr($0, 1, 77) "..."; else print }'; }
+# SLOT_NORM: a line as the slot comparisons read it — the legacy marker read as the English
+# one, each run of blanks one space, none at either end: the forms an editor or an older
+# release leave on a slot nobody answered.
+readonly SLOT_NORM='function norm(x) { gsub(/\[DA DEFINIRE AL SETUP\]/, "[TO BE DEFINED AT SETUP]", x); gsub(/[ \t]+/, " ", x); sub(/^ /, "", x); sub(/ $/, "", x); return x }'
+# slot_open <slot line> <file>: whether the file still holds the slot's line open, in
+# SLOT_NORM's form. awk reads the file itself: no pipe for an early exit to break.
+slot_open() {
+  [ -f "$2" ] || return 1
+  S="$1" awk "${SLOT_NORM}"'
+    BEGIN { s = norm(ENVIRON["S"]) }
+    { sub(/\r$/, "") }
+    norm($0) == s { f = 1 }
+    END { exit !f }' "$2"
+}
+# answer_at <slot line> <framework file> <project file>: what the project wrote in place of
+# the slot's line — the lines of the diff's hunk that replaced it, joined, the slot's own text
+# before and after the marker taken off, in SLOT_NORM's form. Empty when the hunk adds
+# nothing (the line deleted); the marker in it when the project re-flowed the open slot. Both
+# files with LF line ends.
+answer_at() {
+  { diff "$2" "$3" || true; } | S="$1" awk "${SLOT_NORM}"'
+    function flush(   a, i, pre, post, m) {
+      if (!rem || done) return
+      done = 1; m = "[TO BE DEFINED AT SETUP]"; a = norm(add); i = index(slot, m)
+      pre = norm(substr(slot, 1, i - 1)); post = norm(substr(slot, i + length(m)))
+      if (pre != "" && index(a, pre) == 1) a = substr(a, length(pre) + 1)
+      if (post != "" && length(a) >= length(post) && substr(a, length(a) - length(post) + 1) == post) a = substr(a, 1, length(a) - length(post))
+      print norm(a)
+    }
+    BEGIN { slot = ENVIRON["S"] }
+    /^[0-9]/ { flush(); rem = 0; add = ""; next }
+    /^< / { if (substr($0, 3) == slot) rem = 1; next }
+    /^> / { add = add " " substr($0, 3); next }
+    END { flush() }'
+}
+# moved_answered <moved file> <path> <vX>: whether the project answered a slot of <path> that
+# a release in between moved — the slot's line neither open in the project's copy nor
+# re-flowed there with its marker.
+moved_answered() {
+  local rel old line new label tmp="$1.ans"
+  while IFS=$'\t' read -r rel old line new label; do
+    [ "${old}" = "$2" ] || continue
+    slot_open "${line}" "$2" && continue
+    fw show "$3:${old}" > "${tmp}.vx" 2>/dev/null
+    lf "$2" > "${tmp}.mine"
+    [[ "$(answer_at "${line}" "${tmp}.vx" "${tmp}.mine")" =~ ${MARKER_RE} ]] || return 0
+  done < "$1"
+  return 1
+}
+# in_list <file> <path>: whether <path> is the second field of a line of <file>.
+in_list() { awk -F'\t' -v p="$2" '$2 == p { f = 1 } END { exit !f }' "$1"; }
 # file_markers <file>: the slot markers of a project file, by occurrence.
 file_markers() { grep -oE "${MARKER_RE}" "$1" 2>/dev/null | wc -l | tr -d ' '; }
 # labels_renamed <tag>: whether the tag's LEARNINGS format uses the field labels of v1.1.0
@@ -607,8 +670,12 @@ cmd_inventory() {
     path="${path% (header)}"
     # The flags of the edge cases (SETUP.md, *Edge cases*).
     if [ "${class}" = METHOD ] && [ "${prj}" = diverged ] && [ "${fwst}" != D ]; then
-      if awk -F'\t' -v p="${path}" '$2 == p { f = 1 } END { exit !f }' "${d}/moved"; then
-        check "edge case 8: ${path} is METHOD in ${vy} and its answers moved (below): carry them first, then bring it over — a customisation beyond its slots is edge case 7's"
+      # Edge case 8 only for a file whose moved slots the project answered: a diverged copy
+      # whose moved slots are all open holds a customisation, edge case 7's.
+      if moved_answered "${d}/moved" "${path}" "${vx}"; then
+        check "edge case 8: ${path} is METHOD in ${vy} and the project answered slots of it a release moved (below): carry them first, then bring it over — a customisation beyond its slots is edge case 7's"
+      elif in_list "${d}/moved.unknown" "${path}"; then
+        check "edge case 8: ${path} is METHOD in ${vy}, and a release in between moved its slots in a form this check does not know (below): carry its answers by hand first, then bring it over — a customisation beyond its slots is edge case 7's"
       else
         check "edge case 7: ${path} is METHOD but customised in the project — reconcile it as a HYBRID (3-way), never overwrite"
       fi
@@ -676,15 +743,25 @@ cmd_inventory() {
   fi
 
   section "Answers a release in between moved to another file (edge case 8) — each answered one to carry first"
-  local rel old line new label
-  [ -s "${d}/moved" ] || ok "no release between ${vx} and ${vy} moved a slot"
+  local rel old line new label ans
+  [ -s "${d}/moved" ] || [ -s "${d}/moved.unknown" ] || ok "no release between ${vx} and ${vy} moved a slot"
   while IFS=$'\t' read -r rel old line new label; do
-    if [ ! -f "${old}" ] || lf "${old}" | grep -xF -- "${line}" >/dev/null; then
+    if [ ! -f "${old}" ] || slot_open "${line}" "${old}"; then
       info "${old}: '$(short "${line}")' is open in the project: nothing to carry"
+      continue
+    fi
+    fw show "${vx}:${old}" > "${d}/moved.vx" 2>/dev/null
+    lf "${old}" > "${d}/moved.mine"
+    ans="$(answer_at "${line}" "${d}/moved.vx" "${d}/moved.mine")"
+    if [[ "${ans}" =~ ${MARKER_RE} ]]; then
+      info "${old}: '$(short "${line}")' is open in the project, re-flowed: nothing to carry"
     else
-      check "edge case 8: ${old}: the slot of '$(short "${line}")' is answered in the project — ${rel} moved it: carry the answer to ${new}${label:+, the line **${label}**}, before ${old} is reconciled"
+      check "edge case 8: ${old}: the slot of '$(short "${line}")' is answered in the project${ans:+ ('$(clip "${ans}")')} — ${rel} moved it: carry the answer to ${new}${label:+, the line **${label}**}, before ${old} is reconciled"
     fi
   done < "${d}/moved"
+  while IFS=$'\t' read -r rel old; do
+    check "edge case 8: ${old}: ${rel} moved its slots, and ${vx}'s copy holds them in no form this check knows (a release before v1.1.0 wrote them in Italian): find them by the marker, and carry each answered one to CLAUDE.md's *The answers the method reads* by hand, before ${old} is reconciled"
+  done < "${d}/moved.unknown"
 
   section "The §2 checklist of SETUP.md — items added or re-worded between ${vx} and ${vy}"
   local s2x="${d}/s2.x" s2y="${d}/s2.y"
@@ -940,29 +1017,45 @@ cmd_invariant() {
   format_done "${vy}"
 
   # An answer the restore point held, in a file a release in between moved it out of, has
-  # a line in its new home — and the line no longer holds the setup marker (edge case 8).
+  # a line in its new home, the line no longer holds the setup marker, and it holds the
+  # answer the restore point held, word for word — or a human confirms it (edge case 8): two
+  # answers can share a label, and a line closed by one says nothing of the other.
   section "Answers a release in between moved — each in its new home (edge case 8)"
-  local rel old line new label
+  local rel old line new label ans
   moved_here "${vx}" "${vy}" "${d}/moved"
-  [ -s "${d}/moved" ] || ok "no release between ${vx} and ${vy} moved a slot"
+  [ -s "${d}/moved" ] || [ -s "${d}/moved.unknown" ] || ok "no release between ${vx} and ${vy} moved a slot"
   while IFS=$'\t' read -r rel old line new label; do
     if ! pg show "${restore}:${old}" 2>/dev/null | tr -d '\r' > "${d}/moved.before" || [ ! -s "${d}/moved.before" ]; then
       ok "${old}: absent at the restore point, nothing to carry"
-    elif grep -xF -- "${line}" "${d}/moved.before" >/dev/null; then
+      continue
+    fi
+    if slot_open "${line}" "${d}/moved.before"; then
       ok "${old}: '$(short "${line}")' was open at the restore point, nothing to carry"
+      continue
+    fi
+    fw show "${vx}:${old}" > "${d}/moved.vx" 2>/dev/null
+    ans="$(answer_at "${line}" "${d}/moved.vx" "${d}/moved.before")"
+    if [[ "${ans}" =~ ${MARKER_RE} ]]; then
+      ok "${old}: '$(short "${line}")' was open at the restore point, re-flowed, nothing to carry"
     elif [ -z "${label}" ]; then
-      check "${old}: '$(short "${line}")' was answered at the restore point: its answer belongs in ${new} (${rel}) — confirm it is there"
+      check "${old}: '$(short "${line}")' was answered at the restore point${ans:+ ('$(clip "${ans}")')}: its answer belongs in ${new} (${rel}) — confirm it is there"
     else
-      lf "${new}" 2>/dev/null | awk -v p="- **${label}**" 'index($0, p) == 1' > "${d}/moved.home"
+      # The label's line and the lines it runs on to.
+      lf "${new}" 2>/dev/null | awk -v p="- **${label}**" 'index($0, p) == 1 { f = 1; print; next } f && /^[ \t]+[^ \t]/ { print; next } { f = 0 }' > "${d}/moved.home"
       if [ ! -s "${d}/moved.home" ]; then
         fail "${new} has no line **${label}**: the answer of ${old}'s '$(short "${line}")' has no home — bring ${vy}'s line over"
       elif grep -E "${MARKER_RE}" "${d}/moved.home" >/dev/null; then
         fail "${old}: '$(short "${line}")' was answered at the restore point, and its new line in ${new}, **${label}**, is still open: carry the answer there (edge case 8)"
+      elif [ -n "${ans}" ] && A="${ans}" awk "${SLOT_NORM}"'{ h = h " " $0 } END { exit !(index(norm(h), ENVIRON["A"]) > 0) }' "${d}/moved.home"; then
+        ok "${old}: its answer ('$(clip "${ans}")') is on ${new}'s line **${label}**"
       else
-        ok "${old}: its answer reached ${new}, **${label}**"
+        check "${old}: '$(short "${line}")' was answered at the restore point${ans:+ with '$(clip "${ans}")'}, which ${new}'s line **${label}** does not hold word for word: confirm the answer is carried there (edge case 8)"
       fi
     fi
   done < "${d}/moved"
+  while IFS=$'\t' read -r rel old; do
+    check "${old}: ${rel} moved its slots, and ${vx}'s copy holds them in no form this check knows (a release before v1.1.0 wrote them in Italian): confirm by hand that each answer the restore point held there is on its line of CLAUDE.md's *The answers the method reads*"
+  done < "${d}/moved.unknown"
   finish "invariant ${vx} -> ${vy}, since ${restore}"
 }
 
@@ -1004,7 +1097,7 @@ cmd_post() {
       METHOD)
         if [ "${bp}" = "${by}" ]; then
           n_at=$((n_at + 1))
-        elif awk -F'\t' -v p="${path}" '$2 == p { f = 1 } END { exit !f }' "${d}/moved"; then
+        elif in_list "${d}/moved" "${path}" || in_list "${d}/moved.unknown" "${path}"; then
           check "${path} (METHOD) differs from ${vy}'s: its answers moved to another file (edge case 8) — bring it over once they are there; any other difference is edge case 7's"
         else
           check "${path} (METHOD) differs from ${vy}'s: fine only if it was reconciled as a hybrid (edge case 7)"

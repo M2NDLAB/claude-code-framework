@@ -6,7 +6,8 @@
 # Cases:
 #   1. classes — every payload file of THIS repository's HEAD has a class (with a floor on
 #      the counts, so an empty or broken listing cannot pass), and a file added to the
-#      payload without one makes it fail.
+#      payload without one makes it fail; each label of the answers a release moved opens a
+#      line of HEAD's CLAUDE.md.
 #   2. preflight — on a throwaway framework (tags v1.0.0, v1.0.1, v1.1.0) and a project
 #      grafted at v1.0.0: a sound pin passes; a version without its v, a commit that is
 #      the tag object, a commit of another release, an unset FW or FW = the project fail;
@@ -64,9 +65,13 @@
 #  12. the answers v4.0.0 moved — on a throwaway framework whose v3.0.0 writes the slot lines
 #      of docs/02, docs/04 and CLAUDE.md's rule 5 as the real one does, and whose v4.0.0
 #      moves them to CLAUDE.md's *The answers the method reads*: inventory names each slot
-#      the project answered, with its new line, and leaves the open one alone, never edge
-#      case 7; invariant fails while an answer the restore point held has its new line still
-#      open, and passes once it is carried; post names edge case 8 for a doc left as it was.
+#      the project answered, with its answer and its new line, and leaves the open one alone —
+#      with a trailing blank or re-flowed too —; edge case 7 only for a doc whose moved slots
+#      are all open; a release whose slot lines the table does not know (v2.9.0 here, as the
+#      Italian ones before v1.1.0) never reads as nothing moved; invariant fails while an
+#      answer the restore point held has its new line still open, asks while the line does
+#      not hold it word for word — two answers on one label, one carried —, and passes once
+#      each is carried; post names edge case 8 for a doc left as it was.
 # Run it from anywhere: bash tools/test-upgrade-check.sh
 set -euo pipefail
 
@@ -121,7 +126,15 @@ g -C "${workdir}/fw-new" add -A
 g -C "${workdir}/fw-new" commit -q -m "chore: a payload file without a class"
 FW="${workdir}/fw-new" run 1 "${workdir}" classes HEAD
 has "FAIL   no class for .claude/agents/reviewer.md"
-echo "PASS (upgrade-check classes): every payload file of HEAD has a class; a new one without fails."
+# The table of the answers a release moved, against HEAD: each of its labels opens a line of
+# HEAD's CLAUDE.md, so a label renamed in the template fails here, not in a project's upgrade.
+labels="$(grep -oE "CLAUDE\.md '[^']+'" "${CHECK}" | sed -E "s/^CLAUDE\.md '(.*)'\$/\1/" | sort -u)"
+[ "$(printf '%s\n' "${labels}" | grep -c .)" -eq 9 ] || fail "moved_slots: not the 9 labels of CLAUDE.md's answers read from the script"
+git -C "${REPO_ROOT}" show HEAD:CLAUDE.md > "${workdir}/claude-head.md"
+while IFS= read -r label; do
+  grep -qF -- "- **${label}**" "${workdir}/claude-head.md" || fail "moved_slots: no line **${label}** in HEAD's CLAUDE.md"
+done <<< "${labels}"
+echo "PASS (upgrade-check classes): every payload file of HEAD has a class; a new one without fails; each label of the moved answers opens a line of HEAD's CLAUDE.md."
 
 # --- The fixture: a throwaway framework with three releases, a project grafted at v1.0.0
 FWD="${workdir}/fw"
@@ -741,35 +754,44 @@ echo "PASS (upgrade-check step 1): the repository starts with its empty commit; 
 # The slot lines of v3.0.0 are the real ones, byte for byte: the entries of moved_slots match
 # them whole. The marker is built here, so this file never carries it as a slot would.
 M="[TO BE DEFINED A""T SETUP]"
+MI="[DA DEFINIRE A""L SETUP]"
 FW12="${workdir}/fw12"
 P12="${workdir}/project12"
 T12="${workdir}/T12"
 mkdir -p "${T12}"
 g init -q -b main "${FW12}"
+# v2.9.0 writes its slots in another form, as the releases before v1.1.0 did in Italian.
+put "${FW12}" CLAUDE.md "# Index\nStack: ${MI}\n5. Documentation updated (it lives: ${MI}).\n"
+put "${FW12}" .claude/docs/02-code-quality.md "# 02\n- Every public unit: a documentation comment (the tool: ${MI}).\n"
+put "${FW12}" .claude/docs/04-git-workflow.md "# 04\n- The merge: ${MI}.\n"
+put "${FW12}" .claude/memory/STATE.md '# STATE\n'
+g -C "${FW12}" add -A && g -C "${FW12}" commit -q -m "feat: 2.9.0" && g -C "${FW12}" tag -a v2.9.0 -m v2.9.0
 put "${FW12}" CLAUDE.md "# Index\nStack: ${M}\n5. Documentation updated:\n   aligned (where the project documentation lives: ${M}). Same\n   logic as the memory.\n"
-put "${FW12}" .claude/docs/02-code-quality.md "# 02\n- Every public unit: a documentation comment. *(The tool is\n  ${M}.)*\n- Errors: expose a structured format to\n  the client *(which one — ${M})*, never stacktraces/queries/\n  internal paths.\n"
+put "${FW12}" .claude/docs/02-code-quality.md "# 02\n- Every public unit: a documentation comment. *(The tool is\n  ${M}.)*\n- Errors: expose a structured format to\n  the client *(which one — ${M})*, never stacktraces/queries/\n  internal paths.\n7. Project documentation updated *(where it lives —\n   ${M})*; if the project documentation does not exist yet, the\n   debt is recorded.\n"
 put "${FW12}" .claude/docs/04-git-workflow.md "# 04\n- The merge, in one of two forms — which one the project adopts is\n  ${M}:\n  - via Pull Request;\n"
 put "${FW12}" .claude/memory/STATE.md '# STATE\n'
 g -C "${FW12}" add -A && g -C "${FW12}" commit -q -m "feat: 3.0.0" && g -C "${FW12}" tag -a v3.0.0 -m v3.0.0
 put "${FW12}" CLAUDE.md "# Index\nStack: ${M}\n5. Documentation updated:\n   aligned (where the project documentation lives: the answer **Documentation**, below). Same\n   logic as the memory.\n\n## The answers the method reads\n- **Documentation** — where it lives: ${M}\n- **Merge** — the form: ${M}\n- **Doc comments** — the tool: ${M}\n- **Error format** — the format: ${M}\n"
-put "${FW12}" .claude/docs/02-code-quality.md "# 02\n- Every public unit: a documentation comment. *(The tool is the answer **Doc comments**.)*\n- Errors: expose a structured format to\n  the client *(the answer **Error format**)*, never stacktraces/queries/\n  internal paths.\n"
+put "${FW12}" .claude/docs/02-code-quality.md "# 02\n- Every public unit: a documentation comment. *(The tool is the answer **Doc comments**.)*\n- Errors: expose a structured format to\n  the client *(the answer **Error format**)*, never stacktraces/queries/\n  internal paths.\n7. Project documentation updated *(where it lives — the answer\n   **Documentation**)*; if the project documentation does not exist yet, the\n   debt is recorded.\n"
 put "${FW12}" .claude/docs/04-git-workflow.md "# 04\n- The merge, in one of two forms — which one the project adopts is its answer **Merge**:\n  - via Pull Request;\n"
 g -C "${FW12}" add -A && g -C "${FW12}" commit -q -m "refactor!: 4.0.0" && g -C "${FW12}" tag -a v4.0.0 -m v4.0.0
 # The project, grafted at v3.0.0: rule 5, the doc comments and the merge answered, the error
-# format left open.
+# format left open; the documentation answered twice, in rule 5 and in the DoD's point 7 —
+# two answers one label receives.
 mkdir -p "${P12}"
 g -C "${FW12}" archive v3.0.0 -- .claude CLAUDE.md | tar -x -C "${P12}"
 put "${P12}" CLAUDE.md "# Index\nStack: bash\n5. Documentation updated:\n   aligned (where the project documentation lives: the docs/ folder). Same\n   logic as the memory.\n"
-put "${P12}" .claude/docs/02-code-quality.md "# 02\n- Every public unit: a documentation comment. *(The tool is\n  shdoc.)*\n- Errors: expose a structured format to\n  the client *(which one — ${M})*, never stacktraces/queries/\n  internal paths.\n"
+put "${P12}" .claude/docs/02-code-quality.md "# 02\n- Every public unit: a documentation comment. *(The tool is\n  shdoc.)*\n- Errors: expose a structured format to\n  the client *(which one — ${M})*, never stacktraces/queries/\n  internal paths.\n7. Project documentation updated *(where it lives —\n   the wiki)*; if the project documentation does not exist yet, the\n   debt is recorded.\n"
 put "${P12}" .claude/docs/04-git-workflow.md "# 04\n- The merge, in one of two forms — which one the project adopts is\n  the /fw:integrate block:\n  - via Pull Request;\n"
 g init -q -b main "${P12}" && g -C "${P12}" add -A && g -C "${P12}" commit -q -m "chore: graft the framework v3.0.0"
 RESTORE12="$(g -C "${P12}" rev-parse HEAD)"
 FW="${FW12}" T="${T12}" run 0 "${P12}" inventory v3.0.0 v4.0.0
-has "edge case 8: .claude/docs/02-code-quality.md: the slot of '${M}.)*' is answered in the project — v4.0.0 moved it: carry the answer to CLAUDE.md, the line **Doc comments**"
-has "edge case 8: .claude/docs/04-git-workflow.md: the slot of '${M}:' is answered in the project — v4.0.0 moved it: carry the answer to CLAUDE.md, the line **Merge**"
-has "edge case 8: CLAUDE.md: the slot of 'aligned (where the project documentation lives: ${M}). Same' is answered in the project — v4.0.0 moved it: carry the answer to CLAUDE.md, the line **Documentation**"
+has "edge case 8: .claude/docs/02-code-quality.md: the slot of '${M}.)*' is answered in the project ('shdoc') — v4.0.0 moved it: carry the answer to CLAUDE.md, the line **Doc comments**"
+has "edge case 8: .claude/docs/04-git-workflow.md: the slot of '${M}:' is answered in the project ('the /fw:integrate block') — v4.0.0 moved it: carry the answer to CLAUDE.md, the line **Merge**"
+has "edge case 8: CLAUDE.md: the slot of 'aligned (where the project documentation lives: ${M}). Same' is answered in the project ('the docs/ folder') — v4.0.0 moved it: carry the answer to CLAUDE.md, the line **Documentation**"
+has "edge case 8: .claude/docs/02-code-quality.md: the slot of '${M})*; if the project documentation does not exist yet, the' is answered in the project ('the wiki') — v4.0.0 moved it: carry the answer to CLAUDE.md, the line **Documentation**"
 has "INFO   .claude/docs/02-code-quality.md: 'the client *(which one — ${M})*, never stacktraces/queries/' is open in the project: nothing to carry"
-has "edge case 8: .claude/docs/02-code-quality.md is METHOD in v4.0.0 and its answers moved (below)"
+has "edge case 8: .claude/docs/02-code-quality.md is METHOD in v4.0.0 and the project answered slots of it a release moved (below)"
 hasnt "edge case 7:"
 # Half carried: the docs brought over, CLAUDE.md at v4.0.0 with two answers carried, the
 # documentation's left open.
@@ -777,13 +799,23 @@ for f in .claude/docs/02-code-quality.md .claude/docs/04-git-workflow.md; do g -
 put "${P12}" CLAUDE.md "# Index\nStack: bash\n5. Documentation updated:\n   aligned (where the project documentation lives: the answer **Documentation**, below). Same\n   logic as the memory.\n\n## The answers the method reads\n- **Documentation** — where it lives: ${M}\n- **Merge** — the form: the /fw:integrate block\n- **Doc comments** — the tool: shdoc\n- **Error format** — the format: ${M}\n"
 FW="${FW12}" T="${T12}" run 1 "${P12}" invariant v3.0.0 v4.0.0 "${RESTORE12}"
 has "FAIL   CLAUDE.md: 'aligned (where the project documentation lives: ${M}). Same' was answered at the restore point, and its new line in CLAUDE.md, **Documentation**, is still open"
-has "OK     .claude/docs/02-code-quality.md: its answer reached CLAUDE.md, **Doc comments**"
-has "OK     .claude/docs/04-git-workflow.md: its answer reached CLAUDE.md, **Merge**"
+has "FAIL   .claude/docs/02-code-quality.md: '${M})*; if the project documentation does not exist yet, the' was answered at the restore point, and its new line in CLAUDE.md, **Documentation**, is still open"
+has "OK     .claude/docs/02-code-quality.md: its answer ('shdoc') is on CLAUDE.md's line **Doc comments**"
+has "OK     .claude/docs/04-git-workflow.md: its answer ('the /fw:integrate block') is on CLAUDE.md's line **Merge**"
 has "OK     .claude/docs/02-code-quality.md: 'the client *(which one — ${M})*, never stacktraces/queries/' was open at the restore point, nothing to carry"
-grep -q ": 1 FAIL, " "${out}" || fail "invariant, an answer left behind: not exactly one FAIL"
+grep -q ": 2 FAIL, " "${out}" || fail "invariant, the answers of one label left behind: not exactly two FAILs"
+# One of the label's two answers carried: the line is no longer open, and the other answer is
+# still not on it — a CHECK that quotes it, never an OK.
 put "${P12}" CLAUDE.md "# Index\nStack: bash\n5. Documentation updated:\n   aligned (where the project documentation lives: the answer **Documentation**, below). Same\n   logic as the memory.\n\n## The answers the method reads\n- **Documentation** — where it lives: the docs/ folder\n- **Merge** — the form: the /fw:integrate block\n- **Doc comments** — the tool: shdoc\n- **Error format** — the format: ${M}\n"
 FW="${FW12}" T="${T12}" run 0 "${P12}" invariant v3.0.0 v4.0.0 "${RESTORE12}"
-has "OK     CLAUDE.md: its answer reached CLAUDE.md, **Documentation**"
+has "OK     CLAUDE.md: its answer ('the docs/ folder') is on CLAUDE.md's line **Documentation**"
+has "CHECK  .claude/docs/02-code-quality.md: '${M})*; if the project documentation does not exist yet, the' was answered at the restore point with 'the wiki', which CLAUDE.md's line **Documentation** does not hold word for word"
+hasnt "its answer ('the wiki')"
+# Both carried, the second on the line the first runs on to.
+put "${P12}" CLAUDE.md "# Index\nStack: bash\n5. Documentation updated:\n   aligned (where the project documentation lives: the answer **Documentation**, below). Same\n   logic as the memory.\n\n## The answers the method reads\n- **Documentation** — where it lives: the docs/ folder, and\n  the wiki for the guides\n- **Merge** — the form: the /fw:integrate block\n- **Doc comments** — the tool: shdoc\n- **Error format** — the format: ${M}\n"
+FW="${FW12}" T="${T12}" run 0 "${P12}" invariant v3.0.0 v4.0.0 "${RESTORE12}"
+has "OK     CLAUDE.md: its answer ('the docs/ folder') is on CLAUDE.md's line **Documentation**"
+has "OK     .claude/docs/02-code-quality.md: its answer ('the wiki') is on CLAUDE.md's line **Documentation**"
 # The line itself gone from the new home: a FAIL too.
 put "${P12}" CLAUDE.md "# Index\nStack: bash\n\n## The answers the method reads\n- **Merge** — the form: the /fw:integrate block\n- **Doc comments** — the tool: shdoc\n- **Error format** — the format: ${M}\n"
 FW="${FW12}" T="${T12}" run 1 "${P12}" invariant v3.0.0 v4.0.0 "${RESTORE12}"
@@ -792,4 +824,30 @@ has "FAIL   CLAUDE.md has no line **Documentation**"
 g -C "${P12}" show "${RESTORE12}:.claude/docs/02-code-quality.md" > "${P12}/.claude/docs/02-code-quality.md"
 FW="${FW12}" T="${T12}" run 1 "${P12}" post v3.0.0 v4.0.0
 has "CHECK  .claude/docs/02-code-quality.md (METHOD) differs from v4.0.0's: its answers moved to another file (edge case 8)"
-echo "PASS (upgrade-check moved answers): inventory names each answered slot v4.0.0 moved and its new line, never edge case 7; invariant fails while an answer the restore point held has no home or an open one, and passes once carried; post names edge case 8 for a doc left behind."
+# A project whose moved slots are all open, in the forms an editor leaves — a trailing blank,
+# a line re-flowed —, and whose docs/04 holds a convention of its own: nothing to carry, and
+# the customised docs are edge case 7's.
+P12C="${workdir}/project12c"
+mkdir -p "${P12C}"
+g -C "${FW12}" archive v3.0.0 -- .claude CLAUDE.md | tar -x -C "${P12C}"
+put "${P12C}" .claude/docs/02-code-quality.md "# 02\n- Every public unit: a documentation comment. *(The tool is\n  ${M}.)*\n- Errors: expose a structured format to\n  the client *(which one — ${M})*, never stacktraces/queries/ \n  internal paths.\n7. Project documentation updated *(where it lives —\n   ${M}\n   )*; if the project documentation does not exist yet, the\n   debt is recorded.\n"
+put "${P12C}" .claude/docs/04-git-workflow.md "# 04\n- The merge, in one of two forms — which one the project adopts is\n  ${M}:\n  - via Pull Request;\n- Our own convention: a squash before the review.\n"
+g init -q -b main "${P12C}" && g -C "${P12C}" add -A && g -C "${P12C}" commit -q -m "chore: graft the framework v3.0.0"
+FW="${FW12}" T="${T12}" run 0 "${P12C}" inventory v3.0.0 v4.0.0
+has "INFO   .claude/docs/02-code-quality.md: 'the client *(which one — ${M})*, never stacktraces/queries/' is open in the project: nothing to carry"
+has "INFO   .claude/docs/02-code-quality.md: '${M})*; if the project documentation does not exist yet, the' is open in the project, re-flowed: nothing to carry"
+has "edge case 7: .claude/docs/02-code-quality.md is METHOD but customised"
+has "edge case 7: .claude/docs/04-git-workflow.md is METHOD but customised"
+hasnt "is answered in the project"
+hasnt "the project answered slots of it"
+# A project on a release whose slot lines the table does not know: never "nothing moved".
+P12D="${workdir}/project12d"
+mkdir -p "${P12D}"
+g -C "${FW12}" archive v2.9.0 -- .claude CLAUDE.md | tar -x -C "${P12D}"
+put "${P12D}" .claude/docs/02-code-quality.md "# 02\n- Every public unit: a documentation comment (the tool: shdoc).\n"
+g init -q -b main "${P12D}" && g -C "${P12D}" add -A && g -C "${P12D}" commit -q -m "chore: graft the framework v2.9.0"
+FW="${FW12}" T="${T12}" run 0 "${P12D}" inventory v2.9.0 v4.0.0
+has "CHECK  edge case 8: .claude/docs/02-code-quality.md: v4.0.0 moved its slots, and v2.9.0's copy holds them in no form this check knows"
+has "edge case 8: .claude/docs/02-code-quality.md is METHOD in v4.0.0, and a release in between moved its slots in a form this check does not know"
+hasnt "no release between v2.9.0 and v4.0.0 moved a slot"
+echo "PASS (upgrade-check moved answers): inventory names each answered slot v4.0.0 moved, with its answer and its new line, edge case 7 only for a doc whose moved slots are all open — a trailing blank or a re-flow still open —, and a release whose slot lines it does not know; invariant fails while an answer the restore point held has no home or an open one, asks while the line does not hold it word for word — two answers on one label —, and passes once each is carried; post names edge case 8 for a doc left behind."

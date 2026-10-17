@@ -1028,7 +1028,9 @@ from a hand-written list; the memory's titles and field labels to rename; and th
   them — a line of the project's own there, a rule or an import it added, moves to its
   technical rules, and an `@`-import it keeps loads at every launch (`/fw:lint-memory`
   shows the cost); (3) keep the title, the stack line and the technical rules as the
-  project wrote them. `invariant` fails on an answer that did not reach its line. In
+  project wrote them. `invariant` fails while an answer's line is missing or still open, and
+  asks for a confirmation while the line does not hold the restore point's answer word for
+  word. In
   `.claude/settings.json` the SessionStart hook's command becomes `vY`'s, which runs
   `scripts/state-inject.sh`, with the `ask` rule on it; `.claude/rules/fw-code-quality.md`
   arrives with a new slot, its globs (Step 4). `STATE.md` is reconciled as ever — its
@@ -1441,11 +1443,17 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    **v4.0.0 moved the answers of the docs.** The slots of `docs/02`, `03` and `04`, and those
    of `CLAUDE.md`'s rules 5 and 8, became the lines of `CLAUDE.md`'s *The answers the method
    reads* — one line per answer —, and the three docs METHOD. `inventory` names each slot the
-   project answered and the line its answer moves to; carry each answer there, with the
-   file tools, before the doc comes over from `vY` (a doc's own customisation beyond its
-   slots stays edge case 7's, moved to the technical rules or kept as a hybrid).
-   `invariant` then fails on an answer the restore point held whose new line is still open,
-   and `post` asks about a doc that still differs from `vY`'s.
+   project answered, quotes its answer and names the line it moves to; carry each answer
+   there, with the file tools, before the doc comes over from `vY` (a doc's own
+   customisation beyond its slots stays edge case 7's, moved to the technical rules or kept
+   as a hybrid — `inventory` flags a doc whose moved slots are all open as edge case 7's).
+   Three labels receive two answers each — **Documentation** (rule 5, `docs/02`'s point 7),
+   **Sensitive components** (rule 8, `docs/03`), **Branches** (two slots of `docs/04`): the
+   line holds both. `invariant` then fails on an answer the restore point held whose new
+   line is missing or still open, and asks for a confirmation where the line does not hold
+   the restore point's answer word for word; `post` asks about a doc that still differs from
+   `vY`'s. From a release before v1.1.0, whose slot lines are Italian, the check knows no
+   line: a CHECK names the files, and the answers are found by the marker and carried by hand.
 
 > **Outside the upgrade payload.** `LICENSE`, `CONTRIBUTING.md`, `CHANGELOG.md` are
 > files of the FRAMEWORK REPO (not copied into the project, step 1): do not push them
