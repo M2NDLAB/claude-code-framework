@@ -35,7 +35,7 @@ a task needs it, each procedure when its `/fw:` command runs, and `STATE.md` arr
 8,000 characters, its open issues first. A session's first request in this repository's
 template, Claude Code's own prompt and tools included, measured on Opus 5.5 with the same
 prompt: 57,932 input tokens with v3.0.0, 30,373 with v4.0.0's core before its security
-review, whose fixes added 976 characters to it (about 350 tokens at the 2.80 characters per
+review, whose fixes added 1,029 characters to it (about 370 tokens at the 2.80 characters per
 token those runs imply).
 - **Grafting and upgrading** — it starts from scratch (greenfield), grafts onto an
 existing project (brownfield) and upgrades in place (`vX → vY`) preserving the

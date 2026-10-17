@@ -337,7 +337,13 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
 - Task 6's "the longest output its rules allow, 8,289 characters" (*Measured along the
   tasks*) measured a cut from `## Progress`; a cut from a section titled past 80 characters
   gave 8,361 with that script and 8,380 with the gate's fixes (2026-10-17) — the figure the
-  CHANGELOG states. Still under the self-test's 9,000.
+  CHANGELOG states. Still under the self-test's 9,000. The second round measured 8,382 on the
+  self-test's own case and 8,386 on a 3 MB file — the cut line's numbers gain digits —: the
+  CHANGELOG says under 8,400, 8,386 the largest measured.
+- *Measured before task 12*: "≈6.6k in a subagent" applies 2.8 to the subagent's 18,661
+  characters (6,665); the subagent's own runs imply 2.85, which gives about 6,500 — and
+  33,600 before, 35,400 and 7,800 in the main session at its 2.80. The CHANGELOG states each
+  at its own ratio (the gate's second round, R2-1 of the claims).
 
 ## Task 2 — the measurements
 A scratch project outside the repository (a git repository with a `CLAUDE.md` importing a
