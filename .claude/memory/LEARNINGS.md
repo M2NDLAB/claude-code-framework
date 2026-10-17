@@ -2396,29 +2396,6 @@ line on; older entries are not backfilled.
   framework that follow v2.2.0; the entry is decided at the retro after them, on the
   friction observed there.
 
-### IMP-045 — A `turns` threshold as a /retro input → deferred on 2026-09-23
-- Date: 2026-09-22 | Origin: [[2026-09-23-memory-model-turns]] — high-friction work is
-  noticed only if someone remembers it (the companion rule of IMP-044, NOT applied)
-- Proposal (NOT an active rule): when `turns` exceeds a threshold N, `/retro` examines
-  the task as a candidate for a lesson (high turns = friction, and friction is the raw
-  material of IMPs).
-- User decision: DEFER. N is NOT determinable now: no note carries `turns` yet, so there
-  is no distribution to set it on. Inventing N would produce a rule that either always
-  fires (noise to be ignored) or never does (dead) — worse than no rule at all. The same
-  anti-hype filter as IMP-027 (`graft.sh`), IMP-037 (`/upgrade-framework`) and IMP-042
-  (`/change-language`): first the cases, then the rule that uses them. No N is chosen
-  here.
-- Resumption trigger: after ~20 tasks have recorded `turns`, when the real distribution
-  allows N to be fixed on the data instead of guessed. A "task" here is a deliverable —
-  `turns` is per NOTE (IMP-044), and one deliverable's notes share its `branch`. Helper,
-  counting the distinct branches whose notes carry `turns` in this repo:
-  `grep -lE '^turns: [1-9][0-9]*[[:space:]]*$' .claude/memory/sessions/20*.md | xargs grep -h '^branch:' | tr -d '\r' | sort -u | wc -l`
-- On resumption: decide whether the rule looks at a single note or at the sum of the
-  notes of the same deliverable; and the framework repo's own notes are process work, so
-  check N against the notes of at least one client project before fixing it.
-- Retro of 2026-10-13: DEFER confirmed; the helper counts 13 deliverables with `turns`, of
-  the ~20 the trigger needs.
-
 ### IMP-062 — Cover remote writes through `gh` in the agent boundary → deferred on 2026-10-13
 - Date: 2026-10-07 | Origin: [[2026-09-27-imp-054-055-agent-git-boundary]] — the push
   boundary of IMP-054 stops every `git push` born from the agent's process, not the remote
@@ -2817,6 +2794,22 @@ line on; older entries are not backfilled.
 - Rejected on 2026-10-13 (the retro over the backlog, the user's decision): superseded by
   rule 9 (IMP-040, 2026-07-21) — the artifacts are always English and what exists is never
   bulk-translated, so no artifact language is left to switch.
+
+### IMP-045 — A `turns` threshold as a /retro input → rejected on 2026-10-17
+- Date: 2026-09-22 | Origin: [[2026-09-23-memory-model-turns]] — high-friction work is
+  noticed only if someone remembers it (the companion rule of IMP-044, NOT applied). The
+  proposal: when `turns` exceeds a threshold N, `/retro` examines the task as a candidate for a
+  lesson.
+- Deferred on 2026-09-23 (the user's decision): no note carried `turns`, so N had no
+  distribution to be set on; the trigger was ~20 deliverables recording it. Confirmed at the
+  retro of 2026-10-13, at 13.
+- Rejected on 2026-10-17 (the user's decision, [[2026-10-17-cleanup-imp-135]]), its trigger
+  fired — the entry's helper counted 20 deliverables. Per deliverable, 1 four times, 2 eight
+  times, 3 twice, 4 once, 5 three times, 7 twice: the median 2, and the five at 5 or 7 are the
+  releases the user gated in stages, each closed by a full retro. A threshold would flag the
+  deliverables the user already gates and the retro already examines, and every deliverable
+  closes with `/fw:retro` (IMP-120): a count adds no case the cycle misses. `turns` stays
+  recorded (IMP-044), data for an analysis rather than a rule.
 
 ### IMP-048 — Classify file content before rewriting it (prose / values / code-read strings) → rejected on 2026-10-13
 - Date: 2026-09-23 | Origin: the upgrade of a client project to v1.2.0 — the distinction
