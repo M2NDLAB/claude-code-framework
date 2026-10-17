@@ -1183,8 +1183,9 @@ Italian one.
   pre-upgrade commit of Step 1). Run it before Step 6: the checkpoint's retro may add IMP
   entries. It fails on any touch outside the list — an edited or hidden IMP entry, a note
   changed beyond its pointers, a file added outside the upgrade's own note, plan and
-  decision records, a slot the project had answered opened again, a title or label left
-  in the old form — and shows for a human a template that differs from `vY`'s. A FAIL is
+  decision records, a slot of a memory template the project had answered opened again, a
+  title or label left in the old form — and shows for a human a template that differs from
+  `vY`'s; a slot opened again in a HYBRID file is Step 4's marker grep's to find. A FAIL is
   a bug in the upgrade: stop and investigate.
 - `FW="$FW" T="$T" bash "${T:?}/upgrade-check.sh" post vX vY`: the METHOD files and their
   modes at `vY`, every file present, no orphan, no marker broken by a wrap, each slot
@@ -1306,16 +1307,20 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
      it; by hand, from the project root:
 
      ```bash
-     : "${FW:?}" && for f in STATE LEARNINGS; do
-       git -C "${FW:?}" show "vY:.claude/memory/$f.md" | grep '^## ' \
+     : "${FW:?}" "${T:?}" && for f in STATE LEARNINGS; do
+       git -C "${FW:?}" show "vY:.claude/memory/$f.md" > "${T:?}/$f.titles" || break
+       grep '^## ' "${T:?}/$f.titles" \
          | grep -vxF -f <(grep '^## ' ".claude/memory/$f.md") \
          | sed "s|^|$f.md lacks: |"
+       echo "$f.md: compared with $(grep -c '^## ' "${T:?}/$f.titles") titles of vY"
      done
      ```
 
-     Each printed line is a `vY` title the project lacks: find its old form — the table
-     below, or a project's own shortened form — and rename that line. Nothing printed =
-     nothing to rename. For the labels, when `vY`'s format comment uses the new ones,
+     Each `lacks:` line is a `vY` title the project lacks: find its old form — the table
+     below, or a project's own shortened form — and rename that line. The comparison ran
+     only where its `compared` line printed — a framework file `git show` could not read
+     prints none, and silence there proves nothing —: both `compared` lines and no
+     `lacks:` = nothing to rename. For the labels, when `vY`'s format comment uses the new ones,
      this lists the lines still in the old form (ignore the ones inside the format
      comment, which Step 3 reconciles):
 
