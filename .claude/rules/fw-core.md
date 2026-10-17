@@ -61,7 +61,8 @@
    build artifacts or installed dependencies — gitleaks is not the only defence.
 2. **Code quality** — these prohibitions hold whether or not `docs/02` was read. Comments say
    the WHY: never one that repeats the code, never commented-out code, never a TODO without
-   its reference. No error is ever swallowed: no empty catch, none that only prints the
+   its reference, never a silent workaround — its comment gives the reason and the link. No
+   error is ever swallowed: no empty catch, none that only prints the
    stacktrace — an error is handled, enriched and rethrown, or logged with its context and
    propagated. The client never sees a stacktrace, a query, an internal path or a library
    version: the detail goes to the log. I/O has an explicit timeout, a retry only where the
