@@ -10,28 +10,37 @@ gives their lines, each read from its title to the next —; if the context has 
 compacted since, read them again before printing the blocks.
 
 **Then, before anything else, the security gate's line** (docs/03, *The check at
-integration*). Find the note that closes this deliverable — the newest of the session notes
-the branch wrote: `git diff --no-renames --name-only origin/<integration>...HEAD --
-.claude/memory/sessions/` (without a remote, `<integration>...HEAD`) — and read its
+integration*). Find the note that closes this deliverable — a session note the branch ADDED,
+`git diff --no-renames --diff-filter=A --name-only origin/<integration>...HEAD --
+.claude/memory/sessions/` (without a remote, `<integration>...HEAD`), whose frontmatter
+`branch:` is the current branch; of several, the latest by its `date:` — and read its
 *Security gate* section. STOP, and say which of these holds, when:
-- the section is missing or says nothing: a forgotten gate (`sessions/README.md`, *The
-  security gate's line*);
-- it says "not applicable" while the branch's diff touches a component of the answer
-  **Sensitive components** in `CLAUDE.md`, or the deliverable asserts a security property
-  (docs/03, *The lenses of the gate*) — in doubt, under the gate; a branch whose diff
-  touches only `.claude/memory/` is exempt, and its line says so (docs/00, *Scope and
-  session hygiene*);
-- it names a review other than `/fw:security-review` — Claude Code's built-in
-  `/security-review` is not the gate —, or no reviewed tip;
-- the reviewed tip is not an ancestor of HEAD, or a commit after it touches a file outside
-  `.claude/memory/` and the `CHANGELOG.md` of step 3, if the project keeps one
+- there is no such note, or its section is missing or says nothing: a forgotten gate
+  (`sessions/README.md`, *The security gate's line*);
+- it says "not applicable" while the branch's diff touches a sensitive component — a
+  category of the core's rule 8, the method's own boundary among them
+  (`.claude/settings.json`, `scripts/agent-git-guard.mjs`, `scripts/hooks-install.sh`,
+  `scripts/state-inject.sh`), or a component of the answer **Sensitive components** in
+  `CLAUDE.md` — or the deliverable asserts a security property (docs/03, *The lenses of the
+  gate*) — in doubt, under the gate; a branch whose diff touches only `.claude/memory/`, and
+  no file the project ships, is exempt, and its line says so (docs/00, *Scope and session
+  hygiene*);
+- it is neither "not applicable" with its reason nor `/fw:security-review` at a reviewed
+  tip with its outcome: a review other than the method's — Claude Code's built-in
+  `/security-review` is not the gate —, no reviewed tip, a "pending";
+- the reviewed tip is not an ancestor of HEAD (`git merge-base --is-ancestor <tip> HEAD`),
+  or a commit after it touches a file the project ships — any path outside `.claude/memory/`,
+  and the memory's starting files where the project ships them (the framework's own
+  repository) — other than step 3's own commit of `CHANGELOG.md`, if the project keeps one
   (`git diff --no-renames --name-only <tip>..HEAD`): the review did not see it — run it
   again on the new tip;
 - a HIGH or CRITICAL finding is open, or a MEDIUM one is neither resolved nor accepted in
-  `STATE.md` with its reason.
+  `STATE.md` with its reason — where `STATE.md` stays a template, in the closing note's gate
+  section with its IMP (the framework's `CONTRIBUTING.md`).
 Where the project merges by Pull Request (the answer **Merge** in `CLAUDE.md`), the same
-check runs before the branch goes up for its PR, and the note's line goes in the PR's
-description. The check reads what the note records: it is the agent's discipline, not an
+check runs when the agent prepares the PR — its description, a push it prints —, and the
+note's line goes in the PR's description; a PR the user pushes and opens without the agent
+skips it. The check reads what the note records: it is the agent's discipline, not an
 enforcement — a merge made outside this command skips it (docs/03).
 
 Claude Code **does not push and does not merge** — that is a human action (docs/04,
@@ -95,7 +104,9 @@ If a `CHANGELOG.md` exists at the root (Keep a Changelog format):
 - otherwise: move the content of `## [Unreleased]` under a new entry
   `## [X.Y.Z] — YYYY-MM-DD` (version computed at step 2, today's date),
   integrating it with what emerges from the branch commits, and COMMIT on the feature
-  branch BEFORE printing the blocks: this way the changelog goes into the merge.
+  branch BEFORE printing the blocks: this way the changelog goes into the merge. Under the
+  gate the entry's text is the one the review read: written in `[Unreleased]` before the
+  review, moved here under its heading, and nothing added that the review has not seen.
 
 ## 4. Print the READY FOR INTEGRATION blocks — two, never one
 Two copyable code blocks, with the placeholders replaced by the real computed values,
@@ -115,8 +126,17 @@ How the blocks are written, because they are pasted whole:
 - **Every check prints a fixed line when it passes** (`tag on <integration>: OK`,
   `count: OK (<N>)`, `signature: OK`), whatever language git or gpg answer in; the
   user looks for those lines, not for a reading of the output.
+- **A free text in single quotes.** The merge header and the tag's summary go in single
+  quotes, with no `'` inside: in double quotes the user's shell would run a backticked word
+  or a `$(…)` of the text. A branch name goes in unquoted: one outside `[A-Za-z0-9._/-]` is a
+  STOP.
+- **No tag the block does not name.** Every push carries `--no-follow-tags`: a
+  `push.followTags` in the user's configuration would publish, besides, every local
+  annotated tag on the commits it pushes.
 
 First compute, read-only:
+- `<tip>` = `git rev-parse <feature>`, the full sha the gate's check and these computations
+  ran on: block 1 refuses any other;
 - `N` = `git rev-list --count origin/<integration>..<feature>` + 1 (fallback without a
   remote: `<integration>..<feature>`): the branch's commits plus the merge commit — what
   `origin/<integration>..<integration>` holds after the merge;
@@ -130,18 +150,19 @@ First compute, read-only:
   verifies it. Otherwise leave out the signature line: signing stays optional, and a
   project that does not sign sees no check.
 
-Block 1 — local only: the rebase, the merge (`--no-ff`, with a valid conventional type,
-never `merge:`), the annotated tag with the computed bump (its `-m` short and pure ASCII),
-then the checks — the tag on the integration tip, the signature (ONLY if SIGNED), the
-commits about to become public, their count:
+Block 1 — local only: the feature at `<tip>`, the rebase, the merge (`--no-ff`, with a
+valid conventional type, never `merge:`), the annotated tag with the computed bump (its
+`-m` short, pure ASCII, in single quotes), then the checks — the tag on the integration
+tip, the signature (ONLY if SIGNED), the commits about to become public, their count:
 ```
 git checkout <feature> &&
+test "$(git rev-parse HEAD)" = <tip> &&
 git fetch origin &&
 git rebase origin/<integration> &&
 git checkout <integration> &&
 git merge --ff-only origin/<integration> &&
-git merge --no-ff <feature> -m "<type>(<scope>): merge <feature> into <integration>" &&
-git tag -a v<X.Y.Z> -m "v<X.Y.Z> - <deliverable summary>" &&
+git merge --no-ff <feature> -m '<type>(<scope>): merge <feature> into <integration>' &&
+git tag -a v<X.Y.Z> -m 'v<X.Y.Z> - <deliverable summary>' &&
 echo "block 1: merged and tagged"
 test "$(git rev-parse 'v<X.Y.Z>^{commit}')" = "$(git rev-parse <integration>)" && echo "tag on <integration>: OK"
 git tag -v v<X.Y.Z> && echo "signature: OK"
@@ -161,13 +182,13 @@ takes both or neither, so a tag never goes public on a commit the remote branch 
 then, only after the push succeeded, the safe deletion (`-d`, never `-D`) of the merged
 feature branch:
 ```
-git push --atomic origin <integration> v<X.Y.Z> &&
+git push --atomic --no-follow-tags origin <integration> v<X.Y.Z> &&
 git branch -d <feature>
 ```
 
 With "no tag": block 1 without the `git tag -a` line, its marker `block 1: merged`, and
-neither the tag nor the signature check; block 2 `git push origin <integration> &&
-git branch -d <feature>`; the line names the marker and the count.
+neither the tag nor the signature check; block 2 `git push --no-follow-tags origin
+<integration> && git branch -d <feature>`; the line names the marker and the count.
 ### When the user reports a failed check
 The blocks above hold no destructive line, not even in a block of its own under its
 condition: a condition written above a copyable block is not a condition — pasted out of
@@ -192,7 +213,10 @@ verifies only with `gpg.ssh.allowedSignersFile` configured.
 ## 5. Final verification (print it as a checklist)
 - the security gate's line of the note that closes the deliverable was read before the
   blocks, and holds: a verdict with its reason, under the gate `/fw:security-review` at a
-  tip no later commit outside the memory follows;
+  tip no later commit of a shipped file follows, step 3's own commit aside; block 1
+  opens on `<tip>`;
+- the `-m` texts in single quotes with no `'` inside, the branch names within
+  `[A-Za-z0-9._/-]`, every push with `--no-follow-tags`;
 - the merge commit header is within the commit-linter limit: **100 characters**
   (conventional default, not overridden in `commitlint.config.cjs`);
 - the merge commit type is a valid type (`feat`/`fix`/...), NEVER `merge:`;
@@ -219,7 +243,7 @@ branch: block 1 checks out `<stable>`, fetches, merges `--ff-only origin/<stable
 then `--no-ff <integration>`, and tags (`v1.0.0` or the MAJOR/MINOR/PATCH bump) on
 `<stable>` — see *Versioning* in docs/04; its checks look at `<stable>`, with `N` =
 `git rev-list --count origin/<stable>..<integration>` + 1. Block 2 is
-`git push --atomic origin <stable> v<X.Y.Z>` alone: the integration branch is never
+`git push --atomic --no-follow-tags origin <stable> v<X.Y.Z>` alone: the integration branch is never
 deleted.
 
 Do NOT run push/merge/tag: the blocks are for the user. The merge happens after the

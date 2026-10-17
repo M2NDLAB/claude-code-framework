@@ -60,18 +60,22 @@ core (`.claude/rules/fw-core.md`, rule 8), loaded at every launch, on the catego
 in doubt, under the gate. And the
 session note that closes a deliverable records its verdict, the review's outcome and the tip
 it reviewed (`.claude/memory/sessions/README.md`, *The security gate's line*), which
-`/fw:integrate` reads before it prints its blocks — in the Pull Request form, before the
-branch goes up for its PR. It stops on a missing line; on "not applicable" for a deliverable
-that touches a sensitive component or asserts a security property; on a review other than
-`/fw:security-review`; on a commit after the reviewed tip that touches more than the memory
-and the CHANGELOG, if the project keeps one; and on a HIGH or CRITICAL finding still open.
+`/fw:integrate` reads before it prints its blocks — in the Pull Request form, when the agent
+prepares the PR. It stops on a missing note or line; on "not applicable" for a deliverable
+that touches a sensitive component — the method's own boundary among them — or asserts a
+security property; on a review other than `/fw:security-review`, or no reviewed tip; on a
+commit after the reviewed tip that touches a file the project ships, the commit of its own
+step 3 aside; on a HIGH or CRITICAL finding still open, and on a MEDIUM neither
+resolved nor accepted.
 
 Its known limits, declared here where the claim lives: it is a check the agent applies, not
 an enforcement. A merge made outside `/fw:integrate` — a Pull Request merged on the forge, a
-merge typed by hand — never passes through it; and it reads what the note records, so a
-line that claims a review which did not run, or a verdict wider than the review's, passes
-it. A forge's required review or status check is the enforcement, where the project has
-one.
+merge typed by hand, a PR the user opens without the agent — never passes through it; and
+it reads what the note records, so a line that claims a review which did not run, or a
+verdict wider than the review's, passes it. Its step 3 writes the changelog after the review,
+if the project keeps one: under the gate the entry's text goes in `[Unreleased]` before the
+review, and step 3 only moves it. A forge's required review or status check is the enforcement, where the project
+has one.
 
 ## The lenses of the gate
 

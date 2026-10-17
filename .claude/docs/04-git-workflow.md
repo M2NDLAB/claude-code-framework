@@ -102,7 +102,7 @@ if they touch logic, it STOPS and asks the user, showing both versions.
 
 ## Versioning — SemVer on annotated tags
 
-Versions are **annotated git tags** (`git tag -a vX.Y.Z -m "..."`), never lightweight
+Versions are **annotated git tags** (`git tag -a vX.Y.Z -m '...'`), never lightweight
 tags: an annotated tag carries author, date and message. (A precision about the
 rationale: `git describe` WITHOUT `--tags` considers annotated tags only; the
 `/fw:integrate` command uses `git describe --tags`, which also accepts lightweight tags —
@@ -189,7 +189,12 @@ on WHICH BRANCH the tag lives:
 **Tag and push hygiene (for the user who runs the commands).**
 - The tag's `-m` is a single short message in pure ASCII — the agent prints it so,
   and whoever retypes or edits it keeps it so: em dashes, accents and non-breaking
-  spaces copied from an editor corrupt the command in obscure ways.
+  spaces copied from an editor corrupt the command in obscure ways. It goes in single
+  quotes, with no `'` inside, as the merge header does: in double quotes the shell runs a
+  backticked word or a `$(…)` of the text.
+- A push in a block carries `--no-follow-tags`: with `push.followTags` in the user's
+  configuration, a push publishes besides every local annotated tag on the commits it
+  pushes — a tag the block names explicitly still goes.
 - Before pushing a tag: ALWAYS verify that it points at the commit meant —
   `git rev-parse '<tag>^{commit}'` equals the tip of the branch just merged. `git tag -d`
   is given ONLY after that verification has failed — never printed in advance, never on

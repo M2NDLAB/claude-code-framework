@@ -102,12 +102,13 @@ hooks with the real gitleaks and commitlint (`tools/test-real-hooks.sh`) on macO
 Windows, on what is pushed — and a deliverable's branch otherwise stays local until
 `/fw:integrate`. So, in
 this repository, the human runs a block 0 before `/fw:integrate`'s block 1: push the feature
-branch (`git push -u origin <branch>`) and wait until the CI is green on the three
+branch (`git push --no-follow-tags -u origin <branch>`) and wait until the CI is green on the three
 platforms. Block 1 then checks, inside its chain, that the CI on the pushed tip is green and
 that the tree it merges is the one the CI tested — the merge commit's tree equal to the
 pushed branch's —, and block 2 deletes the remote branch in the
 same atomic push that publishes `main` and the tag
-(`git push --atomic origin main vX.Y.Z :<branch>`), before the local `git branch -d`.
+(`git push --atomic --no-follow-tags origin main vX.Y.Z :<branch>`), before the local
+`git branch -d`.
 Atomic means all or nothing: if the remote branch is already gone, git refuses the whole
 push and publishes nothing — drop `:<branch>` and run it again. A
 project's `/fw:integrate` knows nothing of this: a project's CI is the project's own.
@@ -116,7 +117,8 @@ project's `/fw:integrate` knows nothing of this: a project's CI is the project's
 by `docs/04`'s *Execution boundary and blocks for the user*: two blocks and one line of plain
 text between them, every placeholder replaced by a value read live — `<root>` the
 repository's absolute path, `<branch>` the feature branch, `<tip>` its full sha, `<base>`
-`origin/main`'s full sha, `<N>` the commits the push makes public. Before printing, the agent
+`origin/main`'s full sha, `<N>` the commits the push makes public, `<repo>` the owner and
+name of `origin`'s repository, read from `git remote get-url origin`. Before printing, the agent
 reads those commits — their messages, diffs and tree — for a secret, a project's name and a
 path of this machine: the push publishes them for good. 0a is read-only, the fetch and then
 the checks, each printing a fixed line:
@@ -146,7 +148,7 @@ checked:
 ```
 cd <root> &&
 test "$(git rev-parse <branch>)" = <tip> &&
-git push -u origin <branch> &&
+git push --no-follow-tags -u origin <branch> &&
 echo "block 0: pushed"
 ```
 
@@ -158,14 +160,16 @@ the tree the CI tested, not even a CHANGELOG date moved past midnight —; no pu
 the link GitHub prints at the push is ignored —; the remote branch deleted by block 2's
 atomic push only. The agent then reads the CI run on `<tip>` with `gh`, read-only, until its
 three jobs end, in their logs and not only their conclusion — the documentation check's FAIL
-and CHECK counts among them. Red: the fixes in new commits, and the new tip through block 0
-again. Green: `/fw:integrate`'s blocks.
+and CHECK counts among them. Red: the fixes in new commits — under the gate, reviewed again
+before `/fw:integrate`'s check reads the line, since they follow the reviewed tip —, and the
+new tip through block 0 again. Green: `/fw:integrate`'s blocks.
 
 **Block 1 here** (IMP-126; the user's decision of 2026-10-16: block 1 checks by itself that
 the CI on the tip is green, instead of relying on a wait written in prose). It is
 `fw/integrate.md`'s block 1 with four checks more inside its chain, so that nothing is merged
 or tagged unless the CI tested that tree and passed it: after the fetch, `origin/main` still
-at `<base>` and the remote branch still at `<tip>` — the shas of block 0's last round —; then
+at `<base>`, and the remote and the local branch still at `<tip>` — the shas of block 0's
+last round —; then
 the CI's verdict on `<tip>`, read from GitHub with `gh`; after the merge and before the tag,
 the merge's tree equal to the tip's:
 
@@ -175,15 +179,16 @@ git checkout <branch> &&
 git fetch origin &&
 test "$(git rev-parse origin/main)" = <base> &&
 test "$(git rev-parse origin/<branch>)" = <tip> &&
-test "$(gh run list --workflow test.yml --branch <branch> --commit <tip> --event push --limit 1 --json status,conclusion --jq '.[0].status + "/" + .[0].conclusion')" = completed/success &&
+test "$(git rev-parse <branch>)" = <tip> &&
+test "$(gh run list -R <repo> --workflow test.yml --branch <branch> --commit <tip> --event push --limit 1 --json status,conclusion --jq '.[0].status + "/" + .[0].conclusion')" = completed/success &&
 echo "CI on <tip, short>: green" &&
 git rebase origin/main &&
 git checkout main &&
 git merge --ff-only origin/main &&
-git merge --no-ff <branch> -m "<type>(<scope>): merge <branch> into main" &&
+git merge --no-ff <branch> -m '<type>(<scope>): merge <branch> into main' &&
 test "$(git rev-parse 'main^{tree}')" = "$(git rev-parse '<tip>^{tree}')" &&
 echo "tree tested by the CI: OK" &&
-git tag -a v<X.Y.Z> -m "v<X.Y.Z> - <deliverable summary>" &&
+git tag -a v<X.Y.Z> -m 'v<X.Y.Z> - <deliverable summary>' &&
 echo "block 1: merged and tagged"
 ```
 
@@ -191,10 +196,11 @@ followed by `fw/integrate.md`'s checks — the tag on `main`, the signature, the
 count —, and the line between blocks 1 and 2 names `CI on <tip, short>: green` and
 `tree tested by the CI: OK` besides that command's lines. With no tag, the chain ends at the
 tree's check and `block 1: merged`. The CI's check is fail-closed: it passes only on the
-latest run of `test.yml` pushed on that branch at that commit, completed with success — all
-three jobs —; no run, a run still going, a failed or cancelled one, `gh` missing, offline or
-not logged in, and the chain stops before the merge. It needs `gh`, logged in with read
-access to the repository. Measured read-only on 2026-10-16, in bash and zsh: green on v3.0.0's
+latest run of `test.yml` pushed on that branch at that commit, completed with success —
+every job `test.yml` defines at `<tip>` —; no run, a run still going, a failed or cancelled
+one, `gh` missing, offline or not logged in, and the chain stops before the merge. It needs
+`gh`, logged in with read access to the repository; `-R` names `origin`'s repository, which
+`GH_REPO` or a default `gh repo set-default` chose could otherwise replace. Measured read-only on 2026-10-16, in bash and zsh: green on v3.0.0's
 tip `feff389`, refused on a failed run of a 1.5.0 branch and on a commit never pushed; a run
 still going was not measured. The check reads what GitHub records of the run, no more: it
 proves the tree was tested, not what the tests cover.
@@ -241,7 +247,10 @@ The repo uses on itself only PART of its own memory system:
 - **Clean templates**, never populated here: `STATE.md`, `TREE.md`, `INDEX.md`,
   `components/`, `decisions/`, `plans/` — they stay ready to copy. So an open thread that
   awaits the user, which `/fw:checkpoint` carries into a project's `STATE.md`, lives here in
-  the newest session note and in `LEARNINGS.md`, where the resumption looks (below).
+  the newest session note and in `LEARNINGS.md`, where the resumption looks (below). A
+  MEDIUM finding of the security gate accepted as debt, which a project records in
+  `STATE.md`'s *Caution & open issues*, lives here in the closing note's *Security gate*
+  section, with its reason and its IMP: `/fw:integrate`'s check reads it there.
 
 This is not an oversight: it is the choice that keeps the template copyable
 without giving up the self-improvement loop. A project's graft leaves the live part

@@ -29,7 +29,9 @@ technology (`docs/03`):
 11. **The lenses of the gate** — *Claims, not only actions* and *The real path*: apply both as
     `docs/03` (*The lenses of the gate*) words them.
 
-Report: severity table (CRITICAL/HIGH/MEDIUM/LOW) + proposed fix for each
-finding. Remember how the gate works (docs/03): HIGH/CRITICAL resolved before the
-PR, MEDIUM resolved or accepted in STATE.md, LOW closed by a line of text or declared as a
-known limit where its claim lives.
+Report: first the range reviewed, `Reviewed: <base>..<full sha of HEAD when the review
+started>`; then the severity table (CRITICAL/HIGH/MEDIUM/LOW) + proposed fix for each
+finding. The session note's gate line copies that sha — never a later HEAD: a fix committed
+after it is a new tip, which the review has not seen. Remember how the gate works (docs/03):
+HIGH/CRITICAL resolved before the PR, MEDIUM resolved or accepted in STATE.md, LOW closed by
+a line of text or declared as a known limit where its claim lives.

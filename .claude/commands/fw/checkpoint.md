@@ -25,7 +25,8 @@ values, then deletes this paragraph: [TO BE DEFINED AT SETUP].
      of this session's messages, never counting a message twice). Never backfill
      notes that predate these fields;
    - at a deliverable's last checkpoint, the note's security-gate line
-     (`sessions/README.md`, *Format*): the outcome, or "not applicable" with its reason;
+     (`sessions/README.md`, *The security gate's line*): the outcome and the tip the
+     review's report names — never the HEAD at hand —, or "not applicable" with its reason;
    - update the components/ notes of the components touched;
    - rewrite STATE.md with the current state, within its budget: the SessionStart hook
      shows 8,000 characters of it, *Caution & open issues* first
