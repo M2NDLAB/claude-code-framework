@@ -771,7 +771,7 @@ put "${FW12}" .claude/docs/02-code-quality.md "# 02\n- Every public unit: a docu
 put "${FW12}" .claude/docs/04-git-workflow.md "# 04\n- The merge, in one of two forms — which one the project adopts is\n  ${M}:\n  - via Pull Request;\n"
 put "${FW12}" .claude/memory/STATE.md '# STATE\n'
 g -C "${FW12}" add -A && g -C "${FW12}" commit -q -m "feat: 3.0.0" && g -C "${FW12}" tag -a v3.0.0 -m v3.0.0
-put "${FW12}" CLAUDE.md "# Index\nStack: ${M}\n5. Documentation updated:\n   aligned (where the project documentation lives: the answer **Documentation**, below). Same\n   logic as the memory.\n\n## The answers the method reads\n- **Documentation** — where it lives: ${M}\n- **Merge** — the form: ${M}\n- **Doc comments** — the tool: ${M}\n- **Error format** — the format: ${M}\n"
+put "${FW12}" CLAUDE.md "# Index\nStack: ${M}\n5. Documentation updated:\n   aligned (where the project documentation lives: the answer **Documentation**, below). Same\n   logic as the memory.\n\n## The answers the method reads\n- **Documentation** — where it lives: ${M}\n- **Merge** — via Pull Request or via the \`/fw:integrate\` block (\`docs/04\`, *Merge*): ${M}\n- **Doc comments** — the tool: ${M}\n- **Error format** — the format: ${M}\n"
 put "${FW12}" .claude/docs/02-code-quality.md "# 02\n- Every public unit: a documentation comment. *(The tool is the answer **Doc comments**.)*\n- Errors: expose a structured format to\n  the client *(the answer **Error format**)*, never stacktraces/queries/\n  internal paths.\n7. Project documentation updated *(where it lives — the answer\n   **Documentation**)*; if the project documentation does not exist yet, the\n   debt is recorded.\n"
 put "${FW12}" .claude/docs/04-git-workflow.md "# 04\n- The merge, in one of two forms — which one the project adopts is its answer **Merge**:\n  - via Pull Request;\n"
 g -C "${FW12}" add -A && g -C "${FW12}" commit -q -m "refactor!: 4.0.0" && g -C "${FW12}" tag -a v4.0.0 -m v4.0.0
@@ -850,4 +850,23 @@ FW="${FW12}" T="${T12}" run 0 "${P12D}" inventory v2.9.0 v4.0.0
 has "CHECK  edge case 8: .claude/docs/02-code-quality.md: v4.0.0 moved its slots, and v2.9.0's copy holds them in no form this check knows"
 has "edge case 8: .claude/docs/02-code-quality.md is METHOD in v4.0.0, and a release in between moved its slots in a form this check does not know"
 hasnt "no release between v2.9.0 and v4.0.0 moved a slot"
+# An answer the line's own text holds: the restore point answered "via Pull Request", one of
+# the options the Merge line's description names. The marker deleted and nothing carried: a
+# CHECK, never an OK read off vY's own words; the answer written after them: an OK.
+P12E="${workdir}/project12e"
+mkdir -p "${P12E}"
+g -C "${FW12}" archive v3.0.0 -- .claude CLAUDE.md | tar -x -C "${P12E}"
+put "${P12E}" .claude/docs/04-git-workflow.md "# 04\n- The merge, in one of two forms — which one the project adopts is\n  via Pull Request:\n  - via Pull Request;\n"
+g init -q -b main "${P12E}" && g -C "${P12E}" add -A && g -C "${P12E}" commit -q -m "chore: graft the framework v3.0.0"
+RESTORE12E="$(g -C "${P12E}" rev-parse HEAD)"
+g -C "${FW12}" show v4.0.0:.claude/docs/04-git-workflow.md > "${P12E}/.claude/docs/04-git-workflow.md"
+g -C "${FW12}" show v4.0.0:CLAUDE.md | sed 's/^\(- \*\*Merge\*\* .*\): \[TO BE DEFINED A[T] SETUP\]$/\1:/' > "${P12E}/CLAUDE.md"
+grep -q '^- \*\*Merge\*\* — via Pull Request or via the `/fw:integrate` block (`docs/04`, \*Merge\*):$' "${P12E}/CLAUDE.md" || fail "the fixture: the Merge line did not lose its marker"
+FW="${FW12}" T="${T12}" run 0 "${P12E}" invariant v3.0.0 v4.0.0 "${RESTORE12E}"
+has "CHECK  .claude/docs/04-git-workflow.md: '${M}:' was answered at the restore point with 'via Pull Request', which CLAUDE.md's line **Merge** does not hold word for word"
+hasnt "its answer ('via Pull Request')"
+sed 's/^\(- \*\*Merge\*\* .*\):$/\1: via Pull Request/' "${P12E}/CLAUDE.md" > "${workdir}/claude12e.md"
+cp "${workdir}/claude12e.md" "${P12E}/CLAUDE.md"
+FW="${FW12}" T="${T12}" run 0 "${P12E}" invariant v3.0.0 v4.0.0 "${RESTORE12E}"
+has "OK     .claude/docs/04-git-workflow.md: its answer ('via Pull Request') is on CLAUDE.md's line **Merge**"
 echo "PASS (upgrade-check moved answers): inventory names each answered slot v4.0.0 moved, with its answer and its new line, edge case 7 only for a doc whose moved slots are all open — a trailing blank or a re-flow still open —, and a release whose slot lines it does not know; invariant fails while an answer the restore point held has no home or an open one, asks while the line does not hold it word for word — two answers on one label —, and passes once each is carried; post names edge case 8 for a doc left behind."

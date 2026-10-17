@@ -505,9 +505,9 @@ slot_open() {
 # the slot's line — the lines of the diff's hunk that replaced it, joined, the slot's own text
 # before and after the marker taken off, in SLOT_NORM's form. Empty when the hunk adds
 # nothing (the line deleted); the marker in it when the project re-flowed the open slot. Both
-# files with LF line ends.
+# files with LF line ends. The unified form, which GNU, BSD and busybox diff all print.
 answer_at() {
-  { diff "$2" "$3" || true; } | S="$1" awk "${SLOT_NORM}"'
+  { diff -U0 "$2" "$3" || true; } | S="$1" awk "${SLOT_NORM}"'
     function flush(   a, i, pre, post, m) {
       if (!rem || done) return
       done = 1; m = "[TO BE DEFINED AT SETUP]"; a = norm(add); i = index(slot, m)
@@ -517,9 +517,10 @@ answer_at() {
       print norm(a)
     }
     BEGIN { slot = ENVIRON["S"] }
-    /^[0-9]/ { flush(); rem = 0; add = ""; next }
-    /^< / { if (substr($0, 3) == slot) rem = 1; next }
-    /^> / { add = add " " substr($0, 3); next }
+    NR <= 2 && /^(---|\+\+\+) / { next }
+    /^@@ / { flush(); rem = 0; add = ""; next }
+    /^-/ { if (substr($0, 2) == slot) rem = 1; next }
+    /^\+/ { add = add " " substr($0, 2); next }
     END { flush() }'
 }
 # moved_answered <moved file> <path> <vX>: whether the project answered a slot of <path> that
@@ -1046,7 +1047,15 @@ cmd_invariant() {
         fail "${new} has no line **${label}**: the answer of ${old}'s '$(short "${line}")' has no home — bring ${vy}'s line over"
       elif grep -E "${MARKER_RE}" "${d}/moved.home" >/dev/null; then
         fail "${old}: '$(short "${line}")' was answered at the restore point, and its new line in ${new}, **${label}**, is still open: carry the answer there (edge case 8)"
-      elif [ -n "${ans}" ] && A="${ans}" awk "${SLOT_NORM}"'{ h = h " " $0 } END { exit !(index(norm(h), ENVIRON["A"]) > 0) }' "${d}/moved.home"; then
+      # Searched past vY's own text before the marker: the line's description names options
+      # — "via Pull Request or via the `/fw:integrate` block" — an answer would match unwritten.
+      elif [ -n "${ans}" ] && A="${ans}" V="$(fw show "${vy}:${new}" 2>/dev/null | tr -d '\r' | awk -v p="- **${label}**" 'index($0, p) == 1 && !f { f = 1; print }')" awk "${SLOT_NORM}"'
+          { h = h " " $0 }
+          END {
+            h = norm(h); v = ENVIRON["V"]; i = index(v, "[TO BE DEFINED AT SETUP]")
+            if (i > 0) { v = norm(substr(v, 1, i - 1)); if (v != "" && index(h, v) == 1) h = substr(h, length(v) + 1) }
+            exit !(index(h, ENVIRON["A"]) > 0)
+          }' "${d}/moved.home"; then
         ok "${old}: its answer ('$(clip "${ans}")') is on ${new}'s line **${label}**"
       else
         check "${old}: '$(short "${line}")' was answered at the restore point${ans:+ with '$(clip "${ans}")'}, which ${new}'s line **${label}** does not hold word for word: confirm the answer is carried there (edge case 8)"
