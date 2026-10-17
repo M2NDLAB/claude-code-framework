@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-10-16
+updated: 2026-10-17
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -89,6 +89,11 @@ tags: [improvement]
 - Expected benefit / risk: the family of the last two HIGHs looked for by name, and a claim
   checked against a quote rather than a paraphrase. Risk: a longer lens, and readings that
   cost more.
+- Evidence, 2026-10-17 (v4.0.0, [[2026-10-16-on-demand-docs-4.0.0]]): a delegated agent
+  receives the instructions the main session last loaded, at its launch or its last
+  compaction, not the files on disk — the gate's reviewers found the old `CLAUDE.md` and an
+  older core in their context, every round —: where and when a tool reads its configuration,
+  again. The core and `SETUP.md` now say it; the reviews read every file from disk by path.
 
 ### IMP-106 — The snapshot's difference when the user pushes during a delegated run
 - Date: 2026-10-14 | Origin: v2.2.0's retro — [[2026-10-13-backlog-retro-2.2.0]]
@@ -104,35 +109,6 @@ tags: [improvement]
 - Expected benefit / risk: the rule stays strict where an agent could have moved shared
   state, and the expected case no longer invites a deviation. Risk: none known — an agent's
   push is refused by the `pre-push` before any ref moves.
-
-### IMP-124 — The docs' selective loading against `CLAUDE.md`'s imports
-- Date: 2026-10-15 | Origin: the retro's agents (theme C) — [[2026-10-15-harvest-retro-3.0.0]]
-- Observed problem: `docs/00`'s *Selective loading* said to load only the files the task
-  needs, `CLAUDE.md` being the index, and `CLAUDE.md`'s own heading said "load ONLY the files
-  relevant to the task"; `CLAUDE.md` writes the seven docs and `STATE.md` as `@`-imports. Claude
-  Code's memory page, read on 2026-10-15: "Imported files are expanded and loaded into context
-  at launch alongside the CLAUDE.md that references them." Every session starts with all of
-  them, 1,347 lines at this release — the retro's own sessions carried all seven docs. The
-  selective part holds for the memory's notes, not for the docs.
-- Level 1, applied in v3.0.0 (the user's decision; a factual correction, docs/06): `docs/00`'s
-  *Selective loading* says the docs are imported and loaded at every launch, and that
-  selective loading applies to the rest — the memory's notes, the session notes a task points
-  at, the files it reads besides —; `CLAUDE.md`'s heading over the docs says the same. The
-  release's security gate added that an imported file loads without its frontmatter and its
-  block-level HTML comments — observed, the memory page saying so of `CLAUDE.md`'s comments —,
-  and the `TREE.md` template's legend.
-- Proposal, Level 2, OPEN: whether to stop importing the docs — pointers without `@`, read on
-  demand —, weighing salience (IMP-117: a rule loaded and still missed) against the context
-  every session pays.
-- Expected benefit / risk: a doc that tells the truth about its own cost. Level 2's risk:
-  rules read less often.
-- Kin: IMP-117 (salience, not loading).
-- Status: APPROVED on 2026-10-16 (Level 2) — the docs leave the imports in v4.0.0. Measured
-  first: about 35k tokens of the framework at every session start, a copy of 33.7k in every
-  subagent, `STATE.md` loaded twice, a command's `@` re-attaching its doc. The user's decisions
-  D1-D8 — the core's home, commands for the procedures, `docs/04` read by sections, `docs/02` in
-  place behind a rule, `STATE.md` with a budget — and the plan are in
-  [[2026-10-16-on-demand-docs-4.0.0]].
 
 ### IMP-125 — The self-tests run in the projects: against their answers, in their shells
 - Date: 2026-10-15 | Origin: the 3.0.0 rehearsal and its security gate —
@@ -156,23 +132,126 @@ tags: [improvement]
   Risk: a longer CI run.
 - Kin: IMP-088 (the upgrade rehearsed with LF and CRLF), `docs/02`'s bullet on the users'
   configurations.
+- Evidence, 2026-10-17 (v4.0.0, [[2026-10-16-on-demand-docs-4.0.0]]): the same class again —
+  `scripts/test-state-inject.sh` read the project's own `STATE.md` as its template and failed
+  in a project whose memory is over the budget; found by the rehearsal, not by the CI
+  (`0afcb5b`). The rehearsal's builder — two synthetic projects, every slot answered, Step 3
+  driven by the inventory — was written again for this release, and run three times on three
+  tips: it is the seed of the proposal's CI check (2).
 
-### IMP-127 — The 3.0.0 entry claims a change to `LEARNINGS.md`'s format comment
-- Date: 2026-10-15 | Origin: v3.0.0's integration, the check of its blocks 1 and 2 —
-  [[2026-10-15-harvest-retro-3.0.0]], recorded in [[2026-10-15-3.0.0-record]]
-- Observed problem: the CHANGELOG's 3.0.0 entry, *Upgrading from 2.2.0*, lists among the memory
-  templates "the header and format comment of `LEARNINGS.md`: merged 3-way". Between v2.2.0
-  and v3.0.0 only the header changed — its line on `/fw:harvest-framework` —; the section
-  titles did not, and the format comment is byte-identical (`cmp` on the comment as each tag
-  holds it). A record wider than its data (`docs/02`, Definition of Done, point 10), found after
-  the tag. Its cost to a project is nil: the 3-way of an unchanged comment keeps the project's.
-- Proposal: the next release's entry corrects it under *Errata — corrections to entries already
-  published*, and the 3.0.0 entry gains, at its end, the line *Corrected in X.Y.Z, Errata.* —
-  the form 1.3.2 used for 1.1.0. `inventory` prints a release's note from its *Upgrading*
-  paragraph to the entry's end, read in `vY`'s CHANGELOG: the line reaches every later upgrade
-  that crosses 3.0.0. The tag's own text stays as it is.
-- Expected benefit / risk: the upgrade notes claim what changed, no more. Risk: none.
-- Status: APPROVED on 2026-10-15 — the user's brief: corrected in the next release.
+### IMP-128 — A new session discards any uncommitted work, the user's own included
+- Date: 2026-10-17 | Origin: v4.0.0's security gate, claims F9 (carried over from v3.0.0's
+  `docs/01`, not introduced) — [[2026-10-16-on-demand-docs-4.0.0]]
+- Observed problem: the core's *Resumption* tells a new session to discard uncommitted
+  half-work with `make reset-task` — `git restore` of the tree and `git clean -fd`, `YES=1`
+  without asking —, whatever made the changes: a hand edit of the user's, a new untracked
+  file, between two sessions, is lost the same way as an agent's half-task. `git clean` runs
+  past the `Bash(git clean:*)` deny, inside the script. v4.0.0 restores *Human control* in the
+  core, not this rule's scope.
+- Proposal: the core's *Resumption*: a new session discards only the interrupted task of an
+  in-progress plan — the files its task names, the plan's last tick against `git log` —; any
+  other uncommitted work, or in doubt, is shown (`git status`) and kept until the user says.
+  `/fw:plan`'s resumption says the same.
+- Expected benefit / risk: the user's own edits survive a session's start. Risk: a half-task
+  left behind more often, which the plan's ticks still show.
+
+### IMP-129 — The core describes `-n` but forbids it nowhere
+- Date: 2026-10-17 | Origin: v4.0.0's security gate, claims F13 (carried over: no rule
+  forbade it at v3.0.0 either) — [[2026-10-16-on-demand-docs-4.0.0]]
+- Observed problem: the core's *Boundary* says `-n`/`--no-verify`, `core.hooksPath`, edits to
+  `.git/hooks/` or `.gitleaks*` "take the hooks out"; nothing says not to. The shipped `allow`
+  rule `Bash(git commit:*)` runs `git commit -n` with no prompt, past the secret scan and the
+  message check (`docs/04`, *Permission configuration*, declares it).
+- Proposal: the core's *Boundary*: never `-n`/`--no-verify`, never `core.hooksPath`, an edit to
+  `.git/hooks/` or `.gitleaks*`: a hook's refusal is fixed at its cause, or reported to the
+  user.
+- Expected benefit / risk: the one always-loaded text says it. Risk: none — no procedure of the
+  method needs a hook skipped.
+
+### IMP-130 — A slot a conflict's resolution opens again in a HYBRID file gets no FAIL
+- Date: 2026-10-17 | Origin: v4.0.0's security gate, migration F8 (carried over: the check
+  exists for the TEMPLATE files only) — [[2026-10-16-on-demand-docs-4.0.0]]
+- Observed problem: `invariant` fails a slot the project had answered that is open again only
+  in a TEMPLATE file. A HYBRID file mostly in conflict — v4.0.0's `CLAUDE.md`, 150 of 159
+  lines in the rehearsal — is rebuilt from `vY` by hand; a stack line or a heading answered at
+  the restore point and open again after it gets a CHECK in `post` (`CLAUDE.md` gains slots),
+  and in a file where `vY` adds none — the `Makefile`, `hooks-install.sh` — nothing but Step
+  4's grep.
+- Proposal: `invariant`, for each HYBRID file: a marker line that vX's and vY's copies share,
+  answered at the restore point and open now, is a FAIL.
+- Expected benefit / risk: an answer lost in a rebuild caught where it is lost. Risk: a project
+  that reopened a slot on purpose sees a FAIL to explain.
+
+### IMP-131 — A check passes on a datum, never on a missing alarm
+- Date: 2026-10-17 | Origin: v4.0.0's security gate — its three MEDIUM, SI-4 and the second
+  round's code R2-1 and R2-2 — [[2026-10-16-on-demand-docs-4.0.0]]
+- Observed problem: the checks this release wrote inferred success from the absence of a
+  failure signal, round after round. `invariant` said "its answer reached" because the label's
+  line held no marker — of two answers on one label, one carried closed the line over the
+  other —, then found an answer in the line's own description; `/fw:checkpoint`'s budget
+  check passed when the last line was not the cut notice, then on the banner the failure paths
+  also print; `/fw:integrate`'s "not applicable" stop fired on the project's list only; and
+  task 6's "longest output" was measured on a case that was not the longest. `docs/03`'s
+  *Claims* lens names the rule for an assertion that something did NOT happen; the checks
+  were written before the review that applied it.
+- Proposal: `CONTRIBUTING.md`, beside the self-test rules: a new check's pass condition is a
+  positive datum — the text found where only the answer can be, the line only the success
+  path prints, the category matched —, and its self-test holds the cases where the failure
+  signal is absent for another reason (an empty output, a fallback's output, a second answer,
+  a list that misses the category); a claim of a maximum or a minimum names the case built to
+  reach it.
+- Expected benefit / risk: the class found when the check is written, not at the gate. Risk:
+  longer self-tests.
+
+### IMP-132 — `docs/02`'s other prohibitions are read at their moment, not held by the core
+- Date: 2026-10-17 | Origin: v4.0.0's security gate, second round, claims R2-2 —
+  [[2026-10-16-on-demand-docs-4.0.0]]
+- Observed problem: the user's principle, the fourth turn: "un divieto non si sposta su un
+  caricamento a richiesta". Rule 2 holds the four the user named — no swallowed error,
+  validation at the edge, the WHY in comments, the Definition of Done — and, since the gate's
+  first round, the details hidden from the client and the explicit I/O timeout. `docs/02`
+  holds more in the same voice, read only at its moment: never a silent workaround; the domain
+  NEVER imports the infrastructure; magic numbers ALWAYS named constants; never commit
+  unformatted code (the pre-commit's formatter enforces it where the project has one);
+  resources always released.
+- Proposal: the user decides which of them join rule 2, each in a clause — about 300
+  characters for all five —, or that the core holds what it holds and the doc the rest, as the
+  core now says.
+- Expected benefit / risk: the principle applied to the letter. Risk: a longer core, loaded in
+  every session and agent.
+
+### IMP-133 — The stale-base stop comes after step 3's changelog commit
+- Date: 2026-10-17 | Origin: v4.0.0's security gate, fourth round, I2 —
+  [[2026-10-16-on-demand-docs-4.0.0]]
+- Observed problem: `/fw:integrate` computes `<base>` and requires, under the gate, that it be
+  an ancestor of the reviewed tip at step 4 — after step 3 has moved `[Unreleased]` under a
+  version computed on the old base and committed it. When the integration branch moved, the
+  stop asks for a rebase and a new review, and the moved entry stays committed under a version
+  step 2 may then compute differently. It fails loudly — the new review reads the entry —, but
+  the procedure says nothing of it; and step 5's list, `docs/03` and the CHANGELOG do not name
+  the base check (I1, an under-claim).
+- Proposal: `/fw:integrate` checks the base together with the gate's line, before steps 2 and
+  3, and names it in step 5 and in `docs/03`'s list.
+- Expected benefit / risk: no changelog entry under a version that will not be the one tagged.
+  Risk: none.
+
+### IMP-134 — This repository: the `updated:` date of `LEARNINGS.md`, and a rebased branch after block 0
+- Date: 2026-10-17 | Origin: v4.0.0's security gate, fourth round, I3 and I4 —
+  [[2026-10-16-on-demand-docs-4.0.0]]
+- Observed problem: (1) `CONTRIBUTING.md`'s memory-only rule counts `LEARNINGS.md`'s header,
+  whole, as payload, so a branch that records an IMP and moves the `updated:` date is a release
+  by its letter; `fw/integrate.md` and `upgrade-check.sh` set the date aside, and so did past
+  practice (`4b43dea`, merged as memory-only at `a45fab2`). (2) After block 0 has pushed the
+  feature branch, a branch rebased onto a moved `main` — the remedy of the stale-base stop —
+  has no push path: 0b's plain push is refused as non-fast-forward, `CONTRIBUTING.md` forbids a
+  retry under other options, and `docs/04` allows `--force-with-lease` only on an unshared
+  branch. Carried over: block 1's tree check stopped a moved base before this release too.
+- Proposal: (1) "— its `updated:` date aside —" in the memory-only rule. (2) The user decides
+  how this repository republishes a rewritten feature branch: a lease push pinned to the tip
+  block 0 pushed last, in a block of its own; or a new branch name.
+- Expected benefit / risk: the rule as the check reads it, and a way out of the stop. Risk of
+  (2)'s lease push: it rewrites a branch the CI reads — pinned to the pushed sha, it moves
+  nothing else.
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
@@ -2188,6 +2267,43 @@ line on; older entries are not backfilled.
   still going not measured.
 - Left for the retro, beside the scope: `fw/integrate.md`'s checks outside the chain print a
   false `tag on <integration>: OK` when run outside any repository.
+- Refined by v4.0.0's security gate (`c0eb73f`, `0470ebd`): block 1 here also checks the local
+  branch, names the repository to `gh` with `-R`, and every push carries `--no-follow-tags`.
+
+### IMP-124 — The docs' selective loading against `CLAUDE.md`'s imports → applied on 2026-10-17, commits cd358ac, 389271a, 8a9a1c1, 634d10d, 40e15a5, d5a33c2, 9b9175f, af2a2ad, ed22e6b, 5845b88, ff5985a, c0eb73f, 9615698, 0470ebd, 5c6f07b
+- Origin: the retro's agents of v3.0.0 (theme C, [[2026-10-15-harvest-retro-3.0.0]]) —
+  `CLAUDE.md` imported the seven docs and `STATE.md`, so every session and every delegated
+  agent started with all of them, while `docs/00` spoke of selective loading. Level 1 in
+  v3.0.0 made the doc say so; the Level 2 question — stop importing them — stayed open.
+- Approved on 2026-10-16, with the user's decisions D1-D8 and the fourth and fifth turns
+  ([[2026-10-16-on-demand-docs-4.0.0]]): the core in `.claude/rules/fw-core.md`, a rule with no
+  `paths`; the procedures in the commands; `docs/04` read by sections; `docs/02` behind a
+  path-scoped rule whose globs are a setup slot, its prohibitions in the core; `STATE.md`
+  through the SessionStart hook within a budget, open issues first, never cut in silence.
+- Applied in v4.0.0: the core and `CLAUDE.md` the project's own (*The answers the method
+  reads*); `/fw:plan`; `scripts/state-inject.sh`, its self-test and the wiring; the two
+  path-scoped rules; the commands reading their docs at step 1; the answers of `docs/02`-`04`
+  moved to `CLAUDE.md`, the docs METHOD again, `upgrade-check.sh` following them; the gate's
+  check in `/fw:integrate`; `SETUP.md`'s migration. The security gate's four rounds changed
+  the core after the user's approval of its text — each change tied to a finding, listed in
+  the note.
+- Verified: the first request of a session from 57,932 input tokens to 30,373, a
+  general-purpose subagent's from 54,264 to 27,256 (Opus 5.5, `claude -p`, this repository's
+  template, the core before the gate's 1,029 characters); the open slot loads no rule on a
+  Read, a compiled glob does; the rehearsal from 3.0.0 and from 1.2.0, LF and CRLF, on the
+  tip that ships. Not measured: Windows, an interactive session, the unit of the hook's cap.
+
+### IMP-127 — The 3.0.0 entry claims a change to `LEARNINGS.md`'s format comment → applied on 2026-10-17, commits 88e2757, d26e549
+- Origin: v3.0.0's integration ([[2026-10-15-harvest-retro-3.0.0]], recorded in
+  [[2026-10-15-3.0.0-record]]) — the 3.0.0 entry's *Upgrading* note listed "the header and
+  format comment of `LEARNINGS.md`: merged 3-way"; the format comment is byte-identical between
+  v2.2.0 and v3.0.0.
+- Approved on 2026-10-15: corrected in the next release.
+- Applied: the 4.0.0 entry's *Errata* corrects it — only the header changed, its `updated:`
+  date and its line on `/fw:harvest-framework` —, and the 3.0.0 entry ends with *Corrected
+  in 4.0.0, Errata.* ([[2026-10-16-on-demand-docs-4.0.0]]).
+- Verified: `git show v2.2.0:` and `v3.0.0:.claude/memory/LEARNINGS.md` compared by the gate's
+  second round; the tag's own text stays as it is.
 
 ## Deferred (not rejected — resumed at the right time)
 
