@@ -1049,6 +1049,8 @@ cmd_invariant() {
         fail "${old}: '$(short "${line}")' was answered at the restore point, and its new line in ${new}, **${label}**, is still open: carry the answer there (edge case 8)"
       # Searched past vY's own text before the marker: the line's description names options
       # — "via Pull Request or via the `/fw:integrate` block" — an answer would match unwritten.
+      # A known limit: a description the project re-worded is searched whole, so an answer it
+      # names still matches; Step 4's marker grep and the human's reading remain.
       elif [ -n "${ans}" ] && A="${ans}" V="$(fw show "${vy}:${new}" 2>/dev/null | tr -d '\r' | awk -v p="- **${label}**" 'index($0, p) == 1 && !f { f = 1; print }')" awk "${SLOT_NORM}"'
           { h = h " " $0 }
           END {

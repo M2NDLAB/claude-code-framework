@@ -1460,7 +1460,8 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    **Sensitive components** (rule 8, `docs/03`), **Branches** (two slots of `docs/04`): the
    line holds both. `invariant` then fails on an answer the restore point held whose new
    line is missing or still open, and asks for a confirmation where the line does not hold
-   the restore point's answer word for word; `post` asks about a doc that still differs from
+   the restore point's answer word for word — read past `vY`'s own description, as long as
+   the line keeps it as `vY` wrote it —; `post` asks about a doc that still differs from
    `vY`'s. From a release before v1.1.0, whose slot lines are Italian, the check knows no
    line: a CHECK names the files, and the answers are found by the marker and carried by hand.
 

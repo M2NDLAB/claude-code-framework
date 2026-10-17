@@ -218,7 +218,7 @@ run 1 "${c}"
 # Eight pointers out of the payload, and the @ in a method command a second time, as an import.
 nfails 9
 has ".claude/commands/fw/sos.md:"
-has "an import in a command attaches its file at every invocation"
+has "an import in a command attaches its file at its invocation"
 has '"../../SETUP.md" points at SETUP.md'
 has '"../../CONTRIBUTING.md" points at CONTRIBUTING.md'
 has "points at ${note}"
@@ -668,7 +668,7 @@ fails 1 'the glob "scripts/no-such-file.sh" matches no tracked file'
 c="$(copy command-import)"
 printf '\nSee @.claude/docs/05-escalation-protocol.md.\n' >> "${c}/.claude/commands/fw/sos.md"
 run 1 "${c}"
-fails 1 "@.claude/docs/05-escalation-protocol.md: an import in a command attaches its file at every invocation"
+fails 1 "@.claude/docs/05-escalation-protocol.md: an import in a command attaches its file at its invocation"
 c="$(copy command-model)"
 edit "${c}/.claude/commands/fw/retro.md" '^---\ndescription:' $'---\nmodel: haiku\ndescription:'
 run 1 "${c}"

@@ -18,8 +18,8 @@ integration*). Find the note that closes this deliverable — a session note the
 - there is no such note, or its section is missing or says nothing: a forgotten gate
   (`sessions/README.md`, *The security gate's line*);
 - it says "not applicable" while the branch's diff touches a sensitive component — a
-  category of the core's rule 8, the method's own boundary among them — the core's
-  *Boundary* names it: `.claude/settings.json`, `scripts/agent-git-guard.mjs`,
+  category of the core's rule 8, the method's own boundary among them — the core (rule 8,
+  its table, *Boundary*) and `fw-boundary.md` name it: `.claude/settings.json`, `scripts/agent-git-guard.mjs`,
   `scripts/hooks-install.sh`, `scripts/state-inject.sh`, `.gitleaks*`, a hook manager's
   configuration, which sets `core.hooksPath` —, or a component of the answer **Sensitive components** in
   `CLAUDE.md` — or the deliverable asserts a security property (docs/03, *The lenses of the
@@ -32,7 +32,7 @@ integration*). Find the note that closes this deliverable — a session note the
 - the reviewed tip is not an ancestor of HEAD (`git merge-base --is-ancestor <tip> HEAD`),
   or a commit after it touches a file the project ships — any path outside `.claude/memory/`,
   and the memory's starting files where the project ships them (the framework's own
-  repository: `LEARNINGS.md` by its diff, its header, titles and format comment, not its
+  repository: `LEARNINGS.md` by its diff, its header — its `updated:` date aside —, titles and format comment, not its
   entries) — other than step 3's own commit of `CHANGELOG.md`, if the project keeps one
   (`git diff --no-renames --name-only <tip>..HEAD`): the review did not see it — run it
   again on the new tip;
@@ -139,7 +139,10 @@ How the blocks are written, because they are pasted whole:
 First compute, read-only:
 - `<tip>` = `git rev-parse <feature>`, the full sha the gate's check and these computations
   ran on, and `<base>` = `git rev-parse origin/<integration>`: block 1 refuses another tip,
-  and a rebase onto another base, which would rewrite the reviewed commits;
+  and a rebase onto another base. Under the gate, `git merge-base --is-ancestor <base> <tip>`
+  must succeed: otherwise the integration branch moved since the branch was based, and the
+  rebase would replay the reviewed commits as new ones — STOP: rebase the branch, and review
+  its new tip;
 - `N` = `git rev-list --count origin/<integration>..<feature>` + 1 (fallback without a
   remote: `<integration>..<feature>`): the branch's commits plus the merge commit — what
   `origin/<integration>..<integration>` holds after the merge;

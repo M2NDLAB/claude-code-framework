@@ -30,7 +30,7 @@ that now holds for the method itself:
 - **Always**: the method's core, `.claude/rules/fw-core.md` — a rule with no `paths`, which
   Claude Code loads at every launch, again after a compaction and in a delegated
   general-purpose agent (measured on 2026-10-16; an Explore or a Plan agent skips
-  `CLAUDE.md` and the project's rules, by Claude Code's docs) — and the project's
+  `CLAUDE.md` and the rules with no `paths`, by Claude Code's docs) — and the project's
   `CLAUDE.md`. A delegated agent receives them as the main session last loaded them, at its
   launch or its last compaction: a change made since reaches it after the next one (seen at
   v4.0.0's gate). The core holds every rule that binds in every turn and a table of the

@@ -1261,7 +1261,7 @@ function checkRules() {
   if (!commands.length) report('rule', null, 0, 'no command under .claude/commands/fw/: the extraction is wrong')
   let globs = 0
   for (const p of [...rules, ...commands]) {
-    const what = rules.includes(p) ? 'a method rule loads its file at every launch, before the rule' : 'a command attaches its file at every invocation, in a context that may already hold it'
+    const what = rules.includes(p) ? 'a method rule loads its file at every launch, before the rule' : 'a command attaches its file at its invocation, in a context that may already hold it'
     for (const u of units(p, allMask(p))) {
       for (const m of blankOut(u.text, CODE_SPAN).matchAll(/(?:^|\s)@([\w.~/-]*[\w~/-])/g)) {
         report('rule', p, u.at[m.index], `@${m[1]}: an import in ${what} — have Claude Read it instead`)

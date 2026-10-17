@@ -96,7 +96,7 @@ a rule: then it is a process bug, not a memory bug, and it goes to escalation/IM
     holding the setup marker is a slot to answer (the framework's `SETUP.md`, §2). (b) Every
     `@path` outside a code span in `CLAUDE.md`, in `.claude/rules/` and in
     `.claude/commands/` loads its file — at every launch from `CLAUDE.md` and from any rule,
-    path-scoped or not, at each invocation from a command: list each with its file's size,
+    path-scoped or not, at its invocation from a command (measured once): list each with its file's size,
     the cost it adds; one in a method file (`fw-*`, `fw/`) is a bug — the method's files
     have their docs Read instead.
 
