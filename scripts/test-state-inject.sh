@@ -15,7 +15,9 @@
 #      said aloud, where the user reads a mode-000 file (root, Windows);
 #   6. a comment never closed, and one inside a code fence: kept as they are;
 #   7. the script's own processing failing (an awk that cannot run): the banner, a notice, the
-#      file's first 8,000 bytes and the line to Read it — a long file held to the cap too;
+#      file's first 8,000 bytes and the line to Read it — a long file held to the cap too; the
+#      PATH keeps its other tools, so the case holds that the fallback needs no awk, not that
+#      it needs nothing beyond bash and head;
 #   8. the wiring, read from settings.json: a SessionStart hook with no matcher runs the
 #      script from the project's directory — in its Windows form too, where cygpath exists —
 #      and falls back to the file's first 8,000 bytes and the line to Read it when the script
@@ -182,9 +184,13 @@ out5="$(run "${workdir}/absent.md")"
 printf '%s\n' "${out5}" | sed -n 2p | grep -q '^Memory not initialised' || fail "a missing file: no line says the memory is not initialised"
 printf '## Caution & open issues\n- x\n' > "${workdir}/unreadable.md"
 chmod 000 "${workdir}/unreadable.md"
+case5="a missing or unreadable file"
 if [[ -r "${workdir}/unreadable.md" ]]; then
-  # Git Bash's chmod sets no read permission on Windows, and root reads anything.
+  # chmod 000 takes no read permission away under Git Bash on Windows (its noacl mount, as the
+  # platform's records say; not measured here), and root reads anything: the case is skipped,
+  # said aloud, and the PASS line below does not claim it.
   echo "SKIP (unreadable file): this user reads a mode-000 file — root, or Windows, where chmod takes no read permission away"
+  case5="a missing file (the unreadable one skipped)"
 else
   out5b="$(run "${workdir}/unreadable.md")"
   [[ "$(printf '%s\n' "${out5b}" | sed -n 1p)" == "${BANNER}" ]] || fail "an unreadable file: the first line is not the banner"
@@ -276,4 +282,4 @@ out9b="$(run "${workdir}/cp1252.md")"
 [[ -n "$(cut_line "${out9b}")" ]] || fail "Windows-1252: no notice of the cut"
 under_cap "${out9b}" "Windows-1252"
 
-echo "PASS (state inject): the template and the titles of other forms printed with the open issues first or their absence said, the cut counted in UTF-16 units and the output held to ${CAP} characters, CRLF, a missing or unreadable file, the comments, a failed run held to 8,000 bytes, the wiring read from settings.json, and a file that is not UTF-8."
+echo "PASS (state inject): the template and the titles of other forms printed with the open issues first or their absence said, the cut counted in UTF-16 units and the output held to ${CAP} characters, CRLF, ${case5}, the comments, a failed run held to 8,000 bytes, the wiring read from settings.json, and a file that is not UTF-8."
