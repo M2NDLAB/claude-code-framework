@@ -4,7 +4,7 @@ task: v4.0.0 — the method's docs leave CLAUDE.md's imports and load when neede
 branch: feat/on-demand-docs
 status: completed
 model: 'claude-opus-5-5'
-turns: 3
+turns: 7
 tags: [session, plan, context, imp, gate]
 ---
 # Session 2026-10-16 — v4.0.0: the process docs load when they are needed
@@ -26,8 +26,11 @@ tags: [session, plan, context, imp, gate]
   projects, numbers, behaviour). The findings used below were checked at their source where a
   file or a page is cited. `scripts/repo-snapshot.sh` before and after both runs: no
   difference, and no tracked edit.
-- `turns: 3` — the brief; the turn with the user's `/context`, `/context all`, `/skill-doctor`
-  and `/doctor` (run read-only, nothing applied, as the user had said); the data and decisions.
+- `turns: 7` — the brief; the turn with the user's `/context`, `/context all`, `/skill-doctor`
+  and `/doctor` (run read-only, nothing applied, as the user had said); the data and decisions;
+  the fourth and the fifth turn; block 0's first report with the user's decisions on the core
+  and the deferred IMPs; the decision on the CI's Windows fix. The integration's last two
+  messages are [[2026-10-17-4.0.0-record]]'s.
 
 ## Counting method
 - No token-counting API: no API key in the environment, and the subscription's credential is
@@ -205,7 +208,7 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
 - [x] 11. The core in `.claude/rules/fw-core.md` — D1's two conditions held at task 2 —; `CLAUDE.md` the project's own and its class; `docs/00` *Selective loading*; every `@` of the method's files removed, `STATE.md`'s included; the rules' citations re-pointed; docs-check strict, with the pointers resolved to headings — commit: 9b9175f; the measurements of the fifth turn recorded after it
 - [x] 12. `SETUP.md` (the migration from 3.x, the single jump from 1.2.0, `STATE.md` reduced by the first checkpoint after the upgrade, step 4, the brownfield rows), `README.md`, `CONTRIBUTING.md`, `SECURITY.md` — commit: af2a2ad
 - [x] 13. The rehearsal on a clone tagged v4.0.0 — from 3.0.0 with every answer in place, and from 1.2.0 in the synthetic form of the project upgraded next, LF and CRLF — moved here from task 14, so that the gate reviews the tip that ships; then `/fw:security-review`, adversarial, its reviewer not the author, its perimeter named: the claims about what loads, the gate's check, `state-inject.sh` and its wiring, the migration of the answers — commit: 0afcb5b, b48e2a9 (the rehearsal's fixes); ed22e6b, 5845b88, ff5985a, c0eb73f (the first round's fixes); this note's gate section
-- [x] 14. The CHANGELOG's 4.0.0 entry with IMP-127's erratum and the measured first request; the rehearsal again on the CHANGELOG's commit; the gate's second round on the fixes and the entry; the retro; the checkpoint; then `/fw:integrate` up to block 0, no further (the fifth turn) — commit: 9a92d94, 88e2757 (the entry); 9615698, 0470ebd, d26e549 (the second round); 5c6f07b (the third); e82d7c2 (the retro), ba09bd7 (the checkpoint); 83b422c, 278b9bf (the CI's Windows run, the fifth round); this note's gate line
+- [x] 14. The CHANGELOG's 4.0.0 entry with IMP-127's erratum and the measured first request; the rehearsal again on the CHANGELOG's commit; the gate's second round on the fixes and the entry; the retro; the checkpoint; then `/fw:integrate` up to block 0, no further (the fifth turn) — commit: 9a92d94, 88e2757 (the entry); 9615698, 0470ebd, d26e549 (the second round); 5c6f07b (the third); e82d7c2 (the retro), ba09bd7 (the checkpoint); 83b422c, 278b9bf (the CI's Windows run, the fifth round); c4a09fb (this note's gate line); blocks 0, 1 and 2, the user's — the merge aa4a755 on `main`, its tree the tested one, tagged v4.0.0, signed, both published (the record: [[2026-10-17-4.0.0-record]])
 
 ## Resumption notes
 - The chat's "step 0" and "step 1" are tasks 1 and 2 here. The user's instruction: stop after
@@ -426,6 +429,30 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
   identical, `git diff` empty, both times.
 - Not covered: nothing ran on Git Bash here — the CI on the next push is the first run of
   cases 5-9 on Windows.
+
+## The integration — blocks 0, 1 and 2, the user's
+- **Block 0, first round**, printed once the 28 commits it publishes (`0c71b6f..ba09bd7`)
+  were read: gitleaks found no secret; no derived project's name and no path of this machine
+  in their messages, diffs and tree; the branch absent on the remote and `origin/main` at
+  `0c71b6f`, read live. Run by the user: `ba09bd7` pushed.
+- **The CI's first run, red on Windows** (run 39035256707): *The CI's first run, and the fifth
+  round*, above — fixed in `83b422c` and `278b9bf`, reviewed, the gate line at `278b9bf`
+  (`c4a09fb`).
+- **Block 0, second round**: the three commits it adds (`ba09bd7..c4a09fb`) read the same way;
+  the remote branch at `ba09bd7`. Run by the user: `c4a09fb` pushed.
+- **The final CI round**, run 39039420903 (`c4a09fb`), green on the three: the STATE
+  injection's self-test PASS on Windows, its unreadable case skipped and said — the first run
+  there of cases 5-9 —; the documentation check 0 FAIL and one CHECK, the release being
+  prepared.
+- **Blocks 1 and 2**, v4.0.0 by the bump — two `refactor!` with a `BREAKING CHANGE`, and the
+  content: the method leaves `CLAUDE.md` and the answers move, a format the projects read.
+  Block 1 in `CONTRIBUTING.md`'s form — `origin/main` at `0c71b6f`, the remote and the local
+  branch at `c4a09fb`, the CI read with `gh run list -R`, the merge's tree the tip's —; block 2
+  one atomic push with `--no-follow-tags` and the remote branch's deletion. Run by the user,
+  every line printed — `CI on c4a09fb: green`, `tree tested by the CI: OK`, `block 1: merged
+  and tagged`, `tag on main: OK`, `signature: OK`, `count: OK (32)` —: the merge `aa4a755`,
+  v4.0.0 on it, both published, the branch deleted on both sides. Read back in
+  [[2026-10-17-4.0.0-record]].
 
 ## Problems encountered → cause → solution
 1. The first draft of the core dropped rules — the definition of a sensitive component, the
@@ -719,4 +746,6 @@ one word.
   memory-only branch, as for 3.0.0, with the Architect's comment on IMP-132 and the next
   deliverable — a cleanup: every open IMP and every finding of v4.0.0's gate decided before
   the upgrade of the first derived project — in the record's note and in `LEARNINGS.md`, not in
-  `STATE.md`, a clean template here.
+  `STATE.md`, a clean template here. Done: [[2026-10-17-4.0.0-record]], whose table lists
+  what the cleanup decides; IMP-135 in [[LEARNINGS]] holds the deliverable. The open threads
+  of this note — IMP-128 to IMP-134, the declared limits of the gate's rounds — live there.
