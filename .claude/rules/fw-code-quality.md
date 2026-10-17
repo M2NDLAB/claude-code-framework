@@ -1,8 +1,9 @@
 ---
 # The globs of the project's code files, one per list item, in place of the setup marker
-# below (the framework's SETUP.md, step 2) — e.g. "src/**/*.ts". Until then the pattern
-# matches only a one-letter file at the repository's root: the rule does not load, and the
-# core (fw-core) alone sends Claude to docs/02 before the first edit of code.
+# below (the framework's SETUP.md, step 2) — e.g. "src/**/*.ts". Until then the marker reads
+# as a bracket expression, which matches at most a one-character name: the rule does not load
+# on the project's files (measured on a Read, 2026-10-17), and the core (fw-core) alone sends
+# Claude to docs/02 before the first edit of code.
 paths:
   - "[TO BE DEFINED AT SETUP]"
 ---

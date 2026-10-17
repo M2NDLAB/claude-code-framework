@@ -32,8 +32,11 @@ session started at the repository's root.
 - **Loaded when it is needed** — at every launch only the method's core
 (`.claude/rules/fw-core.md`) and the project's `CLAUDE.md`; each doc is read at the moment
 a task needs it, each procedure when its `/fw:` command runs, and `STATE.md` arrives within
-8,000 characters, its open issues first. A session's first request, measured on Opus 5.5
-with the same prompt: 57,932 input tokens with v3.0.0, 30,373 with v4.0.0.
+8,000 characters, its open issues first. A session's first request in this repository's
+template, Claude Code's own prompt and tools included, measured on Opus 5.5 with the same
+prompt: 57,932 input tokens with v3.0.0, 30,373 with v4.0.0's core before its security
+review, whose fixes added 976 characters to it (about 350 tokens at the 2.80 characters per
+token those runs imply).
 - **Grafting and upgrading** — it starts from scratch (greenfield), grafts onto an
 existing project (brownfield) and upgrades in place (`vX → vY`) preserving the
 memory accumulated so far, with the `.claude/framework-version` provenance pin as a

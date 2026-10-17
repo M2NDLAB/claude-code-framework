@@ -259,7 +259,8 @@ Here is the complete list, grouped by file:
 ### `.claude/rules/`
 - [ ] `rules/fw-code-quality.md`: the globs of the project's code files, one per item of its
       `paths`, in place of the marker — the rule then has Claude Read `docs/02` when it
-      works on them. Left open, the rule never loads, and the core alone sends Claude to
+      works on them. Left open, it does not load on the project's files (measured on a
+      Read), and the core alone sends Claude to
       `docs/02` before the first edit of code. The method's other rules have no slot.
 
 ### `.claude/commands/fw/`
@@ -1210,6 +1211,10 @@ graft), CREATE it now — that is the retrofit: from this upgrade on the baselin
 certain; unknown `grafted` → `n/a (retrofit YYYY-MM-DD)`. The pin lives outside
 `.claude/memory/`: the closed list of Step 5 needs no entry for it.
 
+An upgrade that changes the boundary's files — `.claude/settings.json`, the guard, the hooks,
+`scripts/state-inject.sh`, as v4.0.0's does — is under the gate (the core's rule 8): run
+`/fw:security-review` on the upgrade branch's diff before the checkpoint, and `/fw:integrate`
+stops on a "not applicable" there.
 `/fw:checkpoint` (the upgrade's session note — `vX→vY`, what was reconciled, what the user
 decided, and its security-gate line with the reason, since an upgrade rewrites the security
 baseline: the hooks, the permissions, a destructive guard; `STATE.md` with the updated
@@ -1220,7 +1225,9 @@ it, the history to the session notes; `TREE.md` if the structure changed). Then 
 product features/fixes → bump **"no tag"** (`chore`, internal work, not a release):
 declare it and omit the tag. The merge of the upgrade branch and the push are HUMAN
 actions. If something does not add up at review time, the branch is thrown away: the
-memory is safe in the pre-upgrade commit.
+memory is safe in the pre-upgrade commit. After the merge, start Claude Code again before the
+next deliverable: a running session, and the agents it delegates to, keep the method it
+loaded at launch — the old one's rules (seen at v4.0.0's gate).
 
 ### Edge cases (to be handled explicitly)
 
