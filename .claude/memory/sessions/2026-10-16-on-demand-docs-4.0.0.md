@@ -205,7 +205,7 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
 - [x] 11. The core in `.claude/rules/fw-core.md` — D1's two conditions held at task 2 —; `CLAUDE.md` the project's own and its class; `docs/00` *Selective loading*; every `@` of the method's files removed, `STATE.md`'s included; the rules' citations re-pointed; docs-check strict, with the pointers resolved to headings — commit: 9b9175f; the measurements of the fifth turn recorded after it
 - [x] 12. `SETUP.md` (the migration from 3.x, the single jump from 1.2.0, `STATE.md` reduced by the first checkpoint after the upgrade, step 4, the brownfield rows), `README.md`, `CONTRIBUTING.md`, `SECURITY.md` — commit: af2a2ad
 - [x] 13. The rehearsal on a clone tagged v4.0.0 — from 3.0.0 with every answer in place, and from 1.2.0 in the synthetic form of the project upgraded next, LF and CRLF — moved here from task 14, so that the gate reviews the tip that ships; then `/fw:security-review`, adversarial, its reviewer not the author, its perimeter named: the claims about what loads, the gate's check, `state-inject.sh` and its wiring, the migration of the answers — commit: 0afcb5b, b48e2a9 (the rehearsal's fixes); ed22e6b, 5845b88, ff5985a, c0eb73f (the first round's fixes); this note's gate section
-- [x] 14. The CHANGELOG's 4.0.0 entry with IMP-127's erratum and the measured first request; the rehearsal again on the CHANGELOG's commit; the gate's second round on the fixes and the entry; the retro; the checkpoint; then `/fw:integrate` up to block 0, no further (the fifth turn) — commit: 9a92d94, 88e2757 (the entry); 9615698, 0470ebd, d26e549 (the second round); 5c6f07b (the third); the retro's and this checkpoint's
+- [x] 14. The CHANGELOG's 4.0.0 entry with IMP-127's erratum and the measured first request; the rehearsal again on the CHANGELOG's commit; the gate's second round on the fixes and the entry; the retro; the checkpoint; then `/fw:integrate` up to block 0, no further (the fifth turn) — commit: 9a92d94, 88e2757 (the entry); 9615698, 0470ebd, d26e549 (the second round); 5c6f07b (the third); e82d7c2 (the retro), ba09bd7 (the checkpoint); 83b422c, 278b9bf (the CI's Windows run, the fifth round); this note's gate line
 
 ## Resumption notes
 - The chat's "step 0" and "step 1" are tasks 1 and 2 here. The user's instruction: stop after
@@ -239,14 +239,14 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
   branch's blocks is done. The timing is IMP-126's evidence (`LEARNINGS.md`).
 
 ## Security gate
-- `/fw:security-review` at `5c6f07b` — `0c71b6f..5c6f07b` reviewed in four rounds
-  (`..b48e2a9`, `..88e2757`, `..d26e549`, `..5c6f07b`), its reviewers never the author: no
-  HIGH or CRITICAL; 3 MEDIUM and 28 LOW resolved, every INFO closed, declared where its claim
-  lives, or carried to the retro (IMP-128 to IMP-134); the last round found nothing above
-  INFO. Under the gate because the deliverable changes the method's boundary — the
-  SessionStart wiring of `settings.json`, `scripts/state-inject.sh` —, the gate's own check,
-  and the product's claims about what is in context. After `5c6f07b` only `.claude/memory/`
-  changes: the retro's entries and this note.
+- `/fw:security-review` at `278b9bf` — `0c71b6f..278b9bf` reviewed in five rounds
+  (`..b48e2a9`, `..88e2757`, `..d26e549`, `..5c6f07b`, and `ba09bd7..278b9bf` on the fix of
+  the CI's first Windows run), its reviewers never the author: no HIGH or CRITICAL; 3 MEDIUM
+  and 29 LOW resolved, every INFO closed, declared where its claim lives, or carried to the
+  retro (IMP-128 to IMP-134); the last round's one LOW closed and checked by its reviewer.
+  Under the gate because the deliverable changes the method's boundary — the SessionStart
+  wiring of `settings.json`, `scripts/state-inject.sh` —, the gate's own check, and the
+  product's claims about what is in context. After `278b9bf` only this note changes.
 
 ### First round — `/fw:security-review`, reviewed `0c71b6f..b48e2a9`
 - How: a workflow (run `wf_3f4a0f11-bd4`, 8 agents, 1,559,293 tokens, 320 tool calls, a duration
@@ -398,7 +398,34 @@ budget is 1% of the window (`skills.md:1217`): 6.7k of 10k here.
   letter counts every path outside `.claude/memory/`, so it changes on a later branch;
   IMP-134. I4 — here a rebased feature branch has no push path after block 0 (carried over):
   the user's decision, IMP-134.
-- The reviewed tip is `5c6f07b`: nothing after it touches a path outside `.claude/memory/`.
+- The reviewed tip was `5c6f07b`, block 0 pushed `ba09bd7` (2026-10-17, the user's terminal).
+
+### The CI's first run, and the fifth round — `ba09bd7..278b9bf`
+- CI run 39035256707 on `ba09bd7`: `ubuntu-24.04` and `macos-26` green, `windows-2025` red at
+  `make test-scripts` — the one-by-one step: `scripts/test-state-inject.sh` alone,
+  `FAIL (state inject): CRLF: the test's file has no CR (the case would prove nothing)`; the
+  other six self-tests, the upgrade check's self-test, the prerequisite check and the real
+  hooks green there; the documentation check 0 FAIL, 1 CHECK (4.0.0 untagged). The cause: the
+  check used `grep $'\r$'`, which Git Bash's grep does not see — v1.5.0's lesson, recorded in
+  its note and `tools/test-upgrade-check.sh`, not applied to a test written since. Cases 5-9
+  had never run on Windows.
+- The user's decision (translated): the CR counted by Node; cases 5-9 read again for Git
+  Bash's known traps and fixed in the same commit; every `grep $'\r'` of the repository's
+  code reported before a fix. The grep found one, the test's own — none in shipped code.
+- `83b422c`: the CR counted by Node, with a control; the unreadable case's skip a declared
+  SKIP (chmod takes no read permission away there); case 7's PATH of `ln -s` links — which on
+  Git Bash copy a binary away from its DLLs (`scripts/test-agent-git-guard.sh`) — replaced by
+  an awk stub that exits 127, first on the PATH. Case 8's `cygpath -w` form, the wiring's
+  `head -c` and case 9 hold no such trap, by reading. GREEN here on BSD awk, mawk and as root.
+- The round: one independent reviewer, not the author (146,163 tokens, 40 tool calls,
+  584,631 ms; then 6 calls, 62,764 ms for the fix), no confirmation asked: 1 LOW — the PASS
+  line named the unreadable case where it was skipped — and 2 INFO — a comment saying the
+  opposite, case 7 holding less than before. `278b9bf`: the PASS line says what ran, the
+  README where the case is skipped, the comment reworded; case 7's narrower hold declared in
+  the header. The reviewer checked the fix: closed, closed, declared, no new defect. Snapshot
+  identical, `git diff` empty, both times.
+- Not covered: nothing ran on Git Bash here — the CI on the next push is the first run of
+  cases 5-9 on Windows.
 
 ## Problems encountered → cause → solution
 1. The first draft of the core dropped rules — the definition of a sensitive component, the
@@ -683,5 +710,13 @@ one word.
   its text ("Revisione del nucleo: approvato") — `git diff 9b9175f..5c6f07b --
   .claude/rules/fw-core.md`, each change tied to a finding in *Security gate*; the decisions
   of IMP-132 and IMP-134 (I4); the open IMPs of the retro.
-- Block 0 is printed and not run (the fifth turn: stop when `/fw:integrate` has printed it).
-  The CI's three jobs on the pushed tip are their first run on Windows, Git Bash and gawk.
+- Block 0 was printed and run by the user (`ba09bd7`); the CI's first Windows run failed in
+  the STATE injection's self-test, fixed in `83b422c` and `278b9bf`, reviewed. The user
+  approved the core's changes after its approval, and deferred IMP-132 and IMP-134 to a
+  cleanup deliverable. Block 0's second round pushes this note's commit; then the CI, and,
+  green on the three systems, blocks 1 and 2.
+- After the integration (the user's instruction, translated): the v4.0.0 record on its own
+  memory-only branch, as for 3.0.0, with the Architect's comment on IMP-132 and the next
+  deliverable — a cleanup: every open IMP and every finding of v4.0.0's gate decided before
+  the upgrade of the first derived project — in the record's note and in `LEARNINGS.md`, not in
+  `STATE.md`, a clean template here.
