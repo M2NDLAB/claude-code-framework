@@ -29,6 +29,14 @@ conventional commits, SemVer versioning on annotated tags, a paste-ready "ready 
 integration" block, git hooks (secret scan, formatting, and a pre-push that refuses an
 agent session's push), delegated agents kept read-only on git through the shell, in a
 session started at the repository's root.
+- **Loaded when it is needed** — at every launch only the method's core
+(`.claude/rules/fw-core.md`) and the project's `CLAUDE.md`; each doc is read at the moment
+a task needs it, each procedure when its `/fw:` command runs, and `STATE.md` arrives within
+8,000 characters, its open issues first. A session's first request in this repository's
+template, Claude Code's own prompt and tools included, measured on Opus 5.5 with the same
+prompt: 57,932 input tokens with v3.0.0, 30,373 with v4.0.0's core before its security
+review, whose fixes added 1,029 characters to it (about 370 tokens at the 2.80 characters per
+token those runs imply).
 - **Grafting and upgrading** — it starts from scratch (greenfield), grafts onto an
 existing project (brownfield) and upgrades in place (`vX → vY`) preserving the
 memory accumulated so far, with the `.claude/framework-version` provenance pin as a
@@ -53,17 +61,18 @@ In short (the full guide, with the list of every setup slot to fill in, is in
    `.gitignore`, `.gitattributes`, `scripts/`), then create the provenance pin
    `.claude/framework-version` with the version you just copied (`SETUP.md`, step 1).
 2. **Fill in the setup slots** — above all in `CLAUDE.md` (project
-   name, stack, technical rules, sensitive components) and in the spots listed in
+   name, stack, the answers the method reads — sensitive components among them —,
+   technical rules) and in the spots listed in
    `SETUP.md`. By hand, or in dialogue with Claude Code, which interviews you and
    writes the answers down (see `SETUP.md`, step 2).
 3. **Install the hooks**: `make hooks-install` (requires `gitleaks` and Node.js for
    commitlint). Enable automatic formatting in the hook for your language.
-4. **First command to Claude Code** — have it read `CLAUDE.md` and the docs in
-   `.claude/docs/`, then initialise the memory (`STATE.md`, `TREE.md`, `INDEX.md`). The exact
-   suggested command is in `SETUP.md`.
+4. **First command to Claude Code** — the method's core is already loaded: have it read
+   `.claude/docs/00-overview.md`, then initialise the memory (`STATE.md`, `TREE.md`,
+   `INDEX.md`). The exact suggested command is in `SETUP.md`.
 
 From there on you work with the cycle described in `.claude/docs/00-overview.md`:
-plan → execute task by task → [if under the gate] `/fw:security-review` → `/fw:retro` →
+plan (`/fw:plan`) → execute task by task → [if under the gate] `/fw:security-review` → `/fw:retro` →
 `/fw:checkpoint` → `/fw:integrate` (push decided by the human); if you get stuck,
 `/fw:sos`. The method's commands live under `.claude/commands/fw/`, so their names never
 collide with Claude Code's own.
@@ -82,7 +91,7 @@ collide with Claude Code's own.
 
 ```
 .
-├── CLAUDE.md                  index + process rules + technical rules [TO BE DEFINED]
+├── CLAUDE.md                  the project's: the answers the method reads + technical rules [TO BE DEFINED]
 ├── README.md                  this file
 ├── SETUP.md                   how to start from scratch, list of the [TO BE DEFINED]
 ├── LICENSE                    MIT — covers the framework, not the projects using it
@@ -99,14 +108,16 @@ collide with Claude Code's own.
 │   ├── hooks-install.sh       gitleaks + commitlint + pre-push push boundary (always) + formatting (example)
 │   ├── agent-git-guard.mjs    PreToolUse guard: delegated agents read-only on git
 │   ├── repo-snapshot.sh       before/after fingerprint around delegated agents
+│   ├── state-inject.sh        what the SessionStart hook prints of STATE.md: open issues first, within a budget
 │   ├── reset-task.sh          surgical cleanup of the interrupted task
 │   ├── check-prerequisites.sh the prerequisites: each tool run, its version against its minimum
 │   ├── test-*.sh              hermetic self-tests (make test-scripts)
 │   └── README.md
 └── .claude/
-    ├── settings.json          SessionStart hook (injects STATE.md) + PreToolUse guard + session marker + permissions
-    ├── docs/                  00-overview, 01-task-planning ... 06-self-improvement
-    ├── commands/              /fw:checkpoint /fw:integrate /fw:sos /fw:retro /fw:security-review /fw:new-component /fw:lint-memory /fw:harvest-framework (all in fw/)
+    ├── settings.json          SessionStart hook (STATE.md, via scripts/state-inject.sh) + PreToolUse guard + session marker + permissions
+    ├── docs/                  00-overview, 01-task-planning ... 06-self-improvement — read when a task needs them
+    ├── rules/                 fw-core (the method's core, every launch), fw-code-quality (on the project's code files), fw-boundary (on the boundary's files)
+    ├── commands/              /fw:plan /fw:checkpoint /fw:integrate /fw:sos /fw:retro /fw:security-review /fw:new-component /fw:lint-memory /fw:harvest-framework (all in fw/)
     └── memory/                STATE, TREE, INDEX, LEARNINGS (template) + 4 subfolders
 ```
 

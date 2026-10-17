@@ -7,7 +7,8 @@ tags: [state]
 # STATE — [PROJECT NAME]
 
 > **What this file is.** It is the entry point of the memory: the `SessionStart` hook
-> injects it into every new Claude Code session (see `.claude/settings.json`).
+> injects it into every new Claude Code session (see `.claude/settings.json`), the section
+> *Caution & open issues* first, within 8,000 characters (`scripts/state-inject.sh`).
 > It must always answer: *where we are, what exists, what has been decided and is not
 > obvious from the code, what is pending*. It is REWRITTEN at every `/fw:checkpoint` (it
 > is not append-only like the sessions). Keep it terse: it is a dashboard, not a journal.

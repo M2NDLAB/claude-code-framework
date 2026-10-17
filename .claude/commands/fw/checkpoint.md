@@ -1,15 +1,19 @@
 ---
-description: Full checkpoint - memory + documentation + Git commit
+description: Checkpoint - memory, documentation and a commit, in one go (docs/04). Use at the end of a task or a deliverable (the cycle's fourth step), and before a session ends
 ---
 Run the checkpoint procedure for the current work: $ARGUMENTS
 Setup replaces the placeholders below — `<integration>`, the integration branch, and
 `<pattern-to-ignore-for-the-stack>`, the pattern `tree` ignores — with the project's
 values, then deletes this paragraph: [TO BE DEFINED AT SETUP].
 
-1. Read @.claude/docs/04-git-workflow.md for the commit rules.
+1. Read the commit rules: the sections *WHEN to commit*, *Commit format — Conventional
+   Commits* and *Operating rules for Claude Code* of `.claude/docs/04-git-workflow.md` —
+   `grep -n '^## '` gives their lines, each read from its title to the next. If the
+   context has been compacted since, read them again before the next step.
 2. `git status` and `git diff --stat`: list what has changed and check that there
    are no unexpected or suspicious files (secrets, environment files, build artefacts).
-3. Update the memory (.claude/memory/), with the file tools (`CLAUDE.md`, rule 10):
+3. Update the memory (.claude/memory/), with the file tools (rule 10 of the core,
+   `.claude/rules/fw-core.md`):
    - create/update today's session note with what was done and why. Its frontmatter
      follows `sessions/README.md`, plus the two fields written by the main session:
      `model: '<model id as the runtime exposes it>'` (verbatim, ALWAYS single-quoted,
@@ -21,9 +25,24 @@ values, then deletes this paragraph: [TO BE DEFINED AT SETUP].
      of this session's messages, never counting a message twice). Never backfill
      notes that predate these fields;
    - at a deliverable's last checkpoint, the note's security-gate line
-     (`sessions/README.md`, *Format*): the outcome, or "not applicable" with its reason;
+     (`sessions/README.md`, *The security gate's line*): the outcome and the tip the
+     review's report names — never the HEAD at hand —, or "not applicable" with its reason;
    - update the components/ notes of the components touched;
-   - rewrite STATE.md with the current state; AFTER the rewrite check that the
+   - rewrite STATE.md with the current state, within its budget: the SessionStart hook
+     shows 8,000 characters of it, *Caution & open issues* first
+     (`scripts/state-inject.sh`), so STATE is a dashboard — the history (progress long
+     done, decisions with their story, the detail of an issue) moves to the session note
+     this checkpoint writes, or stays in the notes that already hold it, and STATE keeps one
+     line with a pointer; each *Caution & open issues* entry is one line with its trigger
+     and a pointer to the note that holds the detail. Measure it after the rewrite, from
+     the repository's root whatever the shell's directory: `r="$(git rev-parse
+     --show-toplevel)" && bash "$r/scripts/state-inject.sh" "$r/.claude/memory/STATE.md"`
+     — its first line must be the banner `=== PROJECT MEMORY (STATE.md) ===`, its second
+     `## Caution & open issues` or the line saying the file has none, and no other line may
+     open with `===` — the cut's line, or a fallback's line to Read the file —; any other
+     output is a measurement that failed, never a pass. One exception: the checkpoint that
+     closes an upgrade of the framework (the framework's `SETUP.md`, Step 6) updates STATE
+     without condensing it — the first checkpoint after the upgrade's merge does. AFTER the rewrite check also that the
      pre-existing entries of "Caution & open issues" are still present or
      knowingly closed (a critical debt must not die in a rewrite)
      and that every entry has its explicit TRIGGER, never a generic one;
@@ -40,7 +59,7 @@ values, then deletes this paragraph: [TO BE DEFINED AT SETUP].
      `tree -L 3 --dirsfirst -I '<pattern-to-ignore-for-the-stack>'`
      (fallback if `tree` is missing: `git ls-files`) and realign the legend;
    - update INDEX.md if there are new notes to link.
-4. Project documentation ("documentation updated" rule of CLAUDE.md):
+4. Project documentation (rule 5 of the core, "documentation with the change"):
    - if the project doc EXISTS: check whether the changes touch user-facing
      features, operating procedures, APIs or deploy, and update the relevant pages —
      concise but real, no placeholders;

@@ -1,9 +1,14 @@
 ---
-description: Security review of the modified code
+description: The method's security gate (docs/03) on the branch's diff - not Claude Code's built-in /security-review, which is not the gate. Use before integrating a deliverable under the gate
 ---
+First Read `.claude/docs/03-security-gate.md` whole; if the context has been compacted
+since, read it again before the next step. This command is the gate's review, the one the
+session note's gate line names; Claude Code's built-in `/security-review` is another
+command, and running it does not satisfy the gate.
+
 Run a security review of the branch's changes, and of the set a widened claim names
 (check 11). Minimum checks, stack-agnostic — adapt/extend those specific to your
-technology (see @.claude/docs/03-security-gate.md):
+technology (`docs/03`):
 
 1. **Secrets** hardcoded or in committed config (including base64-encoded ones).
 2. **Injection** (SQL/NoSQL/command/template): queries or commands built by
@@ -24,7 +29,9 @@ technology (see @.claude/docs/03-security-gate.md):
 11. **The lenses of the gate** — *Claims, not only actions* and *The real path*: apply both as
     `docs/03` (*The lenses of the gate*) words them.
 
-Report: severity table (CRITICAL/HIGH/MEDIUM/LOW) + proposed fix for each
-finding. Remember how the gate works (docs/03): HIGH/CRITICAL resolved before the
-PR, MEDIUM resolved or accepted in STATE.md, LOW closed by a line of text or declared as a
-known limit where its claim lives.
+Report: first the range reviewed, `Reviewed: <base>..<full sha of HEAD when the review
+started>`; then the severity table (CRITICAL/HIGH/MEDIUM/LOW) + proposed fix for each
+finding. The session note's gate line copies that sha — never a later HEAD: a fix committed
+after it is a new tip, which the review has not seen. Remember how the gate works (docs/03):
+HIGH/CRITICAL resolved before the PR, MEDIUM resolved or accepted in STATE.md, LOW closed by
+a line of text or declared as a known limit where its claim lives.

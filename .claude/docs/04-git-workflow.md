@@ -5,7 +5,8 @@ confirmation where indicated.
 
 ## Branching model
 
-> **Reading convention — branch names are [TO BE DEFINED AT SETUP].** In this doc and
+> **Reading convention — branch names are the project's: the answer Branches in
+> `CLAUDE.md`, *The answers the method reads*.** In this doc and
 > in the commands, **integration branch** (where features converge) and **stable
 > branch** (the released versions) are ROLES, not imposed names. The names `develop`
 > (integration) and `main` (stable) used below are the **example defaults**: choose
@@ -74,8 +75,8 @@ and in a template repo a concrete name stays there forever, breaking agnosticism
 ## Merge
 
 - Feature → `develop`: the merge is ALWAYS a human action, never performed by Claude
-  Code, in one of two forms — which one the project adopts is
-  [TO BE DEFINED AT SETUP]:
+  Code, in one of two forms — which one the project adopts is its answer **Merge** in
+  `CLAUDE.md`:
   - **via Pull Request** when a remote review flow exists (a team, a forge with
     mandatory review);
   - **via the `/fw:integrate` block** (a local `--no-ff` merge that the USER pastes and
@@ -101,7 +102,7 @@ if they touch logic, it STOPS and asks the user, showing both versions.
 
 ## Versioning — SemVer on annotated tags
 
-Versions are **annotated git tags** (`git tag -a vX.Y.Z -m "..."`), never lightweight
+Versions are **annotated git tags** (`git tag -a vX.Y.Z -m '...'`), never lightweight
 tags: an annotated tag carries author, date and message. (A precision about the
 rationale: `git describe` WITHOUT `--tags` considers annotated tags only; the
 `/fw:integrate` command uses `git describe --tags`, which also accepts lightweight tags —
@@ -142,7 +143,8 @@ Which files are shipped is part of the public contract below.
 **What a "breaking change" is — the MAJOR criterion.** SemVer is about the
 compatibility of the project's *public contract*: any change that forces a consumer
 to adapt in order to adopt the new version is breaking. WHAT that contract is depends
-on the project — [TO BE DEFINED AT SETUP] — but the criterion is one and the same:
+on the project — its answer **Public contract** in `CLAUDE.md` — but the criterion is one
+and the same:
 - a **code** project: the public signature of an API/CLI, a data or message format, a
   persistence schema, a configuration contract — breaking them is MAJOR;
 - a **method/tooling** project: removing or renaming a command, an incompatible change
@@ -180,14 +182,19 @@ on WHICH BRANCH the tag lives:
 > is REPLACED by these two regimes: in 0.x you tag on `develop`, from 1.0.0 on
 > `main`. No two conflicting instructions remain.
 
-> A different branching model (e.g. trunk-based, or different names —
-> [TO BE DEFINED AT SETUP])? The names change, the two regimes do not: pre-1.0 you
+> A different branching model (e.g. trunk-based, or different names — the answer
+> **Branches** in `CLAUDE.md`)? The names change, the two regimes do not: pre-1.0 you
 > tag on the working line, post-1.0 on the released line.
 
 **Tag and push hygiene (for the user who runs the commands).**
 - The tag's `-m` is a single short message in pure ASCII — the agent prints it so,
   and whoever retypes or edits it keeps it so: em dashes, accents and non-breaking
-  spaces copied from an editor corrupt the command in obscure ways.
+  spaces copied from an editor corrupt the command in obscure ways. It goes in single
+  quotes, with no `'` inside, as the merge header does: in double quotes the shell runs a
+  backticked word or a `$(…)` of the text.
+- A push in a block carries `--no-follow-tags`: with `push.followTags` in the user's
+  configuration, a push publishes besides every local annotated tag on the commits it
+  pushes — a tag the block names explicitly still goes.
 - Before pushing a tag: ALWAYS verify that it points at the commit meant —
   `git rev-parse '<tag>^{commit}'` equals the tip of the branch just merged. `git tag -d`
   is given ONLY after that verification has failed — never printed in advance, never on
@@ -332,7 +339,8 @@ command does not matter:
   from the session's primary working directory, with no parent-directory fallback: a
   session started in a subdirectory of the repository, or moved there with `/cd`, loads none
   of it — no guard, no `deny` or `ask` rule, no `AGENT_GIT_BOUNDARY`, no SessionStart hook —,
-  and nothing says so, while `CLAUDE.md` still loads from the directories above.
+  and nothing says so, while `CLAUDE.md` and the method's core, `.claude/rules/fw-core.md`,
+  still load from the directories above (the core measured on 2026-10-16).
   `--setting-sources` without `project` does the same, and managed settings'
   `allowManagedHooksOnly` runs only the managed hooks. The `pre-push` still refuses such a
   session's push: `CLAUDECODE` is set in the processes Claude Code starts. Start Claude Code
@@ -447,7 +455,8 @@ what Claude Code may run without asking. Keep them **clean and specific**:
   Windows the shell stays Git Bash's, the one the framework's scripts and hooks are written
   for. The guard reads PowerShell's commands too, for a developer who turns the tool on.
 - **`ask`**: an edit to the boundary's own files — `.claude/settings.json` and
-  `scripts/agent-git-guard.mjs` — asks the human in every permission mode, auto mode and
+  `scripts/agent-git-guard.mjs` —, and to `scripts/state-inject.sh`, which decides what every
+  session is shown of the memory at its start, asks the human in every permission mode, auto mode and
   `bypassPermissions` included — dontAsk refuses it instead —, unless a mod approves the
   call or a PermissionRequest hook answers in the user's place, in a session that loaded
   the project's settings (*Enforcement of the execution boundary*); Claude Code's
@@ -457,9 +466,14 @@ what Claude Code may run without asking. Keep them **clean and specific**:
   through a shell command is outside it (and outside the threat model): a redirection or a
   `tee` into `.claude/` meets Claude Code's protected-path check instead — prompted, or
   routed to auto mode's classifier, by mode —, while `sed -i`, a script or a program's
-  `--output` meets only the check of the command itself, and the guard's file is no
-  protected path — one more reason for the rule every file setup copies follows
-  (*Operating rules for Claude Code*).
+  `--output` meets only the check of the command itself, and neither the guard's file nor
+  `scripts/state-inject.sh` is a protected path — both are code the hooks run at every
+  call or session start, with no tool check of their own —: one more reason for the rule
+  every file setup copies follows (*Operating rules for Claude Code*). A rule's path with
+  one leading slash resolves, in the project's settings, from the session's primary working directory
+  — the repository's root, where the method starts Claude Code — (Claude Code's
+  permissions page, read on 2026-10-17): read, not measured; no edit of either file has
+  been seen to prompt.
 - **A local, UNVERSIONED file.** Personal permissions live in `settings.local.json`
   (already in `.gitignore`) and start out **empty**: what is shared and reasoned about
   lives in the versioned file; ad-hoc grants stay local and do not pollute the
@@ -473,4 +487,5 @@ what Claude Code may run without asking. Keep them **clean and specific**:
   prompt more than an implicit, forgotten permission.
 
 > The read-only commands specific to your stack (build tool, package manager,
-> container CLI) are added to `allow` at setup — [TO BE DEFINED AT SETUP].
+> container CLI) are added to `allow` at setup, in `.claude/settings.json` itself (the
+> framework's `SETUP.md`, step 2).

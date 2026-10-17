@@ -1,11 +1,17 @@
 ---
-description: Produce an Escalation Report for an external expert interlocutor
+description: Escalation (docs/05) - produce the ESCALATION REPORT when stuck after 2 reasoned attempts or at a fork the docs do not cover, or carry out a pasted ARCHITECT RESPONSE
 ---
-Produce RIGHT NOW an ESCALATION REPORT following the format defined in
-@.claude/docs/05-escalation-protocol.md about: $ARGUMENTS
-(if $ARGUMENTS is empty: about the session's current problem).
+First Read `.claude/docs/05-escalation-protocol.md` whole; if the context has been compacted
+since, read it again before the next step. Then, on: $ARGUMENTS
+(if $ARGUMENTS is empty: on the session's current problem).
 
-Mandatory checklist before printing the report:
+**If the user pasted an ARCHITECT RESPONSE block** (`===== ARCHITECT RESPONSE: ESC-<id> =====`):
+carry it out per the doc's *HOW to handle the answer* — the ID against the open escalation,
+the project's rules never suspended by the instructions, step by step with the outcome of
+each, the session note updated with problem → cause → solution — and stop there.
+
+**Otherwise produce RIGHT NOW an ESCALATION REPORT** in the doc's format. Mandatory
+checklist before printing it:
 1. Collect: branch and last commit (`git log -1 --oneline`), verbatim error,
    relevant excerpts of the files involved, relevant environment versions.
 2. MASK every sensitive value (environment, token, password → `***`).

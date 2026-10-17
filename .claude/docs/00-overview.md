@@ -24,14 +24,33 @@ the project happens to build.
 
 ## Selective loading
 
-`CLAUDE.md` imports the seven docs of this directory and `STATE.md` with `@`, and Claude
-Code expands and loads an imported file at launch — its frontmatter and block-level HTML
-comments left out: Claude Code's memory page says so of the comments in `CLAUDE.md`, and for
-an imported file it was observed on 2026-10-15; the SessionStart hook injects `STATE.md` as
-it is —: the method is in context in every session. Selective loading applies to the rest, a
-token-efficiency choice: load **only what the task at hand needs**, not everything at once —
-the memory's notes of only the components the task touches, the session notes it points at,
-the files it reads besides.
+Load **only what the task at hand needs**, when it needs it — a token-efficiency choice
+that now holds for the method itself:
+
+- **Always**: the method's core, `.claude/rules/fw-core.md` — a rule with no `paths`, which
+  Claude Code loads at every launch, again after a compaction and in a delegated
+  general-purpose agent (measured on 2026-10-16; an Explore or a Plan agent skips
+  `CLAUDE.md` and the rules with no `paths`, by Claude Code's docs) — and the project's
+  `CLAUDE.md`. A delegated agent receives them as the main session last loaded them, at its
+  launch or its last compaction: a change made since reaches it after the next one (seen at
+  v4.0.0's gate). The core holds every rule that binds in every turn and a table of the
+  moments at which each doc is read.
+- **At the session's start**: `STATE.md`, through the SessionStart hook
+  (`scripts/state-inject.sh`): at most 8,000 characters, its *Caution & open issues* first,
+  and a line saying what was not shown when the file is longer. It is not imported.
+- **At its moment**: a doc of this directory when the core's table names it, by section
+  where the doc is long; a procedure when its `/fw:` command runs, the command reading its
+  doc at its first step; a path-scoped rule of `.claude/rules/` when Claude reads or edits a
+  file it matches.
+- **Never**: an `@`-import of a method's file. Claude Code expands an import at launch, in a
+  rule with `paths` too (measured on 2026-10-16), and a command's import at its invocation
+  (measured once): the cost the loading above avoids. The framework's documentation check
+  fails one in a method rule or command; in a project, `/fw:lint-memory` (check 13) lists
+  every import with its cost.
+
+The memory follows the same rule: the notes of only the components the task touches, the
+session notes it points at, the files it reads besides. What a compaction drops — a file read
+before it, a command's body past its first 5,000 tokens — is read again before the next step.
 
 ## The working cycle
 
@@ -84,7 +103,8 @@ lighter (*Scope and session hygiene*, below).
 2. **`/fw:security-review` — CONDITIONAL: only if the deliverable is under the gate.**
    Under the gate = sensitive — auth/authz, payments/money, personal data, the
    enforcement edge, surfaces that act on behalf of a client (the concrete list is
-   in `03-security-gate.md`) —, or a deliverable whose product asserts a security
+   the answer **Sensitive components** in `CLAUDE.md`, which `03-security-gate.md`
+   points at) —, or a deliverable whose product asserts a security
    property (`03-security-gate.md`, *The lenses of the gate*). Under the gate this is a
    GATE: HIGH/CRITICAL findings are resolved BEFORE going on. Otherwise, skip it — and
    write the verdict anyway, one line with its reason, in the session note
@@ -132,7 +152,7 @@ lighter (*Scope and session hygiene*, below).
 - **Unrelated work = unrelated branch.** Documentation or fixes foreign to the
   current feature branch go on a separate branch (or worktree), not appended to the
   branch you are working on. (Documentation RELATED to the change stays instead in
-  the same commit/branch: rule 5 of `CLAUDE.md`.) A record made while no deliverable is
+  the same commit/branch: rule 5 of the core, `.claude/rules/fw-core.md`.) A record made while no deliverable is
   open — an IMP, a harvest, the user's decisions on the backlog — is unrelated work too,
   whatever its size and in either branching model: it goes on a branch of its own, never
   onto the integration branch, and is integrated before the next deliverable's branch

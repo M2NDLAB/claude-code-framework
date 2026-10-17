@@ -47,7 +47,12 @@
 #      fail; a quote, a legacy form, an accented name and a co-author's trailer do not;
 #   9. the allow-list — an exception whose cause is gone fails, and an exception never
 #      hides another finding of the same line;
-#  10. read-only — a run leaves the copy exactly as it was.
+#  10. read-only — a run leaves the copy exactly as it was;
+#  11. rules and commands — an @-import in a method rule or a method command, a pointer to
+#      docs/04 in the core with no section or with one the doc lacks, a glob of a rule's
+#      `paths` that matches no tracked file, a `model` in a command's frontmatter, and
+#      `disable-model-invocation` on a command other than /fw:new-component each fail; an @
+#      inside a code span does not.
 # Run it from anywhere: bash tools/test-docs-check.sh
 set -euo pipefail
 
@@ -131,6 +136,8 @@ note="$(cd "${base}" && ls .claude/memory/sessions/2*.md | tail -1)"
 run 0 "${base}"
 has "docs-check: 0 FAIL"
 floor 'N commands, N process targets' 8
+floor 'N method rules and N commands' 2
+floor 'method rules and N commands' 9
 floor 'no framework IMP number in N payload files' 30
 floor 'N pointers? out of the payload' 15
 floor 'N markers in the full form' 25
@@ -138,7 +145,6 @@ floor 'N tags and N entries match' 19
 floor 'N mentions of a framework release' 20
 floor 'N Markdown links' 5
 floor 'N wikilinks' 100
-floor 'N @-imports' 15
 floor 'N cited paths' 300
 floor 'N section titles' 40
 floor 'the class table at N tags' 19
@@ -209,8 +215,10 @@ printf '\nRead `sessions/%s` first.\n' "${note##*/}" >> "${c}/.claude/commands/f
 printf '\nAs [[%s]] records.\n' "$(basename "${note}" .md)" >> "${c}/.claude/docs/02-code-quality.md"
 printf '\n@%s\n' "${note}" >> "${c}/.claude/commands/fw/sos.md"
 run 1 "${c}"
-nfails 8
+# Eight pointers out of the payload, and the @ in a method command a second time, as an import.
+nfails 9
 has ".claude/commands/fw/sos.md:"
+has "an import in a command attaches its file at its invocation"
 has '"../../SETUP.md" points at SETUP.md'
 has '"../../CONTRIBUTING.md" points at CONTRIBUTING.md'
 has "points at ${note}"
@@ -256,7 +264,7 @@ printf 'Notes.\n' > "${c}/NOTES.md"
 printf '#!/usr/bin/env bash\n' > "${c}/tools/extra.sh"
 printf '\nRun `/nonexistent` first.\n' >> "${c}/README.md"
 run 1 "${c}"
-has "the process documentation of CLAUDE.md lacks .claude/docs/07-extra.md"
+has "the docs of the core's table lacks .claude/docs/07-extra.md"
 has "the Structure tree under the root lacks NOTES.md"
 has "the table of tools/README.md lacks extra.sh"
 has "/nonexistent: no such command"
@@ -265,8 +273,8 @@ printf '#!/usr/bin/env bash\n' > "${c}/scripts/test-extra.sh"
 run 1 "${c}"
 has "the test-scripts recipe lacks scripts/test-extra.sh"
 c="$(copy inv-guards)"
-edit "${c}/CLAUDE.md" '^- Slash commands: ' '- Commands of the method: '
-edit "${c}/README.md" 'commands/              /fw:checkpoint' 'cmds/                  /fw:checkpoint'
+edit "${c}/.claude/rules/fw-core.md" '^- Slash commands: ' '- Commands of the method: '
+edit "${c}/README.md" 'commands/              /fw:plan' 'cmds/                  /fw:plan'
 edit "${c}/Makefile" 'bash scripts/' 'bash scriptz/'
 run 1 "${c}"
 has 'no "- Slash commands:" item in Quick commands'
@@ -395,7 +403,8 @@ has "[[no-such-note]] names no note"
 has "\`scripts/no-such.sh\` names no file"
 has 'has no section "No such section"'
 c="$(copy links-more)"
-printf '\n@.claude/docs/99-none.md\n' >> "${c}/.claude/commands/fw/retro.md"
+# In CLAUDE.md, the project's to import from: in a method command an @ fails on its own.
+printf '\n@.claude/memory/99-none.md\n' >> "${c}/CLAUDE.md"
 {
   printf '\nSee [x](a%%zz.md).\n'
   printf '\nSee docs/04, "No such title".\n'
@@ -413,7 +422,7 @@ has 'SETUP.md has no section "No bare title"'
 has 'docs/04 has no section "No message title"'
 has "SETUP.md has no section §99"
 has 'has no section "No such wrapped title"'
-has "@.claude/docs/99-none.md: the import names no file"
+has "@.claude/memory/99-none.md: the import names no file"
 has "a malformed %-escape"
 has 'docs/04 has no section "No such title"'
 has 'has no section "No other title"'
@@ -464,7 +473,7 @@ has '"the five guide READMEs"'
 has '"+ 5 subfolders"'
 has 'the header says "nine cases"'
 c="$(copy list-setup)"
-edit "${c}/SETUP.md" '`CLAUDE\.md`, `\.claude/settings\.json`, `scripts/hooks-install\.sh`' '`.claude/settings.json`, `scripts/hooks-install.sh`'
+edit "${c}/SETUP.md" '`CLAUDE\.md` — from v4\.0\.0 the' 'The index — from v4.0.0 the'
 edit "${c}/SETUP.md" 'CLAUDE\.md scripts Makefile commitlint' 'CLAUDE.md scripts commitlint'
 edit "${c}/SETUP.md" '`CHANGELOG\.md`, `tools/` and `\.github/` are NOT copied' '`CHANGELOG.md`, the checks and `.github/` are NOT copied'
 edit "${c}/SETUP.md" 'So are `tools/` —' 'So are the checks —'
@@ -635,3 +644,37 @@ run 0 "${c}"
 fingerprint "${c}" > "${workdir}/after.txt"
 diff "${workdir}/before.txt" "${workdir}/after.txt" >/dev/null || fail "a run changed the copy it checked"
 echo "PASS (docs-check, read-only): a run leaves the repository exactly as it was."
+
+# --- Case 11: rules and commands -------------------------------------------------------------
+c="$(copy rule-import)"
+printf '\nSee @.claude/docs/02-code-quality.md first.\n' >> "${c}/.claude/rules/fw-boundary.md"
+run 1 "${c}"
+fails 1 "@.claude/docs/02-code-quality.md: an import in a method rule loads its file at every launch"
+c="$(copy rule-import-span)"
+printf '\nNever write `see @.claude/docs/02-code-quality.md` here.\n' >> "${c}/.claude/rules/fw-boundary.md"
+run 0 "${c}"
+c="$(copy rule-section)"
+edit "${c}/.claude/rules/fw-core.md" '\*Rollback — choosing the right tool\*' 'the rollback section'
+run 1 "${c}"
+fails 1 "a pointer to docs/04 with no section of it"
+c="$(copy rule-section-gone)"
+edit "${c}/.claude/rules/fw-core.md" '\*Rollback — choosing the right tool\*' '*Rollback — no such section*'
+run 1 "${c}"
+has 'has no section "Rollback — no such section"'
+c="$(copy rule-glob)"
+edit "${c}/.claude/rules/fw-boundary.md" '"scripts/hooks-install\.sh"' '"scripts/no-such-file.sh"'
+run 1 "${c}"
+fails 1 'the glob "scripts/no-such-file.sh" matches no tracked file'
+c="$(copy command-import)"
+printf '\nSee @.claude/docs/05-escalation-protocol.md.\n' >> "${c}/.claude/commands/fw/sos.md"
+run 1 "${c}"
+fails 1 "@.claude/docs/05-escalation-protocol.md: an import in a command attaches its file at its invocation"
+c="$(copy command-model)"
+edit "${c}/.claude/commands/fw/retro.md" '^---\ndescription:' $'---\nmodel: haiku\ndescription:'
+run 1 "${c}"
+fails 1 "model: a key a method's command does not carry"
+c="$(copy command-uninvoked)"
+edit "${c}/.claude/commands/fw/retro.md" '^---\ndescription:' $'---\ndisable-model-invocation: true\ndescription:'
+run 1 "${c}"
+fails 1 "disable-model-invocation: only .claude/commands/fw/new-component.md is kept out of Claude's reach"
+echo "PASS (docs-check, rules and commands): an @-import in a method rule or command, a pointer to docs/04 without its section or with a missing one, a glob matching no file, a command key outside the policy each fail; a code span does not."

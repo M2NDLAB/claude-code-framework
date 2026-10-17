@@ -36,8 +36,9 @@ tags: [session, <area>]
 - <itemised list of what was produced, with the relevant commits/shas>
 
 ## Security gate
-- <the outcome of `/fw:security-review` — or "not applicable" —, and why: under the gate for
-  a sensitive component or a security property the product asserts, or neither>
+- <the outcome of `/fw:security-review` and the tip its report names as reviewed (`<short
+  sha>`) — or "not applicable" —, and why: under the gate for a sensitive component or a
+  security property the product asserts, or neither>
 
 ## Problems encountered → cause → solution
 1. <symptom> → <root cause> → <fix>
@@ -57,11 +58,16 @@ tags: [session, <area>]
 ## The security gate's line
 
 The note that closes a deliverable states the gate's verdict, always, with its reason: the
-outcome of `/fw:security-review` when the deliverable is under the gate — a sensitive
-component, or a security property its product asserts (`docs/03`) —, "not applicable" and
-why when it is not. A gate skipped and a gate forgotten must not look the same in the
-memory: a closing note without the line is a forgotten gate. Notes written before this line
-existed stay valid as they are.
+outcome of `/fw:security-review` and the tip it reviewed when the deliverable is under the
+gate — a sensitive component, or a security property its product asserts (`docs/03`) —,
+"not applicable" and why when it is not. A gate skipped and a gate forgotten must not look
+the same in the memory: a closing note without the line is a forgotten gate. The tip is the
+one the review's report names (`Reviewed: <base>..<sha>`), never a later HEAD: a fix
+committed after the review is a new tip, reviewed again.
+`/fw:integrate` reads the line before it prints its blocks, and stops on a missing line, on
+a review other than the method's, and on a commit of a shipped file the review did not see.
+Notes written
+before this line existed stay valid as they are.
 
 ## The `model` and `turns` fields
 

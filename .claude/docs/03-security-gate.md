@@ -4,7 +4,7 @@ Security has two levels in this framework:
 
 1. **An automatic baseline** — the pre-commit hook runs secret scanning (gitleaks)
    on the changes staged for a `git commit`, and refuses the commit when it finds a
-   secret (rule 1 of `CLAUDE.md`), from the moment it is installed and while git reads
+   secret (rule 1 of the core, `.claude/rules/fw-core.md`), from the moment it is installed and while git reads
    it. Its limits include the commits git creates itself — a rebase's `--continue`,
    `git am`, a cherry-pick or a revert that applies cleanly —, which do not run it, a
    commit made with `-n` (`--no-verify`), which the shipped `allow` rule runs with no prompt
@@ -28,8 +28,9 @@ authentication/authorisation, handling of payments or money, personal data, the 
 that performs enforcement (gateway/proxy), any surface that performs actions on
 behalf of a client (e.g. a tool/automation server).
 
-> **Which ones, concretely, in this project: [TO BE DEFINED AT SETUP].**
-> List here (or in `CLAUDE.md`) the components that fall under the gate.
+> **Which ones, concretely, in this project:** the answer **Sensitive components** in
+> `CLAUDE.md`, *The answers the method reads* — the list step 2 of the end-of-deliverable
+> cycle points to.
 
 ## How the gate works
 
@@ -51,6 +52,30 @@ The gate is a GATE, not an optional activity: a component that is "complete" and
 green functional tests can still carry security defects the tests cannot see (a
 bypassed check, a spoof, an exposed administrative endpoint). Only a dedicated review
 finds them before they reach integration.
+
+## The check at integration
+
+The gate is never activated by a file's path: it holds in every session, from the method's
+core (`.claude/rules/fw-core.md`, rule 8), loaded at every launch, on the categories above —
+in doubt, under the gate. And the
+session note that closes a deliverable records its verdict, the review's outcome and the tip
+it reviewed (`.claude/memory/sessions/README.md`, *The security gate's line*), which
+`/fw:integrate` reads before it prints its blocks — in the Pull Request form, when the agent
+prepares the PR. It stops on a missing note or line; on "not applicable" for a deliverable
+that touches a sensitive component — the method's own boundary among them — or asserts a
+security property; on a review other than `/fw:security-review`, or no reviewed tip; on a
+commit after the reviewed tip that touches a file the project ships, the commit of its own
+step 3 aside; on a HIGH or CRITICAL finding still open, and on a MEDIUM neither
+resolved nor accepted.
+
+Its known limits, declared here where the claim lives: it is a check the agent applies, not
+an enforcement. A merge made outside `/fw:integrate` — a Pull Request merged on the forge, a
+merge typed by hand, a PR the user opens without the agent — never passes through it; and
+it reads what the note records, so a line that claims a review which did not run, or a
+verdict wider than the review's, passes it. Its step 3 writes the changelog after the review,
+if the project keeps one: under the gate the entry's text goes in `[Unreleased]` before the
+review, and step 3 only moves it. A forge's required review or status check is the enforcement, where the project
+has one.
 
 ## The lenses of the gate
 

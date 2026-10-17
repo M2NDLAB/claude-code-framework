@@ -96,6 +96,7 @@ const SCAFFOLDS = ['SECURITY.md']
 const LEARNINGS = '.claude/memory/LEARNINGS.md'
 const CHANGELOG = 'CHANGELOG.md'
 const SETUP = 'SETUP.md'
+const CORE = '.claude/rules/fw-core.md'
 const underPayload = (p) => PAYLOAD_PATHS.some((r) => p === r || p.startsWith(`${r}/`))
 const isLiveNote = (p) => /^\.claude\/memory\/sessions\/(?!README\.md$)[^/]+$/.test(p)
 const isPayload = (p) => SCAFFOLDS.includes(p) || (underPayload(p) && !isLiveNote(p))
@@ -475,9 +476,10 @@ function checkInventories() {
   for (const p of FILES.filter((f) => /^\.claude\/commands\/.+\.md$/.test(f) && !f.startsWith('.claude/commands/fw/'))) {
     report('inventory', p, 1, `a command outside .claude/commands/fw/: it would run under a name Claude Code may also use`)
   }
-  const slash = item('CLAUDE.md', /^- Slash commands:/)
-  if (!slash) report('inventory', 'CLAUDE.md', 1, 'no "- Slash commands:" item in Quick commands')
-  else compareSets('inventory', 'CLAUDE.md', slash.line, 'the Slash commands of Quick commands', commands,
+  // The method's commands and targets are listed in its core, the rule every session loads.
+  const slash = item(CORE, /^- Slash commands:/)
+  if (!slash) report('inventory', CORE, 1, 'no "- Slash commands:" item in Quick commands')
+  else compareSets('inventory', CORE, slash.line, 'the Slash commands of Quick commands', commands,
     new Set(backticked(slash.text).filter((t) => t.startsWith('/'))), '.claude/commands/')
   const { tree, line: treeLine } = readmeTree()
   const cmdLine = region('README.md', /^### Structure/, /^## /).find((l) => /commands\/\s+\//.test(l.text))
@@ -495,8 +497,8 @@ function checkInventories() {
   // The process targets, wherever they are listed.
   const targets = processTargets()
   if (targets.size < 3) report('inventory', 'Makefile', 1, `only ${targets.size} process targets found: the recipe test is wrong`)
-  const quick = region('CLAUDE.md', /^## Quick commands/, /^(## |---)/)
-  compareSets('inventory', 'CLAUDE.md', quick[0]?.line ?? 1, 'Quick commands', targets,
+  const quick = region(CORE, /^## Quick commands/, /^(## |---)/)
+  compareSets('inventory', CORE, quick[0]?.line ?? 1, 'Quick commands', targets,
     new Set(quick.flatMap((l) => [...l.text.matchAll(/`make ([a-z][a-z0-9-]*)/g)].map((m) => m[1]))), 'the Makefile\'s process targets')
   const mk = region('README.md', /^### Structure/, /^## /).find((l) => /Makefile\s/.test(l.text))
   if (mk) compareSets('inventory', 'README.md', mk.line, 'the Structure tree\'s Makefile line', targets,
@@ -521,10 +523,11 @@ function checkInventories() {
     compareSets('inventory', readme, rows[0]?.line ?? 1, `the table of ${readme}`,
       new Set([...childrenOf(dir)].filter((c) => c !== 'README.md')), new Set(rows.map((r) => r.m[1])), `${dir}/`)
   }
-  // The docs CLAUDE.md indexes.
-  compareSets('inventory', 'CLAUDE.md', lines('CLAUDE.md').findIndex((l) => l.includes('@.claude/docs/')) + 1,
-    'the process documentation of CLAUDE.md', new Set(FILES.filter((p) => /^\.claude\/docs\/[^/]+\.md$/.test(p))),
-    new Set((text('CLAUDE.md').match(/@\.claude\/docs\/[^\s)]+\.md/g) ?? []).map((t) => t.slice(1))), '.claude/docs/')
+  // The docs the core's table sends Claude to: every doc of the method is reachable from it,
+  // since none is imported any more.
+  const table = region(CORE, /^## Read at the moment it is needed/, /^## /)
+  compareSets('inventory', CORE, table[0]?.line ?? 1, 'the docs of the core\'s table', new Set(FILES.filter((p) => /^\.claude\/docs\/[^/]+\.md$/.test(p))),
+    new Set(table.flatMap((l) => backticked(l.text)).filter((t) => /^\.claude\/docs\/[^/]+\.md$/.test(t))), '.claude/docs/')
   // The README's tree: every directory it opens lists its tracked children, globs expanded;
   // a directory listed without children is summarised on its own line.
   for (const [dir, listed] of tree) {
@@ -1094,6 +1097,8 @@ const LEGACY = [
     'PRONTO PER INTEGRAZIONE', 'RACCOLTA PER IL FRAMEWORK', 'FINE REPORT', 'FINE RESPONSE', 'FINE RISPOSTA', 'FINE RACCOLTA',
     '<branch-integrazione>']
     .map((t) => ({ text: t, where: /^(SETUP\.md|CHANGELOG\.md|tools\/|\.claude\/memory\/(LEARNINGS\.md|sessions\/))/ })),
+  // The STATE.md of a project not yet brought to the method's titles, as the hook reads it.
+  ...['Attenzione / problemi aperti', 'Branch attivi'].map((t) => ({ text: t, where: /^scripts\/test-state-inject\.sh$/ })),
 ]
 // The identifiers of history inside code spans — a branch, a commit subject — are names,
 // not prose; so are the frontmatter's branch: and tags: values.
@@ -1167,6 +1172,7 @@ const ALLOW = [
   // Inventories.
   { check: 'inventory', file: '*', text: '/clear: no such command', reason: 'a command of Claude Code itself, not one of the method' },
   { check: 'inventory', file: '*', text: '/cd: no such command', reason: 'a command of Claude Code itself, not one of the method' },
+  { check: 'inventory', file: '*', text: '/security-review: no such command', reason: 'Claude Code\'s built-in, named so that it is not taken for the gate' },
   { check: 'inventory', file: SETUP, text: '/tmp: no such command', reason: 'a directory, not a command' },
   // Links: names that are not meant to exist in this repository.
   { check: 'link', file: '*', text: '`.claude/framework-version`', reason: 'the provenance pin: created in a project at its graft, never here' },
@@ -1179,6 +1185,7 @@ const ALLOW = [
   { check: 'list', file: SETUP, text: '§2 names .claude/memory/STATE.md', reason: 'a template the first command populates, not a slot' },
   { check: 'list', file: SETUP, text: '§2 names .claude/memory/INDEX.md', reason: 'a template the first command populates, not a slot' },
   { check: 'list', file: SETUP, text: '§2 names scripts/agent-git-guard.mjs', reason: 'named as boundary wiring to leave in place, not a slot' },
+  { check: 'list', file: SETUP, text: '§2 names scripts/state-inject.sh', reason: 'named as the memory\'s wiring to leave in place, not a slot' },
   { check: 'list', file: UPGRADE_CHECK, text: 'classify() names .claude/framework-version', reason: 'GRAFT-STATE: the pin exists only in a project' },
   { check: 'list', file: UPGRADE_CHECK, text: 'classify() names .claude/settings.local.json', reason: 'LOCAL: never versioned' },
   { check: 'list', file: 'README.md', text: 'the copy list names .claude/framework-version', reason: 'the pin step 1 creates, not a copied path' },
@@ -1196,6 +1203,103 @@ const ALLOW = [
   { check: 'italian', file: `${NOTES}2026-07-17-audit-preintegrate-closeout-v0.3.0.md`, line: '(nota); lavoro su', reason: 'a frontmatter value the translation of the memory missed; the memory is not rewritten' },
 ]
 
+// --- The method's rules ------------------------------------------------------------------
+// A rule of the method (.claude/rules/fw-*.md) imports nothing: an @-import inside a rule with
+// `paths` was measured loading its file at every launch, before the rule itself (the v4.0.0
+// session note, task 2) — the cost the rules exist to avoid; the rule tells Claude to Read
+// the file instead. Claude Code imports `@path` outside code spans and fenced code. And each
+// concrete glob of a rule's `paths` matches a tracked file: one that matches nothing is a rule
+// that never loads. A slot's marker is no glob: setup answers it.
+const METHOD_RULE = /^\.claude\/rules\/fw-[^/]+\.md$/
+// ruleGlobs(p): the `paths` of a rule's frontmatter, each with its line — a YAML list, or the
+// comma-separated string Claude Code also accepts.
+function ruleGlobs(p) {
+  const ls = lines(p)
+  if (ls[0] !== '---') return []
+  const end = ls.indexOf('---', 1)
+  const out = []
+  const unquote = (s) => s.trim().replace(/^(["'])(.*)\1$/, '$2')
+  let inList = false
+  for (let i = 1; i < end; i++) {
+    const l = ls[i]
+    const key = /^paths:\s*(.*)$/.exec(l)
+    if (key) {
+      inList = !key[1].trim()
+      if (!inList) for (const g of key[1].split(',')) out.push({ glob: unquote(g), line: i + 1 })
+      continue
+    }
+    if (!inList || /^\s*(#.*)?$/.test(l)) continue
+    const item = /^\s+-\s+(.*)$/.exec(l)
+    if (item) out.push({ glob: unquote(item[1]), line: i + 1 })
+    else inList = false
+  }
+  return out
+}
+// globToRe(g): a rule's glob as a regular expression over the repository's paths — `**/` any
+// depth or none, `*` and `?` within a segment, `{a,b}` either.
+const globToRe = (g) => new RegExp(`^${g.replace(/[.+^$()|\\]/g, '\\$&')
+  .replace(/\{([^}]*)\}/g, (m, a) => `(?:${a.split(',').join('|')})`)
+  .replace(/\*\*\//g, '\u0000').replace(/\*\*/g, '.*').replace(/\*/g, '[^/]*').replace(/\?/g, '[^/]')
+  .replace(/\u0000/g, '(?:.*/)?')}$`)
+// The frontmatter of a method's command: what it may carry. A `model` is a model switch at
+// every invocation, the whole history read again with no cache hit (Claude Code's
+// prompt-caching page); `effort`, `allowed-tools` and `hooks` change what the session runs
+// without the user's settings knowing; `disable-model-invocation` takes a command out of
+// Claude's reach, which only /fw:new-component, a scaffold with side effects, wants.
+const COMMAND_KEYS = new Set(['description', 'argument-hint', 'disable-model-invocation'])
+const COMMAND_UNINVOKED = '.claude/commands/fw/new-component.md'
+function frontmatterKeys(p) {
+  const ls = lines(p)
+  if (ls[0] !== '---') return []
+  return ls.slice(1, ls.indexOf('---', 1)).map((l, i) => ({ key: /^([\w-]+):/.exec(l)?.[1], line: i + 2 })).filter((k) => k.key)
+}
+function checkRules() {
+  section('Rules and commands — the method\'s rules and commands import nothing, each glob matches a file, each command\'s frontmatter keeps to its keys')
+  const rules = FILES.filter((f) => METHOD_RULE.test(f))
+  const commands = FILES.filter((f) => /^\.claude\/commands\/fw\/[^/]+\.md$/.test(f))
+  if (!rules.length) report('rule', null, 0, 'no method rule under .claude/rules/: the extraction is wrong')
+  if (!commands.length) report('rule', null, 0, 'no command under .claude/commands/fw/: the extraction is wrong')
+  let globs = 0
+  for (const p of [...rules, ...commands]) {
+    const what = rules.includes(p) ? 'a method rule loads its file at every launch, before the rule' : 'a command attaches its file at its invocation, in a context that may already hold it'
+    for (const u of units(p, allMask(p))) {
+      for (const m of blankOut(u.text, CODE_SPAN).matchAll(/(?:^|\s)@([\w.~/-]*[\w~/-])/g)) {
+        report('rule', p, u.at[m.index], `@${m[1]}: an import in ${what} — have Claude Read it instead`)
+      }
+    }
+  }
+  for (const p of commands) {
+    const keys = frontmatterKeys(p)
+    if (!keys.some((k) => k.key === 'description')) report('rule', p, 1, 'a command without its description: Claude picks a command by it')
+    for (const k of keys) {
+      if (!COMMAND_KEYS.has(k.key)) report('rule', p, k.line, `${k.key}: a key a method's command does not carry (description, argument-hint, and disable-model-invocation on ${COMMAND_UNINVOKED} only)`)
+      else if (k.key === 'disable-model-invocation' && p !== COMMAND_UNINVOKED) report('rule', p, k.line, `disable-model-invocation: only ${COMMAND_UNINVOKED} is kept out of Claude's reach`)
+    }
+  }
+  // docs/04 is read by section (the user's decision D3, v4.0.0): in the core and the rules,
+  // which every session holds, a pointer to it names a section the doc has.
+  const d04 = '.claude/docs/04-git-workflow.md'
+  const titles04 = headings(d04).map((h) => h.title)
+  for (const p of rules) {
+    for (const u of units(p, allMask(p))) {
+      if (!/04-git-workflow\.md|docs\/04\b/.test(u.text)) continue
+      const named = [...u.text.replace(/\*\*[^*]+\*\*/g, ' ').matchAll(/\*([^*\n]+)\*/g)].map((m) => m[1].trim())
+      if (!named.some((t) => titles04.some((h) => h === t || h.startsWith(t)))) {
+        report('rule', p, u.at[u.text.search(/04-git-workflow\.md|docs\/04\b/)], `a pointer to docs/04 with no section of it: name the section to read — the doc is read by section`)
+      }
+    }
+  }
+  for (const p of rules) {
+    for (const g of ruleGlobs(p)) {
+      if (MARKER_RE.test(g.glob)) continue
+      globs++
+      const re = globToRe(g.glob)
+      if (!FILES.some((f) => re.test(f))) report('rule', p, g.line, `the glob "${g.glob}" matches no tracked file: the rule would never load`)
+    }
+  }
+  settle('rule', `${plural(rules.length, 'method rule')} and ${plural(commands.length, 'command')}, no @-import, ${plural(globs, 'glob')} each matching a tracked file, each command's frontmatter within its keys`)
+}
+
 // --- The allow-list itself ---------------------------------------------------------------
 function checkAllowList() {
   section('The allow-list — every declared exception still matches something')
@@ -1211,6 +1315,7 @@ checkImpNumbers()
 checkPointers()
 checkShortSlots()
 checkInventories()
+checkRules()
 checkChangelog()
 checkCurrentVersion()
 checkLinks()

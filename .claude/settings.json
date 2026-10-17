@@ -15,7 +15,8 @@
     ],
     "ask": [
       "Edit(/.claude/settings.json)",
-      "Edit(/scripts/agent-git-guard.mjs)"
+      "Edit(/scripts/agent-git-guard.mjs)",
+      "Edit(/scripts/state-inject.sh)"
     ],
     "deny": [
       "Bash(git push:*)",
@@ -36,7 +37,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '=== PROJECT MEMORY (STATE.md) ===' && cat .claude/memory/STATE.md 2>/dev/null || echo 'Memory not initialised: .claude/memory/STATE.md is missing (the framework setup guide copies it at step 1 and fills it at step 4)'"
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/scripts/state-inject.sh\" || { echo '=== PROJECT MEMORY (STATE.md) ==='; echo '(scripts/state-inject.sh could not run: the first 8000 bytes of STATE.md follow, as they are)'; head -c 8000 \"${CLAUDE_PROJECT_DIR:-.}/.claude/memory/STATE.md\"; echo; echo '=== Read .claude/memory/STATE.md whole before acting on what it holds. ==='; }"
           }
         ]
       }

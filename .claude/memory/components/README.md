@@ -5,7 +5,8 @@ library, an app, a subsystem). It captures the knowledge that canNOT be inferred
 a glance from the code: what it exposes, the invariants, the gotchas, the
 constraints for those who use it, the local decisions. It is the "living"
 documentation that Claude Code loads at the start of a session **only for the
-components touched by the task** (see the memory section of `CLAUDE.md`) — which is
+components touched by the task** (the core's *Memory and resumption*,
+`.claude/rules/fw-core.md`) — which is
 why it must be kept dense and up to date.
 
 Unlike the session notes (append-only), these notes are **updated**: they must

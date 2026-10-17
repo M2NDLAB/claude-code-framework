@@ -93,7 +93,7 @@ form.
 
 ```bash
 git init -b <integration> \
-  && git commit --allow-empty -m "chore: start the repository" \
+  && git commit --allow-empty -m 'chore: start the repository' \
   && git branch <stable> \
   && git remote add origin <the remote's URL> \
   && test "$(git rev-list --count <integration>)" = 1 && echo "root: OK"
@@ -102,13 +102,13 @@ git init -b <integration> \
 Once the first block has printed `root: OK`, publish:
 
 ```bash
-git push --atomic -u origin <integration> <stable>
+git push --atomic --no-follow-tags -u origin <integration> <stable>
 ```
 
 If the forge created the remote with a first commit — a README or a licence made from its
 web interface —, start from that commit instead: clone the remote, and in a two-branch
 model create the integration branch from it (`git switch -c <integration>`) and publish it
-(`git push -u origin <integration>`); in a trunk-based one the clone's branch already is
+(`git push --no-follow-tags -u origin <integration>`); in a trunk-based one the clone's branch already is
 the integration branch. The forge's files are the project's own: where the copy below
 collides with one of them — a `.gitignore` the forge wrote —, reconcile it as the brownfield
 section says, never overwrite it. The copy writes over a file of the same name (measured with
@@ -231,7 +231,7 @@ Two equivalent modes — pick the one you prefer:
   `[TO BE DEFINED AT SETUP]`, and you complete it whenever you like. (See also the
   variant of the first command, step 4.) It writes each answer with its file tools, an
   edit of the slot's own text — never `sed -i`, a line number or a script: the grep's
-  output is the list of what to fill, not a set of coordinates (`CLAUDE.md`, rule 10).
+  output is the list of what to fill, not a set of coordinates (the core's rule 10, `.claude/rules/fw-core.md`).
   Stage what step 1 copied before the interview; after it, `git diff` shows what the
   interview wrote, the memory's initialisation beside the answers — read it before
   staging it.
@@ -240,29 +240,28 @@ Here is the complete list, grouped by file:
 
 ### `CLAUDE.md` (the most important one)
 - [ ] Header: **project name**, **stack**, **repo**.
-- [ ] Rule 5: **where the project documentation lives**.
-- [ ] Rule 8: **which components are "sensitive"** (subject to the security gate).
+- [ ] *The answers the method reads*, one line each: **Documentation** — where the
+      project documentation lives (the core's rule 5); **Sensitive components** — those
+      under the security gate (the core's rule 8, `docs/03`); **Branches** — the integration and stable
+      branches, and the model if it is not main/develop/feat; **Merge** — Pull Request or
+      the `/fw:integrate` block; **Public contract** — the criterion of a MAJOR; **Doc
+      comments**, **Error format**, **Formatter / linter** and **Production artifact**,
+      which `docs/02` reads. The docs in `.claude/docs/` hold no answer of their own: they
+      point at these lines, so an upgrade brings them over whole.
 - [ ] Final section **"Project-specific technical rules"**: stack, build/test/lint/run
       commands, standard structure of a component, code conventions, API design,
       datastores, tests/coverage, deployment. This is where the framework becomes
       *your* project.
 - [ ] **Interaction language** (in the technical rules): which language the agent
       speaks with you in session. The language of the ARTIFACTS is not configurable —
-      it is always English (rule 9); only this axis is yours.
+      it is always English (the core's rule 9); only this axis is yours.
 
-### `.claude/docs/`
-- [ ] `02-code-quality.md`: doc-comment tool, error format exposed to clients,
-      formatter/linter, where the documentation lives, production artifact format.
-      (It is often enough to define them in CLAUDE.md and leave a pointer here.)
-- [ ] `03-security-gate.md`: explicit list of the sensitive components (aligned with
-      CLAUDE.md rule 8) — the list step 2 of the end-of-deliverable cycle points to.
-- [ ] `04-git-workflow.md`: branching model, **if** different from main/develop/feat;
-      the merge form the project adopts — Pull Request or the `/fw:integrate` block
-      (*Merge*); what the project's public contract is, the criterion of a MAJOR
-      (*Versioning*).
-
-These three docs are HYBRID: an answer written inline, or a pointer to `CLAUDE.md` in place
-of the slot, survives every upgrade, which merges them three ways.
+### `.claude/rules/`
+- [ ] `rules/fw-code-quality.md`: the globs of the project's code files, one per item of its
+      `paths`, in place of the marker — the rule then has Claude Read `docs/02` when it
+      works on them. Left open, it does not load on the project's files (measured on a
+      Read), and the core alone sends Claude to
+      `docs/02` before the first edit of code. The method's other rules have no slot.
 
 ### `.claude/commands/fw/`
 - [ ] `fw/checkpoint.md`: patterns to ignore for `tree`, name of the integration branch — its
@@ -292,11 +291,13 @@ of the slot, survives every upgrade, which merges them three ways.
       package manager, container CLI) to reduce prompts — e.g. the build/test command.
       The baseline is already set (`allow`: git inspection + safe `add`/`commit`;
       `deny`: push, `reset --hard`, destructive deletions, reading secrets) — the
-      principles are in `04-git-workflow.md` ("Permission configuration"). The `env`
-      marker `AGENT_GIT_BOUNDARY` and the PreToolUse hook that runs
+      principles are in docs/04, *Permission configuration*. The `env` marker
+      `AGENT_GIT_BOUNDARY` and the PreToolUse hook that runs
       `scripts/agent-git-guard.mjs` are the method's boundary wiring, and the `ask`
-      rules on edits to these two files are its checkpoint: leave them in
-      (`04-git-workflow.md`, "Enforcement of the execution boundary").
+      rules on edits to these two files are its checkpoint; the SessionStart hook that
+      runs `scripts/state-inject.sh`, with the `ask` rule on that script, is how every
+      session receives the memory: leave them in (docs/04, *Enforcement of the execution
+      boundary*).
 - [ ] Leave `settings.local.json` out of version control (it is already in
       `.gitignore`) and start empty: personal permissions are NOT committed, no vague
       grants of the "stop asking for similar commands" kind.
@@ -382,9 +383,10 @@ with a filter like git-lfs's).
 
 Open Claude Code in the project root and give it a command like this one:
 
-> Read `CLAUDE.md` and all the docs in `.claude/docs/`: I want you to internalise the
-> way of working (memory, task planning, escalation, security gate, git workflow,
-> self-improvement). Then **initialise the memory**: fill `STATE.md` with the real
+> The method's core is already in your context (`.claude/rules/fw-core.md`). Read
+> `.claude/docs/00-overview.md` to see the whole way of working (memory, task planning,
+> escalation, security gate, git workflow, self-improvement) — the other docs at the
+> moments the core names. Then **initialise the memory**: fill `STATE.md` with the real
 > initial state of the project (removing the templates' instruction blocks), generate
 > `TREE.md` from the current structure, and populate `INDEX.md`. Finally, give me a
 > summary of the method as you understood it and flag any `[TO BE DEFINED]` still open.
@@ -532,6 +534,8 @@ them:
 | File | Rule |
 |---|---|
 | The host's `README.md` | It is PRESERVED: it is the project's public documentation (the framework's README is not copied anyway, step 1). |
+| The host's `CLAUDE.md` | It is PRESERVED: the file is the project's. Add the template's two sections, *The answers the method reads* and *Project-specific technical rules*, to it — the method needs nothing else there, its core is `.claude/rules/fw-core.md`. An `@`-import the host's file already holds keeps loading at every launch: `/fw:lint-memory` lists each with its cost (check 13). |
+| The host's `.claude/rules/` | It is PRESERVED: the method's rules are its `fw-*.md` files, added beside the host's own. A host rule already named `fw-…` is renamed first. |
 | `.gitignore` | It is INTEGRATED: add the template's entries (secrets, `settings.local.json`, etc.) to the host's file, do not overwrite it. |
 | `.gitattributes` | It is INTEGRATED: add the template's lines (LF line ends for the framework's paths) AFTER the host's — for the same path a later line wins —, do not overwrite it. |
 | `Makefile` | It is INTEGRATED: add the process targets (`hooks-install`, `reset-task` with its `PROTECTED_BRANCHES` variable, `test-scripts`) to the host's one. |
@@ -572,15 +576,16 @@ On a pre-existing git history, before adopting the flow of `docs/04`:
 - [ ] **Branch topology**: faced with a dormant remote integration branch (e.g. an old
       `dev`), DECIDE and DECLARE the choice: trunk-based (the two roles coincide — a
       case `docs/04` provides for) or restoring the branch as the integration one.
-      Record the choice in the `[TO BE DEFINED AT SETUP]` slots of `docs/04` and in the
-      commands' parameters (`fw/checkpoint.md`, `fw/integrate.md` — step 2 of this guide).
+      Record the choice in the answer **Branches** of `CLAUDE.md` and in the commands'
+      parameters (`fw/checkpoint.md`, `fw/integrate.md` — step 2 of this guide).
 
 ### The first command becomes an ASSESSMENT that populates the memory
 
 On an existing project the memory does not start empty: it starts from a snapshot of
 what is there. Instead of the command of step 4, use:
 
-> Read `CLAUDE.md` and all the docs in `.claude/docs/`: internalise the method. Then
+> The method's core is already in your context (`.claude/rules/fw-core.md`); read
+> `.claude/docs/00-overview.md` for the whole method. Then
 > make a **READ-ONLY assessment** of the existing project: structure, components, real
 > maturity (tests? docs? build?), evident defects, architectural choices visible in the
 > code. With that, **initialise the memory**: fill `STATE.md` with the REAL state
@@ -611,7 +616,7 @@ recorded during the graft are worked off as tasks decided by the user.
 
 ### Language of the host project
 
-Rule 9 of `CLAUDE.md` — artifacts always English — applies to the artifacts of the
+Rule 9 of the core — artifacts always English — applies to the artifacts of the
 METHOD and to the NEW artifacts the project produces from the graft onwards (for a
 project grafted earlier: from the upgrade that crossed v1.1.0, which brought the rule). It is
 **not** a mandate to bulk-translate what is already there: the host's pre-existing
@@ -663,16 +668,19 @@ into one of these classes — file by file, the authority is the class table of
 `tools/upgrade-check.sh` (`classes <tag>` prints it), and a payload file without a class
 makes the framework's own self-test fail:
 
-- **METHOD** (pure framework, brought to `vY`): `.claude/docs/00-01` and
-  `.claude/docs/05-06`, the non-customised commands in `.claude/commands/fw/`, `scripts/reset-task.sh`,
-  `scripts/agent-git-guard.mjs`, `scripts/repo-snapshot.sh`,
+- **METHOD** (pure framework, brought to `vY`): `.claude/docs/00-06` — from v4.0.0 the
+  docs hold no answer: `docs/02`-`04` point at the index's *The answers the method reads*
+  (edge case 8) —, `.claude/rules/fw-core.md` (the method's core, loaded at every launch),
+  `.claude/rules/fw-boundary.md`, the non-customised commands in
+  `.claude/commands/fw/`, `scripts/reset-task.sh`,
+  `scripts/agent-git-guard.mjs`, `scripts/repo-snapshot.sh`, `scripts/state-inject.sh`,
   `scripts/check-prerequisites.sh`, the self-tests `scripts/test-*.sh`,
   `scripts/README.md`, `commitlint.config.cjs`.
 - **HYBRID** (a framework part that evolves + a project part to preserve, reconciled):
-  `CLAUDE.md`, `.claude/settings.json`, `scripts/hooks-install.sh`, `.gitignore`,
-  `.gitattributes`, `Makefile`, the docs a project answers at setup (`.claude/docs/02-04`,
-  inline or with a pointer to the technical rules), and the commands customised at setup
-  (`fw/checkpoint.md`, `fw/integrate.md`, `fw/new-component.md`).
+  `CLAUDE.md` — from v4.0.0 the project's own text, the framework keeping there only the
+  skeleton of *The answers the method reads* and of the technical rules —, `.claude/settings.json`, `scripts/hooks-install.sh`, `.gitignore`,
+  `.gitattributes`, `Makefile`, `.claude/rules/fw-code-quality.md` (its globs), and the
+  commands customised at setup (`fw/checkpoint.md`, `fw/integrate.md`, `fw/new-component.md`).
 - **MEMORY TEMPLATES** (the method's own files inside `.claude/memory/`, reconciled 3-way
   like the hybrids): the four guide READMEs — the `README.md` of `components/`,
   `decisions/`, `plans/` and `sessions/` — and, of `LEARNINGS.md`, its HEADER (the lines
@@ -880,7 +888,7 @@ complementary sources:
   framework's memory:
 
   ```bash
-  git -C "${FW:?}" diff vX vY -- .claude/docs .claude/commands .claude/settings.json \
+  git -C "${FW:?}" diff vX vY -- .claude/docs .claude/rules .claude/commands .claude/settings.json \
     CLAUDE.md scripts Makefile commitlint.config.cjs .gitignore .gitattributes \
     .claude/memory/components/README.md .claude/memory/decisions/README.md \
     .claude/memory/plans/README.md .claude/memory/sessions/README.md
@@ -955,7 +963,7 @@ from a hand-written list; the memory's titles and field labels to rename; and th
   re-apply the project's customisations, listed from the diff against `vX`'s copy and
   sorted by what they are: prose is rewritten freely, VALUES (slot answers, names,
   identifiers) stay identical, strings a program reads stay byte for byte — each one an
-  edit with the file tools on its own text (`CLAUDE.md`, rule 10). Where the line
+  edit with the file tools on its own text (the core's rule 10, `.claude/rules/fw-core.md`). Where the line
   falls is a human call, informed by the table: the measure, not the file's name,
   decides.
 - **METHOD** → after the pre-flight of edge case 7 — and edge case 8, if `vY` moved a
@@ -994,8 +1002,8 @@ from a hand-written list; the memory's titles and field labels to rename; and th
   one that was REMOVED **disappears**; one that was MOVED or co-edited surfaces as a
   **conflict** to resolve by hand, with the file tools. Always re-apply the project's
   `[TO BE DEFINED AT SETUP]` answers (branch names, `tree` patterns, formatter, the
-  stack's allow-list, the answers in `docs/02`-`04`, the whole "Technical rules" section of
-  `CLAUDE.md`) — and if `vY`
+  stack's allow-list, *The answers the method reads* and the whole "Technical rules" section
+  of `CLAUDE.md`) — and if `vY`
   MOVED a slot to another file, see edge case 8 before merging either file. `.gitignore`
   is INTEGRATED (additive union: make sure the lines of the `vY` base —
   `git -C "${FW:?}" show vY:<path>` — are present without removing the project's), and
@@ -1007,6 +1015,28 @@ from a hand-written list; the memory's titles and field labels to rename; and th
   `LEARNINGS.md` is not a hybrid: its header is a memory template (below), its IMP
   entries are the project's memory, and its `## ` titles and field labels go through
   edge case 3 (b), with `STATE.md`'s titles.
+
+  **`CLAUDE.md` from v4.0.0: the method leaves it.** From v4.0.0 the method's rules are
+  `.claude/rules/fw-core.md` (METHOD, brought over from the tag, with the other files of
+  `.claude/rules/`), and `CLAUDE.md` holds the project's text only: its title and stack
+  lines, *The answers the method reads*, its technical rules. A `CLAUDE.md` from before
+  v4.0.0 conflicts in its 3-way on the method's part — the imports of the docs and of
+  `STATE.md`, the memory's section, rules 1-10, the quick commands —, where the project
+  answered rules 5 and 8. Resolve it in this order, each change with the file tools:
+  (1) carry every answer `inventory` names under edge case 8 — rules 5 and 8, the slots of
+  `docs/02`-`04` — to its line of *The answers the method reads*; (2) take `vY`'s side of
+  the conflict: rules 1-10, the imports and the memory's section leave, since the core holds
+  them — a line of the project's own there, a rule or an import it added, moves to its
+  technical rules, and an `@`-import it keeps loads at every launch (`/fw:lint-memory`
+  shows the cost); (3) keep the title, the stack line and the technical rules as the
+  project wrote them. `invariant` fails while an answer's line is missing or still open, and
+  asks for a confirmation while the line does not hold the restore point's answer word for
+  word. In
+  `.claude/settings.json` the SessionStart hook's command becomes `vY`'s, which runs
+  `scripts/state-inject.sh`, with the `ask` rule on it; `.claude/rules/fw-code-quality.md`
+  arrives with a new slot, its globs (Step 4). `STATE.md` is reconciled as ever — its
+  titles in the method's form (edge case 3 (b)) — and never condensed by the upgrade, even
+  over the hook's 8,000 characters (Step 6).
 - **MEMORY TEMPLATES** → the 3-way of the hybrids, with base `vX`: an uncustomised README
   comes out as `vY`'s, a customised one keeps the project's text and surfaces only the
   hunk that conflicts. For `LEARNINGS.md`, its HEADER only — never a whole-file merge: the
@@ -1076,7 +1106,7 @@ from a hand-written list; the memory's titles and field labels to rename; and th
 > shared working tree*). The READING can be spread across them (inventories, diffs by tag, a review);
 > the branch, `git merge-file`, the commits and any throwaway clone for a dry run stay
 > with the main session. Its edits — an answer, a value re-applied, a conflict's
-> resolution, a renamed title — are made with the file tools (`CLAUDE.md`, rule 10); the
+> resolution, a renamed title — are made with the file tools (the core's rule 10, `.claude/rules/fw-core.md`); the
 > copies from the tag, `git merge-file`, the line-end rewrite and the header's splice are
 > the procedure's whole-file writes. An edit to `.claude/settings.json` or
 > `scripts/agent-git-guard.mjs` through the file tools asks the human (the `ask` rules),
@@ -1085,7 +1115,7 @@ from a hand-written list; the memory's titles and field labels to rename; and th
 > not. Where `vY` changes a
 > RULE (rather than being a factual correction), Level 2 of `docs/06` kicks in: it is
 > PROPOSED, not applied silently — *"Never rewrite your own rules on your own
-> initiative"* (`CLAUDE.md`, rule 6).
+> initiative"* (the core's rule 6).
 
 ### Step 4 — Re-sync the hooks and audit the markers
 
@@ -1129,7 +1159,8 @@ leaves it alone. Real verification:
 - `make test-scripts` green. It also checks `.claude/settings.json` against the guard:
   the wiring of `scripts/agent-git-guard.mjs` on Bash, PowerShell and Monitor, the
   PowerShell tool kept off (`CLAUDE_CODE_USE_POWERSHELL_TOOL=0`) and the two `ask` rules on
-  the boundary's own files. A failure there means the merged settings lost them — repair
+  the boundary's own files; and against the SessionStart hook: `scripts/state-inject.sh`
+  wired with no matcher, and the `ask` rule on it. A failure there means the merged settings lost them — repair
   the settings, never the test: the self-test (METHOD) and `settings.json` (HYBRID) arrive
   in the same upgrade and check each other.
 
@@ -1180,14 +1211,25 @@ graft), CREATE it now — that is the retrofit: from this upgrade on the baselin
 certain; unknown `grafted` → `n/a (retrofit YYYY-MM-DD)`. The pin lives outside
 `.claude/memory/`: the closed list of Step 5 needs no entry for it.
 
+An upgrade that changes the boundary's files — `.claude/settings.json`, the guard, the hooks,
+`scripts/state-inject.sh`, as v4.0.0's does — is under the gate (the core's rule 8), in this
+order: commit the reconciliation with the pin (`chore: upgrade the framework from vX to vY`);
+run `/fw:security-review` on the upgrade branch's diff — its report names that commit as the
+reviewed tip —; then `/fw:checkpoint`, which touches only `.claude/memory/`. `/fw:integrate`
+stops on a "not applicable" there, and on a shipped file committed after the review.
 `/fw:checkpoint` (the upgrade's session note — `vX→vY`, what was reconciled, what the user
 decided, and its security-gate line with the reason, since an upgrade rewrites the security
 baseline: the hooks, the permissions, a destructive guard; `STATE.md` with the updated
-framework version; `TREE.md` if the structure changed). Then `/fw:integrate`: a process-only upgrade of the project does NOT bring
+framework version and no more — the upgrade never condenses it: a `STATE.md` over the 8,000
+characters the SessionStart hook shows stays as it is, the hook's last line sending each
+session to the whole file, and the first `/fw:checkpoint` after the upgrade's merge condenses
+it, the history to the session notes; `TREE.md` if the structure changed). Then `/fw:integrate`: a process-only upgrade of the project does NOT bring
 product features/fixes → bump **"no tag"** (`chore`, internal work, not a release):
 declare it and omit the tag. The merge of the upgrade branch and the push are HUMAN
 actions. If something does not add up at review time, the branch is thrown away: the
-memory is safe in the pre-upgrade commit.
+memory is safe in the pre-upgrade commit. After the merge, start Claude Code again before the
+next deliverable: a running session, and the agents it delegates to, keep the method it last
+loaded — at its launch or its last compaction —, the old one's rules (seen at v4.0.0's gate).
 
 ### Edge cases (to be handled explicitly)
 
@@ -1253,7 +1295,7 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
      `STATE.md` and `LEARNINGS.md`, and the field labels of the IMP entries
      (`- Origin:`, `- Observed problem:`, …), are FORMAT lines that the method reads by
      name (`/fw:checkpoint`, `/fw:lint-memory`, `/fw:retro`, `/fw:harvest-framework`, `docs/03`,
-     `docs/06`). Format is method (`CLAUDE.md`, rule 9): the project's titles and labels
+     `docs/06`). Format is method (the core's rule 9): the project's titles and labels
      take `vY`'s form — the rename is mandatory, and a map from old to new is not an
      alternative. Do not wait for a `vY` that renames them: COMPARE at every upgrade,
      since a project can carry the format of any earlier release (v1.1.0 translated it,
@@ -1371,12 +1413,17 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    files (typically `hooks-install.sh`), reconcile **one version at a time** instead of
    in one go — each intermediate step read by its tags
    (`git -C "${FW:?}" show <tag>:<path>` for its base and its theirs), never a checkout
-   per version.
+   per version. A single jump from before v3.0.0 to v4.0.0 crosses two migrations of the
+   same files, in this order: the commands' namespace of v3.0.0 (edge case 2), then the core
+   of v4.0.0 (Step 3, *`CLAUDE.md` from v4.0.0*) — the renamed commands merged first, then
+   `CLAUDE.md` and the answers of edge case 8; a pin written without its `v` is corrected
+   before both (Step 0).
 
 7. **Pre-flight: has the "pure METHOD" file been customised inline?** The METHOD class
-   assumes a file stays as the framework wrote it. (The docs a project answers at setup,
-   `docs/02`, `03` and `04`, are HYBRID from v3.0.0: their answers are merged, never
-   overwritten.) But if the project freely edited an otherwise pure file
+   assumes a file stays as the framework wrote it. (The answers `docs/02`, `03` and `04`
+   held — the three were HYBRID in v3.x — moved to `CLAUDE.md` in v4.0.0: that is edge case
+   8, not this one, and `inventory` names each answer instead of this flag.) But
+   if the project freely edited an otherwise pure file
    (`commitlint.config.cjs`, a doc, a command) that file is in fact a HYBRID, and the
    overwrite destroys its customisation silently. Before overwriting a METHOD-class file, **inspect** that it really is
    untouched with respect to `vX` — `vX`'s copy read by tag, then compared:
@@ -1401,6 +1448,22 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    says so, and `make test-scripts` proves the refusal (measured on a project grafted at
    v1.2.0). The *Upgrading* note of the release that moved the slot names both places
    (Step 2).
+
+   **v4.0.0 moved the answers of the docs.** The slots of `docs/02`, `03` and `04`, and those
+   of `CLAUDE.md`'s rules 5 and 8, became the lines of `CLAUDE.md`'s *The answers the method
+   reads* — one line per answer —, and the three docs METHOD. `inventory` names each slot the
+   project answered, quotes its answer and names the line it moves to; carry each answer
+   there, with the file tools, before the doc comes over from `vY` (a doc's own
+   customisation beyond its slots stays edge case 7's, moved to the technical rules or kept
+   as a hybrid — `inventory` flags a doc whose moved slots are all open as edge case 7's).
+   Three labels receive two answers each — **Documentation** (rule 5, `docs/02`'s point 7),
+   **Sensitive components** (rule 8, `docs/03`), **Branches** (two slots of `docs/04`): the
+   line holds both. `invariant` then fails on an answer the restore point held whose new
+   line is missing or still open, and asks for a confirmation where the line does not hold
+   the restore point's answer word for word — read past `vY`'s own description, as long as
+   the line keeps it as `vY` wrote it —; `post` asks about a doc that still differs from
+   `vY`'s. From a release before v1.1.0, whose slot lines are Italian, the check knows no
+   line: a CHECK names the files, and the answers are found by the marker and carried by hand.
 
 > **Outside the upgrade payload.** `LICENSE`, `CONTRIBUTING.md`, `CHANGELOG.md` are
 > files of the FRAMEWORK REPO (not copied into the project, step 1): do not push them

@@ -25,10 +25,12 @@
 #   classes <rev>              the class of every payload file at <rev> (needs FW only)
 #   preflight vX vY            the Precondition and the provenance pin
 #   inventory vX vY            the per-file triage and measurement, the edge-case flags,
-#                              the markers, the §2 checklist, titles and labels, and the
-#                              Upgrading notes of the releases in between
-#   invariant vX vY <restore>  the closed list of allowed touches on .claude/memory/,
-#                              against the restore point (the pre-upgrade commit)
+#                              the markers, the answers a release moved, the §2 checklist,
+#                              titles and labels, and the Upgrading notes of the releases
+#                              in between
+#   invariant vX vY <restore>  the closed list of allowed touches on .claude/memory/, and
+#                              each answer a release moved in its new home, against the
+#                              restore point (the pre-upgrade commit)
 #   post vX vY                 METHOD files and modes at vY, orphans, markers, hooks
 #
 # Compatible with bash 3.2 (macOS's /bin/bash): no associative arrays, no mapfile.
@@ -123,16 +125,19 @@ classify() {
     .claude/framework-version) echo GRAFT-STATE ;;
     .claude/settings.local.json | .claude/worktrees/*) echo LOCAL ;;
     CLAUDE.md | .claude/settings.json | .gitignore | .gitattributes | Makefile | scripts/hooks-install.sh | \
-    .claude/docs/02-code-quality.md | .claude/docs/03-security-gate.md | \
-    .claude/docs/04-git-workflow.md | \
+    .claude/rules/fw-code-quality.md | \
     .claude/commands/fw/checkpoint.md | .claude/commands/fw/integrate.md | \
     .claude/commands/fw/new-component.md | \
     .claude/commands/checkpoint.md | .claude/commands/integrate.md | \
     .claude/commands/new-component.md)
       echo HYBRID ;;
     .claude/docs/00-overview.md | .claude/docs/01-task-planning.md | \
+    .claude/docs/02-code-quality.md | .claude/docs/03-security-gate.md | \
+    .claude/docs/04-git-workflow.md | \
     .claude/docs/05-escalation-protocol.md | .claude/docs/06-self-improvement.md | \
+    .claude/rules/fw-boundary.md | .claude/rules/fw-core.md | \
     .claude/commands/fw/harvest-framework.md | .claude/commands/fw/lint-memory.md | \
+    .claude/commands/fw/plan.md | \
     .claude/commands/fw/retro.md | .claude/commands/fw/security-review.md | \
     .claude/commands/fw/sos.md | \
     .claude/commands/harvest-framework.md | .claude/commands/lint-memory.md | \
@@ -140,6 +145,7 @@ classify() {
     .claude/commands/sos.md | \
     scripts/README.md | scripts/reset-task.sh | scripts/agent-git-guard.mjs | \
     scripts/repo-snapshot.sh | scripts/test-hooks-install.sh | \
+    scripts/state-inject.sh | scripts/test-state-inject.sh | \
     scripts/test-agent-git-guard.sh | scripts/test-repo-snapshot.sh | \
     scripts/check-prerequisites.sh | scripts/test-check-prerequisites.sh | \
     scripts/test-reset-task.sh | commitlint.config.cjs)
@@ -426,6 +432,113 @@ markers_added() {
 }
 # renamed_from <renames file> <path>: the old path a rename led to <path> from, or nothing.
 renamed_from() { awk -F'\t' -v p="$2" '$2 == p { print $1; exit }' "$1"; }
+
+# moved_slots: the answers a release moved from one file to another (SETUP.md, edge case 8),
+# one per line, tab-separated — the release; the old file; the slot's line there, whole, as
+# the releases before it wrote it (a line written two ways has an entry per form); the new
+# file; the label that opens the answer's line there, empty where the new home holds no
+# marked line. The 3-way cannot follow such a move, and the old file, METHOD from that
+# release, would be overwritten with the answer still in it.
+moved_slots() {
+  local m='[TO BE DEFINED AT SETUP]' d2=.claude/docs/02-code-quality.md \
+    d3=.claude/docs/03-security-gate.md d4=.claude/docs/04-git-workflow.md
+  printf '%s\t%s\t%s\t%s\t%s\n' \
+    v4.0.0 "${d2}" "  ${m}.)*" CLAUDE.md 'Doc comments' \
+    v4.0.0 "${d2}" "  the client *(which one — ${m})*, never stacktraces/queries/" CLAUDE.md 'Error format' \
+    v4.0.0 "${d2}" "  (formatter/linter) is ${m} — see \`scripts/hooks-install.sh\`." CLAUDE.md 'Formatter / linter' \
+    v4.0.0 "${d2}" "   ${m})*; if the project documentation does not exist yet, the" CLAUDE.md 'Documentation' \
+    v4.0.0 "${d2}" "   platform — ${m}). This does NOT emerge from tests run in a" CLAUDE.md 'Production artifact' \
+    v4.0.0 "${d3}" "> **Which ones, concretely, in this project: ${m}.**" CLAUDE.md 'Sensitive components' \
+    v4.0.0 "${d4}" "> **Reading convention — branch names are ${m}.** In this doc and" CLAUDE.md 'Branches' \
+    v4.0.0 "${d4}" "  ${m}:" CLAUDE.md 'Merge' \
+    v4.0.0 "${d4}" "on the project — ${m} — but the criterion is one and the same:" CLAUDE.md 'Public contract' \
+    v4.0.0 "${d4}" "> ${m})? The names change, the two regimes do not: pre-1.0 you" CLAUDE.md 'Branches' \
+    v4.0.0 "${d4}" "> container CLI) are added to \`allow\` at setup — ${m}." .claude/settings.json '' \
+    v4.0.0 CLAUDE.md "   aligned (where the project documentation lives: ${m}). Same" CLAUDE.md 'Documentation' \
+    v4.0.0 CLAUDE.md "   (${m}) run /fw:security-review BEFORE the PR; HIGH/CRITICAL" CLAUDE.md 'Sensitive components' \
+    v4.0.0 CLAUDE.md "   (${m}) run /security-review BEFORE the PR; HIGH/CRITICAL" CLAUDE.md 'Sensitive components'
+}
+# moved_here <vX> <vY> <out>: the entries of moved_slots this upgrade crosses — the release
+# between vX and vY, and the slot's line in vX's old file — written to <out>. Each file is
+# read whole before grep: a grep -q on a pipe would kill git show under pipefail.
+moved_here() {
+  local rel old line new label releases tmp="$3.vx" seen=" "
+  releases=" $(releases_between "$1" "$2" | tr '\n' ' ') "
+  : > "$3"
+  : > "$3.unknown"
+  moved_slots > "$3.all"
+  while IFS=$'\t' read -r rel old line new label; do
+    case "${releases}" in *" ${rel} "*) ;; *) continue ;; esac
+    fw show "$1:${old}" > "${tmp}" 2>/dev/null || continue
+    grep -qxF -- "${line}" "${tmp}" || continue
+    printf '%s\t%s\t%s\t%s\t%s\n' "${rel}" "${old}" "${line}" "${new}" "${label}" >> "$3"
+    seen="${seen}${rel} "
+  done < "$3.all"
+  # A release in between none of whose slot lines vX's files hold — a vX before v1.1.0 wrote
+  # them in Italian —: its old files go to <out>.unknown, for a search by the marker, never
+  # for an "OK, nothing moved".
+  while IFS=$'\t' read -r rel old line new label; do
+    case "${releases}" in *" ${rel} "*) ;; *) continue ;; esac
+    case "${seen}" in *" ${rel} "*) continue ;; esac
+    grep -qxF -- "${rel}"$'\t'"${old}" "$3.unknown" || printf '%s\t%s\n' "${rel}" "${old}" >> "$3.unknown"
+  done < "$3.all"
+}
+# short <line>: a slot's line as a finding quotes it, its indentation trimmed.
+short() { printf '%s' "$1" | sed -e 's/^[[:space:]]*//'; }
+# clip <text>: a quoted answer, cut at 80 characters.
+clip() { printf '%s\n' "$1" | awk '{ if (length($0) > 80) print substr($0, 1, 77) "..."; else print }'; }
+# SLOT_NORM: a line as the slot comparisons read it — the legacy marker read as the English
+# one, each run of blanks one space, none at either end: the forms an editor or an older
+# release leave on a slot nobody answered.
+readonly SLOT_NORM='function norm(x) { gsub(/\[DA DEFINIRE AL SETUP\]/, "[TO BE DEFINED AT SETUP]", x); gsub(/[ \t]+/, " ", x); sub(/^ /, "", x); sub(/ $/, "", x); return x }'
+# slot_open <slot line> <file>: whether the file still holds the slot's line open, in
+# SLOT_NORM's form. awk reads the file itself: no pipe for an early exit to break.
+slot_open() {
+  [ -f "$2" ] || return 1
+  S="$1" awk "${SLOT_NORM}"'
+    BEGIN { s = norm(ENVIRON["S"]) }
+    { sub(/\r$/, "") }
+    norm($0) == s { f = 1 }
+    END { exit !f }' "$2"
+}
+# answer_at <slot line> <framework file> <project file>: what the project wrote in place of
+# the slot's line — the lines of the diff's hunk that replaced it, joined, the slot's own text
+# before and after the marker taken off, in SLOT_NORM's form. Empty when the hunk adds
+# nothing (the line deleted); the marker in it when the project re-flowed the open slot. Both
+# files with LF line ends. The unified form, which GNU, BSD and busybox diff all print.
+answer_at() {
+  { diff -U0 "$2" "$3" || true; } | S="$1" awk "${SLOT_NORM}"'
+    function flush(   a, i, pre, post, m) {
+      if (!rem || done) return
+      done = 1; m = "[TO BE DEFINED AT SETUP]"; a = norm(add); i = index(slot, m)
+      pre = norm(substr(slot, 1, i - 1)); post = norm(substr(slot, i + length(m)))
+      if (pre != "" && index(a, pre) == 1) a = substr(a, length(pre) + 1)
+      if (post != "" && length(a) >= length(post) && substr(a, length(a) - length(post) + 1) == post) a = substr(a, 1, length(a) - length(post))
+      print norm(a)
+    }
+    BEGIN { slot = ENVIRON["S"] }
+    NR <= 2 && /^(---|\+\+\+) / { next }
+    /^@@ / { flush(); rem = 0; add = ""; next }
+    /^-/ { if (substr($0, 2) == slot) rem = 1; next }
+    /^\+/ { add = add " " substr($0, 2); next }
+    END { flush() }'
+}
+# moved_answered <moved file> <path> <vX>: whether the project answered a slot of <path> that
+# a release in between moved — the slot's line neither open in the project's copy nor
+# re-flowed there with its marker.
+moved_answered() {
+  local rel old line new label tmp="$1.ans"
+  while IFS=$'\t' read -r rel old line new label; do
+    [ "${old}" = "$2" ] || continue
+    slot_open "${line}" "$2" && continue
+    fw show "$3:${old}" > "${tmp}.vx" 2>/dev/null
+    lf "$2" > "${tmp}.mine"
+    [[ "$(answer_at "${line}" "${tmp}.vx" "${tmp}.mine")" =~ ${MARKER_RE} ]] || return 0
+  done < "$1"
+  return 1
+}
+# in_list <file> <path>: whether <path> is the second field of a line of <file>.
+in_list() { awk -F'\t' -v p="$2" '$2 == p { f = 1 } END { exit !f }' "$1"; }
 # file_markers <file>: the slot markers of a project file, by occurrence.
 file_markers() { grep -oE "${MARKER_RE}" "$1" 2>/dev/null | wc -l | tr -d ' '; }
 # labels_renamed <tag>: whether the tag's LEARNINGS format uses the field labels of v1.1.0
@@ -435,7 +548,7 @@ file_markers() { grep -oE "${MARKER_RE}" "$1" 2>/dev/null | wc -l | tr -d ' '; }
 # the pipe's buffer — the framework's own, from v1.3.0 on.
 labels_renamed() { fw show "$1:.claude/memory/LEARNINGS.md" 2>/dev/null | grep '^- Date:' >/dev/null; }
 
-# The memory's FORMAT lines (CLAUDE.md, rule 9): what v1.1.0 translated, old form -> new.
+# The memory's FORMAT lines (the core's rule 9): what v1.1.0 translated, old form -> new.
 # One "old<TAB>new" pair per line; the short forms are those seen in projects.
 TITLE_TABLE='## Stato avanzamento	## Progress
 ## Cosa esiste adesso	## What exists now
@@ -513,6 +626,8 @@ cmd_inventory() {
   releases="$(releases_between "${vx}" "${vy}" | tr '\n' ' ')"
   # A renamed file's old path is no deletion: edge case 2 handles it, after the loop.
   renames_between "${vx}" "${vy}" > "${d}/renames"
+  # The answers a release in between moved: their old file is edge case 8's, not 7's.
+  moved_here "${vx}" "${vy}" "${d}/moved"
 
   section "Files — class, the framework vX->vY (=, M, A, D), the project against the tags, the 3-way's measure"
   local path class bx by bp fwst prj measure n mine base theirs r prev changed modey modep
@@ -555,8 +670,17 @@ cmd_inventory() {
     info "$(printf '%-9s %-2s %-9s %s%s' "${class}" "${fwst}" "${prj}" "${path}" "${measure:+ — ${measure}}")"
     path="${path% (header)}"
     # The flags of the edge cases (SETUP.md, *Edge cases*).
-    [ "${class}" = METHOD ] && [ "${prj}" = diverged ] && [ "${fwst}" != D ] \
-      && check "edge case 7: ${path} is METHOD but customised in the project — reconcile it as a HYBRID (3-way), never overwrite"
+    if [ "${class}" = METHOD ] && [ "${prj}" = diverged ] && [ "${fwst}" != D ]; then
+      # Edge case 8 only for a file whose moved slots the project answered: a diverged copy
+      # whose moved slots are all open holds a customisation, edge case 7's.
+      if moved_answered "${d}/moved" "${path}" "${vx}"; then
+        check "edge case 8: ${path} is METHOD in ${vy} and the project answered slots of it a release moved (below): carry them first, then bring it over — a customisation beyond its slots is edge case 7's"
+      elif in_list "${d}/moved.unknown" "${path}"; then
+        check "edge case 8: ${path} is METHOD in ${vy}, and a release in between moved its slots in a form this check does not know (below): carry its answers by hand first, then bring it over — a customisation beyond its slots is edge case 7's"
+      else
+        check "edge case 7: ${path} is METHOD but customised in the project — reconcile it as a HYBRID (3-way), never overwrite"
+      fi
+    fi
     [ "${fwst}" = D ] && [ "${prj}" != absent ] && [ -z "$(renamed_to "${d}/renames" "${path}")" ] \
       && check "edge case 1: ${path} is deleted in ${vy} — remove it from the project (git rm), after checking it holds nothing of the project's"
     [ "${fwst}" = A ] && [ "${prj}" = diverged ] && check "${path} is new in ${vy}, but the project already has a file there: compare before taking ${vy}'s"
@@ -582,16 +706,16 @@ cmd_inventory() {
   local old new
   while IFS=$'\t' read -r old new; do
     if [ ! -f "${old}" ]; then
-      check "edge case 2: renamed in ${vy}: ${old} -> ${new} — the project holds no ${old}: bring ${new} over from ${vy}"
+      check "edge case 2: renamed between ${vx} and ${vy}: ${old} -> ${new} — the project holds no ${old}: bring ${new} over from ${vy}"
     elif [ "$(pg hash-object -- "${old}")" = "$(blob_at "${vx}" "${old}")" ]; then
-      check "edge case 2: renamed in ${vy}: ${old} -> ${new} — the project's copy is ${vx}'s: bring ${new} over from ${vy}, then git rm ${old}"
+      check "edge case 2: renamed between ${vx} and ${vy}: ${old} -> ${new} — the project's copy is ${vx}'s: bring ${new} over from ${vy}, then git rm ${old}"
     else
       fw show "${vx}:${old}" > "${d}/rename.base"
       fw show "${vy}:${new}" > "${d}/rename.theirs"
       lf "${old}" > "${d}/rename.mine"
       pg merge-file -p "${d}/rename.mine" "${d}/rename.base" "${d}/rename.theirs" > "${d}/rename.merged" 2>/dev/null
       n=$?
-      check "edge case 2: renamed in ${vy}: ${old} -> ${new} — customised in the project: merge it into ${new} (base ${vx}:${old}, theirs ${vy}:${new}), then git rm ${old}; 3-way: ${n} conflict(s), $(conflict_lines "${d}/rename.merged") of $(wc -l < "${d}/rename.merged" | tr -d ' ') lines in conflict"
+      check "edge case 2: renamed between ${vx} and ${vy}: ${old} -> ${new} — customised in the project: merge it into ${new} (base ${vx}:${old}, theirs ${vy}:${new}), then git rm ${old}; 3-way: ${n} conflict(s), $(conflict_lines "${d}/rename.merged") of $(wc -l < "${d}/rename.merged" | tr -d ' ') lines in conflict"
     fi
   done < "${d}/renames"
 
@@ -618,6 +742,27 @@ cmd_inventory() {
   else
     ok "no slot added or removed"
   fi
+
+  section "Answers a release in between moved to another file (edge case 8) — each answered one to carry first"
+  local rel old line new label ans
+  [ -s "${d}/moved" ] || [ -s "${d}/moved.unknown" ] || ok "no release between ${vx} and ${vy} moved a slot"
+  while IFS=$'\t' read -r rel old line new label; do
+    if [ ! -f "${old}" ] || slot_open "${line}" "${old}"; then
+      info "${old}: '$(short "${line}")' is open in the project: nothing to carry"
+      continue
+    fi
+    fw show "${vx}:${old}" > "${d}/moved.vx" 2>/dev/null
+    lf "${old}" > "${d}/moved.mine"
+    ans="$(answer_at "${line}" "${d}/moved.vx" "${d}/moved.mine")"
+    if [[ "${ans}" =~ ${MARKER_RE} ]]; then
+      info "${old}: '$(short "${line}")' is open in the project, re-flowed: nothing to carry"
+    else
+      check "edge case 8: ${old}: the slot of '$(short "${line}")' is answered in the project${ans:+ ('$(clip "${ans}")')} — ${rel} moved it: carry the answer to ${new}${label:+, the line **${label}**}, before ${old} is reconciled"
+    fi
+  done < "${d}/moved"
+  while IFS=$'\t' read -r rel old; do
+    check "edge case 8: ${old}: ${rel} moved its slots, and ${vx}'s copy holds them in no form this check knows (a release before v1.1.0 wrote them in Italian): find them by the marker, and carry each answered one to CLAUDE.md's *The answers the method reads* by hand, before ${old} is reconciled"
+  done < "${d}/moved.unknown"
 
   section "The §2 checklist of SETUP.md — items added or re-worded between ${vx} and ${vy}"
   local s2x="${d}/s2.x" s2y="${d}/s2.y"
@@ -871,6 +1016,57 @@ cmd_invariant() {
   fi
 
   format_done "${vy}"
+
+  # An answer the restore point held, in a file a release in between moved it out of, has
+  # a line in its new home, the line no longer holds the setup marker, and it holds the
+  # answer the restore point held, word for word — or a human confirms it (edge case 8): two
+  # answers can share a label, and a line closed by one says nothing of the other.
+  section "Answers a release in between moved — each in its new home (edge case 8)"
+  local rel old line new label ans
+  moved_here "${vx}" "${vy}" "${d}/moved"
+  [ -s "${d}/moved" ] || [ -s "${d}/moved.unknown" ] || ok "no release between ${vx} and ${vy} moved a slot"
+  while IFS=$'\t' read -r rel old line new label; do
+    if ! pg show "${restore}:${old}" 2>/dev/null | tr -d '\r' > "${d}/moved.before" || [ ! -s "${d}/moved.before" ]; then
+      ok "${old}: absent at the restore point, nothing to carry"
+      continue
+    fi
+    if slot_open "${line}" "${d}/moved.before"; then
+      ok "${old}: '$(short "${line}")' was open at the restore point, nothing to carry"
+      continue
+    fi
+    fw show "${vx}:${old}" > "${d}/moved.vx" 2>/dev/null
+    ans="$(answer_at "${line}" "${d}/moved.vx" "${d}/moved.before")"
+    if [[ "${ans}" =~ ${MARKER_RE} ]]; then
+      ok "${old}: '$(short "${line}")' was open at the restore point, re-flowed, nothing to carry"
+    elif [ -z "${label}" ]; then
+      check "${old}: '$(short "${line}")' was answered at the restore point${ans:+ ('$(clip "${ans}")')}: its answer belongs in ${new} (${rel}) — confirm it is there"
+    else
+      # The label's line and the lines it runs on to.
+      lf "${new}" 2>/dev/null | awk -v p="- **${label}**" 'index($0, p) == 1 { f = 1; print; next } f && /^[ \t]+[^ \t]/ { print; next } { f = 0 }' > "${d}/moved.home"
+      if [ ! -s "${d}/moved.home" ]; then
+        fail "${new} has no line **${label}**: the answer of ${old}'s '$(short "${line}")' has no home — bring ${vy}'s line over"
+      elif grep -E "${MARKER_RE}" "${d}/moved.home" >/dev/null; then
+        fail "${old}: '$(short "${line}")' was answered at the restore point, and its new line in ${new}, **${label}**, is still open: carry the answer there (edge case 8)"
+      # Searched past vY's own text before the marker: the line's description names options
+      # — "via Pull Request or via the `/fw:integrate` block" — an answer would match unwritten.
+      # A known limit: a description the project re-worded is searched whole, so an answer it
+      # names still matches; Step 4's marker grep and the human's reading remain.
+      elif [ -n "${ans}" ] && A="${ans}" V="$(fw show "${vy}:${new}" 2>/dev/null | tr -d '\r' | awk -v p="- **${label}**" 'index($0, p) == 1 && !f { f = 1; print }')" awk "${SLOT_NORM}"'
+          { h = h " " $0 }
+          END {
+            h = norm(h); v = ENVIRON["V"]; i = index(v, "[TO BE DEFINED AT SETUP]")
+            if (i > 0) { v = norm(substr(v, 1, i - 1)); if (v != "" && index(h, v) == 1) h = substr(h, length(v) + 1) }
+            exit !(index(h, ENVIRON["A"]) > 0)
+          }' "${d}/moved.home"; then
+        ok "${old}: its answer ('$(clip "${ans}")') is on ${new}'s line **${label}**"
+      else
+        check "${old}: '$(short "${line}")' was answered at the restore point${ans:+ with '$(clip "${ans}")'}, which ${new}'s line **${label}** does not hold word for word: confirm the answer is carried there (edge case 8)"
+      fi
+    fi
+  done < "${d}/moved"
+  while IFS=$'\t' read -r rel old; do
+    check "${old}: ${rel} moved its slots, and ${vx}'s copy holds them in no form this check knows (a release before v1.1.0 wrote them in Italian): confirm by hand that each answer the restore point held there is on its line of CLAUDE.md's *The answers the method reads*"
+  done < "${d}/moved.unknown"
   finish "invariant ${vx} -> ${vy}, since ${restore}"
 }
 
@@ -886,6 +1082,7 @@ cmd_post() {
   require_t
   local d="${WORK}/post" path class by bx bp n_at=0 modey modep
   rm -rf "${d}" && mkdir -p "${d}" || die "cannot prepare ${d}"
+  moved_here "${vx}" "${vy}" "${d}/moved"
 
   section "The payload against ${vy} — METHOD files at ${vy}, every file present, modes"
   awk -F'\t' '{print $2}' "$(tree_of "${vy}")" > "${d}/paths.vy"
@@ -911,6 +1108,8 @@ cmd_post() {
       METHOD)
         if [ "${bp}" = "${by}" ]; then
           n_at=$((n_at + 1))
+        elif in_list "${d}/moved" "${path}" || in_list "${d}/moved.unknown" "${path}"; then
+          check "${path} (METHOD) differs from ${vy}'s: its answers moved to another file (edge case 8) — bring it over once they are there; any other difference is edge case 7's"
         else
           check "${path} (METHOD) differs from ${vy}'s: fine only if it was reconciled as a hybrid (edge case 7)"
         fi ;;
