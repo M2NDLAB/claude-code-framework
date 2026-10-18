@@ -7,6 +7,8 @@ SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+## [4.1.0] — 2026-10-18
+
 **The cleanup before the first derived project's upgrade** (IMP-135): every proposal v4.0.0 left
 open and every limit its security gate declared, decided — applied, deferred with its trigger,
 or rejected with its reason, in `LEARNINGS.md`. The guard now refuses, in every session that
@@ -147,7 +149,7 @@ of the upgrade says how they combine):
   loaded.
 - **From 1.2.0**, the jump the next derived project makes: the entries in between, oldest first;
   `inventory` and `invariant` follow v1.3.2's protected branches on their value (edge case 8).
-- Rehearsed on `1364626`, its clone carrying this entry under its heading as `/fw:integrate`'s
+- Rehearsed on `f33a7f1`, its clone carrying this entry under its heading as `/fw:integrate`'s
   step 3 will, so that each inventory printed this note: from 4.0.0, on a project with every
   setup answer in place, and from 1.2.0, on the generator's `legacy` project, modelled on
   4.0.0's, each also in a clone under `core.autocrlf=true` — all LF from 4.0.0, whose
@@ -159,11 +161,11 @@ of the upgrade says how they combine):
   warned the 1.2.0 project's CRLF checkout until `.gitattributes` came over. The security
   review's later fixes change four files a project takes — the guard, its self-test, `docs/04`
   and `scripts/README.md` — and, read from the tag, the procedure's `upgrade-check.sh` and
-  `SETUP.md`: the second round's rehearsed again on `b61eebf`, the third's on `a5773d9`, each
+  `SETUP.md`: the second round's rehearsed again on `d32c582`, the third's on `1cd1df8`, each
   time the files brought from its tag into the four upgraded projects, `make test-scripts`
   green there, `invariant` and `post` with the same verdicts, the fresh projects' inventories
-  the same but for this note and `docs/04`'s length. No commit after `a5773d9` changes a file
-  a project takes — checked again at the release, `git diff --name-only a5773d9 v4.1.0`.
+  the same but for this note and `docs/04`'s length. No commit after `1cd1df8` changes a file
+  a project takes — checked again at the release, `git diff --name-only 1cd1df8 v4.1.0`.
 
 ## [4.0.0] — 2026-10-17
 
