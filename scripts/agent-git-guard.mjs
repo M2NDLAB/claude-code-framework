@@ -541,6 +541,8 @@ function treeReason(args) {
   const { letters, longs, operands } = readOptions(args, TREE_VALUED);
   if (letters.has('o')) return '`tree -o` writes a file';
   if (letters.has('R')) return '`tree -R` writes a file in each directory it reaches';
+  // measured on tree 2.3.2: the file's lines open, or close, the `-H` output
+  if (longs.some((word) => spells(word, '--hintro') || spells(word, '--houtro'))) return '`tree --hintro` prints the file it is given';
   if (longs.some((word) => spells(word, '--fromfile') || spells(word, '--fromtabfile'))
     && operands.some((word) => word !== '.')) return '`tree --fromfile <path>` prints the lines of the file it reads';
   return null;

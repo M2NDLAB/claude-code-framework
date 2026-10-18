@@ -391,6 +391,9 @@ EVERY_SESSION_REFUSED=(
   'tree --fromfile . list.txt'
   'tree --fromfile -L 2 /etc/hosts'
   'tree -L2 --fromfile /etc/hosts'
+  # the HTML intro and outro print the file they name — measured on tree 2.3.2 (2026-10-18)
+  'tree -H . --hintro=../secret.txt -L 1 .'
+  'tree -H . --houtro ../secret.txt'
 )
 for c in "${EVERY_SESSION_REFUSED[@]}"; do
   blocked "main session not refused: ${c}" "$(hook_input "${c}")"
@@ -450,6 +453,7 @@ MAIN_ALLOWED=(
   'git ls-files | tree --fromfile'
   'git ls-files | tree --fromfile .'
   'git ls-files | tree --fromfile -L 2 --dirsfirst'
+  'tree -H . -T title -L 1'
 )
 for c in "${MAIN_ALLOWED[@]}"; do
   expect 0 "main session blocked: ${c}" "${REPO_ROOT}" "$(hook_input "${c}")"
