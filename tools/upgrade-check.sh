@@ -549,6 +549,21 @@ home_value() {
     index($0, ENVIRON["L"]) == 1 { print norm(substr($0, length(ENVIRON["L"]) + 1)); f = 1; exit }
     END { exit !f }' "$2"
 }
+# value_elsewhere <slot line> <new file> <vX> <file to read> <tmp>: for a value slot, the lines
+# of <file to read> — the project's copy of the new home, or the restore point's — that set the
+# slot's variable on a line of their own, `NAME=`, and that vX's own copy of the new home does
+# not hold: where a project wrote its value without touching the slot's line, as v1.2.0's
+# comment showed it (an assignment in the Makefile's recipe). One per line, none when there is
+# none. A value set outside the framework's files — the environment, a script of the
+# project's — is not read.
+value_elsewhere() {
+  local var="${1%%=*}"
+  [ -f "$4" ] || return 0
+  fw show "$3:$2" 2>/dev/null | tr -d '\r' > "$5.vx" || : > "$5.vx"
+  tr -d '\r' < "$4" | awk -v v="${var}=" 'index($0, v)' > "$5.set"
+  # grep's 1 is "every line is vX's own": nothing to report; its 2 is an error, reported.
+  grep -vxFf "$5.vx" "$5.set" || [ $? -eq 1 ] || die "cannot compare $4 with ${3}'s $2"
+}
 # moved_answered <moved file> <path> <vX>: whether the project answered a slot of <path> that
 # a release in between moved — the slot's line neither open in the project's copy nor
 # re-flowed there with its marker; for a value slot, its line no longer the default's.
@@ -779,11 +794,17 @@ cmd_inventory() {
   fi
 
   section "Answers a release in between moved to another file (edge case 8) — each answered one to carry first"
-  local rel old line new label default ans
+  local rel old line new label default ans elsewhere
   [ -s "${d}/moved" ] || [ -s "${d}/moved.unknown" ] || ok "no release between ${vx} and ${vy} moved a slot"
   while IFS=$'\t' read -r rel old line new label default; do
     if [ ! -f "${old}" ] || slot_open "${line}" "${old}"; then
-      info "${old}: '$(short "${line}")' is open in the project: nothing to carry"
+      elsewhere=""
+      [ -z "${default}" ] || elsewhere="$(value_elsewhere "${line}" "${new}" "${vx}" "${new}" "${d}/elsewhere" | head -n 1)"
+      if [ -n "${elsewhere}" ]; then
+        check "edge case 8: ${old}: '$(short "${line}")' is open, but the project's ${new} sets the variable on a line of its own ('$(clip "$(short "${elsewhere}")")'): that value may be the project's — carry it to ${new}'s line that opens with '${label}'"
+      else
+        info "${old}: '$(short "${line}")' is open in the project: nothing to carry"
+      fi
       continue
     fi
     if [ -n "${default}" ]; then
@@ -1066,7 +1087,7 @@ cmd_invariant() {
   # answer the restore point held, word for word — or a human confirms it (edge case 8): two
   # answers can share a label, and a line closed by one says nothing of the other.
   section "Answers a release in between moved — each in its new home (edge case 8)"
-  local rel old line new label default ans home
+  local rel old line new label default ans home elsewhere
   moved_here "${vx}" "${vy}" "${d}/moved"
   [ -s "${d}/moved" ] || [ -s "${d}/moved.unknown" ] || ok "no release between ${vx} and ${vy} moved a slot"
   while IFS=$'\t' read -r rel old line new label default; do
@@ -1075,7 +1096,17 @@ cmd_invariant() {
       continue
     fi
     if slot_open "${line}" "${d}/moved.before"; then
-      ok "${old}: '$(short "${line}")' was open at the restore point, nothing to carry"
+      elsewhere=""
+      if [ -n "${default}" ]; then
+        pg show "${restore}:${new}" 2>/dev/null > "${d}/moved.new.before" || : > "${d}/moved.new.before"
+        elsewhere="$(value_elsewhere "${line}" "${new}" "${vx}" "${d}/moved.new.before" "${d}/elsewhere" | head -n 1)"
+      fi
+      if [ -n "${elsewhere}" ]; then
+        home="$(home_value "${label}" "${new}" || true)"
+        check "${old}: '$(short "${line}")' was open at the restore point, but its ${new} set the variable on a line of its own ('$(clip "$(short "${elsewhere}")")'): confirm the value is on ${new}'s line '${label}' ('$(clip "${home}")') (edge case 8)"
+      else
+        ok "${old}: '$(short "${line}")' was open at the restore point, nothing to carry"
+      fi
       continue
     fi
     # A value slot: the value the restore point held, against the new home's line, on the

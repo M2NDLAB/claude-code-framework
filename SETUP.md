@@ -1458,8 +1458,11 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    (Step 2). The upgrade check knows this move by its value: `inventory` quotes the list
    the project wrote in place of `reset-task.sh`'s default and names the `Makefile`'s
    `PROTECTED_BRANCHES =` line it goes to — a `reset-task.sh` that kept the default and
-   answered only its comment is edge case 8's too, nothing to carry, the file brought over
-   —, and `invariant` fails while that line still holds
+   answered only its comment is edge case 8's too, nothing to carry, the file brought over;
+   a list the project set on a line of its own in the `Makefile`, as an assignment in the
+   recipe where v1.2.0's comment pointed, is a CHECK in both commands, the value to carry by
+   hand; one set in the environment or a script of the project's is not read —, and
+   `invariant` fails while that line still holds
    the default where the restore point held another list.
 
    **v4.0.0 moved the answers of the docs.** The slots of `docs/02`, `03` and `04`, and those

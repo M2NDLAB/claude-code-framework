@@ -975,4 +975,20 @@ FW="${FW13}" T="${T13}" run 0 "${P13C}" inventory v1.3.1 v1.3.2
 has "edge case 8: scripts/reset-task.sh is METHOD in v1.3.2, and a release in between moved its value to another file (below): the value is the default, nothing to carry — bring it over; a customisation beyond its slots is edge case 7's"
 hasnt "edge case 7: scripts/reset-task.sh"
 has "INFO   scripts/reset-task.sh: 'PROTECTED_BRANCHES=\"\${PROTECTED_BRANCHES:-main develop}\"' is open in the project: nothing to carry"
-echo "PASS (upgrade-check moved value): inventory names edge case 8 for the protected branches v1.3.2 moved, with the project's value and the Makefile's line, never edge case 7 — a comment answered and the default kept included —, and leaves the default alone; invariant fails while the Makefile holds the default, and passes once it holds the project's value."
+# A project that set its list where v1.3.1's comment pointed — in the environment of the
+# Makefile's recipe — and kept the default line: not "nothing to carry", a CHECK, at the
+# inventory and at the invariant once v1.3.2's files are in (the gate's round 1, 2026-10-18).
+P13D="${workdir}/project13d"
+mkdir -p "${P13D}"
+g -C "${FW13}" archive v1.3.1 -- .claude CLAUDE.md scripts Makefile | tar -x -C "${P13D}"
+printf 'reset-task:\n\tPROTECTED_BRANCHES="main trunk" bash scripts/reset-task.sh\n' > "${P13D}/Makefile"
+g init -q -b main "${P13D}" && g -C "${P13D}" add -A && g -C "${P13D}" commit -q -m "chore: graft the framework v1.3.1"
+RESTORE13D="$(g -C "${P13D}" rev-parse HEAD)"
+FW="${FW13}" T="${T13}" run 0 "${P13D}" inventory v1.3.1 v1.3.2
+has "CHECK  edge case 8: scripts/reset-task.sh: 'PROTECTED_BRANCHES=\"\${PROTECTED_BRANCHES:-main develop}\"' is open, but the project's Makefile sets the variable on a line of its own ('PROTECTED_BRANCHES=\"main trunk\" bash scripts/reset-task.sh'): that value may be the project's — carry it to Makefile's line that opens with 'PROTECTED_BRANCHES ='"
+hasnt "is open in the project: nothing to carry"
+for f in scripts/reset-task.sh Makefile; do g -C "${FW13}" show "v1.3.2:${f}" > "${P13D}/${f}"; done
+FW="${FW13}" T="${T13}" run 0 "${P13D}" invariant v1.3.1 v1.3.2 "${RESTORE13D}"
+has "CHECK  scripts/reset-task.sh: '$(printf '%s' 'PROTECTED_BRANCHES="${PROTECTED_BRANCHES:-main develop}"')' was open at the restore point, but its Makefile set the variable on a line of its own ('PROTECTED_BRANCHES=\"main trunk\" bash scripts/reset-task.sh'): confirm the value is on Makefile's line 'PROTECTED_BRANCHES =' ('main develop') (edge case 8)"
+hasnt "was open at the restore point, nothing to carry"
+echo "PASS (upgrade-check moved value): inventory names edge case 8 for the protected branches v1.3.2 moved, with the project's value and the Makefile's line, never edge case 7 — a comment answered and the default kept included —, and leaves the default alone; a list set in the Makefile's recipe is a CHECK at both ends, never nothing to carry; invariant fails while the Makefile holds the default, and passes once it holds the project's value."
