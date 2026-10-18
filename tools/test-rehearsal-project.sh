@@ -6,7 +6,8 @@
 # the CI. Throwaway directories under mktemp; git configured from nothing.
 #
 # Cases:
-#   1. answered, at HEAD — every bracketed marker answered; the protected branches `main dev`;
+#   1. answered, at HEAD — every bracketed marker answered, and fw/checkpoint.md's two
+#      placeholders, the paragraph that marks them gone; the protected branches `main dev`;
 #      the project's rule at the end of the allow list, the file still JSON; STATE.md past
 #      8,000 characters in HEAD's titles, in their order; LEARNINGS.md's four titles, its format
 #      comment and the project's two entries; the pin; two commits and a clean tree; the
@@ -17,7 +18,8 @@
 #      run. At least six of them.
 #   3. legacy, at v1.2.0, with its CRLF clone — the pin without its v and no graft date; the
 #      memory's titles and the entries' labels in their form before v1.1.0; no .gitattributes;
-#      the integrate command's placeholders replaced; reset-task.sh's default answered; a
+#      the integrate and checkpoint commands' placeholders replaced; reset-task.sh's default
+#      answered; a
 #      branch `dev`; the clone with CRLF line ends, counted in the line printed, its `dev`,
 #      and no remote.
 #   4. refusals — an existing directory, a revision FW lacks, a directory inside FW: each
@@ -59,6 +61,9 @@ grep -qF "; with core.autocrlf=true, no file with CRLF line ends — HEAD's .git
   || fail "the clone at HEAD has a file with CRLF, which HEAD's .gitattributes should hold to LF"
 left="$(grep -rlF --exclude-dir=.git -- "${M}" "${P}" || true)"
 [ -z "${left}" ] || fail "slots left open: ${left}"
+! grep -qE '<integration>|<pattern-to-ignore-for-the-stack>|^Setup replaces the placeholders below' "${P}/.claude/commands/fw/checkpoint.md" \
+  || fail "fw/checkpoint.md keeps a placeholder, or the paragraph setup deletes"
+grep -qF 'git branch --merged main' "${P}/.claude/commands/fw/checkpoint.md" || fail "fw/checkpoint.md's integration branch is not answered"
 grep -qxF 'PROTECTED_BRANCHES = main dev' "${P}/Makefile" || fail "the Makefile's protected branches are not main dev"
 node -e '
 const allow = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).permissions.allow;
@@ -114,6 +119,7 @@ grep -q '^- Data: 2026-01-12 | Origine: ' "${L}/.claude/memory/LEARNINGS.md" || 
 ! grep -q '^## Applied' "${L}/.claude/memory/LEARNINGS.md" || fail "LEARNINGS.md keeps a title in its new form"
 [ ! -e "${L}/.gitattributes" ] || fail "the legacy project keeps a .gitattributes"
 ! grep -qE '<integration>|<stable>' "${L}/.claude/commands/integrate.md" || fail "the integrate command keeps its branch placeholders"
+! grep -qE '<integration>|<pattern-to-ignore-for-the-stack>' "${L}/.claude/commands/checkpoint.md" || fail "the checkpoint command keeps its placeholders"
 grep -qxF 'PROTECTED_BRANCHES="${PROTECTED_BRANCHES:-main dev}"' "${L}/scripts/reset-task.sh" || fail "reset-task.sh's protected branches are not answered"
 git -C "${L}" rev-parse -q --verify refs/heads/dev >/dev/null || fail "no branch dev in the legacy project"
 grep -q $'\r$' "${L}.crlf/CLAUDE.md" || fail "the CRLF clone's CLAUDE.md has no CRLF line end"

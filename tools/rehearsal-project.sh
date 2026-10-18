@@ -32,7 +32,8 @@
 #             branch, `dev`.
 # Every bracketed marker is answered, the ones older releases named in prose included: the
 # project of a user who answered all it was pointed at, which also customises the METHOD files
-# such a mention sits in (edge case 7). `crlf` adds a clone of the project with
+# such a mention sits in (edge case 7). And the checkpoint command's two placeholders, which are
+# no markers, its paragraph that marks them deleted, as setup asks. `crlf` adds a clone of the project with
 # core.autocrlf=true, as a Windows checkout writes it: CRLF wherever .gitattributes does not
 # hold a file to LF — every file of a legacy project, none of a project at v1.5.0 or later,
 # whose .gitattributes holds every path this script writes —, the files counted in the line
@@ -98,6 +99,21 @@ rm -f "${OUT}/.learn.src"
 version="$(git -C "${FW}" describe --tags --exact-match "${commit}" 2>/dev/null || git -C "${FW}" describe --tags --always "${commit}")"
 
 # --- The answers ----------------------------------------------------------------------------------
+# The checkpoint command's two placeholders, which are no markers, answered as SETUP.md's step 2
+# asks — the integration branch and tree's ignore pattern —, and the paragraph that marks them,
+# where the release has one (from v1.4.1), deleted with its marker: as a project set up holds
+# the file, so a release that changes their lines conflicts here as it does there.
+for f in .claude/commands/fw/checkpoint.md .claude/commands/checkpoint.md; do
+  [ -f "${f}" ] || continue
+  awk '/^Setup replaces the placeholders below/ { skip = 1 }
+    skip { if (/then deletes this paragraph:/) skip = 0; next }
+    { gsub(/<integration>/, "main"); gsub(/<pattern-to-ignore-for-the-stack>/, "node_modules|dist"); print }' \
+    "${f}" > "${OUT}/.checkpoint.tmp"
+  cat "${OUT}/.checkpoint.tmp" > "${f}"
+  rm -f "${OUT}/.checkpoint.tmp"
+  ! grep -qE '<integration>|<pattern-to-ignore-for-the-stack>|^Setup replaces the placeholders below' "${f}" \
+    || die "${f} at ${REV}: a placeholder or its paragraph left"
+done
 # Every marker outside the memory this script writes becomes "rehearsal answer <n>", numbered
 # across the project. A file is rewritten through `cat >`, which keeps its mode: a script stays
 # executable.
