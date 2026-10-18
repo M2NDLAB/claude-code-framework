@@ -154,7 +154,14 @@ of the upgrade says how they combine):
   token and an untyped message refused by the new hooks, `invariant` and `post` without a FAIL
   and the same verdicts with CRLF; `invariant` failed the 4.0.0 project's `Makefile` taken on
   `vY`'s side, on purpose, and passed it with the project's list back; the prerequisite check
-  warned the 1.2.0 project's CRLF checkout until `.gitattributes` came over.
+  warned the 1.2.0 project's CRLF checkout until `.gitattributes` came over. The security
+  review's second-round fixes after it change four files a project takes — the guard, its
+  self-test, `docs/04` and `scripts/README.md` — and `upgrade-check.sh`: rehearsed again on
+  `b61eebf`, the four files brought from its tag into the four upgraded projects, `make
+  test-scripts` green there, `invariant` and `post` with the same verdicts; the fresh projects'
+  inventories the same but for this note and `docs/04`'s length. No commit after `b61eebf`
+  changes a file a project takes — checked again at the release, `git diff --name-only
+  b61eebf v4.1.0`.
 
 ## [4.0.0] — 2026-10-17
 
