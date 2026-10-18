@@ -217,6 +217,9 @@ EOF"
   '2>/dev/null git log -1'
   # a quoted heredoc's body is data, a `)` in it closes nothing (2026-10-18)
   $'echo "$(cat <<\'EOF\'\nsee (x)\n`git checkout main`\nEOF\n)"'
+  # an option's value is not an option (2026-10-18)
+  'git log -S --output --oneline'
+  'git branch --sort -committerdate'
 )
 for c in "${AGENT_READS[@]}"; do
   expect 0 "agent read blocked: ${c}" "${REPO_ROOT}" "$(hook_input "${c}" agent)"
@@ -373,6 +376,16 @@ EVERY_SESSION_REFUSED=(
   'git add -vf token.txt'
   'git -C . add -f token.txt'
   'git stage -f token.txt'
+  # an option after another's value is still read (2026-10-18)
+  'git log -S foo --output=x'
+  'git log --grep foo --output x'
+  'git branch --sort refname -m a b'
+  'git commit -m x --no-verify'
+  'git commit --mess x -n'
+  'tree -I x -o out.txt'
+  'tree -L2 -o out.txt'
+  'tree -La 1 -o out.txt'
+  'tree -Lo 1 out.txt'
 )
 for c in "${EVERY_SESSION_REFUSED[@]}"; do
   blocked "main session not refused: ${c}" "$(hook_input "${c}")"
@@ -417,6 +430,16 @@ MAIN_ALLOWED=(
   # scope, refused forms quoted in the body — data, not commands (the gate's round 1)
   $'git commit -m "$(cat <<\'EOF\'\nfix(guard): refuse the forms\n\nThe agent\'s `git commit -n` is now refused.\nEOF\n)"'
   $'gh pr create --title x --body "$(cat <<\'EOF\'\n## Summary (the guard)\n- refuses `git branch -D old` and `tree -o x`\nEOF\n)"'
+  # an option's value is not an option — measured on git 2.54.0 and tree 2.3.2: each sorted,
+  # searched or ran its hook with the word as its value, and wrote no file (2026-10-18)
+  'git branch --sort -committerdate'
+  'git log -S --output --oneline'
+  'git log --grep --output -1'
+  'git diff -G --output HEAD~1'
+  'git commit -m --no-verify'
+  'git commit --message --no-verify'
+  "tree -I '-o*' -L 2"
+  'tree -P -R'
 )
 for c in "${MAIN_ALLOWED[@]}"; do
   expect 0 "main session blocked: ${c}" "${REPO_ROOT}" "$(hook_input "${c}")"

@@ -326,23 +326,78 @@ const spells = (word, name) => {
   const flag = word.split('=')[0];
   return flag.startsWith('--') && flag.length > 2 && name.startsWith(flag);
 };
-// The short options of one command, read as git reads a cluster: `-an` is -a and -n, but in
-// `-mn` the -m takes "n" as its value. A `valued` option takes the rest of its cluster, or the
-// next word when it ends one — so `git commit -m '-n …'` keeps its message —; a `glued` one
-// takes the rest of its cluster only. Stops at `--`.
-function shortOptions(rest, valued = '', glued = '') {
-  const found = new Set();
+// The options that take a value as the next word when written alone, so that the value is
+// never read as an option: `git branch --sort -committerdate` sorts, `git log -S --output`
+// searches (the gate's round 1, 2026-10-18). For git: what 2.54.0's `git <sub> -h` lists
+// with a mandatory value, and where revisions are read (log and its kin) the options
+// revision.c reads with parse_long_opt — `--option=value`, or the next word whatever it is
+// (diff.c) — and `-n`; the diff and revision options take no prefix of their names
+// (measured: `git log --outp=` refused). For tree, its 2.3.2 source: `-L` takes the digits
+// glued to it or the next word, `-P` `-I` `-o` `-H` `-T` always the next word, the letters
+// after them in the cluster still options; its long options take `=value` or the next word,
+// by their whole names. Only mandatory values are listed: a value read as an option fails
+// safe — refused —, an option read as a value would not. The subcommands left out — am,
+// merge, pull, push, rebase among them — read every word as an option.
+const DIFF_VALUED = ['--stat-width', '--stat-name-width', '--stat-graph-width', '--stat-count',
+  '--ws-error-highlight', '--src-prefix', '--dst-prefix', '--line-prefix', '--inter-hunk-context',
+  '--output-indicator-new', '--output-indicator-old', '--output-indicator-context',
+  '--ignore-matching-lines', '--diff-algorithm', '--anchored', '--word-diff-regex',
+  '--color-moved-ws', '--rotate-to', '--skip-to', '--find-object', '--diff-filter', '--max-depth',
+  '--output'];
+const REVISION_VALUED = ['--max-count', '--skip', '--max-age', '--since', '--since-as-filter',
+  '--after', '--min-age', '--before', '--until', '--date', '--author', '--committer',
+  '--grep-reflog', '--grep', '--encoding', '--glob', '--exclude'];
+const DIFFS = { short: 'SGOIl', long: DIFF_VALUED, prefixes: false };
+const REVISIONS = { short: 'SGOIln', long: [...DIFF_VALUED, ...REVISION_VALUED], prefixes: false };
+const ADD_VALUED = { short: 'U', long: ['--chmod', '--pathspec-from-file', '--unified', '--inter-hunk-context'] };
+const VALUED = {
+  commit: { short: 'mFCctU', glued: 'Su', long: ['--file', '--author', '--date', '--message',
+    '--reedit-message', '--reuse-message', '--squash', '--fixup', '--trailer', '--template', '--cleanup',
+    '--unified', '--inter-hunk-context', '--pathspec-from-file'] },
+  branch: { short: 'u', glued: 't', long: ['--set-upstream-to', '--contains', '--no-contains', '--merged',
+    '--no-merged', '--sort', '--points-at', '--format'] },
+  add: ADD_VALUED,
+  stage: ADD_VALUED,
+  archive: { short: 'o', long: ['--format', '--prefix', '--add-file', '--add-virtual-file', '--output',
+    '--mtime', '--remote', '--exec'] },
+  diff: DIFFS, 'diff-files': DIFFS, 'diff-index': DIFFS, 'diff-tree': DIFFS, 'range-diff': DIFFS, stash: DIFFS,
+  log: { ...REVISIONS, short: 'SGOIlnL', long: [...REVISIONS.long, '--decorate-refs', '--decorate-refs-exclude'] },
+  show: REVISIONS, whatchanged: REVISIONS, reflog: REVISIONS, 'format-patch': REVISIONS,
+};
+const TREE_VALUED = { short: 'PIoHT', long: ['--gitfile', '--infofile', '--charset', '--filelimit',
+  '--timefmt', '--sort', '--compress', '--hintro', '--houtro', '--scheme', '--authority'], prefixes: false, tree: true };
+// A command's words read as its own parser reads them, up to `--`: the short letters, alone or
+// in a cluster — `-an` is -a and -n, but in git's `-mn` the -m takes "n" as its value —; the
+// long options as written; the operands. `spec` names the options that take a value (above):
+// in git a short one takes the rest of its cluster, or the next word when it ends one, so
+// `git commit -m '-n …'` keeps its message; a `glued` one takes the rest of its cluster only;
+// a long one, the next word unless written with `=` — a prefix of its name too where git
+// takes one (`prefixes`), which git runs only when it is unique.
+function readOptions(rest, spec = {}) {
+  const { short = '', glued = '', long = [], prefixes = true, tree = false } = spec;
+  const letters = new Set(); const longs = []; const operands = [];
+  const takesNext = (word) => !word.includes('=')
+    && long.some((name) => (prefixes ? spells(word, name) : word === name));
   for (let k = 0; k < rest.length; k += 1) {
     const word = rest[k];
-    if (word === '--') break;
-    if (!/^-[^-]/.test(word)) continue;
+    if (word === '--') { operands.push(...rest.slice(k + 1)); break; }
+    if (word.startsWith('--')) { longs.push(word); if (takesNext(word)) k += 1; continue; }
+    if (!/^-./.test(word)) { operands.push(word); continue; }
+    let next = 0; // the words after this one that its letters take as values
     for (let p = 1; p < word.length; p += 1) {
-      found.add(word[p]);
-      if (valued.includes(word[p])) { if (p === word.length - 1) k += 1; break; }
-      if (glued.includes(word[p])) break;
+      const letter = word[p];
+      letters.add(letter);
+      if (tree) {
+        if (letter === 'L' && /\d/.test(word[p + 1] ?? '')) { while (/\d/.test(word[p + 1] ?? '')) p += 1; continue; }
+        if (letter === 'L' || short.includes(letter)) next += 1;
+        continue;
+      }
+      if (short.includes(letter)) { if (p === word.length - 1) next = 1; break; }
+      if (glued.includes(letter)) break;
     }
+    k += next;
   }
-  return found;
+  return { letters, longs, operands };
 }
 // The subcommands where --no-verify skips a hook, and the ones where --output writes a file
 // (those that take git's diff options, and archive).
@@ -450,9 +505,10 @@ function gitEverySessionReason({ args, assignments }, dir) {
   // the environment: for that command git reads its hooks from elsewhere.
   if ([...globals, ...Object.values(assignments)].some(hooksPath)) return '`core.hooksPath` set for one command takes its hooks out';
   if (sub === undefined) return null;
-  const long = (name) => rest.some((word) => spells(word, name));
+  const { letters: short, longs } = readOptions(rest, VALUED[sub]);
+  const long = (name) => longs.some((word) => spells(word, name));
   if (VERIFYING.has(sub) && long('--no-verify')) return `\`git ${sub} --no-verify\` takes a hook out`;
-  if (sub === 'commit' && shortOptions(rest, 'mFCct', 'Su').has('n')) return '`git commit -n` takes the pre-commit and commit-msg hooks out';
+  if (sub === 'commit' && short.has('n')) return '`git commit -n` takes the pre-commit and commit-msg hooks out';
   if (sub === 'commit' && long('--amend')) {
     const pushed = amendReason(gitLocation(globals, assignments, dir));
     if (pushed) return pushed;
@@ -462,13 +518,12 @@ function gitEverySessionReason({ args, assignments }, dir) {
     && !rest.some((word) => ['--unset', '--unset-all', 'unset'].includes(word))) return '`git config core.hooksPath` takes the hooks out';
   // `git stage` is git-add(1)'s synonym. An ignored file staged is a secret's way into a
   // commit (the core's rule 1), past the refusal a plain `git add` gives it.
-  if ((sub === 'add' || sub === 'stage') && (shortOptions(rest).has('f') || long('--force'))) {
+  if ((sub === 'add' || sub === 'stage') && (short.has('f') || long('--force'))) {
     return `\`git ${sub} -f\` stages a file .gitignore leaves out`;
   }
   if (OUTPUT.has(sub) && long('--output')) return `\`git ${sub} --output\` writes a file`;
   if (sub === 'diff' && long('--no-index')) return '`git diff --no-index` reads files past the repository';
   if (sub === 'branch') {
-    const short = shortOptions(rest, 'u');
     const force = short.has('f') || long('--force');
     if (short.has('D') || (force && (short.has('d') || long('--delete')))) return '`git branch -D` deletes a branch that may hold unmerged work';
     if (force) return '`git branch -f` moves a branch away from its commits';
@@ -479,12 +534,12 @@ function gitEverySessionReason({ args, assignments }, dir) {
 }
 // Why this tree invocation is refused in every session, or null. tree reads each letter of
 // a cluster as an option (measured: `tree -ao <file>` wrote) and no prefix of a long one
-// (`--fromf` is refused).
+// (`--fromf` is refused): a prefix refused here costs nothing.
 function treeReason(args) {
-  const short = shortOptions(args);
-  if (short.has('o')) return '`tree -o` writes a file';
-  if (short.has('R')) return '`tree -R` writes a file in each directory it reaches';
-  if (args.some((word) => spells(word, '--fromfile') || spells(word, '--fromtabfile'))) return '`tree --fromfile` prints the lines of the file it reads';
+  const { letters, longs } = readOptions(args, TREE_VALUED);
+  if (letters.has('o')) return '`tree -o` writes a file';
+  if (letters.has('R')) return '`tree -R` writes a file in each directory it reaches';
+  if (longs.some((word) => spells(word, '--fromfile') || spells(word, '--fromtabfile'))) return '`tree --fromfile` prints the lines of the file it reads';
   return null;
 }
 // Job (2) for one simple command, run in `dir`.
@@ -499,7 +554,7 @@ function everySessionReason(words, powershell, dir) {
 function writeReason({ args, assignments }) {
   const { globals, sub, rest } = gitParts(args);
   if (sub === undefined) return null; // `git --version`, `git -C dir` alone
-  if (flagNames(rest).includes('--output')) return `\`git ${sub} --output\` writes a file`;
+  if (readOptions(rest, VALUED[sub]).longs.some((word) => word.split('=')[0] === '--output')) return `\`git ${sub} --output\` writes a file`;
   if (sub === 'status') {
     const quiet = globals.includes('--no-optional-locks') || assignments.GIT_OPTIONAL_LOCKS === '0';
     // A plain status refreshes and rewrites .git/index, and its lock can make a concurrent git
