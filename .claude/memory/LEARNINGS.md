@@ -104,7 +104,7 @@ tags: [improvement]
 - Observed problem: Q1 (LOW) — an unquoted `$(…)` or backticks among git's words split the
   command for the guard, so `git commit -m x $(echo a) --no-verify` passes in the main
   session, under the shipped `Bash(git commit:*)`; it was there before this release's fixes
-  (`4f0efed`), it is no form Claude Code writes — its substitutions are double-quoted, and one
+  (`f5028ae`), it is no form Claude Code writes — its substitutions are double-quoted, and one
   followed by `--no-verify` is refused —, and an agent's commit is refused anyway. `docs/04`'s
   Outside column covers it only in general, "any other form of the shell's quoting or
   expansion its cases do not hold", while saying each one found is declared there: v4.1.0
@@ -2313,19 +2313,19 @@ line on; older entries are not backfilled.
 - Applied ([[2026-10-17-cleanup-imp-135]], the user's decision): under the gate,
   `/fw:integrate` checks the base with the gate's line, before step 2 computes a version and
   step 3 commits it; step 5's checklist and `docs/03`'s *The check at integration* name it,
-  and the release's CHANGELOG entry names it (`1a9a27f`). Step 4's check stays, on the values
+  and the release's CHANGELOG entry names it (`8b6c01c`). Step 4's check stays, on the values
   block 1 pins.
   `fw/integrate.md` is HYBRID: the new lines carry `<integration>`, which a project grafted
   before v3.0.0 replaced throughout — the release's Upgrading note says so.
 - Verified: the documentation check passes; the wording of the base check narrowed by the
-  gate's round 1 to what it reads, the last fetch's `origin/<integration>` (`bcb0275`); the
-  release's rehearsal on `1364626` ([[2026-10-17-cleanup-imp-135]], *The rehearsal on the tip
+  gate's round 1 to what it reads, the last fetch's `origin/<integration>` (`61da06d`); the
+  release's rehearsal on `f33a7f1` ([[2026-10-17-cleanup-imp-135]], *The rehearsal on the tip
   that ships*): the base check reached `fw/integrate.md` in the four projects, merged clean
   from 4.0.0 and rebuilt from `vY` from 1.2.0. Not rehearsed: the conflict the *Upgrading*
   note names, a project grafted before v3.0.0 that replaced the placeholders throughout — the
   rehearsal's 1.2.0 project rebuilds the file from `vY`.
 
-### IMP-130 (narrowed) — A value a conflict's resolution loses in a HYBRID file gets no FAIL → applied on 2026-10-18, commit 2d37244
+### IMP-130 (narrowed) — A value a conflict's resolution loses in a HYBRID file gets no FAIL → applied on 2026-10-18, commit cde4d2e
 - Origin: v4.0.0's gate, migration F8 — [[2026-10-16-on-demand-docs-4.0.0]]: `invariant`
   failed a re-opened slot only in a TEMPLATE file. Deferred on 2026-10-17 (row 8 of
   [[2026-10-17-cleanup-imp-135]]), its trigger fired by this release — the `Makefile`'s comment
@@ -2344,7 +2344,7 @@ line on; older entries are not backfilled.
   proposal's FAIL on a re-opened marker line — such a line, `fw/integrate.md`'s step 1 or
   `fw/checkpoint.md`'s paragraph in the rehearsal, was shown by Step 4's grep, loudly.
 
-### IMP-136 — The agent's own commands in zsh: an unquoted variable is not split into words → applied on 2026-10-18, commit ea42b9e
+### IMP-136 — The agent's own commands in zsh: an unquoted variable is not split into words → applied on 2026-10-18, commit 2432e0f
 - Origin: [[2026-10-17-cleanup-imp-135]], *Problems encountered* 1, 6 and 12: the Bash tool runs
   the user's shell, zsh on macOS, where an unquoted variable stays one word; the agent wrote
   bash's idiom three times, and once a count of 22 paths printed 0 with no error.
@@ -2356,7 +2356,7 @@ line on; older entries are not backfilled.
   fail loudly; this one, once silent, is a rule of the agent's own commands, not of the
   framework's blocks, which their own tests run in zsh and bash.
 
-### IMP-137 — The release's Upgrading note before its rehearsal, so one rehearsal reads it → applied on 2026-10-18, commit a8f8960
+### IMP-137 — The release's Upgrading note before its rehearsal, so one rehearsal reads it → applied on 2026-10-18, commit 2f6067f
 - Origin: [[2026-10-17-cleanup-imp-135]], *The rehearsal on `1b379f2`*, and v4.0.0's rehearsal
   run again on its CHANGELOG's commit ([[2026-10-16-on-demand-docs-4.0.0]]): the inventory
   prints `vY`'s *Upgrading* notes from the tag, so a rehearsal before the entry follows no note of
@@ -2367,7 +2367,7 @@ line on; older entries are not backfilled.
 - Verified: the documentation check passes; repository-only. This release, its order set by the
   user before the rule, rehearses a second time (task 39 of the note's plan).
 
-### IMP-138 — The gate's reviewers get the fixtures they must run, prepared before the launch → applied on 2026-10-18, commit eba5ecd
+### IMP-138 — The gate's reviewers get the fixtures they must run, prepared before the launch → applied on 2026-10-18, commit f98a257
 - Origin: [[2026-10-17-cleanup-imp-135]], *Security gate*, round 1: both reviewers stopped at the
   guard on the first fixture they needed — the guard refuses an agent's `git init`, `clone` or
   `tag` (`docs/04`) —, and the round lost its end-to-end coverage and its verifier.
