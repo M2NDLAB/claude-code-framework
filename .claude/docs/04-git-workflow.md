@@ -252,10 +252,14 @@ on WHICH BRANCH the tag lives:
 The boundary that decides WHO runs a git command is the STATE the command touches.
 Stating it explicitly avoids the incidents that come from its ambiguity:
 
-- **LOCAL history → Claude Code.** Commits, amend, `rm --cached`, local branches,
-  rebase of one's own feature branch: Claude Code runs these autonomously, within the
-  rules of this doc — the MAIN session only: delegated agents are read-only on git
-  (*Delegated agents and the shared working tree*).
+- **LOCAL history → Claude Code.** Commits, the amend of a commit not yet pushed, `rm
+  --cached`, local branches — created, switched to, deleted once merged —, rebase of one's
+  own feature branch: Claude Code runs these autonomously, within the rules of this doc —
+  the MAIN session only: delegated agents are read-only on git (*Delegated agents and the
+  shared working tree*). A local branch forced, renamed, copied over or deleted with force,
+  and the amend of a commit its upstream or a remote-tracking branch already holds, are the
+  user's to run: the guard refuses them in every session (*Enforcement of the execution
+  boundary*, the row *No hook taken out*).
 - **SHARED history → the user.** Push, merge onto the integration branch, tags:
   Claude Code PREPARES them (blocks ready to paste, see `/fw:integrate`), the user runs
   them from their own terminal.
