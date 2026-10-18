@@ -955,7 +955,10 @@ has "OK     scripts/reset-task.sh: its value ('main dev') is on Makefile's line 
 has "INFO   Makefile: 'PROTECTED_BRANCHES =' moved in between — its value checked above (edge case 8)"
 # The same Makefile with CRLF line ends, as a Windows checkout writes it: the same verdict.
 awk '{ printf "%s\r\n", $0 }' "${P13}/Makefile" > "${workdir}/make13.crlf" && cp "${workdir}/make13.crlf" "${P13}/Makefile"
-grep -q $'\r$' "${P13}/Makefile" || fail "the fixture: the Makefile has no CRLF line end"
+# The CR read by git, on the bytes, as eol_count reads it above: a grep for $'\r$' failed here
+# on Windows over the same awk's CRLF (the CI, 2026-10-19).
+[ "$(g -C "${P13}" ls-files --eol -- Makefile | awk '{ print $2 }')" = w/crlf ] \
+  || fail "the fixture: the Makefile has no CRLF line end"
 FW="${FW13}" T="${T13}" run 0 "${P13}" invariant v1.3.1 v1.3.2 "${RESTORE13}"
 has "OK     scripts/reset-task.sh: its value ('main dev') is on Makefile's line 'PROTECTED_BRANCHES ='"
 # A project that kept the default: nothing to carry.
