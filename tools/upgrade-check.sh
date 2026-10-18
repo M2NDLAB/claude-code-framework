@@ -547,8 +547,10 @@ value_at() {
 # home_value <label> <file>: what a value slot's new home holds — the rest of the first line
 # that opens with <label>, in SLOT_NORM's form; a failure when no line opens with it. The
 # label is the line's text as vY writes it, `PROTECTED_BRANCHES =`, the plain `=` the
-# Makefile's comment asks for: a `:=`, a `?=` or a line without the space is no home here (a
-# FAIL, "no line that opens with"), and a later line that overrides the first is not read.
+# Makefile's comment asks for: a `:=`, a `?=` or a line without the space is no home here —
+# where the project's copy must hold a moved value, a FAIL, "no line that opens with"; at the
+# restore point of a value held in place, invariant's CHECK on another form —, and a later
+# line that overrides the first is not read.
 home_value() {
   [ -f "$2" ] || return 1
   L="$1" awk "${SLOT_NORM}"'
@@ -593,6 +595,17 @@ in_list() { awk -F'\t' -v p="$2" '$2 == p { f = 1 } END { exit !f }' "$1"; }
 # release whatever its comments say: a project that answered the slot's marked comment and
 # kept the default changed it, and has nothing to carry.
 moved_value() { awk -F'\t' -v p="$2" '$2 == p && $6 != "" { f = 1 } END { exit !f }' "$1"; }
+# moved_value_elsewhere <moved file> <path> <vX> <tmp>: for the value slots of <path> a release
+# in between moved, the lines value_elsewhere finds in the project's copy of their new home —
+# the CHECK of the moved answers' section —, so the file's flag never says "nothing to carry"
+# over it: the gate's round 2 found the two lines contradicting each other (2026-10-18).
+moved_value_elsewhere() {
+  local rel old line new label default
+  while IFS=$'\t' read -r rel old line new label default; do
+    [ "${old}" = "$2" ] && [ -n "${default}" ] || continue
+    value_elsewhere "${line}" "${new}" "$3" "${new}" "$4"
+  done < "$1"
+}
 # file_markers <file>: the slot markers of a project file, by occurrence.
 file_markers() { grep -oE "${MARKER_RE}" "$1" 2>/dev/null | wc -l | tr -d ' '; }
 # labels_renamed <tag>: whether the tag's LEARNINGS format uses the field labels of v1.1.0
@@ -731,7 +744,11 @@ cmd_inventory() {
       if moved_answered "${d}/moved" "${path}" "${vx}"; then
         check "edge case 8: ${path} is METHOD in ${vy} and the project answered slots of it a release moved (below): carry them first, then bring it over — a customisation beyond its slots is edge case 7's"
       elif moved_value "${d}/moved" "${path}"; then
-        check "edge case 8: ${path} is METHOD in ${vy}, and a release in between moved its value to another file (below): the value is the default, nothing to carry — bring it over; a customisation beyond its slots is edge case 7's"
+        if [ -n "$(moved_value_elsewhere "${d}/moved" "${path}" "${vx}" "${d}/flag" | head -n 1)" ]; then
+          check "edge case 8: ${path} is METHOD in ${vy}, and a release in between moved its value to another file (below): its line holds the default, but the project sets the variable elsewhere — read the CHECK below before bringing it over; a customisation beyond its slots is edge case 7's"
+        else
+          check "edge case 8: ${path} is METHOD in ${vy}, and a release in between moved its value to another file (below): the value is the default, nothing to carry — bring it over; a customisation beyond its slots is edge case 7's"
+        fi
       elif in_list "${d}/moved.unknown" "${path}"; then
         check "edge case 8: ${path} is METHOD in ${vy}, and a release in between moved its slots in a form this check does not know (below): carry its answers by hand first, then bring it over — a customisation beyond its slots is edge case 7's"
       else
@@ -1185,13 +1202,27 @@ cmd_invariant() {
   # vY's side there brings vY's default back with no marker to show it. The restore point's
   # value against the line now: vY's default where the project held its own is a FAIL.
   section "Values a hybrid holds in place — each still the project's"
-  local vfile vlabel was now dflt
+  local vfile vlabel was now dflt other
   while IFS=$'\t' read -r vfile vlabel; do
-    # Moved in between: edge case 8's, above.
-    awk -F'\t' -v f="${vfile}" -v l="${vlabel}" '$4 == f && $5 == l { m = 1 } END { exit !m }' "${d}/moved" && continue
+    # Moved in between: edge case 8's, above — said, so the section is never an empty heading.
+    if awk -F'\t' -v f="${vfile}" -v l="${vlabel}" '$4 == f && $5 == l { m = 1 } END { exit !m }' "${d}/moved"; then
+      info "${vfile}: '${vlabel}' moved in between — its value checked above (edge case 8)"
+      continue
+    fi
     pg show "${restore}:${vfile}" 2>/dev/null | tr -d '\r' > "${d}/value.before" || : > "${d}/value.before"
     if ! was="$(home_value "${vlabel}" "${d}/value.before")"; then
-      info "${vfile}: no line '${vlabel}' at the restore point, no value of the project's to keep"
+      # No line in vY's form at the restore point: another form of the assignment — no space,
+      # `:=`, `?=`, a recipe's — that vX's own copy does not hold is a value of the project's
+      # all the same, which vY's side would lose: a CHECK, never silence on a line not found
+      # (the gate's round 2, 2026-10-18).
+      fw show "${vx}:${vfile}" 2>/dev/null | tr -d '\r' > "${d}/value.vx" || : > "${d}/value.vx"
+      awk -v v="${vlabel%% *}" '$0 ~ "^[[:space:]]*" v "[[:space:]]*[:?+!]?=" { print }' "${d}/value.before" > "${d}/value.sets"
+      other="$(grep -vxFf "${d}/value.vx" "${d}/value.sets" | head -n 1 || true)"
+      if [ -n "${other}" ]; then
+        check "${vfile}: the restore point sets ${vlabel%% *} in another form ('$(clip "${other}")'), not on a line '${vlabel}': confirm the project's value is on that line now"
+      else
+        info "${vfile}: no line '${vlabel}' at the restore point, no value of the project's to keep"
+      fi
       continue
     fi
     fw show "${vy}:${vfile}" 2>/dev/null | tr -d '\r' > "${d}/value.vy" || : > "${d}/value.vy"

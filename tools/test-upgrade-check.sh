@@ -951,6 +951,8 @@ has "FAIL   scripts/reset-task.sh: the restore point held 'main dev', and Makefi
 sed 's/^PROTECTED_BRANCHES = main develop$/PROTECTED_BRANCHES = main dev/' "${P13}/Makefile" > "${workdir}/make13" && cp "${workdir}/make13" "${P13}/Makefile"
 FW="${FW13}" T="${T13}" run 0 "${P13}" invariant v1.3.1 v1.3.2 "${RESTORE13}"
 has "OK     scripts/reset-task.sh: its value ('main dev') is on Makefile's line 'PROTECTED_BRANCHES ='"
+# The section of the values held in place says why it reads none here (the gate's round 2).
+has "INFO   Makefile: 'PROTECTED_BRANCHES =' moved in between — its value checked above (edge case 8)"
 # The same Makefile with CRLF line ends, as a Windows checkout writes it: the same verdict.
 awk '{ printf "%s\r\n", $0 }' "${P13}/Makefile" > "${workdir}/make13.crlf" && cp "${workdir}/make13.crlf" "${P13}/Makefile"
 grep -q $'\r$' "${P13}/Makefile" || fail "the fixture: the Makefile has no CRLF line end"
@@ -1010,7 +1012,20 @@ has "CHECK  scripts/reset-task.sh: 'PROTECTED_BRANCHES=\"\${PROTECTED_BRANCHES:-
 awk '/^PROTECTED_BRANCHES = / { print "PROTECTED_BRANCHES := main trunk"; next } { print }' "${P13E}/Makefile" > "${workdir}/make13e" && cp "${workdir}/make13e" "${P13E}/Makefile"
 FW="${FW13}" T="${T13}" run 1 "${P13E}" invariant v1.3.1 v1.3.2 "${RESTORE13E}"
 has "FAIL   Makefile has no line that opens with 'PROTECTED_BRANCHES =': the value of scripts/reset-task.sh's 'PROTECTED_BRANCHES=\"\${PROTECTED_BRANCHES:-main develop}\"' has no home — bring v1.3.2's line over"
-echo "PASS (upgrade-check moved value): inventory names edge case 8 for the protected branches v1.3.2 moved, with the project's value and the Makefile's line, never edge case 7 — a comment answered and the default kept included —, and leaves the default alone; a list set in the Makefile's recipe is a CHECK at both ends, never nothing to carry; invariant fails while the Makefile holds the default, and passes once it holds the project's value."
+# A project that answered the slot's comment AND set its list in the Makefile's recipe: the
+# file's flag points to the CHECK below, never "nothing to carry" over it (the gate's round 2,
+# 2026-10-18).
+P13F="${workdir}/project13f"
+mkdir -p "${P13F}"
+g -C "${FW13}" archive v1.3.1 -- .claude CLAUDE.md scripts Makefile | tar -x -C "${P13F}"
+cp "${P13C}/scripts/reset-task.sh" "${P13F}/scripts/reset-task.sh"
+printf 'reset-task:\n\tPROTECTED_BRANCHES="main trunk" bash scripts/reset-task.sh\n' > "${P13F}/Makefile"
+g init -q -b main "${P13F}" && g -C "${P13F}" add -A && g -C "${P13F}" commit -q -m "chore: graft the framework v1.3.1"
+FW="${FW13}" T="${T13}" run 0 "${P13F}" inventory v1.3.1 v1.3.2
+has "edge case 8: scripts/reset-task.sh is METHOD in v1.3.2, and a release in between moved its value to another file (below): its line holds the default, but the project sets the variable elsewhere — read the CHECK below before bringing it over; a customisation beyond its slots is edge case 7's"
+hasnt "the value is the default, nothing to carry"
+has "CHECK  edge case 8: scripts/reset-task.sh: 'PROTECTED_BRANCHES=\"\${PROTECTED_BRANCHES:-main develop}\"' is open, but the project's Makefile sets the variable on a line of its own ('PROTECTED_BRANCHES=\"main trunk\" bash scripts/reset-task.sh'): that value may be the project's — carry it to Makefile's line that opens with 'PROTECTED_BRANCHES ='"
+echo "PASS (upgrade-check moved value): inventory names edge case 8 for the protected branches v1.3.2 moved, with the project's value and the Makefile's line, never edge case 7 — a comment answered and the default kept included —, and leaves the default alone; a list set in the Makefile's recipe is a CHECK at both ends, never nothing to carry, the file's flag pointing to it; invariant fails while the Makefile holds the default, and passes once it holds the project's value."
 
 # --- Case 14: a value a hybrid holds in place (IMP-130) ---------------------------------------
 # From v1.3.2 the protected branches are the Makefile's own line, which no release since moved:
@@ -1059,4 +1074,22 @@ has "OK     Makefile: its value ('main dev') is still on its line 'PROTECTED_BRA
 cp "${T14}/theirs" "${P14B}/Makefile"
 FW="${FW14}" T="${T14}" run 0 "${P14B}" invariant v4.0.0 v4.1.0 "${RESTORE14B}"
 has "OK     Makefile: its value ('main develop') is still on its line 'PROTECTED_BRANCHES ='"
-echo "PASS (upgrade-check value in place): with the Makefile's protected branches in a 3-way's conflict, invariant fails where vY's default replaced the project's list, asks where another list holds the line, and passes with the project's list back or the default kept."
+# The restore point set the list in another form — no space, `:=` —: no line of the home's to
+# compare, but a value of the project's all the same, which vY's side would lose: a CHECK,
+# never an INFO on a line not found (the gate's round 2, 2026-10-18).
+other_form() { # other_form <project dir> <the restore point's line>
+  mkdir -p "$1"
+  g -C "${FW14}" archive v4.0.0 -- .claude CLAUDE.md scripts Makefile | tar -x -C "$1"
+  L="$2" awk '$0 == "PROTECTED_BRANCHES = main develop" { print ENVIRON["L"]; next } { print }' "$1/Makefile" > "$1.make" && cp "$1.make" "$1/Makefile"
+  grep -qxF "$2" "$1/Makefile" || fail "the fixture: the restore point's Makefile lacks '$2'"
+  g init -q -b main "$1" && g -C "$1" add -A && g -C "$1" commit -q -m "chore: graft the framework v4.0.0"
+  local restore
+  restore="$(g -C "$1" rev-parse HEAD)"
+  cp "${T14}/theirs" "$1/Makefile"
+  FW="${FW14}" T="${T14}" run 0 "$1" invariant v4.0.0 v4.1.0 "${restore}"
+  has "CHECK  Makefile: the restore point sets PROTECTED_BRANCHES in another form ('$2'), not on a line 'PROTECTED_BRANCHES =': confirm the project's value is on that line now"
+  hasnt "no value of the project's to keep"
+}
+other_form "${workdir}/project14c" 'PROTECTED_BRANCHES=main dev'
+other_form "${workdir}/project14d" 'PROTECTED_BRANCHES := main dev'
+echo "PASS (upgrade-check value in place): with the Makefile's protected branches in a 3-way's conflict, invariant fails where vY's default replaced the project's list, asks where another list holds the line or the restore point set the list in another form, and passes with the project's list back or the default kept."

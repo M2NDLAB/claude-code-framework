@@ -1191,9 +1191,10 @@ Italian one.
   project's list and the line now holds `vY`'s default, and asks where it holds another. A
   FAIL is a bug in the upgrade: stop and investigate.
 - `FW="$FW" T="$T" bash "${T:?}/upgrade-check.sh" post vX vY`: the METHOD files and their
-  modes at `vY`, every file present, no orphan, no marker broken by a wrap, each slot
-  `vY` added shown with the value under it, every hook installed, titles and labels in
-  `vY`'s form.
+  modes at `vY`, every file present, no orphan, no marker broken by a wrap, each file where
+  `vY` added slots named with their count — a marker still open shown with the line under
+  it; an answered one leaves no marker to show, so its line is read in the file —, every
+  hook installed, titles and labels in `vY`'s form.
 - `git diff --stat` and a per-file diff.
 - The project's `[TO BE DEFINED]` customisations survived in the reconciled files.
 - `/fw:lint-memory` on the preserved memory against the new docs (pointers to
