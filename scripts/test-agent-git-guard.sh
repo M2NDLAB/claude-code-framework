@@ -15,14 +15,16 @@
 #
 # It FAILS if the guard stops blocking a write or starts blocking a read — through Bash,
 # PowerShell or Monitor —, stops refusing one of section 3's forms in either session or
-# starts refusing the main session's ordinary work, if the wiring disappears from
+# starts refusing the main session's ordinary work — a local commit's amend among it
+# (section 3c) —, if the wiring disappears from
 # settings.json or the PowerShell tool is no longer off there, if a broken guard lets an
 # agent through, blocks the main session or stays silent there, or if the first line of a
 # failure is not the wiring's own message.
 #
 # HERMETIC: the wired command is READ from .claude/settings.json (never retyped here) and
-# run by /bin/sh in a clean environment against JSON inputs. No git repository is touched:
-# the guard reads command text only.
+# run by /bin/sh in a clean environment against JSON inputs. No repository of the user's is
+# touched: the guard reads command text — and, for the amend, the throwaway repositories
+# section 3c builds.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -35,6 +37,8 @@ fail() {
 
 NODE="$(command -v node || true)"
 [[ -n "${NODE}" ]] || fail "node not found: the guard needs Node.js (a framework prerequisite); without it delegated agents are blocked"
+GIT="$(command -v git || true)"
+[[ -n "${GIT}" ]] || fail "git not found: the guard reads the repository for the amend (section 3c)"
 
 workdir="$(mktemp -d)"
 trap 'rm -rf "${workdir}"' EXIT
@@ -83,12 +87,16 @@ process.stdout.write(JSON.stringify(input));
 }
 
 # Runs the wired command as Claude Code would (sh -c, CLAUDE_PROJECT_DIR set) and prints
-# its exit code. Arguments: project dir, hook input, PATH (default: node's dir + system).
+# its exit code. Arguments: project dir, hook input, PATH (default: node's and git's dirs +
+# system). The user's git configuration stays out of the guard's reads of section 3c's
+# repositories; SYSTEMROOT and WINDIR, where Windows sets them, pass, as Claude Code's
+# environment passes them to its hooks.
 run_wired() {
   local rc
   set +e
-  printf '%s' "$2" | env -i HOME="${HOME}" PATH="${3:-$(dirname "${NODE}"):/usr/bin:/bin}" \
-    CLAUDE_PROJECT_DIR="$1" /bin/sh -c "${wired}" >/dev/null 2>"${workdir}/stderr"
+  printf '%s' "$2" | env -i HOME="${HOME}" PATH="${3:-$(dirname "${NODE}"):$(dirname "${GIT}"):/usr/bin:/bin}" \
+    GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 ${SYSTEMROOT:+"SYSTEMROOT=${SYSTEMROOT}"} \
+    ${WINDIR:+"WINDIR=${WINDIR}"} CLAUDE_PROJECT_DIR="$1" /bin/sh -c "${wired}" >/dev/null 2>"${workdir}/stderr"
   rc=$?
   set -e
   echo "${rc}"
@@ -387,7 +395,6 @@ MAIN_ALLOWED=(
   "git commit -m '-n is the message here'"
   'git commit -mn'
   'git commit -F msg.txt'
-  'git commit --amend --no-edit'
   'git branch feat/x'
   'git branch -d merged'
   'git branch --delete merged'
@@ -417,6 +424,56 @@ done
 for c in 'git switch -c feat/x' 'git commit -m "x"' 'git push origin main'; do
   expect 0 "main session blocked (PowerShell): ${c}" "${REPO_ROOT}" "$(hook_input "${c}" '' PowerShell)"
 done
+
+# --- 3c. The amend of a commit already pushed: the guard reads the repository ---------------
+# The one form of section 3 decided on the repository's state, not on the text: `git commit
+# --amend` is refused where HEAD is already in its upstream or in a remote-tracking branch,
+# and where the guard cannot tell — a `cd` the text does not resolve, no repository —; a
+# local commit's amend passes. Throwaway repositories, built with the user's git
+# configuration out (a global commit.gpgSign would ask for a signature) and with no push:
+# the remote-tracking refs come from a fetch. Each case's directory reaches the guard as the
+# hook's `cwd`, in node's own form of the path — on Windows, not Git Bash's.
+amend="${workdir}/amend"
+mkdir -p "${amend}/none"
+ga() { GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 git -c user.name=self-test \
+  -c user.email=self-test@example.invalid -c commit.gpgSign=false "$@"; }
+ga init -q -b main "${amend}/pushed"
+ga -C "${amend}/pushed" commit -q --allow-empty -m one
+ga clone -q --bare "${amend}/pushed" "${amend}/remote.git"
+ga -C "${amend}/pushed" remote add origin "${amend}/remote.git"
+ga -C "${amend}/pushed" fetch -q origin
+ga -C "${amend}/pushed" branch -q -u origin/main          # HEAD is its upstream's tip
+ga clone -q "${amend}/remote.git" "${amend}/ahead"
+ga -C "${amend}/ahead" commit -q --allow-empty -m two     # a local commit on top of it
+ga clone -q "${amend}/remote.git" "${amend}/fresh"
+ga -C "${amend}/fresh" switch -q -c feat                  # no upstream, HEAD on origin/main
+ga init -q -b main "${amend}/local"
+ga -C "${amend}/local" commit -q --allow-empty -m one     # no remote at all
+ga init -q -b main "${amend}/localup"
+ga -C "${amend}/localup" commit -q --allow-empty -m one
+ga -C "${amend}/localup" switch -q -c topic --track main  # a local upstream that holds HEAD
+native() { (cd "$1" && "${NODE}" -e 'process.stdout.write(process.cwd())'); }
+pushed="$(native "${amend}/pushed")"
+ahead="$(native "${amend}/ahead")"
+amend_cases=0
+amend_case() { # amend_case <code> <label> <directory> <command>
+  expect "$1" "$2" "${REPO_ROOT}" "$(cd "$3" && hook_input "$4")"
+  if [[ "$1" == 2 ]]; then first_line "agent-git-guard: BLOCKED" "$2"; fi
+  amend_cases=$((amend_cases + 1))
+}
+amend_case 2 "main session not refused: the amend of a HEAD its upstream holds" "${amend}/pushed" 'git commit --amend --no-edit'
+amend_case 2 "main session not refused: the amend written as a prefix" "${amend}/pushed" 'git commit --amen --no-edit'
+amend_case 2 "main session not refused: the amend on a new branch at a pushed tip" "${amend}/fresh" 'git commit --amend --no-edit'
+amend_case 2 "main session not refused: the amend of a HEAD its local upstream holds" "${amend}/localup" 'git commit --amend --no-edit'
+amend_case 2 "main session not refused: the amend through -C" "${amend}/none" "git -C '${pushed}' commit --amend --no-edit"
+amend_case 2 "main session not refused: the amend after a cd" "${amend}/none" "cd '${pushed}' && git commit --amend --no-edit"
+amend_case 2 "main session not refused: the amend after a cd the text cannot resolve" "${amend}/ahead" 'cd "$REPO" && git commit --amend --no-edit'
+amend_case 2 "main session not refused: the amend outside a repository" "${amend}/none" 'git commit --amend --no-edit'
+amend_case 0 "main session blocked: a local commit's amend" "${amend}/ahead" 'git commit --amend --no-edit'
+amend_case 0 "main session blocked: an amend with no remote" "${amend}/local" 'git commit --amend --no-edit'
+amend_case 0 "main session blocked: a local commit's amend through -C" "${amend}/none" "git -C '${ahead}' commit --amend --no-edit"
+amend_case 0 "main session blocked: a local commit's amend after a cd" "${amend}/none" "cd '${ahead}' && git commit --amend --no-edit"
+amend_case 0 "main session blocked: a plain commit where HEAD is pushed" "${amend}/pushed" 'git commit -m x'
 
 # --- 4. A broken guard: fail-CLOSED for a delegated agent, open for the main session ------
 mkdir -p "${workdir}/empty" "${workdir}/broken/scripts" "${workdir}/no-node" "${workdir}/no-cat"
@@ -457,4 +514,4 @@ expect 2 "a healthy guard's block stands (escaped agent_id key)" "${REPO_ROOT}" 
 expect 1 "a main session with agent_type only (broken guard)" "${workdir}/empty" \
   '{"tool_name":"Bash","tool_input":{"command":"git log -1"},"cwd":"/tmp","agent_type":"reviewer"}'
 
-echo "PASS (agent git guard): ${#AGENT_WRITES[@]} agent writes blocked, ${#AGENT_READS[@]} reads allowed, through PowerShell ${#PS_WRITES[@]} and ${#PS_READS[@]}, ${crlf_cases} CRLF cases whose CR node received; ${#EVERY_SESSION_REFUSED[@]} forms refused in every session, the main one included, and ${#MAIN_ALLOWED[@]} of the main session's commands next to them allowed; a broken guard (node missing / file missing / crash / bad input) blocks agents and shows a non-blocking error to the main session."
+echo "PASS (agent git guard): ${#AGENT_WRITES[@]} agent writes blocked, ${#AGENT_READS[@]} reads allowed, through PowerShell ${#PS_WRITES[@]} and ${#PS_READS[@]}, ${crlf_cases} CRLF cases whose CR node received; ${#EVERY_SESSION_REFUSED[@]} forms refused in every session, the main one included, and ${#MAIN_ALLOWED[@]} of the main session's commands next to them allowed; ${amend_cases} amend cases read from throwaway repositories; a broken guard (node missing / file missing / crash / bad input) blocks agents and shows a non-blocking error to the main session."
