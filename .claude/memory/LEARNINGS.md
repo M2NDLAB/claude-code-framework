@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-10-18
+updated: 2026-10-19
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -58,22 +58,6 @@ tags: [improvement]
   no `macos-` image, so the drop changes that case and the check's list together. Still
   PUBLIC on 2026-10-17 (`gh repo view`).
 
-### IMP-135 — The cleanup before the first derived project's upgrade
-- Date: 2026-10-17 | Origin: v4.0.0's integration, the user's decision —
-  [[2026-10-17-4.0.0-record]]
-- Observed problem: v4.0.0 shipped with a backlog of open proposals — IMP-086, IMP-104 to
-  IMP-106, IMP-125, IMP-128 to IMP-134 — and with the limits its security gate declared
-  rather than fixed, round after round. The first derived project's upgrade, 1.2.0 → 4.0.0 in
-  one jump, would run on a method whose open questions nobody has decided.
-- Proposal: the next deliverable is a cleanup — every open IMP and every finding of v4.0.0's
-  gate decided (applied, deferred with its trigger, or rejected with its reason) before the
-  upgrade of the first derived project. Its table, each item with its source and where it
-  stands: [[2026-10-17-4.0.0-record]], *The cleanup's table*.
-- Expected benefit / risk: the upgrade lands on a method with no open question. Risk: a
-  release of decisions only, which delays the upgrade by one deliverable.
-- Status: APPROVED on 2026-10-17 (the user's decision) — the next deliverable, which the user
-  opens in a new session; not `STATE.md`, a clean template here (`CONTRIBUTING.md`).
-
 ### IMP-139 — An answer a hand resolution drops from a HYBRID file gets no check
 - Date: 2026-10-18 | Origin: [[2026-10-17-cleanup-imp-135]] — the gate's round 2, P4: in the
   rehearsal's 1.2.0 project, `fw/integrate.md` rebuilt from `vY` had its step-1 line answered
@@ -96,6 +80,9 @@ tags: [improvement]
   hand against the restore point (the user's decision, 2026-10-18).
 - Resumption trigger: the next release that touches `tools/upgrade-check.sh`, or the first
   derived project's upgrade, whichever comes first.
+- Status: the user's decision (2026-10-19): the next corrective release, with IMP-140; until
+  then the manual check of the HYBRID files' answers against the restore point, at the first
+  derived project's upgrade, covers it.
 
 ### IMP-140 — Round 4's backlog: an unquoted substitution among git's words, three wordings
 - Date: 2026-10-18 | Origin: [[2026-10-17-cleanup-imp-135]] — v4.1.0's gate, round 4 (Q1 to
@@ -124,7 +111,10 @@ tags: [improvement]
   forms among the allowed.
 - Resumption trigger: the next release that touches `scripts/agent-git-guard.mjs`,
   `.claude/docs/04-git-workflow.md` or `tools/upgrade-check.sh`.
-- Status: the user's decision (2026-10-18): the backlog, not v4.1.0.
+- Status: the user's decision (2026-10-18, confirmed 2026-10-19): Q1 stays as it is in v4.1.0;
+  the entry goes into the next corrective release, with the first derived project's upgrade's
+  IMPs, IMP-139 among them.
+
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
@@ -2377,6 +2367,20 @@ line on; older entries are not backfilled.
   asked for, not built.
 - Verified: the documentation check passes; round 2 of this release's gate is its first use.
 
+### IMP-135 — The cleanup before the first derived project's upgrade → applied on 2026-10-19, the branch `feat/cleanup-imp-135` (v4.1.0)
+- Origin: v4.0.0's integration, the user's decision — [[2026-10-17-4.0.0-record]]: v4.0.0
+  shipped with a backlog of open proposals — IMP-086, IMP-104 to IMP-106, IMP-125, IMP-128 to
+  IMP-134 — and with the limits its security gate declared rather than fixed; the first
+  derived project's upgrade, 1.2.0 in one jump, would have run on a method whose open questions
+  nobody had decided.
+- Applied ([[2026-10-17-cleanup-imp-135]]): every open IMP and every finding of v4.0.0's gate
+  decided, row by row, by the user — applied, deferred with its trigger, or rejected with its
+  reason —, the release's own findings with them: four rounds of its security gate, the
+  upgrade rehearsed from 4.0.0 and from 1.2.0 on the tip that ships, with LF and with CRLF.
+- Verified: the note's *The IMPs' final state*, one row per entry of this file, each with its
+  state, none without a decision; the CI on the three systems, block 1's check before the
+  merge.
+
 ## Deferred (not rejected — resumed at the right time)
 
 ### IMP-026 — Claude Code skills as a managed artifact → deferred on 2026-07-11
@@ -2846,6 +2850,12 @@ line on; older entries are not backfilled.
   moved the count to `git ls-files --eol`, green at the fifth.
 - Rejected on 2026-10-13 (the retro over the backlog, the user's decision): the CI on Windows
   caught it and the next round held the fix; a convention adds little.
+- Recurred after the rejection, a datum for the user's decision and no proposal: v4.0.0, in
+  `scripts/test-state-inject.sh` (`83b422c`, Node now counts the CR); v4.1.0, two fixture checks
+  of `tools/` written `grep -q $'\r$'`, which failed the branch's first CI run on Windows
+  (run 39170600064) and cost one more block 0 — git now reads them (`f011b8e`, `ffcb0d4`;
+  [[2026-10-17-cleanup-imp-135]], *The CI's first run*). Each time the CI on Windows caught it,
+  as the rejection's reason says; whether to reopen the entry is the user's.
 
 ### IMP-106 (a) — Name the user's push as a known difference of the snapshot → rejected on 2026-10-17
 - Date: 2026-10-14 | Origin: v2.2.0's retro — [[2026-10-13-backlog-retro-2.2.0]]: the
