@@ -517,6 +517,9 @@ function insideOf(root, p) {
   return q === r || q.startsWith(r.endsWith(path.sep) ? r : r + path.sep);
 }
 
+// Whether a path is written as one outside any work tree: absolute — `/…`, `\…`, `C:\…` —, from
+// a home directory, `~…`, or climbing with a `..`.
+const writtenOutside = (word) => /^(?:[\\/~]|[A-Za-z]:[\\/])/.test(word) || /(?:^|[\\/])\.\.(?:[\\/]|$)/.test(word);
 // Why this `git diff` compares two files as `--no-index` does without saying so, or null. git
 // 2.54.0's own rule (builtin/diff.c): outside a repository it always does; inside one, when
 // exactly two words follow its leading options — and an optional `--` — and either is outside
@@ -531,9 +534,19 @@ function implicitNoIndexReason(rest, location) {
     if (!rest[i].startsWith('-')) break;
   }
   const words = rest.slice(i);
-  if (words.length !== 2 && readOptions(rest, DIFFS).operands.length !== 2) return null;
+  const operands = words.length === 2 ? words : readOptions(rest, DIFFS).operands;
+  if (operands.length !== 2) return null;
   const reason = '`git diff <path> <path>` compares two files as `--no-index` does when one is outside the work tree, or outside a repository';
-  if (location === null) return `${reason} (the guard cannot tell where it runs)`;
+  // Where the text does not say which directory it runs in — a variable, a substitution, as in
+  // the upgrade's `git -C "${FW:?}" diff vX vY` —, the operands alone decide: one written as a
+  // path outside any work tree, or one the text cannot read, is refused; two revisions or
+  // relative names pass — the guard refused them all once, the method's own form among them
+  // (the rehearsal, 2026-10-18) —, a comparison of two files where no repository is left
+  // outside this check (docs/04 declares it).
+  if (location === null) {
+    return operands.some((word) => writtenOutside(word) || /[$`\0]/.test(word))
+      ? `${reason} (the guard cannot tell where it runs, and an operand is written as a path outside)` : null;
+  }
   const top = gitRead(location, ['rev-parse', '--show-toplevel']);
   if (!top.ok) return reason; // no work tree there: git compares any two paths
   if (words.length !== 2) return null;

@@ -396,6 +396,10 @@ EVERY_SESSION_REFUSED=(
   # the HTML intro and outro print the file they name — measured on tree 2.3.2 (2026-10-18)
   'tree -H . --hintro=../secret.txt -L 1 .'
   'tree -H . --houtro ../secret.txt'
+  # a directory the text does not resolve, and an operand written as a path outside (2026-10-18)
+  'git -C "${FW:?}" diff /etc/hosts /dev/null'
+  'cd "$X" && git diff ../outside.txt token.txt'
+  'cd "$X" && git diff ~/.ssh/config /dev/null'
 )
 for c in "${EVERY_SESSION_REFUSED[@]}"; do
   blocked "main session not refused: ${c}" "$(hook_input "${c}")"
@@ -456,6 +460,10 @@ MAIN_ALLOWED=(
   'git ls-files | tree --fromfile .'
   'git ls-files | tree --fromfile -L 2 --dirsfirst'
   'tree -H . -T title -L 1'
+  # two revisions where the text does not say which directory: the upgrade's own form passes
+  # (the rehearsal, 2026-10-18: the guard had refused it)
+  'git -C "${FW:?}" diff v1.2.0 v4.1.0'
+  'git -C "$S/fw" diff --stat HEAD~1 HEAD'
 )
 for c in "${MAIN_ALLOWED[@]}"; do
   expect 0 "main session blocked: ${c}" "${REPO_ROOT}" "$(hook_input "${c}")"
@@ -552,6 +560,7 @@ DECLARED_OUTSIDE=(
   'git update-index --add token.txt'
   'git commit -F /etc/hosts'
   'echo "$(case x in x) git commit -n -m y;; esac)"'
+  'cd "$X" && git diff a.txt b.txt'
 )
 for c in "${DECLARED_OUTSIDE[@]}"; do
   expect 0 "a limit docs/04 declares is no longer one — update the row: ${c}" "${REPO_ROOT}" "$(hook_input "${c}")"
