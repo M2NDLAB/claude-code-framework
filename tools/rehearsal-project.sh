@@ -33,8 +33,9 @@
 #             branch, `dev`.
 # Every bracketed marker is answered, the ones older releases named in prose included: the
 # project of a user who answered all it was pointed at, which also customises the METHOD files
-# such a mention sits in (edge case 7). And the checkpoint command's two placeholders, which are
-# no markers, its paragraph that marks them deleted, as setup asks. `crlf` adds a clone of the project with
+# such a mention sits in (edge case 7). And the slots that are no markers: the checkpoint
+# command's two placeholders, its paragraph that marks them deleted, as setup asks, and the
+# project name in the index's title. `crlf` adds a clone of the project with
 # core.autocrlf=true, as a Windows checkout writes it: CRLF wherever .gitattributes does not
 # hold a file to LF — every file of a legacy project, none of a project at v1.5.0 or later,
 # whose .gitattributes holds every path this script writes —, the files counted in the line
@@ -174,6 +175,13 @@ JSON.parse(next);
 fs.writeFileSync(p, next);
 ' .claude/settings.json || die "settings.json at ${REV}: no allow list to add to"
 printf '\n# The project'"'"'s own targets.\ntest: ## Run the project'"'"'s tests\n\t@echo "the project'"'"'s tests"\n' >> Makefile
+# The index's title: its project name, a slot of SETUP.md's step 2 (the header) that is no
+# marker — the same file at every release, so a release that changes the line conflicts here
+# as it does in a project set up.
+awk '{ if (!f && sub(/\[PROJECT NAME\]/, "Rehearsal project")) f = 1; print } END { exit !f }' CLAUDE.md > "${OUT}/.title.tmp" \
+  || die "CLAUDE.md at ${REV} has no [PROJECT NAME] in its title"
+cat "${OUT}/.title.tmp" > CLAUDE.md
+rm -f "${OUT}/.title.tmp"
 # Three technical rules of the project's own, under the heading setup answers.
 awk '{ print } /^## Project-specific technical rules/ && !f { f = 1
   print ""

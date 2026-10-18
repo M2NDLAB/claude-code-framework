@@ -6,8 +6,9 @@
 # the CI. Throwaway directories under mktemp; git configured from nothing.
 #
 # Cases:
-#   1. answered, at HEAD — every bracketed marker answered, and fw/checkpoint.md's two
-#      placeholders, the paragraph that marks them gone; the protected branches `main dev`;
+#   1. answered, at HEAD — every bracketed marker answered, fw/checkpoint.md's two
+#      placeholders, the paragraph that marks them gone, and the index's project name; the
+#      protected branches `main dev`;
 #      the project's rule at the end of the allow list, the file still JSON; STATE.md past
 #      8,000 characters in HEAD's titles, in their order; LEARNINGS.md's four titles, its format
 #      comment and the project's two entries; the pin; two commits and a clean tree; the
@@ -73,6 +74,7 @@ no_marker "${P}"
 ! grep -qE '<integration>|<pattern-to-ignore-for-the-stack>|^Setup replaces the placeholders below' "${P}/.claude/commands/fw/checkpoint.md" \
   || fail "fw/checkpoint.md keeps a placeholder, or the paragraph setup deletes"
 grep -qF 'git branch --merged main' "${P}/.claude/commands/fw/checkpoint.md" || fail "fw/checkpoint.md's integration branch is not answered"
+[ "$(head -n 1 "${P}/CLAUDE.md")" = '# Rehearsal project — Claude Code Index' ] || fail "CLAUDE.md's title does not carry the project's name"
 grep -qxF 'PROTECTED_BRANCHES = main dev' "${P}/Makefile" || fail "the Makefile's protected branches are not main dev"
 node -e '
 const allow = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).permissions.allow;
@@ -130,6 +132,7 @@ grep -q '^- Data: 2026-01-12 | Origine: ' "${L}/.claude/memory/LEARNINGS.md" || 
 [ ! -e "${L}/.gitattributes" ] || fail "the legacy project keeps a .gitattributes"
 ! grep -qE '<integration>|<stable>' "${L}/.claude/commands/integrate.md" || fail "the integrate command keeps its branch placeholders"
 ! grep -qE '<integration>|<pattern-to-ignore-for-the-stack>' "${L}/.claude/commands/checkpoint.md" || fail "the checkpoint command keeps its placeholders"
+[ "$(head -n 1 "${L}/CLAUDE.md")" = '# Rehearsal project — Claude Code Index' ] || fail "the legacy CLAUDE.md's title does not carry the project's name"
 grep -qxF 'PROTECTED_BRANCHES="${PROTECTED_BRANCHES:-main dev}"' "${L}/scripts/reset-task.sh" || fail "reset-task.sh's protected branches are not answered"
 git -C "${L}" rev-parse -q --verify refs/heads/dev >/dev/null || fail "no branch dev in the legacy project"
 grep -q $'\r$' "${L}.crlf/CLAUDE.md" || fail "the CRLF clone's CLAUDE.md has no CRLF line end"
