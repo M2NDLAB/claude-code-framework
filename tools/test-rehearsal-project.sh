@@ -135,7 +135,11 @@ grep -q '^- Data: 2026-01-12 | Origine: ' "${L}/.claude/memory/LEARNINGS.md" || 
 [ "$(head -n 1 "${L}/CLAUDE.md")" = '# Rehearsal project — Claude Code Index' ] || fail "the legacy CLAUDE.md's title does not carry the project's name"
 grep -qxF 'PROTECTED_BRANCHES="${PROTECTED_BRANCHES:-main dev}"' "${L}/scripts/reset-task.sh" || fail "reset-task.sh's protected branches are not answered"
 git -C "${L}" rev-parse -q --verify refs/heads/dev >/dev/null || fail "no branch dev in the legacy project"
-grep -q $'\r$' "${L}.crlf/CLAUDE.md" || fail "the CRLF clone's CLAUDE.md has no CRLF line end"
+# The CR read by git, on the bytes: Git Bash's grep does not see a line-ending CR, and a grep
+# for $'\r$' failed here on Windows over a clone whose 37 files git counted with CRLF (the CI,
+# 2026-10-19; 83b422c met the same at 4.0.0).
+[ "$(git -C "${L}.crlf" ls-files --eol -- CLAUDE.md | awk '{ print $2 }')" = w/crlf ] \
+  || fail "the CRLF clone's CLAUDE.md has no CRLF line end"
 n_crlf="$(git -C "${L}.crlf" ls-files --eol | awk '$2 == "w/crlf"' | wc -l | tr -d ' ')"
 [ "${n_crlf}" -gt 0 ] && grep -qF "; with core.autocrlf=true, ${n_crlf} files with CRLF line ends: ${L}.crlf" "${out}" \
   || fail "the line of the legacy clone does not count its ${n_crlf} files with CRLF"
