@@ -97,6 +97,35 @@ tags: [improvement]
 - Resumption trigger: the next release that touches `tools/upgrade-check.sh`, or the first
   derived project's upgrade, whichever comes first.
 
+### IMP-140 — Round 4's backlog: an unquoted substitution among git's words, three wordings
+- Date: 2026-10-18 | Origin: [[2026-10-17-cleanup-imp-135]] — v4.1.0's gate, round 4 (Q1 to
+  Q4), carried here by the user's decision: a LOW or INFO round 4 finds goes to the backlog,
+  declared at the next release, never another fix in this one.
+- Observed problem: Q1 (LOW) — an unquoted `$(…)` or backticks among git's words split the
+  command for the guard, so `git commit -m x $(echo a) --no-verify` passes in the main
+  session, under the shipped `Bash(git commit:*)`; it was there before this release's fixes
+  (`4f0efed`), it is no form Claude Code writes — its substitutions are double-quoted, and one
+  followed by `--no-verify` is refused —, and an agent's commit is refused anyway. `docs/04`'s
+  Outside column covers it only in general, "any other form of the shell's quoting or
+  expansion its cases do not hold", while saying each one found is declared there: v4.1.0
+  ships with this one found and not yet named. Q2 (INFO) — R2's text: the guard reads `$$'…'`
+  as zsh does, in both directions; only bash disagrees with it. Q3 (INFO) — R3's text: `\c@`
+  is a NUL in bash only, and bash drops the rest of the string where zsh drops the rest of the
+  argument. Q4 (INFO) — the CHANGELOG's "or in a recipe": `invariant` does not read a recipe
+  line with a prefix (`@`, `-`) or a target-specific assignment.
+- Proposal: in the next release that touches the guard or `docs/04`: Q1 named in the Outside
+  column with its case in the self-test's section 3d — or fixed, an unquoted `$(…)` or
+  backtick kept inside the word as the double-quoted reader does, with cases both ways —; Q2
+  and Q3 reworded as measured; Q4 the awk widened (`[@+-]*` after the leading space, an
+  optional `target:`) with its test, or those forms named among the ones it does not read; that
+  release's CHANGELOG with an erratum for v4.1.0's line.
+- Expected benefit / risk: the declared limits match what was found; Q1 is broad and simple,
+  worth doing early. Risk: a fix of the parser needs its cases both ways, Claude Code's own
+  forms among the allowed.
+- Resumption trigger: the next release that touches `scripts/agent-git-guard.mjs`,
+  `.claude/docs/04-git-workflow.md` or `tools/upgrade-check.sh`.
+- Status: the user's decision (2026-10-18): the backlog, not v4.1.0.
+
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
 - Date: YYYY-MM-DD | Origin: [[<session note>]] — <problem>
