@@ -2265,8 +2265,12 @@ line on; older entries are not backfilled.
   `fw/integrate.md` is HYBRID: the new lines carry `<integration>`, which a project grafted
   before v3.0.0 replaced throughout — the release's Upgrading note says so.
 - Verified: the documentation check passes; the wording of the base check narrowed by the
-  gate's round 1 to what it reads, the last fetch's `origin/<integration>` (`bcb0275`). Not
-  yet verified: the release's rehearsal reading it — recorded here once it has run.
+  gate's round 1 to what it reads, the last fetch's `origin/<integration>` (`bcb0275`); the
+  release's rehearsal on `1364626` ([[2026-10-17-cleanup-imp-135]], *The rehearsal on the tip
+  that ships*): the base check reached `fw/integrate.md` in the four projects, merged clean
+  from 4.0.0 and rebuilt from `vY` from 1.2.0. Not rehearsed: the conflict the *Upgrading*
+  note names, a project grafted before v3.0.0 that replaced the placeholders throughout — the
+  rehearsal's 1.2.0 project rebuilds the file from `vY`.
 
 ### IMP-130 (narrowed) — A value a conflict's resolution loses in a HYBRID file gets no FAIL → applied on 2026-10-18, commit 2d37244
 - Origin: v4.0.0's gate, migration F8 — [[2026-10-16-on-demand-docs-4.0.0]]: `invariant`

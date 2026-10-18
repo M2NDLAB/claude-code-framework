@@ -130,6 +130,14 @@ of the upgrade says how they combine):
   loaded.
 - **From 1.2.0**, the jump the next derived project makes: the entries in between, oldest first;
   `inventory` and `invariant` follow v1.3.2's protected branches on their value (edge case 8).
+- Rehearsed on the tip that ships, `1364626`, its clone carrying this entry under its heading as
+  `/fw:integrate`'s step 3 will, so that each inventory printed this note: from 4.0.0, on a
+  project with every setup answer in place, and from 1.2.0, on the synthetic project of 4.0.0's
+  rehearsal, each with LF and with CRLF line ends. `make test-scripts` green in all four, a
+  token and an untyped message refused by the new hooks, `invariant` and `post` without a FAIL
+  and the same verdicts with CRLF; `invariant` failed the 4.0.0 project's `Makefile` taken on
+  `vY`'s side, on purpose, and passed it with the project's list back; the prerequisite check
+  warned the 1.2.0 project's CRLF checkout until `.gitattributes` came over.
 
 ## [4.0.0] — 2026-10-17
 

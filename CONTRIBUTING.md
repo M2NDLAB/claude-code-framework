@@ -98,9 +98,12 @@ This repo applies to itself the method it describes (`.claude/docs/`):
   rehearsed again on the tip that ships, so the record names the commit it measured. The
   release's CHANGELOG entry, its *Upgrading* note first, is written before the rehearsal: the
   inventory prints `vY`'s notes from the tag, so a rehearsal run before the entry follows no
-  note of the release's own, and is run again once the entry exists. A defect the rehearsal
-  finds amends the code and the note together, and the rehearsal runs again on what it
-  changed.
+  note of the release's own, and is run again once the entry exists. The entry sits in
+  `[Unreleased]` until `/fw:integrate`'s step 3, and the inventory reads a release's note under
+  its own heading: the rehearsal's clone moves the entry under `## [X.Y.Z]`, as step 3 will,
+  in a commit of its own before the temporary tag, and the record says so. A defect the
+  rehearsal finds amends the code and the note together, and the rehearsal runs again on what
+  it changed.
 
 ## This repo's git model (a declared exception)
 
