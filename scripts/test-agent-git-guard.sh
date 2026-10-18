@@ -590,6 +590,13 @@ DECLARED_OUTSIDE=(
   'sudo git commit -n -m x'
   'tree --infofile token.txt'
   'tree -X --gitfile=token.txt'
+  # quoting forms Claude Code does not write, declared by the user's rule (the gate's round 3):
+  # `$$'…'` read as zsh reads it, a NUL in `$'…'`, and three heredocs the reader ends wrongly
+  $'git commit -m x $$\'a\\\' --no-verify #\''
+  $'git commit -m x $\'--no-verify\\0\''
+  $'cat <<\'EOF\'\n\tEOF\nit\'s\nEOF\ngit commit -n -m x'
+  $'cat <<\\\nEOF\nit\'s\nEOF\ngit commit -n -m x'
+  $'echo $((1<<2))\ngit commit --no-verify -m x'
 )
 for c in "${DECLARED_OUTSIDE[@]}"; do
   expect 0 "a limit docs/04 declares is no longer one — update the row: ${c}" "${REPO_ROOT}" "$(hook_input "${c}")"
