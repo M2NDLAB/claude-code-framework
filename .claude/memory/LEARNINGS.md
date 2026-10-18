@@ -74,6 +74,29 @@ tags: [improvement]
 - Status: APPROVED on 2026-10-17 (the user's decision) — the next deliverable, which the user
   opens in a new session; not `STATE.md`, a clean template here (`CONTRIBUTING.md`).
 
+### IMP-139 — An answer a hand resolution drops from a HYBRID file gets no check
+- Date: 2026-10-18 | Origin: [[2026-10-17-cleanup-imp-135]] — the gate's round 2, P4: in the
+  rehearsal's 1.2.0 project, `fw/integrate.md` rebuilt from `vY` had its step-1 line answered
+  anew, and the project's own answer at the restore point, 'rehearsal answer 1', was gone; the
+  inventory had said merge it (3 conflicts, 109 of 308 lines). No check saw it: `invariant`
+  reads the slots a release moved and the `Makefile`'s value, `post` the slots `vY` added,
+  Step 4's grep the markers still open; Step 5's "the customisations survived" is a human's
+  item, which the main session's rehearsal itself missed, twice (tasks 30 and 40).
+- Observed problem: an answer the project gave at setup, in a HYBRID file, can be lost by a
+  hand resolution with nothing to say so, where the file is rebuilt from `vY` — the strategy
+  Step 3 prescribes when most of a file is in conflict.
+- Proposal: `post` (or `invariant`) reads, for each HYBRID file, the slots answered at the
+  restore point — `answer_at` against `vX`'s copy, as edge case 8's check does — and asks, a
+  CHECK, for each answer whose text the file no longer holds; its test, a fixture whose
+  rebuilt file drops one answer and keeps another.
+- Expected benefit / risk: the rebuilt file's dropped answer seen by the tool, not left to a
+  reader. Risk: an answer the project re-phrased on purpose asks every time — a CHECK, never
+  a FAIL; a slot `vY` removed is not an answer to keep (the inventory's *Markers* list).
+- Interim: at the first derived project's upgrade the user checks the HYBRID files' answers by
+  hand against the restore point (the user's decision, 2026-10-18).
+- Resumption trigger: the next release that touches `tools/upgrade-check.sh`, or the first
+  derived project's upgrade, whichever comes first.
+
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
 - Date: YYYY-MM-DD | Origin: [[<session note>]] — <problem>
@@ -2261,7 +2284,8 @@ line on; older entries are not backfilled.
 - Applied ([[2026-10-17-cleanup-imp-135]], the user's decision): under the gate,
   `/fw:integrate` checks the base with the gate's line, before step 2 computes a version and
   step 3 commits it; step 5's checklist and `docs/03`'s *The check at integration* name it,
-  and the release's CHANGELOG entry is to. Step 4's check stays, on the values block 1 pins.
+  and the release's CHANGELOG entry names it (`1a9a27f`). Step 4's check stays, on the values
+  block 1 pins.
   `fw/integrate.md` is HYBRID: the new lines carry `<integration>`, which a project grafted
   before v3.0.0 replaced throughout — the release's Upgrading note says so.
 - Verified: the documentation check passes; the wording of the base check narrowed by the

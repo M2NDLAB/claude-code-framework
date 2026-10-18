@@ -9,12 +9,13 @@ SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
 
 **The cleanup before the first derived project's upgrade** (IMP-135): every proposal v4.0.0 left
 open and every limit its security gate declared, decided — applied, deferred with its trigger,
-or rejected with its reason, in `LEARNINGS.md`. The guard now holds, in every session that runs
-the project's hooks, the forms that take a hook out and the ones an allow rule would let run
-unseen: in auto mode Claude Code resolves an allow rule before its classifier, so "a narrow rule
-can still let a destructive argument through without the classifier seeing it" (its *Configure
-auto mode* page). The shipped `allow` list keeps the commit cycle only, and the agent never
-discards the user's uncommitted work.
+or rejected with its reason, in `LEARNINGS.md`. The guard now refuses, in every session that
+runs the project's hooks, the forms its self-test holds of those that take a hook out and of
+those an allow rule would let run unseen: in auto mode Claude Code resolves an allow rule before
+its classifier, so "a narrow rule can still let a destructive argument through without the
+classifier seeing it" (its *Configure auto mode* page). The shipped `allow` list keeps the
+commit cycle only, and the method's rules have the agent never discard the user's uncommitted
+work.
 
 ### Added
 - **The guard's second job, in every session** (IMP-123, IMP-129): beside keeping delegated
@@ -24,14 +25,18 @@ discards the user's uncommitted work.
   stage a file `.gitignore` leaves out; `git commit --amend` of a commit its upstream or a
   remote-tracking branch already holds — the one form, with the next, read from the
   repository the command runs in —; `--output` of the diff family, `git diff --no-index` and
-  its implicit form, two paths with one outside the work tree; `tree -o`, `-R`, `--hintro`,
-  `--houtro` and `--fromfile` given a path — reading stdin, as `TREE.md`'s fallback does, it
-  passes. A long option counts as a prefix of its name, as git takes it; an option's value is
-  never read as an option. `docs/04`'s row lists what stays outside, and the self-test holds
-  those limits both ways.
+  its implicit form, two paths with one outside the work tree or one the guard cannot place;
+  `tree -o`, `-R`, `--hintro`, `--houtro` and `--fromfile` given a path — reading stdin, as
+  `TREE.md`'s fallback does, it passes. A long option counts as a prefix of its name, as git
+  takes it; an option's value is never read as an option, for the options git 2.54.0 and tree
+  2.3.2 give a mandatory value. `docs/04`'s row lists what stays outside — a new form of the
+  shell's quoting is declared there, unless Claude Code itself writes it: the guard is one
+  defence more, not a sandbox —, and the self-test holds both ways the limits a command's text
+  can show.
 - **`invariant` checks a value a hybrid holds in place** (IMP-130): the `Makefile`'s
   `PROTECTED_BRANCHES =`, when a conflict on the line next to it is resolved on `vY`'s side,
-  fails where the restore point held the project's list and the line holds `vY`'s default.
+  fails where the restore point held the project's list and the line holds `vY`'s default, and
+  asks where the restore point set the list in another form.
 - **`upgrade-check` follows v1.3.2's move of the protected branches on their value**:
   `inventory` quotes the list the project wrote in `reset-task.sh`'s default and names the
   `Makefile`'s line it goes to — edge case 8, never 7, the slot's comment answered and the
@@ -74,6 +79,12 @@ discards the user's uncommitted work.
   none, left `fw/checkpoint.md`'s placeholders as shipped and wrote a parent inside the
   framework before refusing; `upgrade-check` sent a moved value's file with its comment
   answered to edge case 7 and passed a list set in the `Makefile`'s recipe.
+- Found by its second round: the guard took a heredoc only with its delimiter quoted whole, and
+  read ANSI-C quoting, `$'…'`, as plain single quotes — in both a quote left open swallowed the
+  rest of the command, a `--no-verify` after it included, Claude Code's commit form with
+  `<<\EOF` among them —; it refused a `git diff` operand it cannot place under a message that
+  claimed a path outside; `invariant` passed in silence a protected list the restore point set
+  in another form; the claims wider than the code.
 - Found by the release's rehearsal: the prerequisite check read `core.autocrlf` as not true
   when any level held `input` — a global one under a repository's `true` hid the warning a
   legacy checkout under CRLF needs —; the generator left the index's project name open.
@@ -96,6 +107,10 @@ discards the user's uncommitted work.
   `scripts/test-state-inject.sh`, for Git Bash, and `scripts/README.md`'s line on it — run green
   by the CI on the three systems, not rehearsed: the tip that shipped was rehearsed but for
   that file.
+- **[4.0.0], "with LF and with CRLF line ends"**: the 3.0.0 project's clone under
+  `core.autocrlf=true` held no file with CRLF — v3.0.0's `.gitattributes` holds the framework's
+  files to LF, as that rehearsal's note recorded —; CRLF line ends were rehearsed from 1.2.0
+  only.
 
 **Upgrading from 4.0.0** (from an earlier release, also follow the entries in between — Step 2
 of the upgrade says how they combine):
@@ -130,10 +145,12 @@ of the upgrade says how they combine):
   loaded.
 - **From 1.2.0**, the jump the next derived project makes: the entries in between, oldest first;
   `inventory` and `invariant` follow v1.3.2's protected branches on their value (edge case 8).
-- Rehearsed on the tip that ships, `1364626`, its clone carrying this entry under its heading as
-  `/fw:integrate`'s step 3 will, so that each inventory printed this note: from 4.0.0, on a
-  project with every setup answer in place, and from 1.2.0, on the synthetic project of 4.0.0's
-  rehearsal, each with LF and with CRLF line ends. `make test-scripts` green in all four, a
+- Rehearsed on `1364626`, its clone carrying this entry under its heading as `/fw:integrate`'s
+  step 3 will, so that each inventory printed this note: from 4.0.0, on a project with every
+  setup answer in place, and from 1.2.0, on the generator's `legacy` project, modelled on
+  4.0.0's, each also in a clone under `core.autocrlf=true` — all LF from 4.0.0, whose
+  `.gitattributes` holds every file of the framework's; 37 files with CRLF from 1.2.0.
+  `make test-scripts` green in all four, a
   token and an untyped message refused by the new hooks, `invariant` and `post` without a FAIL
   and the same verdicts with CRLF; `invariant` failed the 4.0.0 project's `Makefile` taken on
   `vY`'s side, on purpose, and passed it with the project's list back; the prerequisite check
