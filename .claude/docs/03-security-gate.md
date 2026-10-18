@@ -133,7 +133,13 @@ findings.
 **Review agents read, they never write.** The agents of a review are delegated agents:
 read-only on git, reading the range with `git show`/`git diff` rather than checking it
 out, with the shared repository's snapshot compared before and after the run —
-`docs/04`, *Delegated agents and the shared working tree*.
+`docs/04`, *Delegated agents and the shared working tree*. What a reviewer must RUN, the
+main session prepares before the launch: every repository the review needs — the
+projects an upgrade is rehearsed on, a clone carrying the release's temporary tag, a
+repository for each measurement the brief asks for —, named in the brief, since the guard
+refuses an agent's `git init`, `clone` or `tag` and a reviewer stopped there reviews nothing
+it had to run. A reviewer stopped by the guard or by a permission prompt stops and reports
+it, never gets around it; a fixture it finds missing is asked for, not built.
 
 ## Prevention *by convention*
 
