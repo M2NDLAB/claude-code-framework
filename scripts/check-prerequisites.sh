@@ -256,9 +256,21 @@ line_ends() {
     return 0
   fi
   top="$(git rev-parse --show-toplevel)"
-  # As git reads it: true, yes, on, any number but 0 and the key without a value are true;
+  # The value that counts is the highest level's — the last entry `--get-regexp` lists —, never
+  # `--type=bool --get`, which refuses as a whole when any level holds `input`, though a higher
+  # one overrides it (measured on git 2.54.0: a global `input` under a repository's `true` read
+  # as not true, and the warning below went unsaid). That one entry is read as git reads a
+  # value: true, yes, on, any number but 0 and the key without a value — listed bare — are true;
   # input is no boolean — git refuses to read it as one — and is not true.
-  autocrlf="$(first_line "$(git config --type=bool --get core.autocrlf 2>/dev/null || true)")"
+  local last
+  last="$(git config --get-regexp '^core\.autocrlf$' 2>/dev/null | sed -n '$p' || true)"
+  if [[ "${last}" == core.autocrlf ]]; then
+    autocrlf=true
+  elif [[ -n "${last}" ]]; then
+    autocrlf="$(first_line "$(git -c "fwcheck.autocrlf=${last#core.autocrlf }" config --type=bool --get fwcheck.autocrlf 2>/dev/null || true)")"
+  else
+    autocrlf=""
+  fi
   if [[ "${autocrlf}" != true ]]; then
     say OK "line ends: core.autocrlf is not true"
     return 0
