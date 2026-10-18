@@ -1457,7 +1457,9 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    v1.2.0). The *Upgrading* note of the release that moved the slot names both places
    (Step 2). The upgrade check knows this move by its value: `inventory` quotes the list
    the project wrote in place of `reset-task.sh`'s default and names the `Makefile`'s
-   `PROTECTED_BRANCHES =` line it goes to, and `invariant` fails while that line still holds
+   `PROTECTED_BRANCHES =` line it goes to — a `reset-task.sh` that kept the default and
+   answered only its comment is edge case 8's too, nothing to carry, the file brought over
+   —, and `invariant` fails while that line still holds
    the default where the restore point held another list.
 
    **v4.0.0 moved the answers of the docs.** The slots of `docs/02`, `03` and `04`, and those

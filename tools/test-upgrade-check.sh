@@ -959,4 +959,20 @@ g init -q -b main "${P13B}" && g -C "${P13B}" add -A && g -C "${P13B}" commit -q
 FW="${FW13}" T="${T13}" run 0 "${P13B}" inventory v1.3.1 v1.3.2
 has "INFO   scripts/reset-task.sh: 'PROTECTED_BRANCHES=\"\${PROTECTED_BRANCHES:-main develop}\"' is open in the project: nothing to carry"
 hasnt "the value of"
-echo "PASS (upgrade-check moved value): inventory names edge case 8 for the protected branches v1.3.2 moved, with the project's value and the Makefile's line, never edge case 7, and leaves the default alone; invariant fails while the Makefile holds the default, and passes once it holds the project's value."
+# A project that answered the slot's comment, its marker, and kept the default value: its copy
+# differs from v1.3.1's, and the file is still edge case 8's — the slot moved, nothing to
+# carry —, never 7's 3-way, which would keep a METHOD file customised for good (the gate's
+# round 1, 2026-10-18).
+P13C="${workdir}/project13c"
+mkdir -p "${P13C}"
+g -C "${FW13}" archive v1.3.1 -- .claude CLAUDE.md scripts Makefile | tar -x -C "${P13C}"
+awk -v m="# ${M} adapt the list to your model (integration branch +" '$0 == m { print "# main and develop: this project'"'"'s integration and stable branches (+"; next } { print }' \
+  "${P13C}/scripts/reset-task.sh" > "${workdir}/reset13c.sh" && cp "${workdir}/reset13c.sh" "${P13C}/scripts/reset-task.sh"
+grep -qF "${M}" "${P13C}/scripts/reset-task.sh" && fail "the fixture: the comment's marker is still open"
+grep -qxF 'PROTECTED_BRANCHES="${PROTECTED_BRANCHES:-main develop}"' "${P13C}/scripts/reset-task.sh" || fail "the fixture: the value is not the default"
+g init -q -b main "${P13C}" && g -C "${P13C}" add -A && g -C "${P13C}" commit -q -m "chore: graft the framework v1.3.1"
+FW="${FW13}" T="${T13}" run 0 "${P13C}" inventory v1.3.1 v1.3.2
+has "edge case 8: scripts/reset-task.sh is METHOD in v1.3.2, and a release in between moved its value to another file (below): the value is the default, nothing to carry — bring it over; a customisation beyond its slots is edge case 7's"
+hasnt "edge case 7: scripts/reset-task.sh"
+has "INFO   scripts/reset-task.sh: 'PROTECTED_BRANCHES=\"\${PROTECTED_BRANCHES:-main develop}\"' is open in the project: nothing to carry"
+echo "PASS (upgrade-check moved value): inventory names edge case 8 for the protected branches v1.3.2 moved, with the project's value and the Makefile's line, never edge case 7 — a comment answered and the default kept included —, and leaves the default alone; invariant fails while the Makefile holds the default, and passes once it holds the project's value."

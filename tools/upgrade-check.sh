@@ -566,6 +566,11 @@ moved_answered() {
 }
 # in_list <file> <path>: whether <path> is the second field of a line of <file>.
 in_list() { awk -F'\t' -v p="$2" '$2 == p { f = 1 } END { exit !f }' "$1"; }
+# moved_value <moved file> <path>: whether a release in between moved a slot of <path> whose
+# answer is a value — its sixth field, the default, set. Such a file is METHOD from that
+# release whatever its comments say: a project that answered the slot's marked comment and
+# kept the default changed it, and has nothing to carry.
+moved_value() { awk -F'\t' -v p="$2" '$2 == p && $6 != "" { f = 1 } END { exit !f }' "$1"; }
 # file_markers <file>: the slot markers of a project file, by occurrence.
 file_markers() { grep -oE "${MARKER_RE}" "$1" 2>/dev/null | wc -l | tr -d ' '; }
 # labels_renamed <tag>: whether the tag's LEARNINGS format uses the field labels of v1.1.0
@@ -698,10 +703,13 @@ cmd_inventory() {
     path="${path% (header)}"
     # The flags of the edge cases (SETUP.md, *Edge cases*).
     if [ "${class}" = METHOD ] && [ "${prj}" = diverged ] && [ "${fwst}" != D ]; then
-      # Edge case 8 only for a file whose moved slots the project answered: a diverged copy
-      # whose moved slots are all open holds a customisation, edge case 7's.
+      # Edge case 8 for a file whose moved slots the project answered, or one whose moved slot
+      # is a value (moved_value): a diverged copy whose moved slots, all marked lines, are
+      # all open holds a customisation, edge case 7's.
       if moved_answered "${d}/moved" "${path}" "${vx}"; then
         check "edge case 8: ${path} is METHOD in ${vy} and the project answered slots of it a release moved (below): carry them first, then bring it over — a customisation beyond its slots is edge case 7's"
+      elif moved_value "${d}/moved" "${path}"; then
+        check "edge case 8: ${path} is METHOD in ${vy}, and a release in between moved its value to another file (below): the value is the default, nothing to carry — bring it over; a customisation beyond its slots is edge case 7's"
       elif in_list "${d}/moved.unknown" "${path}"; then
         check "edge case 8: ${path} is METHOD in ${vy}, and a release in between moved its slots in a form this check does not know (below): carry its answers by hand first, then bring it over — a customisation beyond its slots is edge case 7's"
       else
