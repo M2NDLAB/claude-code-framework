@@ -146,7 +146,8 @@ const quoteRemoved = (word) => word.replace(/'([^']*)'|"((?:[^"\\]|\\.)*)"|\\(.)
   (all, single, double, escaped) => single ?? escaped ?? double.replace(/\\([$`"\\\n])/g, '$1'));
 
 // Splits a command line into simple commands (arrays of words), the way a shell sees
-// them: quotes, backslashes and line continuations are honoured; ; & | ( ) ` and
+// them: quotes — ANSI-C's `$'…'` with its escapes too —, backslashes and line continuations
+// are honoured; ; & | ( ) ` and
 // newlines separate commands, so `cd x && git switch y` and `v=$(git switch y)` both
 // surface `git switch y`, as does a `$(...)` inside double quotes — read up to the `)`
 // that closes it, past quoted text, nested substitutions and heredocs, as the shell reads
@@ -205,6 +206,10 @@ function readCommands(text, start, powershell, inner, commands) {
       const body = end < 0 ? text.slice(start) : text.slice(start, Math.max(start, end));
       if (here[1] === '"') substitutionsIn(body, powershell, commands);
       word = (word ?? '') + body; i = end < 0 ? text.length : end + 3; continue;
+    }
+    if (!powershell && c === '$' && text[i + 1] === "'") {
+      const quoted = readAnsiC(text, i + 2);
+      word = (word ?? '') + quoted.text; i = quoted.end + 1; continue;
     }
     if (c === "'") {
       const end = text.indexOf("'", i + 1);
@@ -266,6 +271,32 @@ function readDoubleQuoted(text, start, powershell, commands) {
     if (text[j] === escape && j + 1 < text.length && (powershell || '$`"\\\n'.includes(text[j + 1]))) {
       s += text[j + 1]; j += 2;
     } else { s += text[j]; j += 1; }
+  }
+  return { text: s, end: j };
+}
+
+// An ANSI-C quoted string, `$'…'`, from `start`, just past its opening quote: its text, its
+// escapes decoded as bash's *QUOTING* section lists them, and the index of its closing quote.
+// Read as a plain single-quoted string, `$'it\'s'` ended at the escaped quote, and the quote
+// left open swallowed the rest of the command, a `--no-verify` included (the gate's round 2,
+// 2026-10-18). An escape bash does not know keeps its backslash, as bash does.
+const ANSI_C_ESCAPES = {
+  a: '\x07', b: '\b', e: '\x1b', E: '\x1b', f: '\f', n: '\n', r: '\r', t: '\t', v: '\v',
+  '\\': '\\', "'": "'", '"': '"', '?': '?',
+};
+const ANSI_C_CODE = /^(?:([0-7]{1,3})|x([0-9A-Fa-f]{1,2})|u([0-9A-Fa-f]{1,4})|U([0-9A-Fa-f]{1,8})|c(.))/s;
+function readAnsiC(text, start) {
+  let j = start; let s = '';
+  while (j < text.length && text[j] !== "'") {
+    if (text[j] !== '\\' || j + 1 >= text.length) { s += text[j]; j += 1; continue; }
+    const code = ANSI_C_CODE.exec(text.slice(j + 1, j + 10));
+    if (code) {
+      const [all, octal, hex, u4, u8, control] = code;
+      const point = octal ? parseInt(octal, 8) : hex || u4 || u8 ? parseInt(hex || u4 || u8, 16)
+        : control.charCodeAt(0) & 0x1f;
+      s += String.fromCodePoint(Math.min(point, 0x10ffff)); j += 1 + all.length; continue;
+    }
+    s += ANSI_C_ESCAPES[text[j + 1]] ?? `\\${text[j + 1]}`; j += 2;
   }
   return { text: s, end: j };
 }

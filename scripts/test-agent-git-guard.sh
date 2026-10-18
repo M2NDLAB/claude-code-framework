@@ -177,6 +177,7 @@ AGENT_WRITES=(
   'cd "$(dirname "$(git rev-parse --git-dir)")" && git checkout main'
   # a heredoc whose delimiter is quoted with a backslash ends at its line (the gate's round 2)
   $'cat <<\\EOF\nit\'s here\nEOF\ngit checkout main'
+  $'echo $\'it\\\'s\' && git checkout main'
 )
 for c in "${AGENT_WRITES[@]}"; do
   blocked "agent write not blocked: ${c}" "$(hook_input "${c}" agent)"
@@ -376,6 +377,11 @@ EVERY_SESSION_REFUSED=(
   $'git commit -m "$(cat <<\\EOF\nfix(guard): it\'s the scope\nEOF\n)" --no-verify'
   $'git commit -m "$(cat <<E"OF"\nfix(guard): it\'s the scope\nEOF\n)" --no-verify'
   $'cat <<\\EOF\nit\'s here\nEOF\ngit commit -n -m x'
+  # ANSI-C quoting: inside `$'…'` a backslash escapes, `\'` included (the gate's round 2)
+  $'git commit -m $\'it\\\'s a fix\' --no-verify'
+  $'echo $\'it\\\'s\' && git commit -n -m x'
+  $'git commit -m x $\'--no-verify\''
+  $'git commit -m x $\'\\x2d\\x2dno-verify\''
   # a file .gitignore leaves out, staged — a secret's way into a commit (rule 1); measured on
   # git 2.54.0: each of these staged an ignored file, a plain `git add` refused it
   'git add -f token.txt'
@@ -454,6 +460,8 @@ MAIN_ALLOWED=(
   # the same with the delimiter quoted another way: the body still data (the gate's round 2)
   $'git commit -m "$(cat <<\\EOF\nfix(guard): it\'s the form\n\nThe agent\'s `git commit -n` is now refused.\nEOF\n)"'
   $'git commit -m "$(cat <<E"OF"\nfix(guard): it\'s the form\n\n`git branch -D old` is refused.\nEOF\n)"'
+  # an ANSI-C quoted message is one word, its escaped quote inside it
+  $'git commit -m $\'it\\\'s -n here\''
   # an option's value is not an option — measured on git 2.54.0 and tree 2.3.2: each sorted,
   # searched or ran its hook with the word as its value, and wrote no file (2026-10-18)
   'git branch --sort -committerdate'
