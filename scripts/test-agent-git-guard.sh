@@ -175,6 +175,8 @@ AGENT_WRITES=(
   # the gate's forms (2026-10-18): a substitution inside double quotes is read up to the `)`
   # that closes it, past the double quotes nested in it
   'cd "$(dirname "$(git rev-parse --git-dir)")" && git checkout main'
+  # a heredoc whose delimiter is quoted with a backslash ends at its line (the gate's round 2)
+  $'cat <<\\EOF\nit\'s here\nEOF\ngit checkout main'
 )
 for c in "${AGENT_WRITES[@]}"; do
   blocked "agent write not blocked: ${c}" "$(hook_input "${c}" agent)"
@@ -369,6 +371,11 @@ EVERY_SESSION_REFUSED=(
   'cd "$(dirname "$(git rev-parse --git-dir)")" && git commit -n -m x'
   $'echo "$(echo \')\'; git commit -n -m x)"'
   $'git commit -n -m "$(cat <<\'EOF\'\nfix(guard): a subject\nEOF\n)"'
+  # a heredoc's delimiter quoted in any part — `\EOF`, `E"OF"` — is quoted all the same: its
+  # body is data, an apostrophe there opens nothing (the gate's round 2, 2026-10-18)
+  $'git commit -m "$(cat <<\\EOF\nfix(guard): it\'s the scope\nEOF\n)" --no-verify'
+  $'git commit -m "$(cat <<E"OF"\nfix(guard): it\'s the scope\nEOF\n)" --no-verify'
+  $'cat <<\\EOF\nit\'s here\nEOF\ngit commit -n -m x'
   # a file .gitignore leaves out, staged — a secret's way into a commit (rule 1); measured on
   # git 2.54.0: each of these staged an ignored file, a plain `git add` refused it
   'git add -f token.txt'
@@ -444,6 +451,9 @@ MAIN_ALLOWED=(
   # scope, refused forms quoted in the body — data, not commands (the gate's round 1)
   $'git commit -m "$(cat <<\'EOF\'\nfix(guard): refuse the forms\n\nThe agent\'s `git commit -n` is now refused.\nEOF\n)"'
   $'gh pr create --title x --body "$(cat <<\'EOF\'\n## Summary (the guard)\n- refuses `git branch -D old` and `tree -o x`\nEOF\n)"'
+  # the same with the delimiter quoted another way: the body still data (the gate's round 2)
+  $'git commit -m "$(cat <<\\EOF\nfix(guard): it\'s the form\n\nThe agent\'s `git commit -n` is now refused.\nEOF\n)"'
+  $'git commit -m "$(cat <<E"OF"\nfix(guard): it\'s the form\n\n`git branch -D old` is refused.\nEOF\n)"'
   # an option's value is not an option — measured on git 2.54.0 and tree 2.3.2: each sorted,
   # searched or ran its hook with the word as its value, and wrote no file (2026-10-18)
   'git branch --sort -committerdate'
