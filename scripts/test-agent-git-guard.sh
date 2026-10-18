@@ -3,9 +3,11 @@
 # (docs/04, "Delegated agents and the shared working tree").
 #
 # Contract under test: a delegated agent (hook input carrying agent_id) is read-only on
-# git; in EVERY session, the main one included, the forms that take a hook out and the ones
-# an allow rule would let past a prompt and auto mode's classifier are refused (section 3),
-# and nothing else of the main session. When the guard itself FAILS — a crash, a missing
+# git; in every session that runs the project's hooks, the main one included, the git
+# forms that take a hook out and the ones an allow rule would let past a prompt and auto
+# mode's classifier are refused (section 3), the main session's ordinary work next to them
+# passes (3b, 3c), and the limits docs/04 declares pass as declared (3d). When the guard
+# itself FAILS — a crash, a missing
 # guard file, a missing `node` — the wiring blocks a delegated agent (exit 2, fail-closed)
 # and, in the main session, exits 1: a non-blocking error that Claude Code shows in the
 # transcript with the FIRST line of stderr, which the wiring makes its own clear message.
@@ -536,6 +538,32 @@ repo_case 0 "main session blocked: two revisions" "${amend}/local" 'git diff HEA
 repo_case 0 "main session blocked: two paths inside, from a subdirectory" "${amend}/local/sub" 'git diff ../token.txt ../.gitignore'
 repo_case 0 "main session blocked: three words in git's own count" "${amend}/local" 'git diff -S x token.txt /dev/null'
 
+# --- 3d. The limits the row *No hook taken out* declares, held as declared ------------------
+# docs/04's last column, both ways: a form it says passes, passes; a form it says is misread,
+# is refused. A guard that starts refusing one, or letting one through, fails here until the
+# row says so (docs/02, a bidirectional allow-list).
+DECLARED_OUTSIDE=(
+  'export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=core.hooksPath GIT_CONFIG_VALUE_0=/dev/null && git commit -m x'
+  'chmod -x .git/hooks/pre-commit'
+  'mv .git/hooks/pre-commit /tmp/pre-commit.off'
+  "printf 'x\\n' >> .gitleaksignore"
+  "sh -c 'git commit -n -m x'"
+  'git -c alias.ci=commit ci -n -m x'
+  'git update-index --add token.txt'
+  'git commit -F /etc/hosts'
+  'echo "$(case x in x) git commit -n -m y;; esac)"'
+)
+for c in "${DECLARED_OUTSIDE[@]}"; do
+  expect 0 "a limit docs/04 declares is no longer one — update the row: ${c}" "${REPO_ROOT}" "$(hook_input "${c}")"
+done
+DECLARED_MISREAD=(
+  'git merge -m --no-verify feature'
+  'tree --fromfile -'
+)
+for c in "${DECLARED_MISREAD[@]}"; do
+  blocked "a misreading docs/04 declares is no longer one — update the row: ${c}" "$(hook_input "${c}")"
+done
+
 # --- 4. A broken guard: fail-CLOSED for a delegated agent, open for the main session ------
 mkdir -p "${workdir}/empty" "${workdir}/broken/scripts" "${workdir}/no-node" "${workdir}/no-cat"
 echo 'throw new Error("simulated crash");' > "${workdir}/broken/scripts/agent-git-guard.mjs"
@@ -575,4 +603,4 @@ expect 2 "a healthy guard's block stands (escaped agent_id key)" "${REPO_ROOT}" 
 expect 1 "a main session with agent_type only (broken guard)" "${workdir}/empty" \
   '{"tool_name":"Bash","tool_input":{"command":"git log -1"},"cwd":"/tmp","agent_type":"reviewer"}'
 
-echo "PASS (agent git guard): ${#AGENT_WRITES[@]} agent writes blocked, ${#AGENT_READS[@]} reads allowed, through PowerShell ${#PS_WRITES[@]} and ${#PS_READS[@]}, ${crlf_cases} CRLF cases whose CR node received; ${#EVERY_SESSION_REFUSED[@]} forms refused in every session, the main one included, and ${#MAIN_ALLOWED[@]} of the main session's commands next to them allowed; ${repo_cases} cases of the amend and the implicit no-index read from throwaway repositories; a broken guard (node missing / file missing / crash / bad input) blocks agents and shows a non-blocking error to the main session."
+echo "PASS (agent git guard): ${#AGENT_WRITES[@]} agent writes blocked, ${#AGENT_READS[@]} reads allowed, through PowerShell ${#PS_WRITES[@]} and ${#PS_READS[@]}, ${crlf_cases} CRLF cases whose CR node received; ${#EVERY_SESSION_REFUSED[@]} forms refused in every session, the main one included, and ${#MAIN_ALLOWED[@]} of the main session's commands next to them allowed; ${repo_cases} cases of the amend and the implicit no-index read from throwaway repositories; ${#DECLARED_OUTSIDE[@]} declared limits passing and ${#DECLARED_MISREAD[@]} declared misreadings refused, as docs/04 says; a broken guard (node missing / file missing / crash / bad input) blocks agents and shows a non-blocking error to the main session."

@@ -4,9 +4,10 @@
 //
 // WHAT. (1) When the hook input carries `agent_id` — the call comes from a delegated agent:
 // a subagent or a workflow agent — every git command in it must be a read (docs/04,
-// "Delegated agents and the shared working tree"). (2) In EVERY session, the main one
-// included, it refuses the forms that take a hook out — never to get past it, the core's
-// Boundary — and the ones an allow rule would let run with no prompt and, in auto mode,
+// "Delegated agents and the shared working tree"). (2) In every session that runs the
+// project's hooks, the main one included, it refuses the git forms that take a hook out —
+// its options and configuration; never to get past it, the core's Boundary — and the ones
+// an allow rule would let run with no prompt and, in auto mode,
 // past the classifier: a file written or read past the repository, an ignored file
 // staged, a commit already pushed amended, a branch forced, renamed or deleted with force
 // (docs/04, "Permission configuration"). The main session carries no `agent_id` and meets
@@ -547,7 +548,8 @@ function implicitNoIndexReason(rest, location) {
 function gitEverySessionReason({ args, assignments }, dir) {
   const { globals, sub, rest } = gitParts(args);
   // `-c core.hooksPath=…`, `--config-env`, or GIT_CONFIG_KEY_<n> and GIT_CONFIG_PARAMETERS in
-  // the environment: for that command git reads its hooks from elsewhere.
+  // the assignments before git: for that command git reads its hooks from elsewhere. An
+  // earlier `export` of them is not read (docs/04 declares it).
   if ([...globals, ...Object.values(assignments)].some(hooksPath)) return '`core.hooksPath` set for one command takes its hooks out';
   if (sub === undefined) return null;
   const { letters: short, longs } = readOptions(rest, VALUED[sub]);
