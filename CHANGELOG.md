@@ -36,7 +36,9 @@ work.
 - **`invariant` checks a value a hybrid holds in place** (IMP-130): the `Makefile`'s
   `PROTECTED_BRANCHES =`, when a conflict on the line next to it is resolved on `vY`'s side,
   fails where the restore point held the project's list and the line holds `vY`'s default, and
-  asks where the restore point set the list in another form.
+  asks where the restore point set the list in another form — with no space, `:=`, `?=`, `+=`,
+  `!=`, or in a recipe; one written after `export` or `override`, or with `::=`, it does not
+  read.
 - **`upgrade-check` follows v1.3.2's move of the protected branches on their value**:
   `inventory` quotes the list the project wrote in `reset-task.sh`'s default and names the
   `Makefile`'s line it goes to — edge case 8, never 7, the slot's comment answered and the
@@ -83,8 +85,8 @@ work.
   read ANSI-C quoting, `$'…'`, as plain single quotes — in both a quote left open swallowed the
   rest of the command, a `--no-verify` after it included, Claude Code's commit form with
   `<<\EOF` among them —; it refused a `git diff` operand it cannot place under a message that
-  claimed a path outside; `invariant` passed in silence a protected list the restore point set
-  in another form; the claims wider than the code.
+  claimed a path outside; `invariant` passed, with an INFO that it had no value to keep, a
+  protected list the restore point set in another form; the claims wider than the code.
 - Found by the release's rehearsal: the prerequisite check read `core.autocrlf` as not true
   when any level held `input` — a global one under a repository's `true` hid the warning a
   legacy checkout under CRLF needs —; the generator left the index's project name open.
@@ -155,13 +157,13 @@ of the upgrade says how they combine):
   and the same verdicts with CRLF; `invariant` failed the 4.0.0 project's `Makefile` taken on
   `vY`'s side, on purpose, and passed it with the project's list back; the prerequisite check
   warned the 1.2.0 project's CRLF checkout until `.gitattributes` came over. The security
-  review's second-round fixes after it change four files a project takes — the guard, its
-  self-test, `docs/04` and `scripts/README.md` — and `upgrade-check.sh`: rehearsed again on
-  `b61eebf`, the four files brought from its tag into the four upgraded projects, `make
-  test-scripts` green there, `invariant` and `post` with the same verdicts; the fresh projects'
-  inventories the same but for this note and `docs/04`'s length. No commit after `b61eebf`
-  changes a file a project takes — checked again at the release, `git diff --name-only
-  b61eebf v4.1.0`.
+  review's later fixes change four files a project takes — the guard, its self-test, `docs/04`
+  and `scripts/README.md` — and, read from the tag, the procedure's `upgrade-check.sh` and
+  `SETUP.md`: the second round's rehearsed again on `b61eebf`, the third's on `a5773d9`, each
+  time the files brought from its tag into the four upgraded projects, `make test-scripts`
+  green there, `invariant` and `post` with the same verdicts, the fresh projects' inventories
+  the same but for this note and `docs/04`'s length. No commit after `a5773d9` changes a file
+  a project takes — checked again at the release, `git diff --name-only a5773d9 v4.1.0`.
 
 ## [4.0.0] — 2026-10-17
 
