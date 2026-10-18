@@ -39,11 +39,14 @@ integration*). Find the note that closes this deliverable — a session note the
 - a HIGH or CRITICAL finding is open, or a MEDIUM one is neither resolved nor accepted in
   `STATE.md` with its reason — where `STATE.md` stays a template, in the closing note's gate
   section with its IMP (the framework's `CONTRIBUTING.md`).
+
 Under the gate the base too, here, before step 2 computes a version and step 3 commits it:
 `git merge-base --is-ancestor origin/<integration> HEAD` (without a remote, `<integration>`)
 must succeed. Otherwise the integration branch moved since the branch was based, and step 4's
 rebase would replay the reviewed commits as new ones — STOP: rebase the branch, and review
-its new tip.
+its new tip. It reads `origin/<integration>` as the last fetch recorded it — the agent fetches
+nothing —: a move after that fetch is block 1's to stop, its fetch and its test of the base
+inside the chain.
 
 Where the project merges by Pull Request (the answer **Merge** in `CLAUDE.md`), the same
 check runs when the agent prepares the PR — its description, a push it prints —, and the

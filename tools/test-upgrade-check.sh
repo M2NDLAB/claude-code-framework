@@ -991,4 +991,18 @@ for f in scripts/reset-task.sh Makefile; do g -C "${FW13}" show "v1.3.2:${f}" > 
 FW="${FW13}" T="${T13}" run 0 "${P13D}" invariant v1.3.1 v1.3.2 "${RESTORE13D}"
 has "CHECK  scripts/reset-task.sh: '$(printf '%s' 'PROTECTED_BRANCHES="${PROTECTED_BRANCHES:-main develop}"')' was open at the restore point, but its Makefile set the variable on a line of its own ('PROTECTED_BRANCHES=\"main trunk\" bash scripts/reset-task.sh'): confirm the value is on Makefile's line 'PROTECTED_BRANCHES =' ('main develop') (edge case 8)"
 hasnt "was open at the restore point, nothing to carry"
+# The limits SETUP.md's edge case 8 and home_value declare, held: a line the project rewrote in
+# another form is a CHECK, not a FAIL; a home written with `:=` is no home, a FAIL.
+P13E="${workdir}/project13e"
+mkdir -p "${P13E}"
+g -C "${FW13}" archive v1.3.1 -- .claude CLAUDE.md scripts Makefile | tar -x -C "${P13E}"
+awk '/^PROTECTED_BRANCHES=/ { print "PROTECTED_BRANCHES=\"main trunk\""; next } { print }' "${P13E}/scripts/reset-task.sh" > "${workdir}/reset13e.sh" && cp "${workdir}/reset13e.sh" "${P13E}/scripts/reset-task.sh"
+g init -q -b main "${P13E}" && g -C "${P13E}" add -A && g -C "${P13E}" commit -q -m "chore: graft the framework v1.3.1"
+RESTORE13E="$(g -C "${P13E}" rev-parse HEAD)"
+for f in scripts/reset-task.sh Makefile; do g -C "${FW13}" show "v1.3.2:${f}" > "${P13E}/${f}"; done
+FW="${FW13}" T="${T13}" run 0 "${P13E}" invariant v1.3.1 v1.3.2 "${RESTORE13E}"
+has "CHECK  scripts/reset-task.sh: 'PROTECTED_BRANCHES=\"\${PROTECTED_BRANCHES:-main develop}\"' had another form at the restore point: confirm the project's value is on Makefile's line 'PROTECTED_BRANCHES =' ('main develop') (edge case 8)"
+awk '/^PROTECTED_BRANCHES = / { print "PROTECTED_BRANCHES := main trunk"; next } { print }' "${P13E}/Makefile" > "${workdir}/make13e" && cp "${workdir}/make13e" "${P13E}/Makefile"
+FW="${FW13}" T="${T13}" run 1 "${P13E}" invariant v1.3.1 v1.3.2 "${RESTORE13E}"
+has "FAIL   Makefile has no line that opens with 'PROTECTED_BRANCHES =': the value of scripts/reset-task.sh's 'PROTECTED_BRANCHES=\"\${PROTECTED_BRANCHES:-main develop}\"' has no home — bring v1.3.2's line over"
 echo "PASS (upgrade-check moved value): inventory names edge case 8 for the protected branches v1.3.2 moved, with the project's value and the Makefile's line, never edge case 7 — a comment answered and the default kept included —, and leaves the default alone; a list set in the Makefile's recipe is a CHECK at both ends, never nothing to carry; invariant fails while the Makefile holds the default, and passes once it holds the project's value."

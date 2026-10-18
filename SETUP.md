@@ -1463,7 +1463,9 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    recipe where v1.2.0's comment pointed, is a CHECK in both commands, the value to carry by
    hand; one set in the environment or a script of the project's is not read —, and
    `invariant` fails while that line still holds
-   the default where the restore point held another list.
+   the default where the restore point held another list in the slot line's own form — a
+   line the project rewrote in another form, `PROTECTED_BRANCHES="main trunk"` without its
+   default's `${…:-}`, is a CHECK, the value confirmed by hand.
 
    **v4.0.0 moved the answers of the docs.** The slots of `docs/02`, `03` and `04`, and those
    of `CLAUDE.md`'s rules 5 and 8, became the lines of `CLAUDE.md`'s *The answers the method

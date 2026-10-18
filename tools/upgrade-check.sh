@@ -541,7 +541,10 @@ value_at() {
     }' "$3"
 }
 # home_value <label> <file>: what a value slot's new home holds — the rest of the first line
-# that opens with <label>, in SLOT_NORM's form; a failure when no line opens with it.
+# that opens with <label>, in SLOT_NORM's form; a failure when no line opens with it. The
+# label is the line's text as vY writes it, `PROTECTED_BRANCHES =`, the plain `=` the
+# Makefile's comment asks for: a `:=`, a `?=` or a line without the space is no home here (a
+# FAIL, "no line that opens with"), and a later line that overrides the first is not read.
 home_value() {
   [ -f "$2" ] || return 1
   L="$1" awk "${SLOT_NORM}"'
@@ -1142,7 +1145,9 @@ cmd_invariant() {
       # Searched past vY's own text before the marker: the line's description names options
       # — "via Pull Request or via the `/fw:integrate` block" — an answer would match unwritten.
       # And as a whole word or phrase: no letter, digit or underscore glued to an end of it that
-      # is one — "main" is not on a line that says "mainline". A known limit: a description
+      # is one — "main" is not on a line that says "mainline"; ASCII's letters only, so an
+      # answer glued to an accented one still matches, and a miss is a CHECK, never a FAIL.
+      # A known limit: a description
       # the project re-worded is searched whole, so an answer it names still matches; Step 4's
       # marker grep and the human's reading remain.
       elif [ -n "${ans}" ] && A="${ans}" V="$(fw show "${vy}:${new}" 2>/dev/null | tr -d '\r' | awk -v p="- **${label}**" 'index($0, p) == 1 && !f { f = 1; print }')" awk "${SLOT_NORM}"'
