@@ -570,8 +570,8 @@ const writtenOutside = (word) => /^(?:[\\/~]|[A-Za-z]:[\\/])/.test(word) || /(?:
 // exactly two words follow its leading options — and an optional `--` — and either is outside
 // the work tree (path_inside_repo). Its loop does not skip an option's value: `-S x a b` is
 // three words there, not two. Measured on 2026-10-18: an ignored file against /dev/null, and
-// a file outside the work tree, printed their lines. Where the text or git cannot tell where
-// it runs, two operands are refused.
+// a file outside the work tree, printed their lines. Where git finds no work tree, two
+// operands are refused; where the text cannot tell where it runs, below.
 function implicitNoIndexReason(rest, location) {
   let i = 0;
   for (; i < rest.length; i += 1) {
@@ -590,15 +590,17 @@ function implicitNoIndexReason(rest, location) {
   // outside this check (docs/04 declares it).
   if (location === null) {
     return operands.some((word) => writtenOutside(word) || /[$`\0]/.test(word))
-      ? `${reason} (the guard cannot tell where it runs, and an operand is written as a path outside)` : null;
+      ? `${reason} (the guard cannot tell where it runs, and an operand is written as a path outside or holds what the text cannot read)` : null;
   }
   const top = gitRead(location, ['rev-parse', '--show-toplevel']);
   if (!top.ok) return reason; // no work tree there: git compares any two paths
   if (words.length !== 2) return null;
-  return words.some((word) => {
-    const where = resolveFrom(location.cwd, word);
-    return where === null || !insideOf(top.out, where);
-  }) ? reason : null;
+  // An operand the guard cannot place — a variable, a substitution, a glob, a brace, `@{u}`
+  // among them — is refused as one outside: the gate's round 2 found the message claiming a
+  // path outside for `git diff @{u} HEAD`; the range in one operand, `@{u}..HEAD`, passes.
+  const places = words.map((word) => resolveFrom(location.cwd, word));
+  if (places.includes(null)) return `${reason} (an operand the guard cannot place: a variable, a substitution, a glob or a brace; a range in one operand, A..B, passes)`;
+  return places.some((where) => !insideOf(top.out, where)) ? reason : null;
 }
 
 // Why this git invocation is refused in every session, or null; `dir` is where it runs

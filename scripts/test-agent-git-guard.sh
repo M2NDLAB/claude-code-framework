@@ -563,6 +563,10 @@ repo_case 0 "main session blocked: two paths inside the work tree" "${amend}/loc
 repo_case 0 "main session blocked: two revisions" "${amend}/local" 'git diff HEAD HEAD'
 repo_case 0 "main session blocked: two paths inside, from a subdirectory" "${amend}/local/sub" 'git diff ../token.txt ../.gitignore'
 repo_case 0 "main session blocked: three words in git's own count" "${amend}/local" 'git diff -S x token.txt /dev/null'
+# An operand the guard cannot place is refused as one outside; a range in one operand passes
+# (the gate's round 2, 2026-10-18).
+repo_case 2 "main session not refused: an operand the guard cannot place" "${amend}/pushed" 'git diff @{u} HEAD'
+repo_case 0 "main session blocked: a range in one operand" "${amend}/pushed" 'git diff @{u}..HEAD'
 
 # --- 3d. The limits the row *No hook taken out* declares, held as declared ------------------
 # docs/04's last column, both ways: a form it says passes, passes; a form it says is misread,
@@ -579,10 +583,24 @@ DECLARED_OUTSIDE=(
   'git commit -F /etc/hosts'
   'echo "$(case x in x) git commit -n -m y;; esac)"'
   'cd "$X" && git diff a.txt b.txt'
+  'sudo git commit -n -m x'
+  'tree --infofile token.txt'
+  'tree -X --gitfile=token.txt'
 )
 for c in "${DECLARED_OUTSIDE[@]}"; do
   expect 0 "a limit docs/04 declares is no longer one — update the row: ${c}" "${REPO_ROOT}" "$(hook_input "${c}")"
 done
+# The limits read in a repository: a directory changed by `env -C`, a `cd` inside a subshell
+# followed as if it lasted, and brace expansion, which makes two operands of one word — each
+# passes, as the row declares (the gate's round 2, 2026-10-18).
+declared_in_repos=0
+declared_case() { # declared_case <directory> <command>
+  expect 0 "a limit docs/04 declares is no longer one — update the row: $2" "${REPO_ROOT}" "$(cd "$1" && hook_input "$2")"
+  declared_in_repos=$((declared_in_repos + 1))
+}
+declared_case "${amend}/ahead" "env -C '${pushed}' git commit --amend --no-edit"
+declared_case "${amend}/pushed" "x=\$(cd '${ahead}' && pwd); git commit --amend --no-edit"
+declared_case "${amend}/local" 'git diff {token.txt,/dev/null}'
 DECLARED_MISREAD=(
   'git merge -m --no-verify feature'
   'tree --fromfile -'
@@ -630,4 +648,4 @@ expect 2 "a healthy guard's block stands (escaped agent_id key)" "${REPO_ROOT}" 
 expect 1 "a main session with agent_type only (broken guard)" "${workdir}/empty" \
   '{"tool_name":"Bash","tool_input":{"command":"git log -1"},"cwd":"/tmp","agent_type":"reviewer"}'
 
-echo "PASS (agent git guard): ${#AGENT_WRITES[@]} agent writes blocked, ${#AGENT_READS[@]} reads allowed, through PowerShell ${#PS_WRITES[@]} and ${#PS_READS[@]}, ${crlf_cases} CRLF cases whose CR node received; ${#EVERY_SESSION_REFUSED[@]} forms refused in every session, the main one included, and ${#MAIN_ALLOWED[@]} of the main session's commands next to them allowed; ${repo_cases} cases of the amend and the implicit no-index read from throwaway repositories; ${#DECLARED_OUTSIDE[@]} declared limits passing and ${#DECLARED_MISREAD[@]} declared misreadings refused, as docs/04 says; a broken guard (node missing / file missing / crash / bad input) blocks agents and shows a non-blocking error to the main session."
+echo "PASS (agent git guard): ${#AGENT_WRITES[@]} agent writes blocked, ${#AGENT_READS[@]} reads allowed, through PowerShell ${#PS_WRITES[@]} and ${#PS_READS[@]}, ${crlf_cases} CRLF cases whose CR node received; ${#EVERY_SESSION_REFUSED[@]} forms refused in every session, the main one included, and ${#MAIN_ALLOWED[@]} of the main session's commands next to them allowed; ${repo_cases} cases of the amend and the implicit no-index read from throwaway repositories; $((${#DECLARED_OUTSIDE[@]} + declared_in_repos)) declared limits passing and ${#DECLARED_MISREAD[@]} declared misreadings refused, as docs/04 says; a broken guard (node missing / file missing / crash / bad input) blocks agents and shows a non-blocking error to the main session."
