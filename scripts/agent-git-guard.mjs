@@ -7,8 +7,9 @@
 // "Delegated agents and the shared working tree"). (2) In EVERY session, the main one
 // included, it refuses the forms that take a hook out — never to get past it, the core's
 // Boundary — and the ones an allow rule would let run with no prompt and, in auto mode,
-// past the classifier: a file written or read past the repository, a branch forced,
-// renamed or deleted with force (docs/04, "Permission configuration"). The main session
+// past the classifier: a file written or read past the repository, an ignored file
+// staged, a branch forced, renamed or deleted with force (docs/04, "Permission
+// configuration"). The main session
 // carries no `agent_id` and meets job (2) only: docs/04 gives it the local branch work.
 // WHY. Agents told "read-only" in their prompt still ran checkout/switch/archive in the
 // shared working tree: a sentence in a prompt is not a boundary, this hook is. A linked
@@ -356,6 +357,11 @@ function gitEverySessionReason({ args, assignments }) {
   // Setting it — not reading or unsetting it: an unset gives git back its own hooks directory.
   if (sub === 'config' && rest.some(hooksPath) && !READ_FORMS.config(rest)
     && !rest.some((word) => ['--unset', '--unset-all', 'unset'].includes(word))) return '`git config core.hooksPath` takes the hooks out';
+  // `git stage` is git-add(1)'s synonym. An ignored file staged is a secret's way into a
+  // commit (the core's rule 1), past the refusal a plain `git add` gives it.
+  if ((sub === 'add' || sub === 'stage') && (shortOptions(rest).has('f') || long('--force'))) {
+    return `\`git ${sub} -f\` stages a file .gitignore leaves out`;
+  }
   if (OUTPUT.has(sub) && long('--output')) return `\`git ${sub} --output\` writes a file`;
   if (sub === 'diff' && long('--no-index')) return '`git diff --no-index` reads files past the repository';
   if (sub === 'branch') {
@@ -434,8 +440,8 @@ if (refused.length) {
     `agent-git-guard: BLOCKED in every session: ${[...new Set(refused)].join('; ')}.\n`
     + 'Refused for the main session too (docs/04, "Permission configuration"). A hook is never taken\n'
     + "out to get past it: fix what it refused, or report it to the user (the core's Boundary). Write\n"
-    + 'a file with the file tools and read one with Read; forcing, renaming or deleting a branch with\n'
-    + "force is the user's to run.\n",
+    + 'a file with the file tools and read one with Read; staging a file .gitignore leaves out, and\n'
+    + "forcing, renaming or deleting a branch with force, are the user's to run.\n",
   );
   process.exit(BLOCKED);
 }

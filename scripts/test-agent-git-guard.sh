@@ -355,6 +355,16 @@ EVERY_SESSION_REFUSED=(
   'cd "$(dirname "$(git rev-parse --git-dir)")" && git commit -n -m x'
   $'echo "$(echo \')\'; git commit -n -m x)"'
   $'git commit -n -m "$(cat <<\'EOF\'\nfix(guard): a subject\nEOF\n)"'
+  # a file .gitignore leaves out, staged — a secret's way into a commit (rule 1); measured on
+  # git 2.54.0: each of these staged an ignored file, a plain `git add` refused it
+  'git add -f token.txt'
+  'git add --force token.txt'
+  'git add --f token.txt'
+  'git add -fA'
+  'git add -Af'
+  'git add -vf token.txt'
+  'git -C . add -f token.txt'
+  'git stage -f token.txt'
 )
 for c in "${EVERY_SESSION_REFUSED[@]}"; do
   blocked "main session not refused: ${c}" "$(hook_input "${c}")"
@@ -368,6 +378,10 @@ done
 # (pushes are the pre-push hook's job, not this one).
 MAIN_ALLOWED=(
   'git switch -c feat/x'
+  'git add scripts/agent-git-guard.mjs'
+  'git add -A'
+  'git add -u'
+  'git add -- -f'
   'git commit -m "x"'
   'git commit -am x'
   "git commit -m '-n is the message here'"
