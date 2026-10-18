@@ -220,6 +220,7 @@ EOF"
   # an option's value is not an option (2026-10-18)
   'git log -S --output --oneline'
   'git branch --sort -committerdate'
+  'git ls-files | tree --fromfile'
 )
 for c in "${AGENT_READS[@]}"; do
   expect 0 "agent read blocked: ${c}" "${REPO_ROOT}" "$(hook_input "${c}" agent)"
@@ -386,6 +387,10 @@ EVERY_SESSION_REFUSED=(
   'tree -L2 -o out.txt'
   'tree -La 1 -o out.txt'
   'tree -Lo 1 out.txt'
+  # `--fromfile` given a path reads that file, past a value and a `.` (2026-10-18)
+  'tree --fromfile . list.txt'
+  'tree --fromfile -L 2 /etc/hosts'
+  'tree -L2 --fromfile /etc/hosts'
 )
 for c in "${EVERY_SESSION_REFUSED[@]}"; do
   blocked "main session not refused: ${c}" "$(hook_input "${c}")"
@@ -440,6 +445,11 @@ MAIN_ALLOWED=(
   'git commit --message --no-verify'
   "tree -I '-o*' -L 2"
   'tree -P -R'
+  # `tree --fromfile` reading stdin — the fallback of the TREE.md template, as it ships —
+  # passes; measured on tree 2.3.2: each listed the paths piped to it (2026-10-18)
+  'git ls-files | tree --fromfile'
+  'git ls-files | tree --fromfile .'
+  'git ls-files | tree --fromfile -L 2 --dirsfirst'
 )
 for c in "${MAIN_ALLOWED[@]}"; do
   expect 0 "main session blocked: ${c}" "${REPO_ROOT}" "$(hook_input "${c}")"

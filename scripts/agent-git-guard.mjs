@@ -534,12 +534,15 @@ function gitEverySessionReason({ args, assignments }, dir) {
 }
 // Why this tree invocation is refused in every session, or null. tree reads each letter of
 // a cluster as an option (measured: `tree -ao <file>` wrote) and no prefix of a long one
-// (`--fromf` is refused): a prefix refused here costs nothing.
+// (`--fromf` is refused): a prefix refused here costs nothing. `--fromfile` reads the paths
+// it is given as files, and `.` — its default — as stdin: refused with a path only, so
+// `git ls-files | tree --fromfile`, TREE.md's fallback, passes.
 function treeReason(args) {
-  const { letters, longs } = readOptions(args, TREE_VALUED);
+  const { letters, longs, operands } = readOptions(args, TREE_VALUED);
   if (letters.has('o')) return '`tree -o` writes a file';
   if (letters.has('R')) return '`tree -R` writes a file in each directory it reaches';
-  if (longs.some((word) => spells(word, '--fromfile') || spells(word, '--fromtabfile'))) return '`tree --fromfile` prints the lines of the file it reads';
+  if (longs.some((word) => spells(word, '--fromfile') || spells(word, '--fromtabfile'))
+    && operands.some((word) => word !== '.')) return '`tree --fromfile <path>` prints the lines of the file it reads';
   return null;
 }
 // Job (2) for one simple command, run in `dir`.
