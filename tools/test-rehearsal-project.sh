@@ -10,14 +10,16 @@
 #      the project's rule at the end of the allow list, the file still JSON; STATE.md past
 #      8,000 characters in HEAD's titles, in their order; LEARNINGS.md's four titles, its format
 #      comment and the project's two entries; the pin; two commits and a clean tree; the
-#      scripts executable in the index.
+#      scripts executable in the index; its clone with core.autocrlf=true, which HEAD's
+#      .gitattributes holds to LF, and a line that says so — not one that claims CRLF.
 #   2. the shipped self-tests inside that project — `make test-scripts` green, and each self-test
 #      its Makefile runs printed its own PASS line: a run that ends green without them is no
 #      run. At least six of them.
 #   3. legacy, at v1.2.0, with its CRLF clone — the pin without its v and no graft date; the
 #      memory's titles and the entries' labels in their form before v1.1.0; no .gitattributes;
 #      the integrate command's placeholders replaced; reset-task.sh's default answered; a
-#      branch `dev`; the clone with CRLF line ends, its `dev`, and no remote.
+#      branch `dev`; the clone with CRLF line ends, counted in the line printed, its `dev`,
+#      and no remote.
 #   4. refusals — an existing directory, a revision FW lacks, a directory inside FW: each
 #      refused, nothing written; and a build that fails half-way leaves nothing behind.
 # Run it from anywhere: bash tools/test-rehearsal-project.sh
@@ -49,8 +51,12 @@ old_title() { T="${TITLE_TABLE}" X="$1" awk 'BEGIN { n = split(ENVIRON["T"], l, 
 
 # --- Case 1: answered, at HEAD ----------------------------------------------------------------
 P="${workdir}/answered"
-FW="${REPO_ROOT}" bash "${GEN}" HEAD "${P}" > "${out}" 2>&1 || fail "the build at HEAD failed"
+FW="${REPO_ROOT}" bash "${GEN}" HEAD "${P}" answered crlf > "${out}" 2>&1 || fail "the build at HEAD failed"
 grep -q "^rehearsal-project: ${P} — answered at " "${out}" || fail "the build at HEAD printed no line of what it built"
+grep -qF "; with core.autocrlf=true, no file with CRLF line ends — HEAD's .gitattributes holds them all to LF: ${P}.crlf" "${out}" \
+  || fail "the line of the clone at HEAD does not say its files are LF"
+[ "$(git -C "${P}.crlf" ls-files --eol | awk '$2 == "w/crlf"' | wc -l | tr -d ' ')" = 0 ] \
+  || fail "the clone at HEAD has a file with CRLF, which HEAD's .gitattributes should hold to LF"
 left="$(grep -rlF --exclude-dir=.git -- "${M}" "${P}" || true)"
 [ -z "${left}" ] || fail "slots left open: ${left}"
 grep -qxF 'PROTECTED_BRANCHES = main dev' "${P}/Makefile" || fail "the Makefile's protected branches are not main dev"
@@ -84,7 +90,7 @@ while IFS= read -r t; do
   awk -v c="bash ${t}" '$0 == c { on = 1; next } /^bash scripts\// { on = 0 } on && /^PASS / { f = 1 } END { exit !f }' "${out}" \
     || fail "${t} printed no PASS line inside the project"
 done < "${workdir}/tests"
-echo "PASS (rehearsal project, answered): built at HEAD with ${n_answers} slots answered and the memory past its budget; the ${n_tests} shipped self-tests pass inside it, each with its own PASS line."
+echo "PASS (rehearsal project, answered): built at HEAD with ${n_answers} slots answered and the memory past its budget, its clone with core.autocrlf=true all LF, as its line says; the ${n_tests} shipped self-tests pass inside it, each with its own PASS line."
 
 # --- Case 3: legacy, at v1.2.0, with its CRLF clone ---------------------------------------------
 git -C "${REPO_ROOT}" rev-parse -q --verify 'refs/tags/v1.2.0^{commit}' >/dev/null \
@@ -111,9 +117,12 @@ grep -q '^- Data: 2026-01-12 | Origine: ' "${L}/.claude/memory/LEARNINGS.md" || 
 grep -qxF 'PROTECTED_BRANCHES="${PROTECTED_BRANCHES:-main dev}"' "${L}/scripts/reset-task.sh" || fail "reset-task.sh's protected branches are not answered"
 git -C "${L}" rev-parse -q --verify refs/heads/dev >/dev/null || fail "no branch dev in the legacy project"
 grep -q $'\r$' "${L}.crlf/CLAUDE.md" || fail "the CRLF clone's CLAUDE.md has no CRLF line end"
+n_crlf="$(git -C "${L}.crlf" ls-files --eol | awk '$2 == "w/crlf"' | wc -l | tr -d ' ')"
+[ "${n_crlf}" -gt 0 ] && grep -qF "; with core.autocrlf=true, ${n_crlf} files with CRLF line ends: ${L}.crlf" "${out}" \
+  || fail "the line of the legacy clone does not count its ${n_crlf} files with CRLF"
 git -C "${L}.crlf" rev-parse -q --verify refs/heads/dev >/dev/null || fail "no branch dev in the CRLF clone"
 [ -z "$(git -C "${L}.crlf" remote)" ] || fail "the CRLF clone keeps a remote"
-echo "PASS (rehearsal project, legacy): at v1.2.0 the pin without its v, ${n_titles} titles and the labels in their old form, the memory never condensed, no .gitattributes, the placeholders and the protected branches answered, a dormant dev; its clone with CRLF line ends."
+echo "PASS (rehearsal project, legacy): at v1.2.0 the pin without its v, ${n_titles} titles and the labels in their old form, the memory never condensed, no .gitattributes, the placeholders and the protected branches answered, a dormant dev; its clone with ${n_crlf} files with CRLF line ends, counted in its line."
 
 # --- Case 4: refusals, and nothing left of a failed build ----------------------------------------
 mkdir "${workdir}/exists" && echo keep > "${workdir}/exists/file"

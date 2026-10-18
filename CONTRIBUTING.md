@@ -91,8 +91,10 @@ This repo applies to itself the method it describes (`.claude/docs/`):
   Where a change must land on such a line, the CHANGELOG's *Upgrading* note names the
   conflict and its resolution. Every release that changes a HYBRID file rehearses the
   upgrade before `/fw:integrate`, on a project with every setup answer in place, with LF and
-  with CRLF line ends: the projects `tools/rehearsal-project.sh` builds — `answered` at the
-  release before, `legacy` at the oldest release a project still runs —, rebuilt and
+  in a clone with `core.autocrlf=true` — CRLF wherever `.gitattributes` does not hold a file
+  to LF: every file of a `legacy` project, none of the framework's from v1.5.0 on, as the
+  generator's line counts —: the projects `tools/rehearsal-project.sh` builds — `answered` at
+  the release before, `legacy` at the oldest release a project still runs —, rebuilt and
   rehearsed again on the tip that ships, so the record names the commit it measured.
 
 ## This repo's git model (a declared exception)

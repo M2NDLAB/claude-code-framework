@@ -33,7 +33,10 @@
 # Every bracketed marker is answered, the ones older releases named in prose included: the
 # project of a user who answered all it was pointed at, which also customises the METHOD files
 # such a mention sits in (edge case 7). `crlf` adds a clone of the project with
-# core.autocrlf=true, as a Windows checkout writes it.
+# core.autocrlf=true, as a Windows checkout writes it: CRLF wherever .gitattributes does not
+# hold a file to LF — every file of a legacy project, none of a project at v1.5.0 or later,
+# whose .gitattributes holds every path this script writes —, the files counted in the line
+# it prints.
 # Prints what it built; exit 1 on any failure, and then nothing of it is left.
 # Prerequisites: git 2.31 or later, bash 3.2 or later, tar, awk, Node.js (JSON and counts).
 set -euo pipefail
@@ -258,7 +261,13 @@ if [ -n "${CRLF}" ]; then
   git clone -q -c core.autocrlf=true "${OUT}" "${built_crlf}"
   [ "${SHAPE}" != legacy ] || git -C "${built_crlf}" branch -q dev origin/dev
   git -C "${built_crlf}" remote remove origin
-  crlf_line="; with CRLF line ends: ${built_crlf}"
+  # The line says what the checkout wrote, counted, never what the option asked for.
+  crlf_files="$(git -C "${built_crlf}" ls-files --eol | awk '$2 == "w/crlf"' | wc -l | tr -d ' ')"
+  if [ "${crlf_files}" -gt 0 ]; then
+    crlf_line="; with core.autocrlf=true, ${crlf_files} files with CRLF line ends: ${built_crlf}"
+  else
+    crlf_line="; with core.autocrlf=true, no file with CRLF line ends — ${REV}'s .gitattributes holds them all to LF: ${built_crlf}"
+  fi
 fi
 printf 'rehearsal-project: %s — %s at %s (%s): %s slots answered, STATE.md %s characters%s\n' \
   "${OUT}" "${SHAPE}" "${version}" "${commit:0:7}" "${n_answers}" "${state_chars}" "${crlf_line}"
