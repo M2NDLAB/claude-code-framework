@@ -162,6 +162,9 @@ AGENT_WRITES=(
   '2>/dev/null git branch other'
   'if true; then git switch main; fi'
   'git symbolic-ref HEAD refs/heads/other'
+  # the gate's forms (2026-10-18): a substitution inside double quotes is read up to the `)`
+  # that closes it, past the double quotes nested in it
+  'cd "$(dirname "$(git rev-parse --git-dir)")" && git checkout main'
 )
 for c in "${AGENT_WRITES[@]}"; do
   blocked "agent write not blocked: ${c}" "$(hook_input "${c}" agent)"
@@ -204,6 +207,8 @@ EOF"
   'echo "branch: $(git rev-parse --abbrev-ref HEAD)"'
   'echo "$((1 + 2))"'
   '2>/dev/null git log -1'
+  # a quoted heredoc's body is data, a `)` in it closes nothing (2026-10-18)
+  $'echo "$(cat <<\'EOF\'\nsee (x)\n`git checkout main`\nEOF\n)"'
 )
 for c in "${AGENT_READS[@]}"; do
   expect 0 "agent read blocked: ${c}" "${REPO_ROOT}" "$(hook_input "${c}" agent)"
@@ -345,6 +350,11 @@ EVERY_SESSION_REFUSED=(
   'echo "$(git diff --output=x)"'
   'cd sub && tree -o ../out.txt'
   '/usr/bin/git commit -n -m x'
+  # a substitution inside double quotes ends at its own `)`, past nested double quotes and
+  # quoted text (the gate's round 1, 2026-10-18)
+  'cd "$(dirname "$(git rev-parse --git-dir)")" && git commit -n -m x'
+  $'echo "$(echo \')\'; git commit -n -m x)"'
+  $'git commit -n -m "$(cat <<\'EOF\'\nfix(guard): a subject\nEOF\n)"'
 )
 for c in "${EVERY_SESSION_REFUSED[@]}"; do
   blocked "main session not refused: ${c}" "$(hook_input "${c}")"
@@ -382,6 +392,10 @@ MAIN_ALLOWED=(
   'tree -L 2'
   'tree -a -I node_modules'
   'git status'
+  # Claude Code's own commit and PR forms: a quoted heredoc in a substitution, a `)` in the
+  # scope, refused forms quoted in the body — data, not commands (the gate's round 1)
+  $'git commit -m "$(cat <<\'EOF\'\nfix(guard): refuse the forms\n\nThe agent\'s `git commit -n` is now refused.\nEOF\n)"'
+  $'gh pr create --title x --body "$(cat <<\'EOF\'\n## Summary (the guard)\n- refuses `git branch -D old` and `tree -o x`\nEOF\n)"'
 )
 for c in "${MAIN_ALLOWED[@]}"; do
   expect 0 "main session blocked: ${c}" "${REPO_ROOT}" "$(hook_input "${c}")"
