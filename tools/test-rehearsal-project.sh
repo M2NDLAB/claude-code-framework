@@ -22,8 +22,9 @@
 #      answered; a
 #      branch `dev`; the clone with CRLF line ends, counted in the line printed, its `dev`,
 #      and no remote.
-#   4. refusals — an existing directory, a revision FW lacks, a directory inside FW: each
-#      refused, nothing written; and a build that fails half-way leaves nothing behind.
+#   4. refusals — an existing directory, a revision FW lacks, a directory inside FW, one or
+#      two levels down, a missing parent: each refused, nothing written; and a build that
+#      fails half-way leaves nothing behind.
 # Run it from anywhere: bash tools/test-rehearsal-project.sh
 set -euo pipefail
 
@@ -59,8 +60,16 @@ grep -qF "; with core.autocrlf=true, no file with CRLF line ends — HEAD's .git
   || fail "the line of the clone at HEAD does not say its files are LF"
 [ "$(git -C "${P}.crlf" ls-files --eol | awk '$2 == "w/crlf"' | wc -l | tr -d ' ')" = 0 ] \
   || fail "the clone at HEAD has a file with CRLF, which HEAD's .gitattributes should hold to LF"
-left="$(grep -rlF --exclude-dir=.git -- "${M}" "${P}" || true)"
-[ -z "${left}" ] || fail "slots left open: ${left}"
+# no_marker <dir>: no marker left in either of its forms — grep's 1, never its 2, an error that
+# would pass on silence. The second form, Italian, is the one releases before v1.1.0 wrote.
+no_marker() {
+  local left rc
+  set +e
+  left="$(grep -rlF --exclude-dir=.git -e "${M}" -e "[DA DEFINIRE A""L SETUP]" -- "$1")"; rc=$?
+  set -e
+  [ "${rc}" -eq 1 ] || fail "slots left open in $1, or it could not be read (grep exit ${rc}): ${left}"
+}
+no_marker "${P}"
 ! grep -qE '<integration>|<pattern-to-ignore-for-the-stack>|^Setup replaces the placeholders below' "${P}/.claude/commands/fw/checkpoint.md" \
   || fail "fw/checkpoint.md keeps a placeholder, or the paragraph setup deletes"
 grep -qF 'git branch --merged main' "${P}/.claude/commands/fw/checkpoint.md" || fail "fw/checkpoint.md's integration branch is not answered"
@@ -102,6 +111,7 @@ git -C "${REPO_ROOT}" rev-parse -q --verify 'refs/tags/v1.2.0^{commit}' >/dev/nu
   || fail "no tag v1.2.0 in this repository: the CI's checkout fetches every tag (fetch-depth: 0)"
 L="${workdir}/legacy"
 FW="${REPO_ROOT}" bash "${GEN}" v1.2.0 "${L}" legacy crlf > "${out}" 2>&1 || fail "the legacy build at v1.2.0 failed"
+no_marker "${L}"
 grep -qxF 'version: 1.2.0' "${L}/.claude/framework-version" && grep -q '^grafted: n/d' "${L}/.claude/framework-version" \
   || fail "the legacy pin has its v, or a graft date"
 git -C "${REPO_ROOT}" show v1.2.0:.claude/memory/STATE.md | grep '^## ' > "${workdir}/titles.120"
@@ -139,6 +149,11 @@ if FW="${REPO_ROOT}" bash "${GEN}" v0.0.0-none "${workdir}/norev" > "${out}" 2>&
 [ ! -e "${workdir}/norev" ] || fail "the refused revision left a directory"
 if FW="${REPO_ROOT}" bash "${GEN}" HEAD "${REPO_ROOT}/.rehearsal-inside" > "${out}" 2>&1; then fail "a build inside FW went on"; fi
 [ ! -e "${REPO_ROOT}/.rehearsal-inside" ] || fail "the refused build inside FW left a directory"
+# Two levels down, a parent mkdir -p would have created inside FW and left there.
+if FW="${REPO_ROOT}" bash "${GEN}" HEAD "${REPO_ROOT}/.rehearsal-parent/proj" > "${out}" 2>&1; then fail "a build two levels inside FW went on"; fi
+[ ! -e "${REPO_ROOT}/.rehearsal-parent" ] || fail "the refused build two levels inside FW left its parent"
+if FW="${REPO_ROOT}" bash "${GEN}" HEAD "${workdir}/no-parent/proj" > "${out}" 2>&1; then fail "a build under a missing parent went on"; fi
+[ ! -e "${workdir}/no-parent" ] || fail "the refused build under a missing parent created it"
 # A framework whose payload lacks the scripts: the build stops half-way, after it has written.
 FX="${workdir}/fw-without-scripts"
 git init -q "${FX}" && echo x > "${FX}/CLAUDE.md" && mkdir -p "${FX}/.claude" && echo '{}' > "${FX}/.claude/settings.json"
@@ -146,4 +161,4 @@ git -C "${FX}" add -A && git -C "${FX}" -c user.name=t -c user.email=t@example.i
 if FW="${FX}" bash "${GEN}" HEAD "${workdir}/half" > "${out}" 2>&1; then fail "a payload without its scripts was built"; fi
 grep -q 'lacks its scripts' "${out}" || fail "the half-way failure did not say why"
 [ ! -e "${workdir}/half" ] || fail "a build that failed half-way left its directory"
-echo "PASS (rehearsal project, refusals): an existing directory, a revision FW lacks and a directory inside FW refused before anything is written; a build that fails half-way leaves nothing behind."
+echo "PASS (rehearsal project, refusals): an existing directory, a revision FW lacks, a directory inside FW one or two levels down and a missing parent refused before anything is written; a build that fails half-way leaves nothing behind."

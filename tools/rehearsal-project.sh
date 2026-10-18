@@ -14,8 +14,9 @@
 #   FW=<the framework's clone> bash tools/rehearsal-project.sh <rev> <new dir> [answered|legacy] [crlf]
 #
 # <rev> is a tag for a rehearsal, HEAD for the CI: the copy is SETUP.md's step 1 at <rev>, read
-# by revision, never from FW's working tree. <new dir> must not exist and lies outside FW; it is
-# all the script writes, with <new dir>.crlf under `crlf`. The shapes:
+# by revision, never from FW's working tree. <new dir> must not exist, its parent must, and it
+# lies outside FW, checked before anything is written; it is all the script writes, with <new
+# dir>.crlf under `crlf`. The shapes:
 #   answered  every slot marker replaced by an answer of its own; the protected branches
 #             `main dev`; a rule of the project's own at the end of the allow list, a target of
 #             its own in the Makefile, three technical rules in CLAUDE.md; the pin as step 1
@@ -64,11 +65,16 @@ fw_top="$(git -C "${FW}" rev-parse --show-toplevel 2>/dev/null)" || die "FW=${FW
 commit="$(git -C "${FW}" rev-parse -q --verify "${REV}^{commit}")" || die "${REV} is not a revision of FW=${FW}"
 [ ! -e "${OUT}" ] || die "${OUT} exists: the project is built in a new directory"
 [ -z "${CRLF}" ] || [ ! -e "${OUT}.crlf" ] || die "${OUT}.crlf exists: the CRLF clone is built in a new directory"
-mkdir -p "${OUT}"
-OUT="$(cd "${OUT}" && pwd -P)"
-case "${OUT}/" in
-  "$(cd "${fw_top}" && pwd -P)/"*) rmdir "${OUT}"; die "${OUT} is inside FW: build the project outside it" ;;
+# Where it would land is checked before anything is written: the parent, which must exist,
+# resolved and held against FW; then the one directory, created alone.
+parent="$(dirname "${OUT}")"
+[ -d "${parent}" ] || die "${parent} does not exist: the new directory's parent must"
+parent="$(cd "${parent}" && pwd -P)"
+case "${parent}/" in
+  "$(cd "${fw_top}" && pwd -P)/"*) die "${OUT} is inside FW: build the project outside it" ;;
 esac
+OUT="${parent}/$(basename "${OUT}")"
+mkdir "${OUT}"
 # From here a failure removes what was built: nothing half-built is left to be taken for a
 # fixture. Both directories are this run's own, created above or below.
 built_crlf=""
