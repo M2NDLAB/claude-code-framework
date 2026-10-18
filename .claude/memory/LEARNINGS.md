@@ -2264,7 +2264,9 @@ line on; older entries are not backfilled.
   and the release's CHANGELOG entry is to. Step 4's check stays, on the values block 1 pins.
   `fw/integrate.md` is HYBRID: the new lines carry `<integration>`, which a project grafted
   before v3.0.0 replaced throughout — the release's Upgrading note says so.
-- Verified: the documentation check passes; the release's rehearsal reads it.
+- Verified: the documentation check passes; the wording of the base check narrowed by the
+  gate's round 1 to what it reads, the last fetch's `origin/<integration>` (`bcb0275`). Not
+  yet verified: the release's rehearsal reading it — recorded here once it has run.
 
 ## Deferred (not rejected — resumed at the right time)
 
@@ -2637,107 +2639,6 @@ line on; older entries are not backfilled.
 - Resumption trigger: the first session that starts in a subdirectory, or moves into one with
   `/cd` (not measured), without the core's check catching it.
 
-### IMP-111 — Framework reads outside the working directory prompt in every session: a stable read-only rule → deferred on 2026-10-15
-- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
-  project (the project's entry 005, 2026-10-14): a greenfield graft and the following
-  deliverables; measured by the user in manual mode in a later, new session
-- Observed problem: the upgrade's Precondition makes the agent restate `FW=` and read with
-  `git -C "${FW:?}" show <tag>:<file>`. Measured in manual mode: `FW="$HOME/…"`, an absolute
-  `FW=`, and a literal `git -C /abs/path show …` ALL ask for confirmation — the cause is git
-  run on a repository outside the working directory, not the syntax (the variable forms add
-  "A variable in braces … can't be checked before it runs"). The prompt's option "Yes,
-  allow reading from <dir> from this project" writes NO rule to any settings file, and in a
-  new session, in manual mode, the same literal-path read asked again: the grant is
-  session-scoped. (In auto mode reads do not prompt, so the measurement is taken in manual
-  mode.)
-- Checked against Claude Code's documentation (its *permissions* and *settings* pages, read
-  2026-10-14, not measured): `.claude/settings.local.json` is personal, per-project,
-  unversioned, above `.claude/settings.json` in precedence, and `permissions.allow` lists
-  merge; "A `*` in a Bash rule matches any text, including spaces"; the space before a
-  trailing `*` is part of the rule; "A rule must match each subcommand independently" (so
-  `| head -1` is covered by head's built-in read-only status); a rule `git push *` does not
-  match `git -C . push`, so `-C <path>` must be spelled in the rule; `additionalDirectories`
-  grants "file access only". NOT stated by the documentation: that an allow rule silences
-  the out-of-directory prompt for `git -C`.
-- Trade-off: a permission rule matches the command TEXT, so it matches only a literal path;
-  `git -C "${FW:?}" …` never matches and prompts anyway. With a literal path there is no
-  variable that can be empty, so the guard of `${FW:?}` (the v1.2.1 collision) has no object
-  for those reads.
-- Proposal: the graft adds, once, in the project's `.claude/settings.local.json` (personal:
-  the path is the user's), under `permissions.allow`, one rule per read command, the
-  absolute path written out: `"Bash(git -C /abs/path/to/framework show *)"`,
-  `"Bash(git -C /abs/path/to/framework ls-tree *)"`,
-  `"Bash(git -C /abs/path/to/framework grep *)"` — nothing wider (never
-  `git -C <path> *`, which admits writes). `SETUP.md` §0/§1 give the block; the agent's
-  framework reads (Precondition, `docs/04`) use the literal absolute path, which the rules
-  can match; `${FW:?}` stays for the human's blocks. `SETUP.md` says "an absolute path, not
-  `~`" and warns that `git grep` with an unquoted glob still prompts in manual mode. Before
-  applying: measure in manual mode that the rules silence the prompt.
-- Note at recording (2026-10-14, the user — lens P1, to be verified, not measured): the
-  proposal is not read-only as written. A rule on `git -C <fw> grep *` admits
-  `git grep -O<command>`, which runs a command; a rule on `git -C <fw> show *` admits
-  `--output=<file>`, which writes a file. `ls-tree` is harmless. The proposal is to be
-  narrowed or guarded before it is applied.
-- Expected benefit / risk: reads by tag, which the method mandates, stop being the noisiest
-  part of every session. Risk: a grant wider than reading — the note above shows that
-  `show` and `grep` already are; `git -C` on the clone must never reach a write
-  (Precondition rule 1).
-- Kin: IMP-050 (points 1-2), IMP-054 (a rule matches text, not the program).
-- P1, verified on 2026-10-15 by the retro's agents in git 2.54.0's man pages — read, not
-  measured ([[2026-10-15-harvest-retro-3.0.0]]; the verification and the protocol in full in
-  the agents' output beside that note): confirmed and widened. A rule on `git -C <fw> show *`
-  admits a write (`--output`), launches by flag (`--ext-diff`, `--textconv`,
-  `--show-signature`) and by configuration (`log.showSignature`, `gpg.program`), and reads
-  past the tag (`:<path>` is the index, `HEAD:` the checkout); one on `grep *` admits a launch
-  (`-O`) and the working tree (a grep given no tree); `ls-tree` and `rev-parse` admit neither.
-  The home the proposal names, `settings.local.json`, contradicts the "start empty" of
-  `docs/04` and of `SETUP.md`'s §2: a definitive rule amends them.
-- Deferred on 2026-10-15 (the retro; the user's decision): no definitive rule before the
-  measurement, which runs after v3.0.0's tag, in a dedicated session, in manual mode —
-  candidates A (allow and deny rules) and B (a fixed prefix closed by `--end-of-options`)
-  first, C (a wrapper that validates the tag and the path) only if both fail S2, D
-  (`additionalDirectories`) recorded. The protocol, as its verifier corrected it: S1, the
-  reads, silent in two fresh sessions; S2, the writes and the launches, prompted or refused;
-  S3, the residuals no rule text closes; S4, IMP-112's style cases; a throwaway clone as `FW`,
-  every prompt answered No, the checks before and after from the user's own terminal. The
-  next upgrade runs with the confirmations.
-- Resumption trigger: the measurement run and recorded — a session note with Claude Code's
-  and git's versions, each candidate's rules verbatim, a table of case by candidate — and its
-  evidence line here; the rule is proposed at the retro that follows.
-- Closed without a run on 2026-10-17 (the user's decision, [[2026-10-17-cleanup-imp-135]], *G,
-  closed on the documents*): the session meant for the measurement stayed in auto mode, where
-  these reads do not prompt. Proposed: REJECT — in auto mode an allow rule is resolved before
-  the classifier ("a narrow rule can still let a destructive argument through without the
-  classifier seeing it", Claude Code's *Configure auto mode*), on the very forms P1 found;
-  whether any candidate lifts the manual-mode prompt is not documented, and the benefit has
-  no user. The user decides at the retro.
-
-### IMP-112 — The command style of framework reads (shell functions, long chains) adds prompts → deferred on 2026-10-15
-- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — harvest from a test
-  project (the project's entry 006, 2026-10-14): a greenfield graft
-- Observed problem: the agent wrote framework reads as shell functions
-  (`g(){ git -C "${FW:?}" show "<tag>:$1"; }; g …`) and as long `;`/`&&` chains with echo
-  separators; Claude Code flagged them ("brace with quote character") and asked
-  confirmation for read-only work. In zsh, `echo ======` fails (`=word` is a command-path
-  expansion).
-- Proposal: `docs/04` (or the upgrade's Precondition) gives a style rule for framework
-  reads: one plain `git -C … show <tag>:<path>` per call, no shell functions, no long
-  chains; several reads as parallel tool calls.
-- Expected benefit / risk: fewer prompts, no loss of safety. Risk: more tool calls.
-- Evidence on 2026-10-15 (the retro's agents): zsh's `=word` expansion confirmed in zsh's
-  documentation and in the agents' own shell (zsh 5.9, EQUALS on: `echo ======` fails), and an
-  unbraced `$t:scripts/…` is read as the `:s` modifier. As written, the rule would contradict
-  `SETUP.md`'s own blocks that read the framework in chains that stop at the first failure.
-- Deferred on 2026-10-15 (the retro; the user's decision), with IMP-111: its benefit is not
-  measured and rides on IMP-111 — in manual mode every read outside the working directory
-  prompts. If adopted, a rule for the agent's ad-hoc framework reads only, the procedure's
-  blocks exempt.
-- Resumption trigger: IMP-111's measurement, with its S4 cases; decided at the same retro.
-- Closed without a run on 2026-10-17 (the user's decision, [[2026-10-17-cleanup-imp-135]]):
-  proposed REJECT — it rides on IMP-111, the prompts it targets are manual mode's, and both zsh
-  forms fail loudly (measured, zsh 5.9: `bad substitution`, `=== not found`); the agent met
-  both in that very session, each time loudly. The user decides at the retro.
-
 ### IMP-130 — A slot a conflict's resolution opens again in a HYBRID file gets no FAIL → deferred on 2026-10-17
 - Date: 2026-10-17 | Origin: v4.0.0's gate, migration F8 — [[2026-10-16-on-demand-docs-4.0.0]]
 - Observed problem: `invariant` fails a slot the project had answered that is open again only
@@ -2866,6 +2767,58 @@ line on; older entries are not backfilled.
   than stopped for.
 - Rejected on 2026-10-17 (the user's decision, [[2026-10-17-cleanup-imp-135]], row 4): it
   relaxes the stop for a case the order of option (b), applied, avoids.
+
+### IMP-111 — Framework reads outside the working directory prompt in every session: a stable read-only rule → rejected on 2026-10-18
+- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — a test project's harvest
+  (its entry 005), measured by the user in manual mode: `git -C <the framework's clone> show
+  <tag>:<file>` prompted, with a literal path as with `${FW:?}` — git run on a repository
+  outside the working directory —, and the prompt's "allow reading from <dir>" wrote no rule
+  and was asked again in a new session: a grant scoped to the session.
+- Proposal: allow rules in the project's `settings.local.json`, the clone's absolute path
+  written out, for `git -C <path> show *`, `ls-tree *` and `grep *`. Read in Claude Code's
+  *permissions* and *settings* pages (2026-10-14): a rule matches the command's text, so a
+  literal path only; `additionalDirectories` grants "file access only"; whether a rule
+  silences that prompt is not stated. P1, verified on 2026-10-15 in git 2.54.0's man pages
+  ([[2026-10-15-harvest-retro-3.0.0]]): a rule on `show *` admits a write (`--output`),
+  launches by flag (`--ext-diff`, `--textconv`, `--show-signature`) and by configuration
+  (`log.showSignature`, `gpg.program`), and reads past the tag; one on `grep *` a launch (`-O`)
+  and the working tree; `ls-tree` and `rev-parse` neither.
+- Deferred on 2026-10-15 (the user's decision) to a measurement in manual mode — candidates A
+  (allow and deny rules), B (a prefix closed by `--end-of-options`), C (a wrapper validating
+  the tag and the path), D (`additionalDirectories`); S1 the reads silent, S2 the writes and
+  launches prompted or refused, S3 the residuals, S4 IMP-112's cases. It never ran: the
+  session meant for it stayed in auto mode ([[2026-10-17-cleanup-imp-135]], *The measurement
+  session*), and the user closed G on the documents.
+- Rejected on 2026-10-18 (the user's decision, [[2026-10-17-cleanup-imp-135]], *The fifth
+  brief*), for the main session's reason: the user's sessions run in auto mode, where these
+  reads do not prompt and where an allow rule is resolved before the classifier — "a narrow
+  rule can still let a destructive argument through without the classifier seeing it, for
+  example a script path or flag the rule's prefix didn't anticipate" (Claude Code's
+  *Configure auto mode*, read on 2026-10-17) —, on the very forms P1 found; candidate C's rule
+  is that page's own example, a script path. Whether any candidate lifts the manual-mode
+  prompt is not documented, and only a run in manual mode could show it, for a benefit no
+  user takes: the repository goes private at the end of the plan (IMP-086). A friction in
+  manual mode on a derived project comes back as a new IMP.
+
+### IMP-112 — The command style of framework reads (shell functions, long chains) adds prompts → rejected on 2026-10-18
+- Date: 2026-10-14 | Origin: [[2026-10-14-test-project-harvest]] — a test project's harvest
+  (its entry 006): framework reads written as shell functions and long `;`/`&&` chains drew
+  prompts for read-only work ("brace with quote character"); in zsh `echo ======` fails.
+- Proposal: a style rule for the agent's framework reads — one plain `git -C … show
+  <tag>:<path>` per call, no shell functions, no long chains. Deferred on 2026-10-15 with
+  IMP-111, whose measurement its benefit rode on; zsh's `=word` expansion and an unbraced
+  `$t:scripts/…` read as the `:s` modifier confirmed in zsh's documentation and shell.
+- Rejected on 2026-10-18 (the user's decision, [[2026-10-17-cleanup-imp-135]], *The fifth
+  brief*), for the main session's reasons: it rides on IMP-111, rejected; the prompts it
+  targets are manual mode's — "when Claude Code can't fully parse a command, it asks for
+  approval" —, which in auto mode the classifier reviews instead; and its two zsh pitfalls
+  fail loudly, so no silent error asks for a rule (the criterion recorded with IMP-132):
+  measured in zsh 5.9 (`zsh -f`), `"$t:scripts/README.md"` → `bad substitution`, `echo ====`
+  → `=== not found`, and met in the cleanup's own session — `"$t:…"` once (2026-10-17), `echo
+  ===` once (2026-10-18) —, each time loudly, nothing run in its place; no shipped file
+  carries either (a grep). The session's other zsh behaviours — an unquoted variable not split
+  into words, an unquoted glob that matches nothing — are not this entry's: their data is in
+  the session note, for that retro.
 
 ### IMP-132 (the other four) — Formatting, magic numbers, the domain and the infrastructure, the release of resources in the core → rejected on 2026-10-17
 - Date: 2026-10-17 | Origin: v4.0.0's gate, second round, claims R2-2 —
