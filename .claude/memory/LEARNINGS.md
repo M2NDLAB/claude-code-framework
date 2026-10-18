@@ -74,6 +74,51 @@ tags: [improvement]
 - Status: APPROVED on 2026-10-17 (the user's decision) — the next deliverable, which the user
   opens in a new session; not `STATE.md`, a clean template here (`CONTRIBUTING.md`).
 
+### IMP-136 — The agent's own commands in zsh: an unquoted variable is not split into words
+- Date: 2026-10-18 | Origin: [[2026-10-17-cleanup-imp-135]], *Problems encountered* 1, 6 and 12
+  — three times in one session, once silent
+- Observed problem: the Bash tool runs the user's shell, zsh on macOS, which does not split an
+  unquoted `$var` into words, where bash does. The agent wrote bash's idiom three times: a count
+  over a variable's paths printed 0 — no error, caught only because 0 was implausible —; a loop
+  ran a whole command as one word ("is not a git command"); `set -- $spec` handed a script one
+  argument, which it refused. IMP-112, rejected, was about the style of framework reads and two
+  pitfalls that fail loudly; this one gave a wrong result in silence.
+- Proposal: one bullet in `docs/04`'s *Operating rules for Claude Code*: the agent's own command
+  lines are written for the shell the Bash tool runs — in zsh an unquoted variable stays one
+  word: a list is written out, or held in an array, or the line run by `bash -c` —, and a count
+  or a loop over a variable's words is checked against a known value before it is trusted.
+- Expected benefit / risk: the silent case — a count or a list read wrong — caught before a
+  decision rests on it. Risk: one more line in a doc the agent reads at a commit.
+
+### IMP-137 — The release's Upgrading note before its rehearsal, so one rehearsal reads it
+- Date: 2026-10-18 | Origin: [[2026-10-17-cleanup-imp-135]], *The rehearsal on `1b379f2`* — and
+  v4.0.0's, rehearsed again on its CHANGELOG's commit ([[2026-10-16-on-demand-docs-4.0.0]])
+- Observed problem: the rehearsal's inventory prints `vY`'s *Upgrading* notes from the tag's
+  CHANGELOG; a rehearsal run before the release's entry reads "no Upgrading paragraph" for the
+  release itself, so it never follows the note the projects will follow, and the rule "on the
+  tip that ships" makes it run a second time once the entry exists — twice in two releases.
+- Proposal: `CONTRIBUTING.md`'s rehearsal rule: the CHANGELOG's `[Unreleased]` entry, its
+  *Upgrading* note first, is written before the rehearsal, which then runs once on the tip that
+  ships, following the note; a defect it finds amends both, and the gate's round after it
+  reviews them together.
+- Expected benefit / risk: one full rehearsal per release instead of two, and the note itself
+  rehearsed. Risk: the note written before the defects it may have to name — amended with them.
+
+### IMP-138 — The gate's reviewers get the fixtures they must run, prepared before the launch
+- Date: 2026-10-18 | Origin: [[2026-10-17-cleanup-imp-135]], *Security gate*, round 1 — both
+  reviewers stopped at the guard while building a scratch repository
+- Observed problem: `docs/04` gives an agent's throwaway clone to the main session, and the guard
+  refuses an agent's `git init`, `clone` or `tag`; round 1's two reviewers each met that refusal
+  at the first fixture they needed — a clone with a temporary tag, a repository with an ignored
+  file —, stopped as briefed, and the round lost its end-to-end coverage and its verifier.
+- Proposal: `docs/03`'s *When the review must be adversarial*: the main session prepares, before
+  the launch, every repository a reviewer must run — the rehearsal's projects, a clone with the
+  release's temporary tag, a repository for each measurement the brief asks for — and the brief
+  names them, with the rule that a reviewer stopped by the guard or a prompt stops and reports;
+  a fixture the reviewer finds missing is asked for, not built.
+- Expected benefit / risk: the review runs what it reviews, inside the boundary. Risk: fixtures
+  shaped by the author the reviewer judges — the reviewer can ask for others.
+
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
 - Date: YYYY-MM-DD | Origin: [[<session note>]] — <problem>
@@ -2658,6 +2703,18 @@ line on; older entries are not backfilled.
   this very release: the `Makefile`'s comment on `YES`, right above `PROTECTED_BRANCHES`
   (IMP-128), and `fw/integrate.md`'s tag line, which names `<integration>` (IMP-133) — the
   user decides at its retro.
+- At the retro of 2026-10-18 ([[2026-10-17-cleanup-imp-135]]), the rehearsal's evidence: on
+  the 4.0.0 path the `Makefile`'s one conflict holds the `PROTECTED_BRANCHES` line in its hunk,
+  so taking `vY`'s side there would bring the default back with nothing to say so — the one
+  silent case the rehearsal found, a value, which the proposal's marker lines would not catch
+  either —; on the 1.2.0 path the same line is edge case 8's, whose FAIL covers it; a marker
+  a rebuild re-opens — `fw/integrate.md`'s step 1 line, `fw/checkpoint.md`'s paragraph — was
+  shown by Step 4's grep, loudly. Proposed: DEFER, the trigger narrowed to its exposure, before
+  the first upgrade from a vX at v4.0.0 or later — the release clause fires at nearly every
+  release and says nothing of who is exposed —, the release's *Upgrading* note naming the
+  value to keep. Alternative: APPLY now, narrowed to the value — `invariant` fails where the
+  restore point held a list of its own on the `PROTECTED_BRANCHES =` line and the line holds
+  `vY`'s default, `moved_slots`' reading reused —, with a test and the rehearsal again.
 
 ### IMP-134 (2) — This repository: a branch rebased after block 0 → deferred on 2026-10-17
 - Date: 2026-10-17 | Origin: v4.0.0's gate, fourth round, I4 — [[2026-10-16-on-demand-docs-4.0.0]]
