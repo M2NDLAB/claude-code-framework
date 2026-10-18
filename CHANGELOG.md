@@ -7,6 +7,130 @@ SemVer on annotated tags defined in `.claude/docs/04-git-workflow.md`
 
 ## [Unreleased]
 
+**The cleanup before the first derived project's upgrade** (IMP-135): every proposal v4.0.0 left
+open and every limit its security gate declared, decided — applied, deferred with its trigger,
+or rejected with its reason, in `LEARNINGS.md`. The guard now holds, in every session that runs
+the project's hooks, the forms that take a hook out and the ones an allow rule would let run
+unseen: in auto mode Claude Code resolves an allow rule before its classifier, so "a narrow rule
+can still let a destructive argument through without the classifier seeing it" (its *Configure
+auto mode* page). The shipped `allow` list keeps the commit cycle only, and the agent never
+discards the user's uncommitted work.
+
+### Added
+- **The guard's second job, in every session** (IMP-123, IMP-129): beside keeping delegated
+  agents read-only on git, it refuses for the main session too `git commit -n` and
+  `--no-verify` on a subcommand that runs hooks; `core.hooksPath` set for one command or with
+  `git config`; `git branch` with force, `-m` or `-C`; `git add -f` and `git stage -f`, which
+  stage a file `.gitignore` leaves out; `git commit --amend` of a commit its upstream or a
+  remote-tracking branch already holds — the one form, with the next, read from the
+  repository the command runs in —; `--output` of the diff family, `git diff --no-index` and
+  its implicit form, two paths with one outside the work tree; `tree -o`, `-R`, `--hintro`,
+  `--houtro` and `--fromfile` given a path — reading stdin, as `TREE.md`'s fallback does, it
+  passes. A long option counts as a prefix of its name, as git takes it; an option's value is
+  never read as an option. `docs/04`'s row lists what stays outside, and the self-test holds
+  those limits both ways.
+- **`invariant` checks a value a hybrid holds in place** (IMP-130): the `Makefile`'s
+  `PROTECTED_BRANCHES =`, when a conflict on the line next to it is resolved on `vY`'s side,
+  fails where the restore point held the project's list and the line holds `vY`'s default.
+- **`upgrade-check` follows v1.3.2's move of the protected branches on their value**:
+  `inventory` quotes the list the project wrote in `reset-task.sh`'s default and names the
+  `Makefile`'s line it goes to — edge case 8, never 7, the slot's comment answered and the
+  default kept included —, and reads a list the project set in the `Makefile`'s recipe as a
+  CHECK; `invariant` fails while the `Makefile` holds the default over the restore point's list.
+
+### Changed
+- **The shipped `allow` list**: `git status`, `git add`, `git commit` (IMP-123). git's reads are
+  Claude Code's built-in read-only set; `git diff`, `git log`, `git branch` and `tree` prompt in
+  manual mode and meet the classifier in auto mode.
+- **The uncommitted work is the user's to discard** (IMP-128): a session that resumes shows it
+  (`git status --untracked-files=all`, `git diff`) and keeps it; only the user runs `make
+  reset-task`, from their own terminal, and `YES=1` is never the agent's — the core's
+  *Resumption*, rule 7 and quick commands, `docs/01`, `/fw:plan`, the `Makefile`'s comment.
+- **The core's *Boundary***: a hook is never taken out to get past it — `-n`, `--no-verify`,
+  `core.hooksPath`, an edit of `.git/hooks/` or `.gitleaks*` (IMP-129); **rule 2**: never a
+  silent workaround — its comment gives the reason and the link (IMP-132).
+- `docs/03`: *The real path* — where and when a tool reads the configuration the gate relies
+  on, a statement about an external tool resting on its source's text (IMP-105); the reviewers
+  of a gate get the repositories they must run from the main session, named in the brief
+  (IMP-138).
+- `docs/04`: the permissions quote Claude Code's pages; a local branch forced, renamed, copied
+  over or deleted with force, and the amend of a commit already pushed, are the user's; the
+  agent writes its command lines for the shell the Bash tool runs (IMP-136); a measured `Read`
+  deny rule on a `git diff` argument.
+- **`/fw:integrate` checks the base before step 2's version and step 3's commit** (IMP-133),
+  as the last fetch recorded it, block 1 stopping a later move; step 5 names it; block 1's tag
+  check prints its line only inside the repository, on the tag.
+- `scripts/state-inject.sh`'s fallback says only what it prints, and `settings.json`'s twin
+  fallback in the SessionStart command too.
+- `SETUP.md`: the settings step's narrow rules; `invariant`'s summary; the titles' check on a
+  datum; edge case 8's v1.3.2 value and its limits.
+
+### Fixed
+- Found by the release's security review, its first round: the guard's parser closed a
+  `$(…)` inside double quotes at the first `)` — Claude Code's own commit form, a quoted heredoc
+  under a scope with a parenthesis, was refused in the main session, and nested quotes let a
+  refused form through —; an option's value read as an option; `TREE.md`'s fallback refused;
+  the claims wider than the code. The rehearsal's generator claimed CRLF over a clone with
+  none, left `fw/checkpoint.md`'s placeholders as shipped and wrote a parent inside the
+  framework before refusing; `upgrade-check` sent a moved value's file with its comment
+  answered to edge case 7 and passed a list set in the `Makefile`'s recipe.
+- Found by the release's rehearsal: the prerequisite check read `core.autocrlf` as not true
+  when any level held `input` — a global one under a repository's `true` hid the warning a
+  legacy checkout under CRLF needs —; the generator left the index's project name open.
+
+### This repository
+- **The rehearsal's generator**, `tools/rehearsal-project.sh` (IMP-125): a project grafted at a
+  revision, every setup slot answered and its memory past the hook's budget, `answered` or
+  `legacy`, with a clone under `core.autocrlf=true`; its self-test, and a CI step that runs the
+  shipped self-tests inside a project grafted from the pushed commit.
+- `CONTRIBUTING.md`: a check passes on a positive datum (IMP-131); a self-test builds the states
+  the projects' files take (IMP-125); no delegation while a block that fetches or pushes awaits
+  the user (IMP-106); the memory-only rule sets `LEARNINGS.md`'s `updated:` aside (IMP-134);
+  the CHANGELOG entry and its *Upgrading* note before the rehearsal (IMP-137).
+- `upgrade-check`'s moved slots held against the real tags, and its answers matched as whole
+  words.
+
+### Errata — corrections to entries already published
+- **[4.0.0], "Rehearsed on the tip that ships"** (IMP-127's form). That entry's rehearsal last
+  ran on `5c6f07b`; after it, `83b422c` and `278b9bf` changed a shipped self-test,
+  `scripts/test-state-inject.sh`, for Git Bash, and `scripts/README.md`'s line on it — run green
+  by the CI on the three systems, not rehearsed: the tip that shipped was rehearsed but for
+  that file.
+
+**Upgrading from 4.0.0** (from an earlier release, also follow the entries in between — Step 2
+of the upgrade says how they combine):
+- **The guard refuses more, in the main session too**: the forms of *Added*, above. A project's
+  procedure that ran one of them — a branch renamed by the agent, an ignored file staged, the
+  amend of a pushed commit — meets the refusal, which names the form; the user runs it, or the
+  procedure changes.
+- **`.claude/settings.json` (HYBRID)**: the `allow` list loses `Bash(git diff:*)`, `Bash(git
+  log:*)`, `Bash(git branch:*)` and `Bash(tree:*)`. A project that added a rule of its own next
+  to them meets a conflict there — keep its own, drop the four; a project that wants a reading
+  rule back writes it narrow, the guard refusing its forms anyway. The SessionStart command's
+  fallback changed: merged cleanly where the project left the line as shipped; a project that
+  edited it takes the new fallback and keeps its change.
+- **`Makefile` (HYBRID)**: the comment on `YES` changed, the line right above
+  `PROTECTED_BRANCHES =`: a project that answered that line meets a conflict on the two — keep
+  its list, take the comment. `invariant` fails where the line holds `vY`'s default over the
+  restore point's list.
+- **`.claude/commands/fw/integrate.md` (HYBRID)**: block 1's tag check changed, on a line that
+  names `<integration>`, and the base check before step 2 brings new `<integration>`
+  placeholders. A project grafted before v3.0.0 that replaced them throughout meets a conflict
+  on the first — keep its branch name, take the `--verify` — and writes its name in the second.
+- METHOD files — bring them over from the tag: `.claude/rules/fw-core.md`,
+  `.claude/docs/01-task-planning.md`, `03-security-gate.md`, `04-git-workflow.md`,
+  `.claude/commands/fw/plan.md`, `scripts/agent-git-guard.mjs`, `scripts/reset-task.sh`,
+  `scripts/state-inject.sh`, `scripts/check-prerequisites.sh`, `scripts/README.md` and the
+  self-tests `scripts/test-agent-git-guard.sh`, `test-state-inject.sh` and
+  `test-check-prerequisites.sh`.
+- **The upgrade is under the security gate**: it changes the guard, `settings.json` and
+  `scripts/state-inject.sh` (the core's rule 8) — `SETUP.md`, Step 6.
+- `make hooks-install`: the generated hooks do not change.
+- **After the merge, start Claude Code again**: a running session keeps the method it last
+  loaded.
+- **From 1.2.0**, the jump the next derived project makes: the entries in between, oldest first;
+  `inventory` and `invariant` follow v1.3.2's protected branches on their value (edge case 8).
+
 ## [4.0.0] — 2026-10-17
 
 **Breaking: the method's core leaves `CLAUDE.md`, and the docs load when they are needed.**
