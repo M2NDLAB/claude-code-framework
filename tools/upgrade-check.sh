@@ -28,8 +28,9 @@
 #                              the markers, the answers a release moved, the §2 checklist,
 #                              titles and labels, and the Upgrading notes of the releases
 #                              in between
-#   invariant vX vY <restore>  the closed list of allowed touches on .claude/memory/, and
-#                              each answer a release moved in its new home, against the
+#   invariant vX vY <restore>  the closed list of allowed touches on .claude/memory/, each
+#                              answer a release moved in its new home, and each value a
+#                              hybrid holds in place still the project's, against the
 #                              restore point (the pre-upgrade commit)
 #   post vX vY                 METHOD files and modes at vY, orphans, markers, hooks
 #
@@ -463,6 +464,9 @@ moved_slots() {
     v4.0.0 CLAUDE.md "   (${m}) run /fw:security-review BEFORE the PR; HIGH/CRITICAL" CLAUDE.md 'Sensitive components' \
     v4.0.0 CLAUDE.md "   (${m}) run /security-review BEFORE the PR; HIGH/CRITICAL" CLAUDE.md 'Sensitive components'
 }
+# value_slots: the value slots' homes, file and label tab-separated — the entries of
+# moved_slots with a default, read where they now live: the Makefile's protected branches.
+value_slots() { moved_slots | awk -F'\t' '$6 != "" { print $4 "\t" $5 }' | LC_ALL=C sort -u; }
 # moved_here <vX> <vY> <out>: the entries of moved_slots this upgrade crosses — the release
 # between vX and vY, and the slot's line in vX's old file — written to <out>. Each file is
 # read whole before grep: a grep -q on a pipe would kill git show under pipefail.
@@ -1174,6 +1178,35 @@ cmd_invariant() {
   while IFS=$'\t' read -r rel old; do
     check "${old}: ${rel} moved its slots, and ${vx}'s copy holds them in no form this check knows (a release before v1.1.0 wrote them in Italian): confirm by hand that each answer the restore point held there is on its line of CLAUDE.md's *The answers the method reads*"
   done < "${d}/moved.unknown"
+
+  # A value a hybrid holds in place, where no release in between moved it (IMP-130): a release
+  # that changes the line next to it puts the value in the 3-way's conflict — v4.1.0's comment
+  # on YES, above the Makefile's protected branches, the rehearsal's own case —, and taking
+  # vY's side there brings vY's default back with no marker to show it. The restore point's
+  # value against the line now: vY's default where the project held its own is a FAIL.
+  section "Values a hybrid holds in place — each still the project's"
+  local vfile vlabel was now dflt
+  while IFS=$'\t' read -r vfile vlabel; do
+    # Moved in between: edge case 8's, above.
+    awk -F'\t' -v f="${vfile}" -v l="${vlabel}" '$4 == f && $5 == l { m = 1 } END { exit !m }' "${d}/moved" && continue
+    pg show "${restore}:${vfile}" 2>/dev/null | tr -d '\r' > "${d}/value.before" || : > "${d}/value.before"
+    if ! was="$(home_value "${vlabel}" "${d}/value.before")"; then
+      info "${vfile}: no line '${vlabel}' at the restore point, no value of the project's to keep"
+      continue
+    fi
+    fw show "${vy}:${vfile}" 2>/dev/null | tr -d '\r' > "${d}/value.vy" || : > "${d}/value.vy"
+    if ! dflt="$(home_value "${vlabel}" "${d}/value.vy")"; then
+      check "${vfile}: ${vy} has no line '${vlabel}': confirm where the project's value ('$(clip "${was}")') went"
+    elif ! now="$(home_value "${vlabel}" "${vfile}")"; then
+      fail "${vfile} has no line that opens with '${vlabel}': the restore point held '$(clip "${was}")' there — bring ${vy}'s line over with the project's value"
+    elif [ "${now}" = "${was}" ]; then
+      ok "${vfile}: its value ('$(clip "${was}")') is still on its line '${vlabel}'"
+    elif [ "${now}" = "${dflt}" ]; then
+      fail "${vfile}: the restore point held '$(clip "${was}")' on its line '${vlabel}', which now holds ${vy}'s default '$(clip "${dflt}")': the resolution took vY's side there — carry the project's value back"
+    else
+      check "${vfile}: the restore point held '$(clip "${was}")' on its line '${vlabel}', which now holds '$(clip "${now}")': confirm the value is the project's"
+    fi
+  done < <(value_slots)
   finish "invariant ${vx} -> ${vy}, since ${restore}"
 }
 

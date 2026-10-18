@@ -80,6 +80,11 @@
 #      inventory names edge case 8 with the project's value, never edge case 7, and leaves
 #      the default alone; invariant fails while the Makefile's line holds the default, and
 #      passes once it holds the project's value.
+#  14. a value a hybrid holds in place (IMP-130) — on a throwaway framework whose second tag
+#      changes the line above the Makefile's protected branches, so the 3-way conflicts on the
+#      value: invariant fails where the resolution took vY's side and the line holds vY's
+#      default, asks where it holds another value, and passes once the project's is back, or
+#      where the project kept the default.
 # Run it from anywhere: bash tools/test-upgrade-check.sh
 set -euo pipefail
 
@@ -1006,3 +1011,52 @@ awk '/^PROTECTED_BRANCHES = / { print "PROTECTED_BRANCHES := main trunk"; next }
 FW="${FW13}" T="${T13}" run 1 "${P13E}" invariant v1.3.1 v1.3.2 "${RESTORE13E}"
 has "FAIL   Makefile has no line that opens with 'PROTECTED_BRANCHES =': the value of scripts/reset-task.sh's 'PROTECTED_BRANCHES=\"\${PROTECTED_BRANCHES:-main develop}\"' has no home — bring v1.3.2's line over"
 echo "PASS (upgrade-check moved value): inventory names edge case 8 for the protected branches v1.3.2 moved, with the project's value and the Makefile's line, never edge case 7 — a comment answered and the default kept included —, and leaves the default alone; a list set in the Makefile's recipe is a CHECK at both ends, never nothing to carry; invariant fails while the Makefile holds the default, and passes once it holds the project's value."
+
+# --- Case 14: a value a hybrid holds in place (IMP-130) ---------------------------------------
+# From v1.3.2 the protected branches are the Makefile's own line, which no release since moved:
+# a release that changes the line next to it — v4.1.0's comment on YES, the rehearsal's own
+# case (2026-10-18) — puts the value in the 3-way's conflict, and taking vY's side there
+# brings vY's default back, no marker to show it. invariant reads the line against the
+# restore point's.
+FW14="${workdir}/fw14"
+T14="${workdir}/T14"
+mkdir -p "${T14}"
+g init -q -b main "${FW14}"
+put "${FW14}" CLAUDE.md '# Index\n'
+put "${FW14}" .claude/memory/STATE.md '# STATE\n'
+put "${FW14}" scripts/reset-task.sh '#!/usr/bin/env bash\necho reset\n'
+put "${FW14}" Makefile "# ${M} the branches reset-task must never touch.\n# YES=1 discards without asking — the form an agent uses.\nPROTECTED_BRANCHES = main develop\n\nreset-task:\n\tbash scripts/reset-task.sh\n"
+g -C "${FW14}" add -A && g -C "${FW14}" commit -q -m "feat: 4.0.0" && g -C "${FW14}" tag -a v4.0.0 -m v4.0.0
+put "${FW14}" Makefile "# ${M} the branches reset-task must never touch.\n# YES=1 discards without asking — the user's form, never an agent's.\n# make reads YES from the environment too.\nPROTECTED_BRANCHES = main develop\n\nreset-task:\n\tbash scripts/reset-task.sh\n"
+g -C "${FW14}" add -A && g -C "${FW14}" commit -q -m "fix: 4.1.0" && g -C "${FW14}" tag -a v4.1.0 -m v4.1.0
+# project14 grafted at v4.0.0, protecting main and dev; project14b, the default kept.
+for p in project14 project14b; do
+  mkdir -p "${workdir}/${p}"
+  g -C "${FW14}" archive v4.0.0 -- .claude CLAUDE.md scripts Makefile | tar -x -C "${workdir}/${p}"
+done
+P14="${workdir}/project14"
+P14B="${workdir}/project14b"
+sed 's/^PROTECTED_BRANCHES = main develop$/PROTECTED_BRANCHES = main dev/' "${P14}/Makefile" > "${workdir}/make14" && cp "${workdir}/make14" "${P14}/Makefile"
+for p in "${P14}" "${P14B}"; do g init -q -b main "${p}" && g -C "${p}" add -A && g -C "${p}" commit -q -m "chore: graft the framework v4.0.0"; done
+RESTORE14="$(g -C "${P14}" rev-parse HEAD)"
+RESTORE14B="$(g -C "${P14B}" rev-parse HEAD)"
+g -C "${FW14}" show v4.0.0:Makefile > "${T14}/base" && g -C "${FW14}" show v4.1.0:Makefile > "${T14}/theirs"
+set +e; g merge-file -p "${P14}/Makefile" "${T14}/base" "${T14}/theirs" > "${T14}/merged"; n14=$?; set -e
+[ "${n14}" -ge 1 ] && grep -q '^PROTECTED_BRANCHES = main dev$' "${T14}/merged" \
+  || fail "the fixture: the Makefile's 3-way does not hold the value's line in a conflict"
+# vY's side taken whole: the project's list lost — a FAIL.
+cp "${T14}/theirs" "${P14}/Makefile"
+FW="${FW14}" T="${T14}" run 1 "${P14}" invariant v4.0.0 v4.1.0 "${RESTORE14}"
+has "FAIL   Makefile: the restore point held 'main dev' on its line 'PROTECTED_BRANCHES =', which now holds v4.1.0's default 'main develop': the resolution took vY's side there — carry the project's value back"
+# Another value: a CHECK. The project's value back: an OK.
+sed 's/^PROTECTED_BRANCHES = main develop$/PROTECTED_BRANCHES = main trunk/' "${T14}/theirs" > "${P14}/Makefile"
+FW="${FW14}" T="${T14}" run 0 "${P14}" invariant v4.0.0 v4.1.0 "${RESTORE14}"
+has "CHECK  Makefile: the restore point held 'main dev' on its line 'PROTECTED_BRANCHES =', which now holds 'main trunk': confirm the value is the project's"
+sed 's/^PROTECTED_BRANCHES = main develop$/PROTECTED_BRANCHES = main dev/' "${T14}/theirs" > "${P14}/Makefile"
+FW="${FW14}" T="${T14}" run 0 "${P14}" invariant v4.0.0 v4.1.0 "${RESTORE14}"
+has "OK     Makefile: its value ('main dev') is still on its line 'PROTECTED_BRANCHES ='"
+# The default kept: nothing of the project's to lose.
+cp "${T14}/theirs" "${P14B}/Makefile"
+FW="${FW14}" T="${T14}" run 0 "${P14B}" invariant v4.0.0 v4.1.0 "${RESTORE14B}"
+has "OK     Makefile: its value ('main develop') is still on its line 'PROTECTED_BRANCHES ='"
+echo "PASS (upgrade-check value in place): with the Makefile's protected branches in a 3-way's conflict, invariant fails where vY's default replaced the project's list, asks where another list holds the line, and passes with the project's list back or the default kept."

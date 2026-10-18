@@ -1185,8 +1185,11 @@ Italian one.
   changed beyond its pointers, a file added outside the upgrade's own note, plan and
   decision records, a slot of a memory template the project had answered opened again, a
   title or label left in the old form — and shows for a human a template that differs from
-  `vY`'s; a slot opened again in a HYBRID file is Step 4's marker grep's to find. A FAIL is
-  a bug in the upgrade: stop and investigate.
+  `vY`'s; a slot opened again in a HYBRID file is Step 4's marker grep's to find. Beyond the
+  memory, a value a hybrid holds in place — the `Makefile`'s `PROTECTED_BRANCHES =`, which a
+  conflict on the line next to it can hold — fails where the restore point held the
+  project's list and the line now holds `vY`'s default, and asks where it holds another. A
+  FAIL is a bug in the upgrade: stop and investigate.
 - `FW="$FW" T="$T" bash "${T:?}/upgrade-check.sh" post vX vY`: the METHOD files and their
   modes at `vY`, every file present, no orphan, no marker broken by a wrap, each slot
   `vY` added shown with the value under it, every hook installed, titles and labels in
