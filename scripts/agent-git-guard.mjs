@@ -279,26 +279,31 @@ function readDoubleQuoted(text, start, powershell, commands) {
 // escapes decoded as bash's *QUOTING* section lists them, and the index of its closing quote.
 // Read as a plain single-quoted string, `$'it\'s'` ended at the escaped quote, and the quote
 // left open swallowed the rest of the command, a `--no-verify` included (the gate's round 2,
-// 2026-10-18). An escape bash does not know keeps its backslash, as bash does.
+// 2026-10-18). An escape bash does not know keeps its backslash, as bash does. The string's end
+// is found first, by the shell's own rule — the first quote no backslash escapes —, and only
+// that text is decoded: decoding as it read, the guard let `\c` take the closing quote and read
+// past it, a regression its round 3 found.
 const ANSI_C_ESCAPES = {
   a: '\x07', b: '\b', e: '\x1b', E: '\x1b', f: '\f', n: '\n', r: '\r', t: '\t', v: '\v',
   '\\': '\\', "'": "'", '"': '"', '?': '?',
 };
 const ANSI_C_CODE = /^(?:([0-7]{1,3})|x([0-9A-Fa-f]{1,2})|u([0-9A-Fa-f]{1,4})|U([0-9A-Fa-f]{1,8})|c(.))/s;
+const ANSI_C_BODY = /^(?:[^'\\]|\\.)*/s;
 function readAnsiC(text, start) {
-  let j = start; let s = '';
-  while (j < text.length && text[j] !== "'") {
-    if (text[j] !== '\\' || j + 1 >= text.length) { s += text[j]; j += 1; continue; }
-    const code = ANSI_C_CODE.exec(text.slice(j + 1, j + 10));
+  const body = ANSI_C_BODY.exec(text.slice(start))[0];
+  let j = 0; let s = '';
+  while (j < body.length) {
+    if (body[j] !== '\\' || j + 1 >= body.length) { s += body[j]; j += 1; continue; }
+    const code = ANSI_C_CODE.exec(body.slice(j + 1, j + 10));
     if (code) {
       const [all, octal, hex, u4, u8, control] = code;
       const point = octal ? parseInt(octal, 8) : hex || u4 || u8 ? parseInt(hex || u4 || u8, 16)
         : control.charCodeAt(0) & 0x1f;
       s += String.fromCodePoint(Math.min(point, 0x10ffff)); j += 1 + all.length; continue;
     }
-    s += ANSI_C_ESCAPES[text[j + 1]] ?? `\\${text[j + 1]}`; j += 2;
+    s += ANSI_C_ESCAPES[body[j + 1]] ?? `\\${body[j + 1]}`; j += 2;
   }
-  return { text: s, end: j };
+  return { text: s, end: start + body.length };
 }
 
 // The commands each `$(…)` of a PowerShell here-string's body runs.

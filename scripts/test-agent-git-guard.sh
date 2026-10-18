@@ -382,6 +382,10 @@ EVERY_SESSION_REFUSED=(
   $'echo $\'it\\\'s\' && git commit -n -m x'
   $'git commit -m x $\'--no-verify\''
   $'git commit -m x $\'\\x2d\\x2dno-verify\''
+  # the string ends where the shell ends it, `\c` before its quote included (the gate's round 3)
+  $'git commit -m x $\'\\c\' --no-verify #\''
+  $'git commit -m x $\'a\\c\' -n #\''
+  $'git commit -m x $\'\\c\\\\\' --no-verify #\''
   # a file .gitignore leaves out, staged — a secret's way into a commit (rule 1); measured on
   # git 2.54.0: each of these staged an ignored file, a plain `git add` refused it
   'git add -f token.txt'
