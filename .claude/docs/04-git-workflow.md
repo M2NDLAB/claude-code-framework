@@ -246,6 +246,11 @@ on WHICH BRANCH the tag lives:
   meant, both with no error. Never `sed -i`, a heredoc or a script for such an edit. The
   whole-file writes a procedure prints — a copy from a tag, `git merge-file`, a splice —
   are not edits, and an answer is never one of them.
+- The agent's own command lines are written for the shell the Bash tool runs, the user's:
+  in zsh, macOS's, an unquoted variable stays one word where bash splits it — a list is
+  written out, held in an array, or the line run by `bash -c` —, and a count or a loop over
+  a variable's words is held against a value known in advance before a decision rests on
+  it: in zsh such a count printed 0 for 22 paths, with no error.
 
 ## Execution boundary and blocks for the user
 
