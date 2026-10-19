@@ -14,14 +14,17 @@
 #      unreadable one: the banner, the line that says so and the line to Read it — skipped,
 #      said aloud, where the user reads a mode-000 file (root, Windows);
 #   6. a comment never closed, and one inside a code fence: kept as they are;
-#   7. the script's own processing failing (an awk that cannot run): the banner, a notice, the
-#      file's first 8,000 bytes and the line to Read it — a long file held to the cap too; the
-#      PATH keeps its other tools, so the case holds that the fallback needs no awk, not that
-#      it needs nothing beyond bash and head;
+#   7. the script's own processing failing (an awk that cannot run), in a PATH that holds only
+#      head and that awk: the banner, a notice, the file's first 8,000 bytes and the line to
+#      Read it — a long file held to the cap too —, so the fallback needs nothing beyond bash
+#      and head; and with a head that cannot read the file either, as an ACL refuses a read
+#      the -r test passed: the banner, a line saying so and the line to Read it, never a
+#      notice of bytes that do not follow;
 #   8. the wiring, read from settings.json: a SessionStart hook with no matcher runs the
 #      script from the project's directory — in its Windows form too, where cygpath exists —
 #      and falls back to the file's first 8,000 bytes and the line to Read it when the script
-#      is missing; the ask rule on it;
+#      is missing, or to a line saying STATE.md could not be read when it is missing too; the
+#      ask rule on it;
 #   9. a file that is not UTF-8 — stray continuation bytes, Windows-1252 —: counted one unit
 #      per byte, cut with its notice, the output held to the cap.
 # Every case exits 0: the hook never fails a session.
@@ -207,30 +210,40 @@ printf '%s\n' "${out6}" | grep -qxF '<!-- never closed' || fail "a comment never
 printf '%s\n' "${out6}" | grep -qxF -- '- y' || fail "the text after a comment never closed was left out"
 
 # --- Case 7 — the processing fails: the file's first 8,000 bytes ------------------------------------
-# awk that cannot run: a stub first on PATH that exits 127, as the hooks' self-test fakes a
-# broken make. Not a PATH of links without awk: Git Bash's `ln -s` copies a binary away from the
-# DLLs it loads (measured in the CI on Windows, scripts/test-agent-git-guard.sh).
-mkdir -p "${workdir}/bin"
-printf '#!/usr/bin/env bash\necho "awk: error while loading shared libraries" >&2\nexit 127\n' > "${workdir}/bin/awk"
-chmod +x "${workdir}/bin/awk"
-# no_awk <file>: the script run where awk cannot run.
-no_awk() {
+# A PATH that holds only head and an awk that cannot run, each a script, the way the guard's
+# self-test fakes a missing node: not a link, since Git Bash's `ln -s` copies a binary away
+# from the DLLs it loads (measured in the CI on Windows, scripts/test-agent-git-guard.sh). The
+# script runs by bash's own path, so the fallback is held to bash and head alone. A second
+# PATH has a head that cannot read the file either.
+BASH_BIN="$(command -v bash)"
+mkdir -p "${workdir}/only" "${workdir}/no-read"
+printf '#!/bin/sh\necho "awk: error while loading shared libraries" >&2\nexit 127\n' > "${workdir}/only/awk"
+printf '#!/bin/sh\nexec "%s" "$@"\n' "$(command -v head)" > "${workdir}/only/head"
+cp "${workdir}/only/awk" "${workdir}/no-read/awk"
+printf '#!/bin/sh\necho "head: cannot open for reading: Permission denied" >&2\nexit 1\n' > "${workdir}/no-read/head"
+chmod +x "${workdir}/only/awk" "${workdir}/only/head" "${workdir}/no-read/awk" "${workdir}/no-read/head"
+# fallback <PATH> <file>: the script run with that PATH and nothing else on it.
+fallback() {
   local out rc
   set +e
-  out="$(PATH="${workdir}/bin:${PATH}" bash "${INJECT}" "$1")"
+  out="$(PATH="$1" "${BASH_BIN}" "${INJECT}" "$2")"
   rc=$?
   set -e
-  [[ ${rc} -eq 0 ]] || fail "no awk: exit ${rc} on $1"
+  [[ ${rc} -eq 0 ]] || fail "no awk: exit ${rc} on $2"
   [[ "$(printf '%s\n' "${out}" | sed -n 1p)" == "${BANNER}" ]] || fail "no awk: the first line is not the banner"
-  printf '%s\n' "${out}" | sed -n 2p | grep -q 'could not process the file' || fail "no awk: no notice"
   [[ "$(printf '%s\n' "${out}" | tail -n 1)" == "${READ_IT}" ]] || fail "no awk: the last line does not say to Read the file"
   printf '%s\n' "${out}"
 }
-out7="$(no_awk "${TEMPLATE}")"
+out7="$(fallback "${workdir}/only" "${TEMPLATE}")"
+printf '%s\n' "${out7}" | sed -n 2p | grep -q 'could not process the file: its first 8000 bytes follow' || fail "no awk: no notice of the bytes that follow"
 [[ "$(printf '%s\n' "${out7}" | sed -n '3,$p' | sed '$d')" == "$(cat "${TEMPLATE}")" ]] || fail "no awk: a file under 8,000 bytes is not printed whole"
-out7b="$(no_awk "${workdir}/long-progress.md")"
+out7b="$(fallback "${workdir}/only" "${workdir}/long-progress.md")"
 [[ "$(printf '%s\n' "${out7b}" | sed -n 3p)" == "$(sed -n 1p "${workdir}/long-progress.md")" ]] || fail "no awk, a long file: its head does not follow the notice"
 under_cap "${out7b}" "no awk, a long file"
+out7c="$(fallback "${workdir}/no-read" "${TEMPLATE}")"
+printf '%s\n' "${out7c}" | sed -n 2p | grep -q 'nor read it' || fail "no awk, no read: no line says the file cannot be read"
+! printf '%s\n' "${out7c}" | grep -q 'follow' || fail "no awk, no read: a notice says bytes follow, and none do"
+[[ "$(printf '%s\n' "${out7c}" | wc -l | tr -d ' ')" -eq 3 ]] || fail "no awk, no read: more than the banner, its line and the line to Read it"
 
 # --- Case 8 — the wiring --------------------------------------------------------------------------
 wired="$("${NODE}" -e '
@@ -263,6 +276,12 @@ out8b="$(hook "${project}" 2>/dev/null)" || fail "the wiring: it fails when the 
 [[ "$(printf '%s\n' "${out8b}" | sed -n 3p)" == "$(sed -n 1p "${workdir}/long-progress.md")" ]] || fail "the wiring, the script missing: the file's head is not printed"
 [[ "$(printf '%s\n' "${out8b}" | tail -n 1)" == "${READ_IT}" ]] || fail "the wiring, the script missing: the last line does not say to Read the file"
 under_cap "${out8b}" "the wiring, the script missing"
+rm "${project}/.claude/memory/STATE.md"
+out8c="$(hook "${project}" 2>/dev/null)" || fail "the wiring: it fails when the script and STATE.md are both missing"
+[[ "$(printf '%s\n' "${out8c}" | sed -n 1p)" == "${BANNER}" ]] || fail "the wiring, nothing to read: the first line is not the banner"
+printf '%s\n' "${out8c}" | sed -n 2p | grep -q 'could not be read' || fail "the wiring, nothing to read: no line says STATE.md could not be read"
+! printf '%s\n' "${out8c}" | grep -q 'follow' || fail "the wiring, nothing to read: a notice says bytes follow, and none do"
+[[ "$(printf '%s\n' "${out8c}" | tail -n 1)" == "${READ_IT}" ]] || fail "the wiring, nothing to read: the last line does not say to Read the file"
 
 # --- Case 9 — not UTF-8 ---------------------------------------------------------------------------
 # A Caution of stray continuation bytes, lines of NBSP bytes, then Windows-1252 punctuation: a
@@ -282,4 +301,4 @@ out9b="$(run "${workdir}/cp1252.md")"
 [[ -n "$(cut_line "${out9b}")" ]] || fail "Windows-1252: no notice of the cut"
 under_cap "${out9b}" "Windows-1252"
 
-echo "PASS (state inject): the template and the titles of other forms printed with the open issues first or their absence said, the cut counted in UTF-16 units and the output held to ${CAP} characters, CRLF, ${case5}, the comments, a failed run held to 8,000 bytes, the wiring read from settings.json, and a file that is not UTF-8."
+echo "PASS (state inject): the template and the titles of other forms printed with the open issues first or their absence said, the cut counted in UTF-16 units and the output held to ${CAP} characters, CRLF, ${case5}, the comments, a failed run held to 8,000 bytes with nothing beyond bash and head and no notice of bytes that do not follow, the wiring read from settings.json and its fallback as true, and a file that is not UTF-8."

@@ -288,9 +288,12 @@ Here is the complete list, grouped by file:
 
 ### `.claude/settings.json`
 - [ ] Add to `allow` ONLY the **read-only** commands of your tools (build tool,
-      package manager, container CLI) to reduce prompts — e.g. the build/test command.
-      The baseline is already set (`allow`: git inspection + safe `add`/`commit`;
-      `deny`: push, `reset --hard`, destructive deletions, reading secrets) — the
+      package manager, container CLI) to reduce prompts — e.g. the build/test command —,
+      each as narrow as it can be: in auto mode an allow rule is resolved before the
+      classifier, so an argument its prefix did not anticipate goes through unseen.
+      The baseline is already set (`allow`: `git status`, `git add`, `git commit` — git's
+      reads are Claude Code's built-in read-only set —; `deny`: push, `reset --hard`,
+      destructive deletions, reading secrets) — the
       principles are in docs/04, *Permission configuration*. The `env` marker
       `AGENT_GIT_BOUNDARY` and the PreToolUse hook that runs
       `scripts/agent-git-guard.mjs` are the method's boundary wiring, and the `ask`
@@ -1180,13 +1183,18 @@ Italian one.
   pre-upgrade commit of Step 1). Run it before Step 6: the checkpoint's retro may add IMP
   entries. It fails on any touch outside the list — an edited or hidden IMP entry, a note
   changed beyond its pointers, a file added outside the upgrade's own note, plan and
-  decision records, a slot the project had answered opened again, a title or label left
-  in the old form — and shows for a human a template that differs from `vY`'s. A FAIL is
-  a bug in the upgrade: stop and investigate.
+  decision records, a slot of a memory template the project had answered opened again, a
+  title or label left in the old form — and shows for a human a template that differs from
+  `vY`'s; a slot opened again in a HYBRID file is Step 4's marker grep's to find. Beyond the
+  memory, a value a hybrid holds in place — the `Makefile`'s `PROTECTED_BRANCHES =`, which a
+  conflict on the line next to it can hold — fails where the restore point held the
+  project's list and the line now holds `vY`'s default, and asks where it holds another. A
+  FAIL is a bug in the upgrade: stop and investigate.
 - `FW="$FW" T="$T" bash "${T:?}/upgrade-check.sh" post vX vY`: the METHOD files and their
-  modes at `vY`, every file present, no orphan, no marker broken by a wrap, each slot
-  `vY` added shown with the value under it, every hook installed, titles and labels in
-  `vY`'s form.
+  modes at `vY`, every file present, no orphan, no marker broken by a wrap, each file where
+  `vY` added slots named with their count — a marker still open shown with the line under
+  it; an answered one leaves no marker to show, so its line is read in the file —, every
+  hook installed, titles and labels in `vY`'s form.
 - `git diff --stat` and a per-file diff.
 - The project's `[TO BE DEFINED]` customisations survived in the reconciled files.
 - `/fw:lint-memory` on the preserved memory against the new docs (pointers to
@@ -1303,16 +1311,20 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
      it; by hand, from the project root:
 
      ```bash
-     : "${FW:?}" && for f in STATE LEARNINGS; do
-       git -C "${FW:?}" show "vY:.claude/memory/$f.md" | grep '^## ' \
+     : "${FW:?}" "${T:?}" && for f in STATE LEARNINGS; do
+       git -C "${FW:?}" show "vY:.claude/memory/$f.md" > "${T:?}/$f.titles" || break
+       grep '^## ' "${T:?}/$f.titles" \
          | grep -vxF -f <(grep '^## ' ".claude/memory/$f.md") \
          | sed "s|^|$f.md lacks: |"
+       echo "$f.md: compared with $(grep -c '^## ' "${T:?}/$f.titles") titles of vY"
      done
      ```
 
-     Each printed line is a `vY` title the project lacks: find its old form — the table
-     below, or a project's own shortened form — and rename that line. Nothing printed =
-     nothing to rename. For the labels, when `vY`'s format comment uses the new ones,
+     Each `lacks:` line is a `vY` title the project lacks: find its old form — the table
+     below, or a project's own shortened form — and rename that line. The comparison ran
+     only where its `compared` line printed — a framework file `git show` could not read
+     prints none, and silence there proves nothing —: both `compared` lines and no
+     `lacks:` = nothing to rename. For the labels, when `vY`'s format comment uses the new ones,
      this lists the lines still in the old form (ignore the ones inside the format
      comment, which Step 3 reconciles):
 
@@ -1447,7 +1459,17 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    command with the list it passes, the script run directly falls back to its defaults and
    says so, and `make test-scripts` proves the refusal (measured on a project grafted at
    v1.2.0). The *Upgrading* note of the release that moved the slot names both places
-   (Step 2).
+   (Step 2). The upgrade check knows this move by its value: `inventory` quotes the list
+   the project wrote in place of `reset-task.sh`'s default and names the `Makefile`'s
+   `PROTECTED_BRANCHES =` line it goes to — a `reset-task.sh` that kept the default and
+   answered only its comment is edge case 8's too, nothing to carry, the file brought over;
+   a list the project set on a line of its own in the `Makefile`, as an assignment in the
+   recipe where v1.2.0's comment pointed, is a CHECK in both commands, the value to carry by
+   hand; one set in the environment or a script of the project's is not read —, and
+   `invariant` fails while that line still holds
+   the default where the restore point held another list in the slot line's own form — a
+   line the project rewrote in another form, `PROTECTED_BRANCHES="main trunk"` without its
+   default's `${…:-}`, is a CHECK, the value confirmed by hand.
 
    **v4.0.0 moved the answers of the docs.** The slots of `docs/02`, `03` and `04`, and those
    of `CLAUDE.md`'s rules 5 and 8, became the lines of `CLAUDE.md`'s *The answers the method
@@ -1461,7 +1483,8 @@ handled on purpose, or the upgrade leaves the project in an incoherent state:
    line holds both. `invariant` then fails on an answer the restore point held whose new
    line is missing or still open, and asks for a confirmation where the line does not hold
    the restore point's answer word for word — read past `vY`'s own description, as long as
-   the line keeps it as `vY` wrote it —; `post` asks about a doc that still differs from
+   the line keeps it as `vY` wrote it, and whole: an answer found only glued to a longer word
+   ("main" in "mainline") is not on the line —; `post` asks about a doc that still differs from
    `vY`'s. From a release before v1.1.0, whose slot lines are Italian, the check knows no
    line: a CHECK names the files, and the answers are found by the marker and carried by hand.
 

@@ -7,8 +7,10 @@ Security has two levels in this framework:
    secret (rule 1 of the core, `.claude/rules/fw-core.md`), from the moment it is installed and while git reads
    it. Its limits include the commits git creates itself — a rebase's `--continue`,
    `git am`, a cherry-pick or a revert that applies cleanly —, which do not run it, a
-   commit made with `-n` (`--no-verify`), which the shipped `allow` rule runs with no prompt
-   (`04-git-workflow.md`, *Permission configuration*), and a hook manager that sets
+   commit made with `-n` (`--no-verify`) where the guard does not see it — from the user's
+   own terminal, a script, a session whose guard cannot run or that runs none of the
+   project's hooks (`04-git-workflow.md`, *Enforcement of the execution boundary*) —, and a
+   hook manager that sets
    `core.hooksPath` after the install, which takes it out
    (`04-git-workflow.md`, *Enforcement of the execution boundary*); the scan's own limits
    are listed in the framework's `SETUP.md`, *What the pre-commit's scan reads*. On a repo with
@@ -66,7 +68,10 @@ that touches a sensitive component — the method's own boundary among them — 
 security property; on a review other than `/fw:security-review`, or no reviewed tip; on a
 commit after the reviewed tip that touches a file the project ships, the commit of its own
 step 3 aside; on a HIGH or CRITICAL finding still open, and on a MEDIUM neither
-resolved nor accepted.
+resolved nor accepted; and on an integration branch that moved since the branch was based,
+before its step 3 commits a changelog entry under a version computed on the old base — as
+the last fetch recorded it: a move after that fetch is stopped by block 1, whose own fetch
+and test of the base run inside its chain.
 
 Its known limits, declared here where the claim lives: it is a check the agent applies, not
 an enforcement. A merge made outside `/fw:integrate` — a Pull Request merged on the forge, a
@@ -95,9 +100,14 @@ deliverable whose product asserts a security property is under the gate for that
   files the change touched.
 - **The real path.** A gate on an external tool covers what the tool does by itself on the
   way to its effect: what its configuration — the user's included — makes it do, and what it
-  updates, writes or fetches unasked, read at its source or in its documentation. Each such
-  path is closed by the tool's own off-switch, compensated, or declared as a known limit; a
-  path left unread is a gap of the gate.
+  updates, writes or fetches unasked, read at its source or in its documentation; and where
+  and when it reads the configuration the gate relies on — the files, the directory it starts
+  from, the moment it reads them (a delegated agent gets the instructions its session last
+  loaded, not the files on disk), the flags and settings that skip them. Each such path is
+  closed by the tool's own off-switch, compensated, or declared as a known limit; a path left
+  unread is a gap of the gate. A statement about an external tool rests on its source's own
+  text, the passage quoted in the record — never on a summary of it, a model's answer about
+  a page included.
 
 ## When the review must be adversarial (author ≠ judge)
 
@@ -123,7 +133,13 @@ findings.
 **Review agents read, they never write.** The agents of a review are delegated agents:
 read-only on git, reading the range with `git show`/`git diff` rather than checking it
 out, with the shared repository's snapshot compared before and after the run —
-`docs/04`, *Delegated agents and the shared working tree*.
+`docs/04`, *Delegated agents and the shared working tree*. What a reviewer must RUN, the
+main session prepares before the launch: every repository the review needs — the
+projects an upgrade is rehearsed on, a clone carrying the release's temporary tag, a
+repository for each measurement the brief asks for —, named in the brief, since the guard
+refuses an agent's `git init`, `clone` or `tag` and a reviewer stopped there reviews nothing
+it had to run. A reviewer stopped by the guard or by a permission prompt stops and reports
+it, never gets around it; a fixture it finds missing is asked for, not built.
 
 ## Prevention *by convention*
 

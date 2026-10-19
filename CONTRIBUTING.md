@@ -20,8 +20,9 @@ This repo applies to itself the method it describes (`.claude/docs/`):
   and, for `LEARNINGS.md`, by its diff — skips the gate and the retro, and is integrated with
   the no-tag blocks once block 0's CI is green. The memory's starting files are payload here
   (*What this framework ships*, below): a change to one of them — a guide README, the
-  templates of `STATE.md`, `TREE.md` and `INDEX.md`, `LEARNINGS.md`'s header, titles or
-  format comment — is a release, with the full cycle. Ten memory-only commits went straight
+  templates of `STATE.md`, `TREE.md` and `INDEX.md`, `LEARNINGS.md`'s header — its
+  `updated:` date aside, which every record moves —, titles or format comment — is a
+  release, with the full cycle. Ten memory-only commits went straight
   onto `main` before this rule.
 - **Conventional Commits**, checked by the commit-msg hook: types in
   `commitlint.config.cjs`, format and rules in
@@ -65,6 +66,19 @@ This repo applies to itself the method it describes (`.claude/docs/`):
   CI. The one exception is the `chore: wip` commit `docs/04` allows on a feature branch
   before a session closes. The suite reads the working tree, not the index: a commit of
   part of the tree is green only if the rest is too.
+- **A check passes on a positive datum** (IMP-131): `docs/03`'s *Claims* lens, applied when
+  the check is written rather than at the gate. Its pass condition is the text found where
+  only the answer can be, the line only the success path prints, the category matched —
+  never the absence of an alarm —; its self-test holds the cases where the alarm is absent
+  for another reason: an empty output, a fallback's output, a second answer, a list that
+  misses the category. A claim of a maximum or a minimum names the case built to reach it.
+- **A self-test of a file a project changes** (IMP-125) — the answers of a HYBRID file, the
+  project's memory — builds each state it measures from the copy under test, the slot open
+  and answered, the memory within its budget and over it, and checks that each reached the
+  program: here every slot is open and the memory is this repository's, so a test that
+  reads them only as they are here passes in no project but this one. A test that runs a
+  block a user pastes runs it in a shell of its own, with that shell's defaults — never
+  under the test's own `set -euo pipefail`, where a pipe returns its first failure.
 - **A change to a HYBRID file keeps away from the slots** (the classes: `SETUP.md`, *The
   mental model: the classes of file, and the graft state*). Between the lines a change
   touches and a line a project answers at setup — a `[TO BE DEFINED AT SETUP]` marker, a
@@ -77,7 +91,19 @@ This repo applies to itself the method it describes (`.claude/docs/`):
   Where a change must land on such a line, the CHANGELOG's *Upgrading* note names the
   conflict and its resolution. Every release that changes a HYBRID file rehearses the
   upgrade before `/fw:integrate`, on a project with every setup answer in place, with LF and
-  with CRLF line ends.
+  in a clone with `core.autocrlf=true` — CRLF wherever `.gitattributes` does not hold a file
+  to LF: every file of a `legacy` project, none of the framework's from v1.5.0 on, as the
+  generator's line counts —: the projects `tools/rehearsal-project.sh` builds — `answered` at
+  the release before, `legacy` at the oldest release a project still runs —, rebuilt and
+  rehearsed again on the tip that ships, so the record names the commit it measured. The
+  release's CHANGELOG entry, its *Upgrading* note first, is written before the rehearsal: the
+  inventory prints `vY`'s notes from the tag, so a rehearsal run before the entry follows no
+  note of the release's own, and is run again once the entry exists. The entry sits in
+  `[Unreleased]` until `/fw:integrate`'s step 3, and the inventory reads a release's note under
+  its own heading: the rehearsal's clone moves the entry under `## [X.Y.Z]`, as step 3 will,
+  in a commit of its own before the temporary tag, and the record says so. A defect the
+  rehearsal finds amends the code and the note together, and the rehearsal runs again on what
+  it changed.
 
 ## This repo's git model (a declared exception)
 
@@ -97,8 +123,9 @@ foresees). Concretely:
   applies to the messages too, because pushed history is not rewritten.
 
 **The CI, before the merge — block 0.** The CI (`.github/workflows/test.yml`) runs
-`make test-scripts`, the upgrade check's self-test, the prerequisite check and the generated
-hooks with the real gitleaks and commitlint (`tools/test-real-hooks.sh`) on macOS, Linux and
+`make test-scripts`, the upgrade check's self-test, the shipped self-tests inside a project
+grafted from the pushed commit (`tools/test-rehearsal-project.sh`), the prerequisite check and
+the generated hooks with the real gitleaks and commitlint (`tools/test-real-hooks.sh`) on macOS, Linux and
 Windows, on what is pushed — and a deliverable's branch otherwise stays local until
 `/fw:integrate`. So, in
 this repository, the human runs a block 0 before `/fw:integrate`'s block 1: push the feature
@@ -163,6 +190,12 @@ three jobs end, in their logs and not only their conclusion — the documentatio
 and CHECK counts among them. Red: the fixes in new commits — under the gate, reviewed again
 before `/fw:integrate`'s check reads the line, since they follow the reviewed tip —, and the
 new tip through block 0 again. Green: `/fw:integrate`'s blocks.
+
+**No delegation across a block that fetches or pushes** (IMP-106). While such a block — block
+0, `/fw:integrate`'s — awaits the user's report, the agent delegates nothing, and it prints no
+such block while an agent runs: the user's fetch or push moves `refs/remotes/origin/…`, which
+`scripts/repo-snapshot.sh` records, and the comparison after the run would stop on a
+difference no agent made.
 
 **Block 1 here** (IMP-126; the user's decision of 2026-10-16: block 1 checks by itself that
 the CI on the tip is green, instead of relying on a wait written in prose). It is

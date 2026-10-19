@@ -39,6 +39,15 @@ integration*). Find the note that closes this deliverable — a session note the
 - a HIGH or CRITICAL finding is open, or a MEDIUM one is neither resolved nor accepted in
   `STATE.md` with its reason — where `STATE.md` stays a template, in the closing note's gate
   section with its IMP (the framework's `CONTRIBUTING.md`).
+
+Under the gate the base too, here, before step 2 computes a version and step 3 commits it:
+`git merge-base --is-ancestor origin/<integration> HEAD` (without a remote, `<integration>`)
+must succeed. Otherwise the integration branch moved since the branch was based, and step 4's
+rebase would replay the reviewed commits as new ones — STOP: rebase the branch, and review
+its new tip. It reads `origin/<integration>` as the last fetch recorded it — the agent fetches
+nothing —: a move after that fetch is block 1's to stop, its fetch and its test of the base
+inside the chain.
+
 Where the project merges by Pull Request (the answer **Merge** in `CLAUDE.md`), the same
 check runs when the agent prepares the PR — its description, a push it prints —, and the
 note's line goes in the PR's description; a PR the user pushes and opens without the agent
@@ -171,7 +180,7 @@ git merge --ff-only origin/<integration> &&
 git merge --no-ff <feature> -m '<type>(<scope>): merge <feature> into <integration>' &&
 git tag -a v<X.Y.Z> -m 'v<X.Y.Z> - <deliverable summary>' &&
 echo "block 1: merged and tagged"
-test "$(git rev-parse 'v<X.Y.Z>^{commit}')" = "$(git rev-parse <integration>)" && echo "tag on <integration>: OK"
+git rev-parse -q --verify 'v<X.Y.Z>^{commit}' >/dev/null && test "$(git rev-parse 'v<X.Y.Z>^{commit}')" = "$(git rev-parse <integration>)" && echo "tag on <integration>: OK"
 git tag -v v<X.Y.Z> && echo "signature: OK"
 git --no-pager log --oneline origin/<integration>..<integration>
 test "$(git rev-list --count origin/<integration>..<integration>)" = <N> && echo "count: OK (<N>)"
@@ -220,7 +229,8 @@ verifies only with `gpg.ssh.allowedSignersFile` configured.
 ## 5. Final verification (print it as a checklist)
 - the security gate's line of the note that closes the deliverable was read before the
   blocks, and holds: a verdict with its reason, under the gate `/fw:security-review` at a
-  tip no later commit of a shipped file follows, step 3's own commit aside; block 1
+  tip no later commit of a shipped file follows, step 3's own commit aside, and the base an
+  ancestor of that tip, checked before step 2; block 1
   opens on `<tip>` and rebases onto `<base>` only;
 - the `-m` texts in single quotes with no `'` inside, the branch names within
   `[A-Za-z0-9._/-]`, every push with `--no-follow-tags`;

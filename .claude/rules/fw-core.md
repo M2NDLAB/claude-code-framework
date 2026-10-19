@@ -39,8 +39,10 @@
   or, where `plans/` stays a template, in the plan block of the most recent session note.
   Always: `git status`, the plan's ticks against `git log`, the branch's base (`git log
   --oneline origin/<integration>..HEAD` lists only this deliverable's commits). Uncommitted
-  half-work: a new session discards it (`make reset-task`); the same session keeps it only if
-  those checks hold. A `chore: wip` commit is never undone without the user.
+  work, a half-task or anything else, is shown (`git status --untracked-files=all`, `git
+  diff`) and kept; only the user discards it — `make reset-task`, from their own terminal;
+  never the agent with `YES`, given or exported. The same session after a pause goes on
+  with it only if those checks hold. A `chore: wip` commit is never undone without the user.
 - **End of a task**: a session note in `sessions/`, the `components/` notes touched,
   `STATE.md` rewritten within its 8,000 characters — the history moves to the notes, save at
   a framework upgrade, which never condenses it: the first checkpoint after its merge does;
@@ -59,7 +61,8 @@
    build artifacts or installed dependencies — gitleaks is not the only defence.
 2. **Code quality** — these prohibitions hold whether or not `docs/02` was read. Comments say
    the WHY: never one that repeats the code, never commented-out code, never a TODO without
-   its reference. No error is ever swallowed: no empty catch, none that only prints the
+   its reference, never a silent workaround — its comment gives the reason and the link. No
+   error is ever swallowed: no empty catch, none that only prints the
    stacktrace — an error is handled, enriched and rethrown, or logged with its context and
    propagated. The client never sees a stacktrace, a query, an internal path or a library
    version: the detail goes to the log. I/O has an explicit timeout, a retry only where the
@@ -96,7 +99,8 @@
    several modules or files, whatever its size — it is heavy → `/fw:plan`: a committed plan,
    then ONE commit per task (`[task N/T]`), ticking the plan as you go. A session that died
    mid-task: do not start over, do not delete the branch, never touch the completed tasks'
-   commits — discard only the uncommitted half-task and resume from the first unticked task.
+   commits — the uncommitted half-task is shown and only the user discards it (*Memory and
+   resumption*); resume from the first unticked task.
 8. **Security gate** — under the gate: a deliverable that touches a sensitive component —
    authentication/authorisation, payments or money, personal data, the enforcement edge (this
    method's guard, hooks and settings included), a surface acting on behalf of a client, and
@@ -154,7 +158,9 @@
   `--force-with-lease` on your own unshared feature branch. On a shared branch, rollback is
   `git revert`; a release broken in production: roll back the deployment first, revert the
   code after. The hooks are the boundary: `-n`/`--no-verify`,
-  `core.hooksPath` (a hook manager), edits to `.git/hooks/` or `.gitleaks*` take them out.
+  `core.hooksPath` (a hook manager), edits to `.git/hooks/` or `.gitleaks*` take them out —
+  never to get past a hook, `make hooks-install` and what the user decides aside: a hook's
+  refusal is fixed at its cause, or reported to the user.
   Conflicts: only trivial ones are resolved here — logic means stop and show both sides.
 - **Delegation**: delegated agents are read-only on git — `git show`/`git diff` instead of a
   checkout, `git --no-optional-locks status` —, EnterWorktree and ExitWorktree included;
@@ -177,4 +183,5 @@
   each is `.claude/commands/fw/<name>.md`; named mid-sentence, or not invocable, Read that
   file and follow it, `$ARGUMENTS` being what the user asked for.
 - `make hooks-install` — the git hooks · `make test-scripts` — the scripts' self-tests ·
-  `make reset-task` — discard the interrupted half-task (`YES=1` without asking)
+  `make reset-task` — the user's, from their own terminal: shows the uncommitted work and
+  discards it once they confirm (`YES=1` skips the question: never the agent's)

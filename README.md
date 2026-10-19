@@ -106,7 +106,7 @@ collide with Claude Code's own.
 ├── .gitattributes             LF line ends for the framework's files, on every platform
 ├── scripts/
 │   ├── hooks-install.sh       gitleaks + commitlint + pre-push push boundary (always) + formatting (example)
-│   ├── agent-git-guard.mjs    PreToolUse guard: delegated agents read-only on git
+│   ├── agent-git-guard.mjs    PreToolUse guard: delegated agents read-only on git; in every session, the forms docs/04 lists that take a hook out or get past a prompt
 │   ├── repo-snapshot.sh       before/after fingerprint around delegated agents
 │   ├── state-inject.sh        what the SessionStart hook prints of STATE.md: open issues first, within a budget
 │   ├── reset-task.sh          surgical cleanup of the interrupted task

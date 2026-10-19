@@ -17,7 +17,8 @@
 #      verified; another release, distribution or architecture, WSL, a release unread, Cygwin
 #      and another system said not to be; Windows through Git Bash on x86_64 given the
 #      windows- image's name and no verdict;
-#   5. line ends: core.autocrlf true with nothing holding the framework's files to LF warns —
+#   5. line ends: core.autocrlf true — the highest level's value, a global `input` under a
+#      repository's `true` included — with nothing holding the framework's files to LF warns —
 #      true as git reads it: 2, or the key without a value, too; held to LF — read from a
 #      subdirectory too —, or core.autocrlf not true, input included, it does not; outside a
 #      repository, not checked.
@@ -318,5 +319,27 @@ has '^OK +line ends: core\.autocrlf is not true$' "core.autocrlf unset: no OK li
 run "${workdir}/case5" "${outside}"
 has '^SKIP +line ends: not inside a git repository$' "outside a repository: the line ends not said to be unchecked"
 [[ ${rc} -eq 0 ]] || fail "outside a repository: expected exit 0, got ${rc}"
+# Under the configurations users have, the hermetic baseline aside: the value that counts is the
+# highest level's. A global `input` under a repository's `true` — the rehearsal's own case
+# (2026-10-18), where `git config --type=bool --get` refuses as a whole — is true; a global
+# `true` under a repository's `input` is not.
+printf '[core]\n\tautocrlf = input\n' > "${workdir}/global-input.cfg"
+printf '[core]\n\tautocrlf = true\n' > "${workdir}/global-true.cfg"
+export GIT_CONFIG_GLOBAL="${workdir}/global-input.cfg"
+! git -C "${crlf_repo}" config --type=bool --get core.autocrlf >/dev/null 2>&1 \
+  || fail "a global input under a local true: git reads it as one boolean, so the case would prove nothing"
+run "${workdir}/case5" "${crlf_repo}"
+has '^WARN +line ends: core\.autocrlf is true and nothing holds' \
+  "a global core.autocrlf input under the repository's true, nothing holding LF: no WARN line"
+run "${workdir}/case5" "${held_repo}"
+has '^OK +line ends: core\.autocrlf is true, and \.gitattributes holds' \
+  "a global core.autocrlf input under the repository's true, with the framework's .gitattributes: no OK line"
+run "${workdir}/case5" "${odd_repo}"
+has '^WARN +line ends: core\.autocrlf is true and nothing holds' \
+  "a global core.autocrlf input under the repository's key without a value: no WARN line"
+export GIT_CONFIG_GLOBAL="${workdir}/global-true.cfg"
+run "${workdir}/case5" "${input_repo}"
+has '^OK +line ends: core\.autocrlf is not true$' "a global core.autocrlf true under the repository's input: not read as not true"
+export GIT_CONFIG_GLOBAL=/dev/null
 
 echo "PASS (prerequisite check): every tool run and held against its minimum number by number — a FAIL for a tool missing or not starting and for gitleaks below its security minimum or unread, a WARN for any other version below its minimum or unread —, the platform verified only on the release and architecture of an image the CI runs, Windows given its image's name and no verdict, the line ends warned about only where git would write CRLF."
