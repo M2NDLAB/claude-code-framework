@@ -23,6 +23,36 @@ tags: [improvement]
 
 ## OPEN proposals (awaiting the user's decision)
 
+### IMP-081 — On Git Bash, git counts line ends, not grep
+- Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro) — in the CI's
+  fourth round a grep for a line-ending `\r` counted no CRLF file on Git Bash; `b8ccbe0`
+  moved the count to `git ls-files --eol`, green at the fifth.
+- Rejected on 2026-10-13 (the retro over the backlog, the user's decision): the CI on Windows
+  caught it and the next round held the fix; a convention adds little.
+- Recurred after the rejection: v4.0.0, in `scripts/test-state-inject.sh` (`83b422c`, Node now
+  counts the CR); v4.1.0, two fixture checks of `tools/` written `grep -q $'\r$'`, which failed
+  the branch's first CI run on Windows (run 39170600064) and cost one more block 0 — git now
+  reads them (`f011b8e`, `ffcb0d4`; [[2026-10-17-cleanup-imp-135]], *The CI's first run*).
+- Reopened on 2026-10-19 (the user's decision, [[2026-10-19-4.1.0-record]], translated from
+  Italian): the rejection's reason, "the CI on Windows catches it", does not hold — it catches
+  it late, and it cost one more block 0 twice.
+- Observed problem: a test that looks for a CR with grep passes on macOS and Linux and fails
+  on Git Bash, whose grep does not see a line-ending CR; nothing finds it before the CI's
+  Windows job, after the push.
+- Proposal: a mechanical check of the repository, not a written rule, that fails on a grep for
+  a CR in the tests — a grep whose pattern holds `\r`, `$'\r'` or `\x0d` in a self-test of
+  `scripts/` or `tools/`, its message pointing to `git ls-files --eol` or a count of the bytes
+  in Node —, run with the repository's own checks, so before the push and in the CI's three
+  jobs; its test, a grep for a CR refused and the git and Node forms passing.
+- Expected benefit / risk: the defect caught on any system before the push, not by the Windows
+  job after it. Risk: a pattern that names a CR for another reason — one that strips it
+  (`tr -d '\r'`, `sub(/\r$/, "")`) is not a grep and passes —, an exception named with its
+  reason.
+- Resumption trigger: the next corrective release.
+- Status: the user's decision (2026-10-19): reopened, the next corrective release, with
+  IMP-139, IMP-140 and IMP-141 and the IMPs of the first derived project's upgrade
+  ([[2026-10-19-4.1.0-record]], *The next corrective release*).
+
 ### IMP-086 — The framework repository's visibility, and what its memory holds
 - Date: 2026-10-13 | Origin: the user's decision, 2026-10-13 — at the end of the cycle the
   framework's repository becomes PRIVATE, for personal use; recorded in
@@ -82,7 +112,8 @@ tags: [improvement]
   derived project's upgrade, whichever comes first.
 - Status: the user's decision (2026-10-19): the next corrective release, with IMP-140; until
   then the manual check of the HYBRID files' answers against the restore point, at the first
-  derived project's upgrade, covers it.
+  derived project's upgrade, covers it. IMP-081 and IMP-141 joined that release at v4.1.0's
+  record: its list, [[2026-10-19-4.1.0-record]], *The next corrective release*.
 
 ### IMP-140 — Round 4's backlog: an unquoted substitution among git's words, three wordings
 - Date: 2026-10-18 | Origin: [[2026-10-17-cleanup-imp-135]] — v4.1.0's gate, round 4 (Q1 to
@@ -113,7 +144,33 @@ tags: [improvement]
   `.claude/docs/04-git-workflow.md` or `tools/upgrade-check.sh`.
 - Status: the user's decision (2026-10-18, confirmed 2026-10-19): Q1 stays as it is in v4.1.0;
   the entry goes into the next corrective release, with the first derived project's upgrade's
-  IMPs, IMP-139 among them.
+  IMPs, IMP-139 among them. IMP-081 and IMP-141 joined that release at v4.1.0's record: its
+  list, [[2026-10-19-4.1.0-record]], *The next corrective release*.
+
+### IMP-141 — `/fw:integrate`'s gate check reads every path outside the memory as shipped
+- Date: 2026-10-19 | Origin: [[2026-10-17-cleanup-imp-135]], *The CI's first run* — the two
+  fixes of v4.1.0's first CI run touched only tests under `tools/`, which no project takes;
+  `fw/integrate.md`'s check names as shipped "any path outside `.claude/memory/`", so, read to
+  the letter, it asked for the review again after the reviewed tip; the user's rule answered it
+  there.
+- Observed problem: the check is wider than this repository's list of what it ships
+  (`CONTRIBUTING.md`, *What this framework ships*): a commit after the reviewed tip that
+  touches only files that serve this repository — its checks and tests, `README.md`,
+  `CONTRIBUTING.md`, `LICENSE`, the CI — stops the check, and only a rule of the user's, case
+  by case, lets it pass.
+- Proposal: the check reads an explicit list of the paths not shipped — in the framework's
+  repository, the one `CONTRIBUTING.md`'s *What this framework ships* gives —: a commit after
+  the reviewed tip confined to them and to the memory does not ask for the review again; any
+  other path does, as now.
+- Expected benefit / risk: the check says what the repository ships, with no rule of the
+  user's for each case. Risk: a list behind the payload lets a shipped file pass unreviewed —
+  the list held to the payload by a check, as the documentation check holds the copy list;
+  where a project's list comes from, which `fw/integrate.md` cannot know, is the release's to
+  design, the check as it is until then.
+- Resumption trigger: the next corrective release.
+- Status: the user's decision (2026-10-19): the next corrective release, with IMP-081, IMP-139
+  and IMP-140 and the IMPs of the first derived project's upgrade ([[2026-10-19-4.1.0-record]],
+  *The next corrective release*).
 
 
 <!-- Format of a proposal:
@@ -2843,19 +2900,6 @@ line on; older entries are not backfilled.
   both with `git ls-files -v`.
 - Rejected on 2026-10-13 (the retro over the backlog, the user's decision): its one site is
   fixed and tested; a general convention with a single occurrence is not motivated.
-
-### IMP-081 — On Git Bash, git counts line ends, not grep → rejected on 2026-10-13
-- Date: 2026-10-12 | Origin: [[2026-10-11-multiplatform-1.5.0]] (its retro) — in the CI's
-  fourth round a grep for a line-ending `\r` counted no CRLF file on Git Bash; `b8ccbe0`
-  moved the count to `git ls-files --eol`, green at the fifth.
-- Rejected on 2026-10-13 (the retro over the backlog, the user's decision): the CI on Windows
-  caught it and the next round held the fix; a convention adds little.
-- Recurred after the rejection, a datum for the user's decision and no proposal: v4.0.0, in
-  `scripts/test-state-inject.sh` (`83b422c`, Node now counts the CR); v4.1.0, two fixture checks
-  of `tools/` written `grep -q $'\r$'`, which failed the branch's first CI run on Windows
-  (run 39170600064) and cost one more block 0 — git now reads them (`f011b8e`, `ffcb0d4`;
-  [[2026-10-17-cleanup-imp-135]], *The CI's first run*). Each time the CI on Windows caught it,
-  as the rejection's reason says; whether to reopen the entry is the user's.
 
 ### IMP-106 (a) — Name the user's push as a known difference of the snapshot → rejected on 2026-10-17
 - Date: 2026-10-14 | Origin: v2.2.0's retro — [[2026-10-13-backlog-retro-2.2.0]]: the
