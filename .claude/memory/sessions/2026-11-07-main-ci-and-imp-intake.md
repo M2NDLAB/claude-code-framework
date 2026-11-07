@@ -105,7 +105,7 @@ message: *Problems*, below.
 ## Plan (one commit per task)
 - [x] 1. This note — the user's brief and this plan — commit: 69d24f4
 - [x] 2. Main's red CI, diagnosed from its log: the test, its cause and the evidence, the class; the fix's direction, for a `fix/` branch of its own — commit: 9897afd
-- [ ] 3. The IMP on the run block 2 starts on `main`, which no step of the method reads, and where its check goes — commit: —
+- [x] 3. The IMP on the run block 2 starts on `main`, which no step of the method reads, and where its check goes — commit: f94c008
 - [ ] 4. The course's candidates (a) to (e), PROPOSED, each with its source and its verification date — commit: —
 - [ ] 5. The course's candidates (f) to (j), PROPOSED — (i) at LOW priority, (j) deferred — commit: —
 - [ ] 6. The first derived project's harvest: its new entries, from the first free number — commit: —
@@ -192,6 +192,19 @@ All in [[LEARNINGS]], recorded as proposed, none decided — the triage starts w
 harvest (the user's word).
 - IMP-142 — the run block 2 starts on `main` is read by no step; the check goes into block 0a,
   the session that prints block 2 reading the merge's run besides.
+- The course's candidates, each with its source, the user's verification of 2026-10-31 and the
+  docs re-read on 2026-11-07 (quoted where an entry rests on them; what came through the fetch
+  tool's summary is marked so). Where the docs differ from the candidate, the entry says so.
+  - IMP-143 (a) — session suggestions, one fixed line; extends IMP-012 and IMP-017.
+  - IMP-144 (b) — models by family, an answer given at setup; `opusplan`. The docs list a
+    fourth family, `fable`, and `opusplan` switches at Claude Code's plan mode, not at
+    `/fw:plan`.
+  - IMP-145 (c) — Ultracode off by default; extends IMP-060. Claude Code's own default is
+    already off; this session is the first case its rule would record.
+  - IMP-146 (d) — git and the boundary from the CLI only; extends IMP-092, IMP-054 and
+    IMP-055. The candidate's "the pre-push does not see it" holds for a server that runs no
+    git binary or runs remotely; for a local one that runs git, to be measured.
+  - IMP-147 (e) — `ARCHITECTURE.md` at the root, its inventory checked.
 
 ## Follow-up
 - The re-run of 39250087583, launched by the user: its outcome, reported by the user, goes

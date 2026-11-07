@@ -213,6 +213,166 @@ tags: [improvement]
 - Resumption trigger: the triage, which starts with the next harvest (the user's word).
 - Status: proposed on 2026-11-07, not decided.
 
+### IMP-143 — Session suggestions: one fixed line for the commands only the user runs
+- Date: 2026-11-07 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — a method candidate from a
+  course on Claude Code, the brief's item 3a.
+- Source: the course, verified by the user on 2026-10-31. Re-read on 2026-11-07 in Claude
+  Code's documentation: the `context-window` page, "run `/compact` with instructions, like
+  `/compact focus on the auth bug fix`, before starting a long new task"; the `prompt-caching`
+  page, "each model has its own cache. Switching models recomputes the entire request even when
+  the content is identical"; the `sub-agents` page, the `effort` field, "`low`, `medium`,
+  `high`, `xhigh`, `max`; available levels depend on the model". `ultrathink` for one turn: the
+  runtime of the recording session announced the keyword as "requesting deeper reasoning on
+  this turn"; the `model-config` page's sentence on it came through the fetch tool's summary
+  only, to be quoted before use.
+- Observed problem: the session commands only the user runs — `/clear`, `/compact`, `/effort`,
+  `/model` — pay at known moments, and the method names few of them, in prose, never to the
+  user at the moment: the core's *Scope* says "`/clear` between unrelated deliverables"
+  (IMP-012); `docs/00` keeps the effort a tool-agnostic principle, with no level (IMP-017); the
+  sessions README asks for a note "before a `/clear` or a model switch" (IMP-013). Nothing
+  tells the user which command, now, and why.
+- Proposal (the user's): one fixed line in the interaction language, "▶ For you: <command> —
+  <why>", at the moments of a dated table: `/clear` at the end of `/fw:integrate`, and at the
+  end of a `/fw:checkpoint` that closes a deliverable; in `/fw:plan`, the effort suggested by
+  the cost of being wrong — low, medium, high, xhigh, max, and `ultrathink` for a single turn —;
+  `/compact` with a focus in long tasks; a change of model only at a `/clear`, since each model
+  has its own cache. The table in a doc loaded on demand, dated; in the core a single line.
+- Expected benefit / risk: the user sees the command when it pays, with its reason; IMP-017's
+  principle gets its levels. Risk: a line at every step is noise — the table's moments only —;
+  the table goes stale with Claude Code's releases, its date the warning; a light deliverable
+  has no plan, so an effort suggested in `/fw:plan` alone never reaches it (IMP-120); the levels
+  name a tool, where IMP-017 chose a tool-agnostic principle on purpose.
+- Kin: extends IMP-012 (the `/clear` rule: who is told, and when) and IMP-017 (the effort
+  principle: its levels); IMP-013, IMP-018 (a command the core already asks the user to run,
+  `/fw:lint-memory`), IMP-120, IMP-124 (a table read at its moment, one line in the core),
+  IMP-105 (the table's facts rest on the docs' own text).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-07, not decided.
+
+### IMP-144 — Models named by family only, the project's choice an answer given at setup; `opusplan`
+- Date: 2026-11-07 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — a method candidate from a
+  course on Claude Code, the brief's item 3b.
+- Source: the course, verified by the user on 2026-10-31. Re-read on 2026-11-07: the
+  `model-config` page's alias table lists `default`, `best`, `fable`, `sonnet`, `opus`, `haiku`,
+  `sonnet[1m]`, `opus[1m]` and `opusplan`, the last a "Special mode that uses `opus` during plan
+  mode, then switches to `sonnet` for execution"; a subagent's `model` takes "`sonnet`, `opus`,
+  `haiku`, `fable`, a full model ID such as `claude-opus-5-5`, or `inherit`" (the `sub-agents`
+  page); in the settings reference's lists of allowed and denied models, "`best`, `opusplan`,
+  and `default` entries are ignored".
+- Observed problem: the method names no model, so the choice for a use — a gate's reviewer, a
+  mechanical stage — is made again in each session, and an id written into a doc goes stale at
+  the next release of models; the session note records the id the runtime exposes (IMP-044),
+  which is history, not a choice.
+- Proposal (the user's): models named by family only — haiku, sonnet, opus — in the method's
+  text, the project's choice of a family for each use an answer given at setup (`CLAUDE.md`,
+  *The answers the method reads*); the `opusplan` alias as an option.
+- Read against the docs, 2026-11-07: they list a fourth family, `fable`, so the answer's
+  families are the docs' of its date, not a fixed three; and `opusplan` switches at Claude
+  Code's own plan mode, which `/fw:plan` is not — its description says so —: the option pays
+  only where a session plans in that mode.
+- Expected benefit / risk: the choice made once and read where it applies, with no id to go
+  stale. Risk: a new setup answer carries an upgrade's cost — IMP-066 chose the tool's own
+  setting over a slot for that reason, and Claude Code's `model` setting is the alternative to
+  weigh —; a family resolves to its latest model, so the same answer runs another model after a
+  release.
+- Kin: IMP-044 (the runtime's id, a free value, never an enum), IMP-017, IMP-066.
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-07, not decided.
+
+### IMP-145 — Ultracode off by default, on only by the user's explicit decision, recorded in the note
+- Date: 2026-11-07 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — a method candidate from a
+  course on Claude Code, the brief's item 3c.
+- Source: the course, verified by the user on 2026-10-31. Re-read on 2026-11-07: the
+  `workflows` page — "Ultracode is a Claude Code setting that turns on automatic workflow
+  orchestration for the session, at whichever effort level the session runs at", and
+  "`/effort ultracode` lasts for the current session; to have every session start with it, set
+  the `ultracode` setting. Turn it off with `/effort ultracode off` when you return to routine
+  work"; the settings reference, `ultracode`, "Default: unset, so ultracode is off".
+- Observed problem: with Ultracode on, the runtime tells the agent to run a workflow for every
+  substantive task, its token cost no constraint (the recording session's runtime
+  instructions) — against the core's *Delegation* and `docs/00`'s bullet (IMP-060): one
+  independent agent first, a fan-out only where the consequences of being wrong warrant it,
+  with a stall budget fixed before the run. The method says nothing of the mode, so a session
+  in it runs under two instructions that disagree, and its note does not say which one held.
+- Proposal (the user's): Ultracode off by default; on only by an explicit decision of the user,
+  recorded in the session note.
+- Evidence: the recording session itself ran with it on, by the user's `/effort` at its start,
+  and its note records it ([[2026-11-07-main-ci-and-imp-intake]], *The fields of this very
+  note*): its one workflow kept the core's terms. Read against the docs, Claude Code's own
+  default is already off: what the rule adds is that no file of the method sets the `ultracode`
+  key, and that a session with the mode on says so in its note.
+- Expected benefit / risk: the delegation's terms hold by default, and an expensive mode leaves
+  a trace where its cost and its findings are read. Risk: the mode comes on from a settings file
+  the method does not ship — the user's own — with no word in the session; the note's line is
+  then the agent's to write, from the runtime's instructions.
+- Kin: extends IMP-060 (merged IMP-063) — the controlled delegation, here against a mode that
+  fans out by itself —; IMP-055, IMP-016, IMP-075 (auto mode against the boundary, answered by
+  declarations), IMP-106 (b) (a mode that delegates by itself cannot know a block awaits the
+  user), IMP-138 (the fixtures prepared before the launch), IMP-067 (`agent_id` carried to
+  workflow agents, measured headless).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-07, not decided.
+
+### IMP-146 — CLI and MCP: git and the boundary from the CLI only, MCP where it adds, idle servers off
+- Date: 2026-11-07 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — a method candidate from a
+  course on Claude Code, the brief's item 3d.
+- Source: the course, verified by the user on 2026-10-31. Re-read on 2026-11-07: the hooks
+  reference — MCP tools appear in the tool events "so you can match them the same way you match
+  any other tool name", and "`mcp__memory__.*` matches all tools from the `memory` server"; the
+  settings reference, `disabledMcpjsonServers`, "Reject specific servers defined in a project's
+  `.mcp.json` file so Claude Code never connects them or asks you to approve them". The `mcp`
+  page's `/mcp` toggle and its per-project list came through the fetch tool's extraction, to be
+  quoted before use.
+- Observed problem: a git MCP server writes git state outside the guard, whose matcher is the
+  shell tools — `docs/04` declares it (IMP-092, merged IMP-093) —, and nothing steers the agent
+  away from such a server. The `pre-push` sees a push only through git's own hooks, in a
+  process that carries the session's markers: a server Claude Code starts inherits them
+  (IMP-095, merged IMP-097, as read on 2026-10-13), but one that writes without the git binary,
+  or runs remotely, runs no hook — `docs/04`'s "remote writes without git". The candidate's
+  "the pre-push does not see a git MCP server" holds for those; for a local server that runs
+  git, it is to be measured.
+- Proposal (the user's): git, and everything that touches the boundary, from the CLI only; for
+  the rest, the CLI where there is one, MCP where it gives something more; the servers not in
+  use disabled.
+- Expected benefit / risk: one route for git, the one the guard and the `pre-push` read; fewer
+  tools in the context. Risk: a rule, not a mechanism — the guard's matcher could reach MCP
+  tools, but it would have to read each server's tools, beyond the threat model it keeps to
+  (IMP-054) —; "disabled" has two homes, the user's per-project choice and
+  `disabledMcpjsonServers` for a project's `.mcp.json`, and only the second is a project's file.
+- Kin: extends IMP-092 (merged IMP-093) — the git MCP server declared outside the guard, here
+  with a rule of use — and IMP-054 and IMP-055 (the push boundary's residuals; the guard's
+  matcher); IMP-062 (remote writes the boundary does not see), IMP-095 (merged IMP-097),
+  IMP-117 (a choice of tool that keeps an action where the protections apply), IMP-129 and
+  IMP-140 (the routes the guard does not read, declared).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-07, not decided.
+
+### IMP-147 — `ARCHITECTURE.md` at the root, not copied: the layers, the cycle and an inventory, checked
+- Date: 2026-11-07 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — a method candidate from a
+  course on Claude Code, the brief's item 3e.
+- Source: the course, verified by the user on 2026-10-31; no fact of Claude Code's to re-read.
+- Observed problem: the method's architecture is spread over `docs/00` (the cycle, drawn in
+  text), the README's tree, the core's table, `docs/04`'s enforcement table and the scripts'
+  README; no one page shows the layers, a deliverable's cycle and what runs — sub-agents, hooks,
+  permissions, commands, automations. The documentation check holds the commands, the process
+  targets, the self-tests, the docs index, the README's tree and the CI's images against their
+  files (IMP-068, IMP-099), and of `hooks-install.sh` the count of the hooks it generates
+  against `SETUP.md`'s; not the hooks and permissions of `settings.json`.
+- Proposal (the user's): an `ARCHITECTURE.md` at the root of this repository, not copied into
+  the projects: the layers, a deliverable's cycle and the inventory of sub-agents, hooks,
+  permissions, commands and automations, in Mermaid; the documentation check compares the
+  inventory with `settings.json`, `commands/fw/`, `hooks-install.sh` and the CI's matrix.
+- Expected benefit / risk: one map of the method for a reader and a reviewer, held true by the
+  check. Risk: a second drawing of the cycle beside `docs/00`'s (IMP-006), one to point at the
+  other; a file outside the payload, which the payload must not cite unless labelled (IMP-049)
+  and the copy list must leave out (IMP-107); the method ships no sub-agent definition, so that
+  part of the inventory lists the delegations, not files; Mermaid renders on the forge, not in
+  a terminal.
+- Kin: IMP-038 and IMP-068 (inventories held both ways), IMP-099 (the CI's images against the
+  matrix), IMP-006, IMP-049, IMP-107, IMP-124 (the layers it would draw).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-07, not decided.
+
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
