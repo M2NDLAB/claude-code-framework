@@ -106,7 +106,7 @@ message: *Problems*, below.
 - [x] 1. This note — the user's brief and this plan — commit: 69d24f4
 - [x] 2. Main's red CI, diagnosed from its log: the test, its cause and the evidence, the class; the fix's direction, for a `fix/` branch of its own — commit: 9897afd
 - [x] 3. The IMP on the run block 2 starts on `main`, which no step of the method reads, and where its check goes — commit: f94c008
-- [ ] 4. The course's candidates (a) to (e), PROPOSED, each with its source and its verification date — commit: —
+- [x] 4. The course's candidates (a) to (e), PROPOSED, each with its source and its verification date — commit: 48b944c
 - [ ] 5. The course's candidates (f) to (j), PROPOSED — (i) at LOW priority, (j) deferred — commit: —
 - [ ] 6. The first derived project's harvest: its new entries, from the first free number — commit: —
 - [ ] 7. The harvest's entries that repeat or extend an existing one, as evidence on it; the lesson decided at an agreed point and never recorded; the user's two additions — U6's linter, the attribution with its settings keys verified — commit: —
@@ -205,6 +205,18 @@ harvest (the user's word).
     IMP-055. The candidate's "the pre-push does not see it" holds for a server that runs no
     git binary or runs remotely; for a local one that runs git, to be measured.
   - IMP-147 (e) — `ARCHITECTURE.md` at the root, its inventory checked.
+  - IMP-148 (f) — the auto memory's two levers, and declared not authoritative. Setting them is
+    the user's, not the payload's: a directory the project's own settings set may be refused
+    (reported by the reading, not quoted).
+  - IMP-149 (g) — an automatic proof of what loads, by `InstructionsLoaded`. The page says
+    nothing of subagents: that half is measured first.
+  - IMP-150 (h) — the core's file-bound parts into path-scoped rules; extends IMP-124. IMP-117
+    kept rule 10 in the core and turned down a path rule for it.
+  - IMP-151 (i), LOW — a `SubagentStart` note for Explore and Plan. Whether those two also skip
+    the rules with no `paths`, as `docs/00` says, is not in the text read: to be read or
+    measured.
+  - IMP-152 (j) — the reviewers' model and effort at setup, deferred by the user's word; its
+    trigger proposed here, none having been given.
 
 ## Follow-up
 - The re-run of 39250087583, launched by the user: its outcome, reported by the user, goes

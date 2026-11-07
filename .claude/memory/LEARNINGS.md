@@ -373,6 +373,125 @@ tags: [improvement]
 - Resumption trigger: the triage, which starts with the next harvest (the user's word).
 - Status: proposed on 2026-11-07, not decided.
 
+### IMP-148 — Claude Code's auto memory: its two levers named, and declared not authoritative
+- Date: 2026-11-07 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — a method candidate from a
+  course on Claude Code, the brief's item 3f.
+- Source: the course, verified by the user on 2026-10-31. Re-read on 2026-11-07: the settings
+  reference — `autoMemoryEnabled`, "Turn auto memory on or off. When `false`, Claude doesn't
+  read from or write to the auto memory directory"; `autoMemoryDirectory`, "From project or
+  local settings, Claude Code honors this key under the same workspace trust rule as hooks";
+  the `memory` page — "To toggle it, open `/memory` in a session and use the auto memory
+  toggle, which saves `autoMemoryEnabled` to your user settings at `~/.claude/settings.json`",
+  its index loaded "Every session (first 200 lines or 25KB)", and of the instructions and the
+  memory, "Claude treats them as context, not enforced configuration". The reading also
+  reported, not quoted, that a directory the project's own `.claude/settings.json` sets is one
+  Claude Code neither loads from nor saves to — to be quoted before any use.
+- Observed problem: Claude Code keeps a memory of its own, per user and per project, outside
+  the repository, loaded into every session beside the method's memory, and the method does
+  not name it. What it holds is unreviewed and unversioned, and can disagree with `STATE.md` or
+  a note with no check to see it. This repository's sessions load one: the recording session
+  loaded its index at the start, and the note it pointed to, once read, came flagged by the
+  runtime as 19 days old — "point-in-time observations, not live state" —, restating a
+  decision of the user's that [[2026-10-15-harvest-retro-3.0.0]] records.
+- Proposal (the user's): the method names the two levers, `autoMemoryEnabled` and
+  `autoMemoryDirectory`, and declares the automatic memory not authoritative: where it and the
+  method's memory disagree, the method's memory holds.
+- Expected benefit / risk: one authority for the state, and the user knows how to turn the
+  other off or move it. Risk: the levers are the user's settings, not the payload's — a
+  project's `settings.json` that set them would pin a user's choice, which IMP-092 declined for
+  `disableAllHooks` —; declared not authoritative, it still loads: the declaration says which
+  one wins, it keeps nothing out of the context.
+- Kin: IMP-013 (the memory on disk as the contract), IMP-075 (a feature of Claude Code wrote
+  per-user state from this repository's session, outside the method's files), IMP-092,
+  IMP-124 (`STATE.md` through the SessionStart hook).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-07, not decided.
+
+### IMP-149 — An automatic proof of what loads, by the `InstructionsLoaded` hook
+- Date: 2026-11-07 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — a method candidate from a
+  course on Claude Code, the brief's item 3g.
+- Source: the course, verified by the user on 2026-10-31. Re-read on 2026-11-07, the hooks
+  reference: `InstructionsLoaded` "Fires when a `CLAUDE.md` or `.claude/rules/*.md` file is
+  loaded into context"; "This event fires at session start for eagerly loaded files and again
+  later when files are lazily loaded. The "compact" value fires when instruction files are
+  re-loaded after a compaction event"; its input names the file, "Absolute path to the
+  instruction file that was loaded", its scope and the reason of the load; "The hook doesn't
+  support blocking or decision control". Not on the page: whether it fires inside a subagent,
+  and whether its input then names the agent.
+- Observed problem: what the method's loading rests on — the core at every launch, after a
+  compaction and in a general-purpose agent; a path-scoped rule at a matching read — was
+  measured by hand once, with `claude -p` at v4.0.0 (IMP-124, which names what it did not
+  measure: Windows, an interactive session); `docs/00` cites "measured on 2026-10-16". A later
+  release of Claude Code can change it with no check of the method failing, and v4.0.0's
+  scorecard left the path rules' loads with no baseline ([[2026-10-16-on-demand-docs-4.0.0]],
+  S10).
+- Proposal (the user's): an automatic proof that uses `InstructionsLoaded` to verify what
+  loads, after a compaction and in sub-agents too.
+- Expected benefit / risk: the loading claims held at each run of the proof, not once. Risk: the
+  proof needs a real session of Claude Code — `claude -p`, its tokens and a login —, outside the
+  CI as it is (IMP-067, deferred: headless mode); its sub-agent half rests on what the page does
+  not say, so it is measured first or left out.
+- Kin: IMP-124 (the measurements by hand it would automate), IMP-067 (the headless runs on what
+  the context holds), IMP-092 (loading facts read, not measured), IMP-105 (a delegated agent
+  receives the instructions its session last loaded).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-07, not decided.
+
+### IMP-150 — The core's parts tied to specific files into path-scoped rules, below its 187 lines
+- Date: 2026-11-07 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — a method candidate from a
+  course on Claude Code, the brief's item 3h.
+- Source: the course, verified by the user on 2026-10-31. Re-read on 2026-11-07, the `memory`
+  page: "A path-scoped rule loads when Claude uses the Read, Write, or Edit tool on a matching
+  file"; the rules with no `paths` "are loaded at launch with the same priority as
+  `.claude/CLAUDE.md`". `.claude/rules/fw-core.md`: 187 lines on 2026-11-07.
+- Observed problem: the core loads at every launch, after every compaction and in every
+  general-purpose agent (`docs/00`, *Selective loading*), and some of its lines speak only when
+  a given file is touched: its table's rows for code — which `fw-code-quality.md` asks again
+  on a code file — and for `.claude/settings.json`, the guard and the boundary's scripts —
+  which `fw-boundary.md` repeats on those paths. A line in the core costs every turn; one in a
+  path-scoped rule, only the turns that touch its files.
+- Proposal (the user's): the parts of the core tied to specific files become rules with
+  `paths:`, so that the core goes below its 187 lines.
+- Expected benefit / risk: a lighter core, each rule loaded where it applies. Risk: a path rule
+  loads at a read of a matching file, so a line that must hold before the file is read, or for
+  a file written without being read, stays in the core; IMP-117 kept rule 10 in the core and
+  turned down a path-scoped rule for it; the core keeps the prohibitions whose violation is a
+  security defect or a silent error (IMP-132, the silent workaround); whether a path rule
+  reaches a delegated agent, and after a compaction, is to be measured (IMP-149).
+- Kin: extends IMP-124 (the core as a rule with no `paths`, `docs/02` and the boundary behind
+  path-scoped rules); IMP-117, IMP-132 (the silent workaround).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-07, not decided.
+
+### IMP-151 — A `SubagentStart` hook gives the Explore and Plan agents a short note of the method
+- Date: 2026-11-07 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — a method candidate from a
+  course on Claude Code, the brief's item 3i.
+- Priority: LOW (the user's decision, 2026-11-07).
+- Source: the course, verified by the user on 2026-10-31. Re-read on 2026-11-07: the hooks
+  reference — "`SubagentStart` | When a subagent is spawned"; its matcher, "agent type |
+  `general-purpose`, `Explore`, `Plan`, custom agent names, or plugin-scoped names like
+  `^my-plugin:reviewer$`"; its output, "Context only | `hookSpecificOutput.additionalContext`
+  adds context for Claude"; the `sub-agents` page — "Explore and Plan start without your
+  CLAUDE.md files and the git status snapshot to keep research fast and inexpensive". Not in
+  the text read: that the hook fires for the built-in Explore and Plan — its matcher names
+  them —, and whether those two skip the rules with no `paths` too, as `docs/00` says "by
+  Claude Code's docs": to be read at the page, or measured.
+- Observed problem: an Explore or a Plan agent starts without `CLAUDE.md` and, by `docs/00`,
+  without the core, so it knows the method only from its brief, which the core asks to quote
+  the rules it must keep; a brief that forgets one leaves the agent without it.
+- Proposal (the user's): a `SubagentStart` hook, matched on Explore and Plan, whose
+  `additionalContext` gives them a short note of the method.
+- Expected benefit / risk: the read-only agents get the few rules they need by a mechanism, not
+  by each brief. Risk: a hook is off exactly where the rest of the wiring is
+  (`disableAllHooks`, `--safe-mode`, a session outside the root: IMP-092); it adds tokens to
+  each such agent's first request, the cost those agents skip `CLAUDE.md` to avoid; one more
+  file of the boundary's wiring, under the gate.
+- Kin: IMP-055 (a hook that acts on delegated agents only), IMP-060 (the brief, today's
+  carrier), IMP-092, IMP-124 (a hook that delivers the method's context, SessionStart),
+  IMP-105, IMP-104 (a mechanism where an instruction is left to the agent, LOW too).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-07, not decided.
+
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
@@ -3023,6 +3142,27 @@ line on; older entries are not backfilled.
   never happened, and the core's *Scope* keeps the base still; until then, at that stop, the
   agent stops and asks.
 - Resumption trigger: the base moves after block 0.
+
+### IMP-152 — Model and effort of the reviewer sub-agents, an answer given at setup → deferred on 2026-11-07
+- Date: 2026-11-07 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — a method candidate from a
+  course on Claude Code, the brief's item 3j.
+- Source: the course, verified by the user on 2026-10-31. Re-read on 2026-11-07, the
+  `sub-agents` page: a definition's `model` takes "`sonnet`, `opus`, `haiku`, `fable`, a full
+  model ID such as `claude-opus-5-5`, or `inherit`", its `effort` "`low`, `medium`, `high`,
+  `xhigh`, `max`; available levels depend on the model". The recording session's Agent tool
+  sets an effort only when "the user, or instructions such as CLAUDE.md or a skill, explicitly
+  ask" for one (its definition, 2026-11-07): a setup answer in `CLAUDE.md` would be such an
+  instruction.
+- Observed problem: the gate's reviewers, the method's costliest delegation, run at whatever
+  model and effort the session has; nothing records the project's choice, and the agent may not
+  pick an effort on its own judgment.
+- Proposal (the user's): the model and the effort of the reviewer sub-agents as an answer given
+  at setup.
+- Deferred on 2026-11-07 (the user's decision, at recording: the brief's item 3j).
+- Resumption trigger: none given with the decision; proposed here — the decision on IMP-144,
+  the models by family, whose setup answer this one would extend.
+- Kin: IMP-144, IMP-016 (an independent reviewer by blast radius), IMP-017, IMP-060, IMP-066,
+  IMP-138 (the reviewers' fixtures prepared before the launch).
 
 ## Rejected (with the reason — so they are not re-proposed)
 
