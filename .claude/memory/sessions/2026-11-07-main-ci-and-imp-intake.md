@@ -17,6 +17,20 @@ tags: [session, imp, harvest, ci]
 ## The fields of this very note
 - `model: 'claude-opus-5-5'` — the main session.
 - `turns: 1` — the brief.
+- Ultracode was on for the session, by the user's `/effort` at its start, whose output read
+  "Set effort level to max (this session only) … · Ultracode on": the user's explicit
+  decision, the case candidate (c) asks a note to record. The delegation kept the core's
+  terms. One read-only workflow (run `wf_ea6a6a7d-553`), 9 agents: 6 reading Claude Code's
+  documentation live — five `web-fetch` agents on one page each, one `claude-code-guide`
+  held to the docs site —, 3 sweeping `LEARNINGS.md` by thirds for the kin of the eleven
+  candidates; each brief quoted the user's words verbatim. The stall budget, set at the
+  launch: 25 minutes. It took 11 (658,260 ms), 750,350 tokens and 80 tool calls; no agent
+  stalled or was skipped; the agents ran on the models their types define, not read here.
+  `scripts/repo-snapshot.sh` and `git diff` before and after: identical. What it did not
+  cover: past each page's first 40,000 characters or so the fetch tool returned a model's
+  summary, not the text — an answer that rests on one is marked so where an entry cites it,
+  and no proposal rests on one —; and each kinship the sweep called "extends" was read again
+  here, by hand, before it reached an entry.
 
 ## The user's brief, 2026-11-07 (translated from Italian)
 Project names replaced by their neutral labels, as everywhere in this repository.
@@ -89,7 +103,7 @@ The brief's item 2 named an attached block and a section to paste, and neither w
 message: *Problems*, below.
 
 ## Plan (one commit per task)
-- [ ] 1. This note — the user's brief and this plan — commit: —
+- [x] 1. This note — the user's brief and this plan — commit: 69d24f4
 - [ ] 2. Main's red CI, diagnosed from its log: the test, its cause and the evidence, the class; the fix's direction, for a `fix/` branch of its own — commit: —
 - [ ] 3. The IMP on the run block 2 starts on `main`, which no step of the method reads, and where its check goes — commit: —
 - [ ] 4. The course's candidates (a) to (e), PROPOSED, each with its source and its verification date — commit: —
@@ -99,10 +113,87 @@ message: *Problems*, below.
 - [ ] 8. The agnosticism of what the harvest brings, and the deduplication table for the project — commit: —
 - [ ] 9. The checkpoint: the IMPs' state, the gate's line, the follow-up, `status: completed` — commit: —
 
+## Main's red CI — the diagnosis
+Read with `gh`, read-only: `gh run view 39250087583 --log-failed`, the run's and its jobs'
+JSON, the job log of the green run 39240838225, and the list of the runs since 2026-10-13.
+
+- **The run.** 39250087583, the push of `main` at `20a5287` — the `--no-ff` merge of
+  `chore/memory-4.1.0-record` —, 2026-10-19 12:11 UTC: ubuntu-24.04 and macos-26 green;
+  windows-2025 red at `make test-scripts`, exit 2 — make's own status when a recipe fails —,
+  and every later step of the job green.
+- **The test.** `scripts/test-hooks-install.sh`, case 6 (*binary files*), its sub-check
+  "stopped by Ctrl-C": `FAIL (binary files): stopped by Ctrl-C: expected exit 130, got 0`.
+  The case runs the generated pre-commit in the background under job control, a stub
+  gitleaks first on `PATH` in its `hang` mode — the stub writes its pids, then `exec sleep
+  30` —, sends INT to the hook's process group as soon as the pids file has content, and
+  expects the hook to die of it (130) with the scan's directory gone. The `out6.log` it
+  printed holds only git's `unable to stream … to stdout`, the closed pipe the case's
+  comment expects.
+- **The class: a non-deterministic test** — neither the runner nor the files:
+  1. the same tree passed on the same image: the run on `ed9b97c` (39240838225, 10:54 UTC
+     the same day) and this one both ran the image `windows-2025-vs2026` 20261007.264.1,
+     runner 2.337.0, provisioner 20261002.596; `git diff ed9b97c 20a5287` is empty (the
+     user's fact), and the case builds its own repositories in a temporary directory, so the
+     branch, the merge commit and the refs never reach it;
+  2. the same job ran the same test twice more, both green: the step "Each self-test on its
+     own (after a failure)" at 12:15 — `PASS (binary files)` —, and the shipped self-tests
+     inside a grafted project at 12:27;
+  3. 28 runs since `bfd6c90` (2026-10-13), which brought the sub-check, tested a tip that
+     holds it, each Windows job running it two or three times: this is its only failure. The
+     period's two other red runs were real defects, fixed since — 39035256707, a CR test
+     (`83b422c`), and 39170600064, two fixture checks (`f011b8e`, `ffcb0d4`).
+- **What failed, from the timing.** The remainder of case 6 after its `NOTE` line — the
+  sub-check included — took 33.25 s in the red execution (12:11:49.09 → 12:12:22.34), 1.86 s
+  in the same job's green one (12:15:10.37 → 12:15:12.23) and 2.75 s in the green run on
+  `ed9b97c` (10:55:33.84 → 10:55:36.59). The 30 s more are the stub's `sleep 30` run to its
+  end: the scan never died of the INT. The hook then exits 0 by bash's rule for a SIGINT
+  that arrives while it waits for a foreground command which does not die of it — bash
+  takes it as handled and goes on —: the scan returns 0, the stub's `protect` returns 0, the
+  hook ends green. Reproduced here on the case reduced to its shape — an EXIT trap and no INT
+  trap, the scan a subshell that execs the stub, `set -e` — with macOS's bash 3.2.57: the INT
+  delivered, exit 130 at once; the INT lost by the scan (its sleep ignoring INT), exit 0
+  after the whole sleep, the hook going on past the scan. Windows' bash 5.3.15 not measured;
+  the rule is the bash manual's (*Signals*).
+- **Why the INT did not take — likely, not proven.** The stub announces itself (its pids
+  file) before its last `exec sleep 30`, and the test signals as soon as the file has
+  content. Under Git Bash's MSYS2 runtime an exec starts a new Windows process, and a signal
+  that lands while the stub hands over to sleep can be lost. A `kill` to the group that
+  failed would leave the same trace — the scan running out its sleep, the hook at 0 —; only
+  `jobs6.log`, where the case sends the subshell's stderr, would tell the two apart, and
+  `fail6` does not print it.
+- **The fix's direction**, for a `fix/` branch of its own, the CI on the three systems
+  before integrating (the user's word) — not applied here:
+  (a) diagnostics: `fail6` prints `jobs6.log` too, and the sub-check its duration; a `kill`
+  that fails becomes a failure with its own message;
+  (b) the race removed: the stub announces itself only once nothing in it execs again — it
+  traps INT to die of it (`trap 'trap - INT; kill -INT $$' INT`), leaves the scan's
+  directory (`cd /`; Windows refuses to remove a process's working directory), writes its
+  pids, then waits in its own bash (`while :; do sleep 1; done`): an INT then reaches a bash
+  that is not exec'ing, and its trap runs even where its current sleep misses the signal;
+  (c) RED first — a stub that loses the INT fails the sub-check with the new message —, then
+  GREEN, here and on the three systems.
+  `scripts/` ships, so the fix is a release, a PATCH at least, and the test backs a claim of
+  the pre-commit's, so in doubt under the gate; or it joins the next corrective release —
+  the user's call.
+- **The re-run** of 39250087583: the user's, its outcome awaited (*Follow-up*).
+
 ## Problems encountered → cause → solution
+- The local reproduction's first form was refused by the project's `deny` rule
+  `Bash(rm -rf:*)`: the command cleaned its scratch directory first → the rule matches the
+  literal form, whatever the path → the scripts written with the file tools into a new
+  scratch directory, nothing to remove; nothing had run.
 - The brief's item 2 announces an attached block and a section to paste: the message held
   neither — its placeholder for the section was left as it was written → nothing to record
   from them yet → the user asked for both; tasks 6 to 8 wait for them, and no entry is
   reconstructed from elsewhere.
+
+## Follow-up
+- The re-run of 39250087583, launched by the user: its outcome, reported by the user, goes
+  into the diagnosis — green on the same commit confirms the class; red again, on a newer
+  image, reopens it.
+- The harvest's block and the section of the project's report: the user's, asked for on
+  2026-11-07; tasks 6 to 8 wait for them.
+- The fix of the self-test: a `fix/` branch of its own, after this one is integrated — the
+  user decides whether it ships alone or with the next corrective release.
 
 [[LEARNINGS]] · [[2026-10-19-4.1.0-record]]
