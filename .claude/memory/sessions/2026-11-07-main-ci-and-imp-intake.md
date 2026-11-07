@@ -104,7 +104,7 @@ message: *Problems*, below.
 
 ## Plan (one commit per task)
 - [x] 1. This note — the user's brief and this plan — commit: 69d24f4
-- [ ] 2. Main's red CI, diagnosed from its log: the test, its cause and the evidence, the class; the fix's direction, for a `fix/` branch of its own — commit: —
+- [x] 2. Main's red CI, diagnosed from its log: the test, its cause and the evidence, the class; the fix's direction, for a `fix/` branch of its own — commit: 9897afd
 - [ ] 3. The IMP on the run block 2 starts on `main`, which no step of the method reads, and where its check goes — commit: —
 - [ ] 4. The course's candidates (a) to (e), PROPOSED, each with its source and its verification date — commit: —
 - [ ] 5. The course's candidates (f) to (j), PROPOSED — (i) at LOW priority, (j) deferred — commit: —
@@ -186,6 +186,12 @@ JSON, the job log of the green run 39240838225, and the list of the runs since 2
   neither — its placeholder for the section was left as it was written → nothing to record
   from them yet → the user asked for both; tasks 6 to 8 wait for them, and no entry is
   reconstructed from elsewhere.
+
+## Proposals
+All in [[LEARNINGS]], recorded as proposed, none decided — the triage starts with the next
+harvest (the user's word).
+- IMP-142 — the run block 2 starts on `main` is read by no step; the check goes into block 0a,
+  the session that prints block 2 reading the merge's run besides.
 
 ## Follow-up
 - The re-run of 39250087583, launched by the user: its outcome, reported by the user, goes

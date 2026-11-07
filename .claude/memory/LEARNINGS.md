@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-10-19
+updated: 2026-11-07
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -171,6 +171,47 @@ tags: [improvement]
 - Status: the user's decision (2026-10-19): the next corrective release, with IMP-081, IMP-139
   and IMP-140 and the IMPs of the first derived project's upgrade ([[2026-10-19-4.1.0-record]],
   *The next corrective release*).
+
+### IMP-142 — The run block 2 starts on `main` is read by no step: `main` stayed red for 19 days
+- Date: 2026-11-07 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — run 39250087583, the
+  push of `main` at `20a5287` on 2026-10-19, failed on Windows (a non-deterministic self-test:
+  the note's diagnosis) over a tree the branch's own run had passed; no step of the method read
+  it, and `main` stayed red for 19 days, until the user saw it.
+- Observed problem: this repository reads its CI twice before a merge — after block 0, the
+  agent with `gh` until the three jobs end; inside block 1's chain, the verdict on the pushed
+  tip (IMP-126) — and never after it. Block 2's push of `main` starts a run on the merge
+  commit; its tree is the tested one, so a red there is news only that run gives — a
+  non-deterministic test, a runner's image changed, a download that failed —, and a release's
+  tag sits on that commit. The next deliverable does not read it either: block 0a checks
+  `origin/main`'s sha, not its CI, and the first checkpoint's reconciliation reads the merge
+  with git alone. A record's branch is the worst case: its merge is the last push of a cycle,
+  and no record of the record follows — the run on `18c04a1` was read by the record after it,
+  the run on `20a5287` by nothing.
+- Proposal — where the check goes: block 0a (`CONTRIBUTING.md`, *Block 0's form*), the point
+  every next push of this repository passes. A line in block 1's own form reads the CI on
+  `<base>`, `origin/main`'s tip — `test "$(gh run list -R <repo> --workflow test.yml --branch
+  main --commit <base> --event push --limit 1 --json status,conclusion --jq '.[0].status + "/"
+  + .[0].conclusion')" = completed/success && echo "CI on main <base, short>: green"` —, and
+  the agent reads the same run before it prints 0a, so a red `main` is diagnosed before
+  anything is built on it. A red or missing verdict stops 0a, but for the `fix/` branch that
+  repairs it: its 0a leaves the line out and says why. Earlier, and best-effort: the session
+  that prints block 2 asks for its report and reads the merge's run until its jobs end, as it
+  reads block 0's, the verdict in the closing note. Not proposed: the same check in the
+  payload, where a project's CI is the project's own (`CONTRIBUTING.md`, *The CI, before the
+  merge*); a resumption that reads the integration branch's CI where a project has one is the
+  triage's question.
+- Expected benefit / risk: a red `main` found at the latest by the next deliverable's first
+  block, by a line that prints its verdict, not by chance. Risk: a run still going fails the
+  line — it passes on a datum, `completed/success` alone (IMP-131), so 0a waits —; a
+  non-deterministic red holds a deliverable back until the re-run or the fix, the cost the
+  check is for; `gh` logged in becomes a condition of 0a, as it is of block 1.
+- Kin: IMP-126 (block 0's form; block 1's check of the CI on the tip), IMP-131 (a check passes
+  on a datum), IMP-119 (the memory-only branch, integrated on its own run's verdict), IMP-051
+  (the reconciliation of a merge at the next deliverable's first checkpoint), IMP-062 (`gh` in
+  a file the payload ships fires its trigger — one more reason to keep this check in
+  `CONTRIBUTING.md`).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-07, not decided.
 
 
 <!-- Format of a proposal:
