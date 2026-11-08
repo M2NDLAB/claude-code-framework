@@ -114,6 +114,16 @@ tags: [improvement]
   then the manual check of the HYBRID files' answers against the restore point, at the first
   derived project's upgrade, covers it. IMP-081 and IMP-141 joined that release at v4.1.0's
   record: its list, [[2026-10-19-4.1.0-record]], *The next corrective release*.
+- Evidence (2026-11-08, the first derived project's harvest, its entry 037, 2026-10-19, from
+  its upgrade to v4.1.0 — the project's own label: "evidence for the framework's IMP-139"):
+  `inventory` listed the moved answers of `docs/02`-`04` and of `CLAUDE.md`'s rules 5 and 8,
+  but not `docs/00`'s step-2 slot ("the concrete list is" a setup marker), which the project
+  had answered; it flagged `docs/00` only as a customised METHOD file (edge case 7). Nothing
+  was lost — the same content reached the answer through rule 8 —, but an answer of its own
+  in `docs/00` would have been lost without a line. The project's proposal: the inventory's
+  edge-case-8 scan covers every METHOD file whose slot moved to an answer line, `docs/00`
+  included. It widens this entry from the HYBRID files to the moved slots of a METHOD file,
+  and from `post`/`invariant` to `inventory`'s list.
 
 ### IMP-140 — Round 4's backlog: an unquoted substitution among git's words, three wordings
 - Date: 2026-10-18 | Origin: [[2026-10-17-cleanup-imp-135]] — v4.1.0's gate, round 4 (Q1 to
@@ -3673,6 +3683,11 @@ line on; older entries are not backfilled.
   carries either (a grep). The session's other zsh behaviours — an unquoted variable not split
   into words, an unquoted glob that matches nothing — are not this entry's: their data is in
   the session note, for that retro.
+- Recurred after the rejection (2026-11-08): the first derived project's harvest, its entry
+  046 (2026-10-19), met both pitfalls in its upgrade to v4.1.0 — `"$tag:scripts/x"`, "bad
+  substitution"; `echo =====`, "==== not found" —, each loudly again, with a third, silent one
+  (IMP-165). Recorded as evidence, not reopened: the rejection is the user's to revisit, at
+  IMP-165's triage.
 
 ### IMP-132 (the other four) — Formatting, magic numbers, the domain and the infrastructure, the release of resources in the core → rejected on 2026-10-17
 - Date: 2026-10-17 | Origin: v4.0.0's gate, second round, claims R2-2 —
