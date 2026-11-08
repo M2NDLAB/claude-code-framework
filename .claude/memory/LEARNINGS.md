@@ -1057,6 +1057,61 @@ tags: [improvement]
 - Resumption trigger: the triage, at the next derived project's harvest (the user's word).
 - Status: proposed on 2026-11-08, not decided.
 
+### IMP-176 — The `SECURITY.md` scaffold leaves the framework's policy in the project
+- Date: 2026-11-08 | Origin: a derived project — greenfield graft of v4.1.0 on a static site
+  with no services (its report's B5). Recorded in [[2026-11-08-second-harvests-intake]].
+- Observed problem: `SECURITY.md` is at once the framework repository's policy and the
+  scaffold `SETUP.md` step 1 offers ("copy it and fill in its slots"). Filling only the slots
+  leaves the framework's lines in the project: its readers are sent to "GitHub's private
+  reporting" of "this repo (the framework)".
+- Measured (2026-11-08, v4.1.0 — the note's *B5*): RED — the three markers answered, none left,
+  eight lines still the framework's (the *Two levels* note, the framework's channel, its
+  response time, its supported versions, the title *Prevention already active in the
+  framework*).
+- Proposal (the project's): a scaffold for the project only, apart from the framework's own
+  policy — the framework's `SECURITY.md` its own, and a project template read by tag the way
+  step 1 reads the scaffold now.
+- Expected benefit / risk: a project's policy that names only its own channel — a security
+  file whose error misroutes a report. Risk: one more file the payload or `SETUP.md` names, and
+  the documentation check's copy list; the projects already grafted keep their file, a line in
+  the release's Upgrading note.
+- Kin: IMP-022 (the repository's `SECURITY.md`, `CONTRIBUTING.md`, `CHANGELOG.md`), IMP-049
+  (payload purity: a framework-only line in what a project receives), IMP-086 (the framework's
+  channel changes when the repository turns private — one more reason to keep the two apart).
+- Preliminary verdict (a PROPOSAL, 2026-11-08): confirm — candidate for the corrective release.
+- Resumption trigger: the triage, at the next derived project's harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided.
+
+### IMP-177 — `/fw:new-component` assumes a running service: an agnosticism defect in a HYBRID file
+- Date: 2026-11-08 | Origin: a derived project — greenfield graft of v4.1.0 on a static site
+  with no services (its report's B6). Recorded in [[2026-11-08-second-harvests-intake]].
+- Observed problem: an agnosticism defect — the method presumes one kind of project. Four of
+  `fw/new-component.md`'s "basic elements expected of a complete component" are unconditional
+  and fit only a running service: per-environment configuration (dev/prod), a production
+  artefact whose example is a container, structured logging with a correlation id, and an
+  integration smoke test that "starts the WHOLE component wired to the real dependencies" —
+  where `docs/02`'s DoD point 3 asks for it only "for a component with real dependencies". A
+  static site with no services cannot follow the list, and the command offers no "n/a".
+- Measured (2026-11-08, v4.1.0 — the note's *B6*): confirmed, with one correction to the
+  report's framing — the file is HYBRID, not METHOD (the class table; `SETUP.md`'s *The mental
+  model*, "the commands customised at setup"), so a project may rewrite its body at setup; the
+  defect is the framework part's, which every project receives and meets again at each upgrade.
+- Proposal (the project's): items marked "n/a" allowed and declared, with the reason, in the
+  component's note; or guidance for a project with no services. Narrowed here: the four items
+  conditional as the other four already are ("if it is a service", "if it has real
+  dependencies"), the logging's correlation id where a request flows.
+- Expected benefit / risk: the command fits any project. Risk: a change to the framework part
+  of a HYBRID file conflicts with every project that customised it (IMP-088) — the reason to
+  wait for a release that touches the file anyway.
+- Kin: IMP-088 (a change next to a setup slot conflicts at every upgrade), IMP-115 (the slots
+  of the method's files), IMP-049 (payload purity), IMP-131; IMP-176 (the other scaffold of
+  this report).
+- Preliminary verdict (a PROPOSAL, 2026-11-08): confirm — NOT for the corrective release: it
+  costs a conflict in every project that customised the file, and no project is blocked — the
+  slot lets each align its own copy now.
+- Resumption trigger: the triage, at the next derived project's harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided.
+
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
