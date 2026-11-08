@@ -134,7 +134,7 @@ against Claude Code's own documentation instead (*C*, below).
 - [x] 7. The scaffolds group: B5 and B6 — commit: 5051946
 - [x] 8. The informational items: B7's evidence, B8's finding — commit: aaeda64
 - [ ] 9. The permission-settings group: C3, C4 and C5 — commit: —
-- [ ] 10. Section A: the first derived project's second harvest — commit: —
+- [ ] 10. Section A: the first derived project's second harvest — what the brief itself holds recorded here, the block asked for (it was not in the message) — commit: —
 - [ ] 11. The deduplication tables, the preliminary verdicts and the agnosticism check, gitleaks on the diff — commit: —
 - [ ] 12. The checkpoint: the IMPs' state, the gate's line, the follow-up, `status: completed` — commit: the branch's tip
 
@@ -265,5 +265,24 @@ holds.
   ask again" for a command prefix", and its example offers `npm test *`; no sentence says the
   rule saved is ever the exact command. The article's claim — a password in an exact-command
   rule, in plaintext — is not measured here: it needs the interactive prompt.
+
+## Section A — the first derived project's second harvest
+The brief announces "the attached block", the project's entries 051 to 056; the message held
+none. Nothing of it is recorded from elsewhere — as at the last session, when the same happened
+(*Problems*, below) —, and the block is asked of the user. What the brief itself says is
+kept here, for the recording to come:
+- **Count once**: the project's entry 050 is excluded — it is IMP-169 already, which says its
+  second harvest's copy is evidence there, never a new entry. Its pair (the entry, its date)
+  is checked against [[2026-11-07-main-ci-and-imp-intake]], which lists 033 to 050, once the
+  block gives the dates.
+- **The user's evidence for the project's entry 055**: at the upgrade's gate too a delegated
+  reviewer wrote a file outside the repository — in a temporary folder — and removed it at once,
+  declaring it in its report: two cases in two consecutive gates. Which entry of this backlog it
+  extends is read once the entry's text comes; candidates by theme — IMP-055 (applied: delegated
+  agents isolated, a snapshot before and after, which sees only the repository), IMP-138 (the
+  reviewers' fixtures prepared before the launch), IMP-060.
+- **Its entry on `git diff > file`**: by the user's reading kin of IMP-140; measured this
+  session as the static-site project's B2, now IMP-173 — the harvest's entry likely a repeat of
+  it, evidence there, once read.
 
 [[LEARNINGS]] · [[2026-11-07-main-ci-and-imp-intake]]
