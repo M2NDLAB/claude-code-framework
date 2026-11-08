@@ -892,7 +892,9 @@ tags: [improvement]
   token refused alone, passed with `# gitleaks:allow`, commit exit 0; with the flag, `protect
   --staged` and `detect --no-git` both find it. The flag is a persistent flag of gitleaks' root
   command at v8.18.2, the declared security minimum, and at v8.30.1 (`cmd/root.go`, read at
-  each tag), so `protect` and `detect` take it in every supported release.
+  each tag), so `protect` and `detect` take it in every supported release. The project could
+  not measure the RED — its permissions refused the probe (the user, 2026-11-08) —: this is
+  the first measurement of it.
 - Proposal (the project's): pass `--ignore-gitleaks-allow` in the hook's two scans and in
   `SETUP.md` §3's history scan, or declare the limit where the scan's limits are declared. Not
   fixed here (the user's word).
@@ -1027,6 +1029,15 @@ tags: [improvement]
   from the framework's clone), IMP-050 (points 1-2) (the reads by tag, `-C "${FW:?}"`),
   IMP-156, IMP-066 (`/fw:integrate` verifies the tag's signature when signing is configured),
   IMP-086.
+- A conflict, recorded and NOT decided (the user, 2026-11-08 — the triage settles it): in the
+  project the user set the rule "GitHub only, a temporary clone of the tags alone, never a
+  local clone", which conflicts with the bare clone `SETUP.md`'s *Precondition* recommends
+  today. The user's proposal: the temporary clone the recommended form; a bare clone admitted
+  only where every operation checks the tag against the remote (`git ls-remote`) and its
+  signature (`git verify-tag`). Against it, measured here: a clone of one tag at depth 1 fails
+  the upgrade check's ancestry line, so for an upgrade the temporary clone needs both tags with
+  their history (not `--depth 1`); `git tag -v`, the same check as `git verify-tag`, passes in
+  the shallow and in the bare clone.
 - Preliminary verdict (a PROPOSAL, 2026-11-08): confirm, narrowed as above — candidate for the
   corrective release (`SETUP.md`'s text only), the signature check the triage's to weigh.
 - Resumption trigger: the triage, at the next derived project's harvest (the user's word).
@@ -1051,7 +1062,10 @@ tags: [improvement]
 - Proposal (the project's, worded on the measurement): at the end of `SETUP.md` step 1, restart
   Claude Code from the project's root — `claude --continue` keeps the conversation — and check
   that the banner arrives before step 2; the text says what the copy already activated (the
-  settings: permissions, hooks, `env`) and what it did not (the core, the banner).
+  settings: permissions, hooks, `env`) and what it did not (the core, the banner). The user's
+  argument (2026-11-08): the proposal holds without the measurement, since the core and
+  `CLAUDE.md` load only at launch or at a compaction; the measurement agrees, and adds that the
+  guard is not off meanwhile.
 - Expected benefit / risk: step 2 and the graft's commits run under the core. Risk: none
   beyond one more instruction; a behaviour of Claude Code's that may change — the measurement
   dated, the docs quoted.

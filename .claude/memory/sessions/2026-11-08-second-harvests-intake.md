@@ -4,7 +4,7 @@ task: two field reports and a set of security items recorded, each reproduced at
 branch: chore/imp-intake-second-harvests
 status: completed
 model: 'claude-opus-5-5'
-turns: 1
+turns: 2
 tags: [session, imp, harvest, security]
 ---
 # Session 2026-11-08 — The second harvests' intake
@@ -136,7 +136,60 @@ against Claude Code's own documentation instead (*C*, below).
 - [x] 9. The permission-settings group: C3, C4 and C5 — commit: 2e92c90
 - [x] 10. Section A: the first derived project's second harvest — what the brief itself holds recorded here, the block asked for (it was not in the message) — commit: 41399d9
 - [x] 11. The deduplication tables, the preliminary verdicts and the agnosticism check, gitleaks on the diff — commit: fb5c9d7
-- [x] 12. The checkpoint: the IMPs' state, the gate's line, the follow-up, `status: completed` — commit: the branch's tip, this note's last commit
+- [x] 12. The checkpoint: the IMPs' state, the gate's line, the follow-up, `status: completed` — commit: af636d2
+- [x] 13. The user's second message: its notes on B1, B3 and B4 into their entries, a preliminary recommendation per entry — commit: the branch's tip, this note's last commit
+
+Task 13 was added when the user's second message came, after task 12's checkpoint.
+
+## The user's second message, 2026-11-08 (translated from Italian)
+"Here is the static-site project's formal harvest (the project's IMP-001…006). They are the
+same items as B1–B6: use this text as the reference. If you have already recorded B1–B6,
+complete the entries with these details (quotes, the guard's measured cases, links to IMP-104,
+IMP-022, IMP-049, IMP-086). Do not create duplicates. If you have not recorded them yet,
+record them from this text. B7 and B8 stay as in the prompt: they are not in this harvest.
+Notes: B3 — the rule 'GitHub only, a temporary clone of the tags alone, never a local clone' I
+set in that project. It conflicts with the bare clone SETUP's Precondition recommends today.
+Record the conflict in the entry, without deciding it: the triage settles it. My proposal: the
+temporary clone as the recommended form, a bare clone admitted only if every operation checks
+the tag with `git ls-remote` and the signature with `git verify-tag`. B4 — the project's
+proposal holds even without the measurement, because the core and CLAUDE.md load only at
+launch or at a compaction. Measure anyway what stays active in the session already started
+(guard and hooks), as the prompt asks. B1 — the project could not measure the RED, because the
+permissions denied it the probe. Do it yourself, in a throwaway folder outside every repo. At
+the end, besides the table for the static-site project, for each entry: the IMP assigned → a
+preliminary recommendation (approve / defer / discard) and why."
+
+The harvest's text itself — the project's entries 001 to 006 — was not in this message either:
+only the notes above. So the entries keep their wording from the report; the notes went into
+IMP-170 (B1: the project could not measure the RED, measured here), IMP-174 (B3: the conflict,
+recorded and not decided, with the user's proposal and the measurement against it) and IMP-175
+(B4: the user's argument, which the measurement agrees with). The links the message names were
+there already: IMP-104 on IMP-175, IMP-022, IMP-049 and IMP-086 on IMP-176. The quotes and the
+guard's cases of the formal text wait for it (*Follow-up*). Count once: the project's entries
+001 to 006 are B1 to B6, by the user's word — each a single entry here, IMP-170, IMP-173,
+IMP-174, IMP-175, IMP-176, IMP-177, never a second one.
+
+## Preliminary recommendation per entry (a PROPOSAL for the triage, 2026-11-08)
+- IMP-170 (B1) → approve: a security baseline with a measured hole, a one-flag fix every
+  supported gitleaks takes, and IMP-095's group rides on the same change of the hook.
+- IMP-173 (B2) → approve, with IMP-140: a false positive on a form the method itself uses; the
+  parser change is due anyway for IMP-140, approved.
+- IMP-174 (B3) → approve the text and the signature check; the conflict on the clone's form
+  stays the triage's: the measurement says a depth-1 clone serves a graft, not an upgrade.
+- IMP-175 (B4) → approve: one instruction in `SETUP.md`, measured, and agreed with by the user's
+  argument.
+- IMP-176 (B5) → approve: a security file that misroutes a project's reporters.
+- IMP-177 (B6) → defer, to the next release that touches `fw/new-component.md`: a conflict in
+  every customised copy, and no project blocked meanwhile.
+- IMP-178 (B8) → approve as one doc line, or defer to IMP-086's trigger; not a Level 1.
+- IMP-171 (C1) → approve: this repository's CI only, cheap (0.35 s), no tag.
+- IMP-172 (C2) → defer, to a MINOR: a new rule set, its false positives to be measured.
+- IMP-179 (C3) → approve, worded on the documentation, not on the article's claim.
+- IMP-166 extended (C4) → with IMP-166 at the triage: approve the reading, never an edit of the
+  user's file.
+- IMP-180 (C5) → approve: a check with no false positive, beside the other `upgrade-check.sh`
+  items.
+None is discarded: each reproduced, or rests on documented facts.
 
 ## The opening — the previous merge, and `main`'s CI
 - **The merge, reconciled** (this repository's first checkpoint after a merge, `fw/checkpoint.md`
@@ -392,6 +445,9 @@ IMP-170 to IMP-180 —: 179 entries, counted by section on `LEARNINGS.md` after 
   next session's start; then record it against the whole backlog, IMP-173 and the user's
   evidence on its entry 055 included.
 - B8, Level 1 or Level 2: the user's call (*Problems*); IMP-178 holds it until then.
+- The static-site project's formal harvest text (its entries 001 to 006), announced by the
+  user's second message and not in it: ask the user at the next session's start; its quotes
+  and the guard's measured cases then complete IMP-170 and IMP-173 to IMP-177, no new entry.
 - Not measured, for the triage: B4 in an interactive session and with `--continue`; the
   article's exact-command claim behind IMP-179, which needs the interactive prompt.
 - The triage of the 38 entries only proposed, and the corrective release's list: when the next
