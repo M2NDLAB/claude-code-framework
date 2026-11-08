@@ -113,8 +113,8 @@ message: *Problems*, below.
 - [x] 4. The course's candidates (a) to (e), PROPOSED, each with its source and its verification date — commit: 48b944c
 - [x] 5. The course's candidates (f) to (j), PROPOSED — (i) at LOW priority, (j) deferred — commit: a077f15
 - [x] 6. The user's answers of 2026-11-08: the quotes on IMP-150 and IMP-151, IMP-146 reworded, Ultracode off, the self-test fix's release — commit: 007bdae
-- [ ] 7. The first derived project's harvest and its lesson: the new entries, from the first free number, the user's two additions in theirs — U6's linter, the attribution with its settings keys verified — commit: —
-- [ ] 8. The harvest's entries that repeat or extend an existing one, as evidence on it — commit: —
+- [x] 7. The first derived project's harvest and its lesson: the new entries, from the first free number, the user's two additions in theirs — U6's linter, the attribution with its settings keys verified — commit: dc7dac9
+- [x] 8. The harvest's entries that repeat or extend an existing one, as evidence on it — commit: 8384545
 - [ ] 9. The agnosticism of what the harvest brings, and the deduplication table for the project — commit: —
 - [ ] 10. The checkpoint: the IMPs' state, the gate's line, the follow-up, `status: completed` — commit: —
 
@@ -188,6 +188,54 @@ JSON, the job log of the green run 39240838225, and the list of the runs since 2
   the gate", with one reviewer and none in parallel; (a), (b) and (c) as written here.
 - **The re-run** of 39250087583: the user's, its outcome awaited (*Follow-up*).
 
+## The first derived project's harvest — recording
+The block came on 2026-11-08, as the project's `/fw:harvest-framework` printed it on
+2026-10-31: seventeen entries, the project's 033 to 049, each dated 2026-10-19, from its
+upgrade to v4.1.0. With it, the lesson its report calls U2, decided at an agreed point of that
+upgrade and not recorded then — in the project its entry 050, which its second harvest will
+carry. The project's entries 051 to 056 come with that second harvest, after its branch's
+merge; none is recorded here (the user's word).
+
+- **Count once** (`CONTRIBUTING.md`, *A harvested lesson counts once*): no earlier recording
+  holds an entry of this project dated 2026-10-19 — [[2026-09-26-client-harvest-registration]]
+  holds its entries of September, [[2026-10-14-test-project-harvest]] another project's.
+- **Agnosticism**: the block came anonymised; the branch's additions (`git diff
+  origin/main...HEAD -- .claude/memory`) were searched for the project's names, local paths, the
+  user's identity and key prefixes — nothing; gitleaks over the branch's commits — "no leaks
+  found". The entries say "the first derived project", its local branch `dev` and its
+  allow rules being generic forms.
+- **Verified here, not taken from the block**: each claim an entry makes of this repository's
+  files was read at `main`'s tree (`state-inject.sh`'s line 50, `reset-task.sh`'s fallback,
+  preflight's `n/d` CHECK, `SETUP.md`'s Step 3 merge in place, Step 6's "and no more" and
+  `grafted` lines, `docs/04`'s claims on `switch -C` and the empty local file); measured with
+  zsh 5.9 and bash 3.2: `zsh -n +n` and `bash -n +n` both run code; `status` as a loop variable
+  stops loudly, `path` empties the command search silently.
+- **Not verified**: the project's own measurements — the bare-clone refusal, the inventory's
+  counts, the fixture's failure, its settings files — are the project's, reported as such.
+
+The table for the project:
+
+| Harvest (the project's entry) | Here | Kind |
+| --- | --- | --- |
+| 033 — a prefix permission on a check-only option | IMP-153 | new (with the user's linter addition) |
+| 034 — `settings.json` merged out of place | IMP-154 | new |
+| 035 — `state-inject.sh`'s pointer to the setup guide | IMP-155 | new — extends the applied IMP-049 |
+| 036 — the guard on a bare clone | IMP-156 | new — a false positive of IMP-123's no-index refusal |
+| 037 — the inventory missed `docs/00`'s answered slot | IMP-139 | extends IMP-139: evidence on it, no new entry |
+| 038 — the release policy as an answer | IMP-157 | new |
+| 039 — `grafted`: preflight against Step 6 | IMP-158 | new |
+| 040 — `reset-task.sh`'s fallback | IMP-159 | new |
+| 041 — the inventory's LEARNINGS measures | IMP-160 | new |
+| 042 — a self-test's fixture before its file | IMP-161 | new |
+| 043 — STATE's numbered entries | IMP-162 | new |
+| 044 — the upgrade's checkpoint, "no more" | IMP-163 | new |
+| 045 — Step 0's pin fix and the plan's commit | IMP-164 | new |
+| 046 — zsh traps | IMP-165; IMP-112 | new for `path`/`status`, extends IMP-136; duplicate of IMP-112 (rejected 2026-10-18) for `:s` and `=word`, a recurrence there |
+| 047 — the unchecked local settings | IMP-166 | new |
+| 048 — the attribution trailer | IMP-167 | new (with the user's addition; the project's setting as evidence, not proof) |
+| 049 — the stale memory claims | IMP-168 | new |
+| 050 (its report's U2) — sensitive components by code path | IMP-169 | new — extends IMP-141 for its check at `/fw:integrate`; the second harvest's copy is evidence here |
+
 ## Problems encountered → cause → solution
 - The local reproduction's first form was refused by the project's `deny` rule
   `Bash(rm -rf:*)`: the command cleaned its scratch directory first → the rule matches the
@@ -197,6 +245,10 @@ JSON, the job log of the green run 39240838225, and the list of the runs since 2
   neither — its placeholder for the section was left as it was written → nothing to record
   from them yet → the user asked for both; tasks 6 to 8 wait for them, and no entry is
   reconstructed from elsewhere.
+- Task 8's commit line carried a leftover `sed -i` aimed at `/dev/null`, which sed refused
+  ("in-place editing only works for regular files") → a draft fragment not removed before the
+  run → nothing changed (`git diff` showed only the file-tool edits); every edit
+  of the method's files stayed with the file tools.
 
 ## Proposals
 All in [[LEARNINGS]], recorded as proposed, none decided — the triage starts with the next
