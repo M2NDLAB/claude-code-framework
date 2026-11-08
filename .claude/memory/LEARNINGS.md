@@ -511,6 +511,357 @@ tags: [improvement]
 - Resumption trigger: the triage, which starts with the next harvest (the user's word).
 - Status: proposed on 2026-11-07, not decided.
 
+### IMP-153 — A prefix permission on an interpreter's check-only option runs code
+- Date: 2026-11-08 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — the first derived
+  project's harvest, the project's entry 033 (2026-10-19), from its upgrade to v4.1.0.
+- Observed problem: the project's `allow` held `Bash(zsh -n:*)`, meant for a syntax check;
+  `zsh -n +n -c 'print -r -- X'` prints X and exits 0 — a later `+n` cancels `-n` —, so the
+  prefix rule auto-approved arbitrary code with no prompt (measured twice by the project).
+  `docs/04` asks for rules "clean and specific" and quotes Claude Code on "a script path or
+  flag the rule's prefix didn't anticipate", but names no check-only flag that the
+  interpreter's own later arguments undo.
+- Verified here (2026-11-08, zsh 5.9 and bash 3.2 on macOS): `zsh -n +n -c 'print -r -- X'`
+  prints X, exit 0; `bash -n +n -c 'echo Y'` prints Y, exit 0 — bash too.
+- Proposal (the project's): a warning in `docs/04`, *Permission configuration*: a prefix rule
+  on an interpreter's check-only option (`zsh -n`, `bash -n`, a compile-only flag) is not
+  read-only — later arguments can turn execution back on —; such a check runs through a
+  Makefile target, or stays out of `allow`. The user's addition (2026-11-07): the linter is a
+  project's answer (**Formatter / linter**); where a shell dialect has no linter, the minimum
+  is the syntax check, declared as such in that answer.
+- Expected benefit / risk: closes a class of silent auto-approvals that read as harmless.
+  Risk: one more prompt for a syntax check.
+- Kin: IMP-123 (the shipped allow list admitted writing forms of read commands; *the
+  restriction*), IMP-075 (auto mode and the boundaries), IMP-059 (what a tool runs by itself),
+  IMP-114 (the formatter/linter answer, a project that chose none); IMP-165 (zsh, the project's
+  other entry on the shell).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided. The next corrective release holds "the IMPs the
+  first derived project's upgrade brings" ([[2026-10-19-4.1.0-record]], *The next corrective
+  release*, the user's decision of 2026-10-19); which of them, the triage's.
+
+### IMP-154 — SETUP Step 3: `settings.json` merged out of place, parsed, then written at once
+- Date: 2026-11-08 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — the first derived
+  project's harvest, the project's entry 034 (2026-10-19), from its upgrade to v4.1.0.
+- Observed problem: Step 3 merges the HYBRID files in place — `git merge-file` "rewrites
+  `<path>`" (`SETUP.md`, read here) —, `.claude/settings.json` included. With conflicts (two,
+  in the observed case) the file holds conflict markers — invalid JSON — while they are
+  resolved, and Claude Code reloads it at once: what its deny and ask rules and its hooks do
+  meanwhile is not stated (not measured).
+- Proposal (the project's): in Step 3, for `settings.json`, the 3-way on a copy in `T`, the
+  conflicts resolved there, the result parsed (`node -e 'JSON.parse(…)'`), then one copy into
+  place.
+- Expected benefit / risk: the boundary's configuration never invalid on disk during an
+  upgrade. Risk: none named; the behaviour it avoids is unmeasured.
+- Kin: IMP-050 (points 3-4) (a strategy per file, from measurement), IMP-092 (Claude Code's
+  permission flow), IMP-123; IMP-160 (the same step's measures).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided. The next corrective release holds the first
+  derived project's upgrade's IMPs ([[2026-10-19-4.1.0-record]]); which of them, the triage's.
+
+### IMP-155 — `scripts/state-inject.sh` points a client project at a guide it does not hold
+- Date: 2026-11-08 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — the first derived
+  project's harvest, the project's entry 035 (2026-10-19), from its upgrade to v4.1.0.
+- Observed problem: when `STATE.md` is missing, `scripts/state-inject.sh` prints "(the
+  framework setup guide copies it at step 1 and fills it at step 4)" (line 50, read here). A
+  client project holds no setup guide; the project had pruned the same kind of pointer from its
+  old SessionStart fallback, and a METHOD script cannot be edited to prune it again.
+- Proposal (the project's): the message names "the framework's `SETUP.md` (in the framework
+  repository)" — IMP-049's labelled form —, or drops the pointer.
+- Expected benefit / risk: no dead pointer in what a client project prints. Risk: none.
+- Kin: extends IMP-049 (payload purity: a pointer outside the payload only labelled) to a
+  script's message, which its check of the docs does not read; IMP-124 (the SessionStart
+  hook).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided. The next corrective release holds the first
+  derived project's upgrade's IMPs ([[2026-10-19-4.1.0-record]]); which of them, the triage's.
+
+### IMP-156 — The guard refuses a framework read on a literal path to a bare clone
+- Date: 2026-11-08 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — the first derived
+  project's harvest, the project's entry 036 (2026-10-19), from its upgrade to v4.1.0.
+- Observed problem: `git -C <literal path of a bare clone> diff vX vY` — and `cd <bare> && git
+  diff vX vY`, `git --git-dir=<bare> diff vX vY` — is refused in every session, the main one
+  included, as a `--no-index` comparison: `rev-parse --show-toplevel` fails in a bare
+  repository and the two revisions are read as paths (measured by the project with v4.1.0's
+  guard). `SETUP.md` recommends a bare clone as `FW`; the procedure's `"${FW:?}"` form passes
+  only because the location stays unknown to the guard.
+- Proposal (the project's): the guard recognises a bare repository (`rev-parse
+  --is-bare-repository`) and reads its operands as revisions; a case in
+  `test-agent-git-guard.sh`.
+- Expected benefit / risk: the documented `FW` reads work in every spelling. Risk: none for the
+  refusal it keeps, a path outside any repository.
+- Kin: a false positive of the implicit no-index refusal IMP-123 (*the restriction*) added;
+  IMP-140 (the guard's parser backlog), IMP-050 (points 1-2) (the reads by tag through `git -C
+  "${FW:?}"`), IMP-111 (rejected: framework reads outside the working directory).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided. The next corrective release holds the first
+  derived project's upgrade's IMPs ([[2026-10-19-4.1.0-record]]); which of them, the triage's.
+
+### IMP-157 — The release policy as an answer `/fw:integrate` reads
+- Date: 2026-11-08 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — the first derived
+  project's harvest, the project's entry 038 (2026-10-19), from its upgrade to v4.1.0.
+- Observed problem: on a trunk-based project `fw/integrate.md` puts the tag on the one branch
+  in both regimes, and its step 2 weighs content (a new rule or command in a shipped file is a
+  MINOR even under `chore`). A project that tags only from release branches can say so only
+  in its technical rules, which `/fw:integrate` does not read: a tag-free block 1 depends on
+  the agent applying a rule the command never names.
+- Proposal (the project's): an answer line **Releases** in *The answers the method reads* —
+  whether every integration with a bump is tagged, or only a release branch's —, read by
+  `/fw:integrate`'s step 2.
+- Expected benefit / risk: the tag decision follows the project's recorded policy, checked by
+  the command. Risk: one more answer line, and a slot every project's upgrade meets (IMP-088).
+- Kin: IMP-047 (doc-only → no tag against the method-project contract), IMP-116 (trunk-based in
+  `integrate.md`), IMP-074 (the bump fixed before the content), IMP-119, IMP-008 and IMP-019
+  (the parametric branches and merge, answers the commands read).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided. The next corrective release holds the first
+  derived project's upgrade's IMPs ([[2026-10-19-4.1.0-record]]); which of them, the triage's.
+
+### IMP-158 — `grafted`: preflight asks for `n/a`, Step 6 says not to touch it
+- Date: 2026-11-08 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — the first derived
+  project's harvest, the project's entry 039 (2026-10-19), from its upgrade to v4.1.0.
+- Observed problem: preflight's CHECK reads "'n/d' is the placeholder of the Italian releases —
+  write 'n/a' at Step 6" (`tools/upgrade-check.sh`, read here), while `SETUP.md` Step 6 says
+  "`grafted` is not touched (it is the date of the original graft)". A project that knows its
+  real graft date, provable from its own history, has no stated way to write it.
+- Proposal (the project's): both texts completed — `grafted` touched only to bring it to its
+  canonical form, or to write the real date of the graft proven by git: the graft commit's
+  date, the command and its output in the upgrade's session note.
+- Expected benefit / risk: one rule for the field, and a real date where one exists. Risk:
+  none.
+- Kin: IMP-036 (the provenance pin), IMP-050 (points 3-4) (preflight's explicit error, never a
+  silent normalisation), IMP-037 (option b) (the check's script).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided. The next corrective release holds the first
+  derived project's upgrade's IMPs ([[2026-10-19-4.1.0-record]]); which of them, the triage's.
+
+### IMP-159 — `reset-task.sh`'s fallback ignores the Makefile's list
+- Date: 2026-11-08 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — the first derived
+  project's harvest, the project's entry 040 (2026-10-19), from its upgrade to v4.1.0.
+- Observed problem: since v1.3.2 the protected branches are the Makefile's
+  `PROTECTED_BRANCHES`. Run directly and interactively without the variable,
+  `scripts/reset-task.sh` warns and falls back to `main develop` (its line 40, read here; with
+  `--yes` it refuses): a project's own list — in the observed case a dormant `dev` — is
+  unprotected on that path (no effect in that project today: no local `dev`).
+- Proposal (the project's): without the variable, the script reads the `PROTECTED_BRANCHES =`
+  line of the Makefile at the repository's root before any fallback, or refuses to run.
+- Expected benefit / risk: one list, honoured on every path. Risk: none.
+- Kin: IMP-094 (reset-task's staged change), IMP-008 (the parametric integration branch),
+  IMP-128 (a new session never discards the user's work), IMP-100 (deferred: make's `YES`).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided. The next corrective release holds the first
+  derived project's upgrade's IMPs ([[2026-10-19-4.1.0-record]]); which of them, the triage's.
+
+### IMP-160 — The inventory's measures of the LEARNINGS header and format comment differ from Step 3's
+- Date: 2026-11-08 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — the first derived
+  project's harvest, the project's entry 041 (2026-10-19), from its upgrade to v4.1.0.
+- Observed problem: `inventory` blanks `updated:` before measuring the LEARNINGS header (1
+  conflict); Step 3's literal commands keep it (2 conflicts: the date too). The format
+  comment's own 3-way (1 conflict) is not measured by `inventory` at all.
+- Proposal (the project's): `inventory` measures with Step 3's own commands, or names the date
+  conflict as expected; and it measures the format comment too.
+- Expected benefit / risk: the user is told what the merge will show. Risk: none.
+- Kin: IMP-050 (points 3-4) (the header and the format comment reconciled 3-way; a strategy
+  from measurement), IMP-037 (option b), IMP-134 (1) (this repository's `updated:` date),
+  IMP-127.
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided. The next corrective release holds the first
+  derived project's upgrade's IMPs ([[2026-10-19-4.1.0-record]]); which of them, the triage's.
+
+### IMP-161 — A self-test copies a file the upgrade's order may not have brought yet
+- Date: 2026-11-08 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — the first derived
+  project's harvest, the project's entry 042 (2026-10-19), from its upgrade to v4.1.0.
+- Observed problem: `scripts/test-check-prerequisites.sh` copies the project's
+  `.gitattributes`; run before `.gitattributes` was brought (v1.5.0 adds it, v2.0.0 the
+  self-test, and no note orders them) it failed with "cp: …/.gitattributes: No such file or
+  directory" — a failure about the fixture, not the script.
+- Proposal (the project's): Step 3 orders `.gitattributes` before `make test-scripts`, or the
+  self-test names the missing fixture and its cause.
+- Expected benefit / risk: no false red during an upgrade. Risk: none.
+- Kin: IMP-125 (the self-tests run in the projects), IMP-070 (`.gitattributes` in the payload),
+  IMP-131 (a check passes on a datum).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided. The next corrective release holds the first
+  derived project's upgrade's IMPs ([[2026-10-19-4.1.0-record]]); which of them, the triage's.
+
+### IMP-162 — STATE's numbered entries are no stable anchor through a condensing checkpoint
+- Date: 2026-11-08 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — the first derived
+  project's harvest, the project's entry 043 (2026-10-19), from its upgrade to v4.1.0.
+- Observed problem: the project's code comments and tests cite STATE entries by number ("STATE
+  #<n>"); the checkpoint condenses *Caution & open issues* to one line per entry, and nothing
+  in the method says an entry keeps its number, nor how code cites an open issue. Edge case 3
+  (b) covers code citing a title, not an entry.
+- Proposal (the project's): `fw/checkpoint.md` (or `docs/06`): an entry keeps its number as a
+  label and a number is never reused — or the method recommends citing a durable target (a
+  session note, a plan's task) instead of an entry.
+- Expected benefit / risk: citations that survive the rewrite of the dashboard. Risk: none.
+- Kin: IMP-014 (debts with a trigger surviving STATE's rewrites), IMP-121 (an open question
+  reaches STATE), IMP-013 (the memory on disk as a contract), IMP-043 (cross-file titles).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided. The next corrective release holds the first
+  derived project's upgrade's IMPs ([[2026-10-19-4.1.0-record]]); which of them, the triage's.
+
+### IMP-163 — The upgrade's checkpoint: "the framework version and no more" against "every open thread has its entry"
+- Date: 2026-11-08 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — the first derived
+  project's harvest, the project's entry 044 (2026-10-19), from its upgrade to v4.1.0.
+- Observed problem: `SETUP.md` Step 6 has the upgrade's checkpoint update `STATE.md` "with the
+  updated framework version and no more" (read here); the core (*Memory and resumption*) and
+  `fw/checkpoint.md` step 3 require every open thread of the note it writes to have its entry
+  in *Caution & open issues*, and `docs/03` puts a gate's accepted debt there. An upgrade
+  leaves such threads (in the observed case: the anchors' form, the lint target, the user's
+  local permissions), so the texts cannot all be followed literally.
+- Proposal (the project's): Step 6 allows, besides the framework version, the entries of the
+  upgrade's own open threads and of its gate's accepted debt.
+- Expected benefit / risk: no open thread of an upgrade lives only in a note. Risk: none.
+- Kin: IMP-121 (the question left in a note reaches STATE), IMP-046 (the upgrade's
+  contradiction on `.claude/memory/`), IMP-051 (the memory lags one merge); IMP-168 (the same
+  step, the claims the upgrade made stale).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided. The next corrective release holds the first
+  derived project's upgrade's IMPs ([[2026-10-19-4.1.0-record]]); which of them, the triage's.
+
+### IMP-164 — Step 0's pin fix and `/fw:plan`'s first commit: the order named
+- Date: 2026-11-08 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — the first derived
+  project's harvest, the project's entry 045 (2026-10-19), from its upgrade to v4.1.0.
+- Observed problem: Step 0 makes the pin's correction the upgrade branch's "first commit"
+  (`SETUP.md`, read here); `/fw:plan` commits the plan at once, before any task. A heavy
+  upgrade needs both.
+- Proposal (the project's): `SETUP.md` says it: the branch, the hooks' photograph, the pin's
+  correction, preflight again, then the plan.
+- Expected benefit / risk: no judgement call at the start of every heavy upgrade. Risk: none.
+- Kin: IMP-036 (the pin), IMP-034 (the heavy plan's home in the framework's repository),
+  IMP-133 (an order of steps inside a procedure).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided. The next corrective release holds the first
+  derived project's upgrade's IMPs ([[2026-10-19-4.1.0-record]]); which of them, the triage's.
+
+### IMP-165 — zsh in the user's own terminal: three traps beyond word splitting
+- Date: 2026-11-08 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — the first derived
+  project's harvest, the project's entry 046 (2026-10-19), from its upgrade to v4.1.0.
+- Observed problem: `docs/04` warns that zsh does not split an unquoted variable (IMP-136).
+  Three other zsh behaviours broke command lines in that upgrade: `"$tag:scripts/x"` reads `:s`
+  as a history modifier ("bad substitution"); `echo =====` expands `=word` ("==== not found");
+  `path` and `status` are special parameters a loop variable clobbers.
+- Verified here (2026-11-08, zsh 5.9, `zsh -f`): `for status in a` stops at once, "read-only
+  variable: status"; `for path in a` empties the command search — the next `ls` is "command
+  not found", exit 127 —, the loop itself silent. Two of the three are IMP-112's, rejected on
+  2026-10-18 because they fail loudly; `path` is the one whose cause is silent.
+- Proposal (the project's, worded as the user asked on 2026-11-08): a warning for whoever runs
+  zsh in their own terminal, beside the line `docs/04` already has — `${var}` before a colon,
+  a word starting with `=` quoted, never `path` or `status` as a variable name —, not a
+  requirement of the stack.
+- Expected benefit / risk: fewer broken blocks for the user and the agent. Risk: two of its
+  three were judged loud enough to need no rule (IMP-112); a warning beside the existing line,
+  not a rule, is the form that does not reopen that judgement.
+- Kin: extends IMP-136 (the agent's own command lines in zsh); repeats IMP-112 (rejected) for
+  `:s` and `=word` — recorded there as a recurrence —; IMP-153 (zsh's `-n`).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided. The next corrective release holds the first
+  derived project's upgrade's IMPs ([[2026-10-19-4.1.0-record]]); which of them, the triage's.
+
+### IMP-166 — The boundary's permission claims rest on a local settings file nobody checks
+- Date: 2026-11-08 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — the first derived
+  project's harvest, the project's entry 047 (2026-10-19), a finding of the security gate on
+  its upgrade to v4.1.0.
+- Observed problem: `docs/04` states that `git switch -C` and `git checkout -B` "prompt, or
+  meet auto mode's classifier" because "no allow rule names them", and that
+  `settings.local.json` starts out **empty** (both read here). In the project the untracked
+  local file held wildcard rules (`git checkout *`, `git tag *`, `gh repo *`, `make test *`)
+  that approve discards, tags and forge writes with no prompt and, in auto mode, unseen by the
+  classifier: the claims did not hold, and no step of the method reads that file.
+- Proposal (the project's): `/fw:security-review` (or `/fw:lint-memory`, with the rules'
+  globs) reads the local and the user-level settings against `docs/04`'s *Permission
+  configuration* and lists every allow rule that names a form `docs/04` says prompts — a
+  discard, a tag, a forge write, an exec option.
+- Expected benefit / risk: the boundary's claims checked where they can fail. Risk: none
+  named; the file stays the user's, and the user-level file holds every project's rules.
+- Kin: IMP-092 (the permission flow can replace the guard's verdict), IMP-075 (auto mode),
+  IMP-054 (a personal `settings.local.json` allowing `Bash(git *)`), IMP-123, IMP-087 (a
+  hermetic test cannot see the user's configuration), IMP-148 (the user's settings as
+  levers).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided. The next corrective release holds the first
+  derived project's upgrade's IMPs ([[2026-10-19-4.1.0-record]]); which of them, the triage's.
+
+### IMP-167 — A harness's attribution trailer against "no external name in shared history"
+- Date: 2026-11-08 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — the first derived
+  project's harvest, the project's entry 048 (2026-10-19), a finding of the security gate on
+  its upgrade to v4.1.0.
+- Observed problem: the harness running the agent asks for a trailer with a session URL in
+  every commit message; the core says "never a name external to the project in shared
+  history". The upgrade's commits carry it, the first in the repository's history; nothing in
+  the method says which instruction prevails, so the choice surfaced only at the gate, before
+  the push.
+- Proposal (the project's): `docs/04`, *Commit format*, says how a harness's attribution
+  trailer is treated — kept and declared, or left out — and that the user's choice is recorded
+  once, a technical rule, and applied from then on. The user's addition (2026-11-07):
+  attribution is a project's answer, set with Claude Code's `attribution` settings key.
+- Source (the settings reference, read on 2026-11-07): `attribution`, "Customize attribution
+  for git commits and pull requests", with `commit` and `pr` (strings; an empty string hides
+  it) and `sessionUrl`, a Boolean, default `true` — "Choose whether Claude Code appends the
+  claude.ai session link when it commits or opens a pull request from a cloud or Remote Control
+  session" —; `attribution: false` hides all of it (v2.1.281 and later); `includeCoAuthoredBy`
+  deprecated since v2.0.62.
+- Evidence, not proof (the user's report, 2026-11-08): the project set `"attribution": {
+  "sessionUrl": false }` in `.claude/settings.json`, in one write, the JSON validated, no other
+  key touched, with a technical rule in its `CLAUDE.md`; the commits already published keep
+  the trailer, declared in its STATE. Its branch's 16 commits carry `Co-Authored-By` 16 times
+  and the session link none — but the key holds only for cloud and Remote Control sessions,
+  and that branch's would not have added the link anyway, so the key's effect is not shown.
+  The project's check stays open and is repeated at each checkpoint.
+- Expected benefit / risk: no surprise in public history at push time. Risk: a key that acts
+  only on some sessions reads as a guarantee; this repository's own commits carry the session
+  link by the harness's instruction.
+- Kin: IMP-025 (agnostic shared history), IMP-078 (commitlint and the footer), IMP-148 (a
+  user's setting set in a project's file).
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided. The next corrective release holds the first
+  derived project's upgrade's IMPs ([[2026-10-19-4.1.0-record]]); which of them, the triage's.
+
+### IMP-168 — The memory claims an upgrade makes stale have no step of their own
+- Date: 2026-11-08 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — the first derived
+  project's harvest, the project's entry 049 (2026-10-19), a finding of the security gate and
+  of the memory lint on its upgrade to v4.1.0.
+- Observed problem: the upgrade moved the gate's rule, the sensitive list and the public
+  contract out of the docs into `CLAUDE.md`'s answers and renamed the memory's titles; STATE's
+  decisions, decision notes and the open plan still describe the old homes ("the paths in
+  docs/03", "headings frozen, mapped in CLAUDE.md", "one lens"). The memory may not be touched
+  during the upgrade, and the first checkpoint after the merge condenses STATE but has no list
+  of what the upgrade made stale.
+- Proposal (the project's): Step 6 writes in the upgrade's session note the memory claims the
+  upgrade made stale — a grep of the moved homes and renamed titles over the living memory —,
+  as the first checkpoint's work list after the merge.
+- Expected benefit / risk: no stale claim about the method survives the next checkpoint. Risk:
+  none.
+- Kin: IMP-046 (the memory untouched during the upgrade), IMP-051 (the memory lags one merge),
+  IMP-005 and IMP-018 (the memory lint's stale claims), IMP-163.
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided. The next corrective release holds the first
+  derived project's upgrade's IMPs ([[2026-10-19-4.1.0-record]]); which of them, the triage's.
+
+### IMP-169 — Sensitive components named by code path, and how the gate's "not applicable" reads them
+- Date: 2026-11-08 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — the first derived
+  project's lesson, decided at an agreed point of its upgrade to v4.1.0 and not recorded then;
+  sent by the user on 2026-11-08 from the project's report (its U2). In the project it became
+  its entry 050: the second harvest that carries it is evidence here, never a new entry.
+- Observed problem: the project gated only changes to the paths that delete, install or
+  configure, and let the author verify any other edit to the same files. That exemption
+  restricts rule 8 and could not survive the upgrade. Listing whole files in the **Sensitive
+  components** answer instead sends every edit of those files through the gate, losing the
+  proportionality; and `/fw:integrate` would stop on each "not applicable" declaration.
+- Proposal (the project's): the method states that a sensitive component may be a code path
+  inside a file (named in the answer), that a change outside every named path makes the gate
+  "not applicable" — declared in the gate line —, and how `/fw:integrate` checks that
+  declaration.
+- Expected benefit / risk: a proportional gate without weakening rule 8. Risk: the judgement
+  "outside the path" rests on whoever declares it; an independent reviewer can confirm it.
+  Rule 8's "in doubt, under the gate" stays above it.
+- Kin: IMP-053 (the verdict always written, "not applicable" included), extends IMP-141 (what
+  `/fw:integrate`'s check reads as shipped — here, as sensitive), IMP-058 (widening a claim
+  widens the perimeter), IMP-056, IMP-016 (review by blast radius), IMP-017.
+- Resumption trigger: the triage, which starts with the next harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided. The next corrective release holds the first
+  derived project's upgrade's IMPs ([[2026-10-19-4.1.0-record]]); which of them, the triage's.
+
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>

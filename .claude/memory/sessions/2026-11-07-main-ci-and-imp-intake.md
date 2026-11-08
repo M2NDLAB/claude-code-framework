@@ -112,9 +112,9 @@ message: *Problems*, below.
 - [x] 3. The IMP on the run block 2 starts on `main`, which no step of the method reads, and where its check goes — commit: f94c008
 - [x] 4. The course's candidates (a) to (e), PROPOSED, each with its source and its verification date — commit: 48b944c
 - [x] 5. The course's candidates (f) to (j), PROPOSED — (i) at LOW priority, (j) deferred — commit: a077f15
-- [ ] 6. The user's answers of 2026-11-08: the quotes on IMP-150 and IMP-151, IMP-146 reworded, Ultracode off, the self-test fix's release — commit: —
-- [ ] 7. The first derived project's harvest: its new entries, from the first free number — commit: —
-- [ ] 8. The harvest's entries that repeat or extend an existing one, as evidence on it; the lesson decided at an agreed point and never recorded; the user's two additions — U6's linter, the attribution with its settings keys verified — commit: —
+- [x] 6. The user's answers of 2026-11-08: the quotes on IMP-150 and IMP-151, IMP-146 reworded, Ultracode off, the self-test fix's release — commit: 007bdae
+- [ ] 7. The first derived project's harvest and its lesson: the new entries, from the first free number, the user's two additions in theirs — U6's linter, the attribution with its settings keys verified — commit: —
+- [ ] 8. The harvest's entries that repeat or extend an existing one, as evidence on it — commit: —
 - [ ] 9. The agnosticism of what the harvest brings, and the deduplication table for the project — commit: —
 - [ ] 10. The checkpoint: the IMPs' state, the gate's line, the follow-up, `status: completed` — commit: —
 
