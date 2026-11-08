@@ -4,7 +4,7 @@ task: main's red CI diagnosed, and the IMP on the run no step reads; the course'
 branch: chore/memory-main-ci-and-imp-intake
 status: in-progress
 model: 'claude-opus-5-5'
-turns: 1
+turns: 2
 tags: [session, imp, harvest, ci]
 ---
 # Session 2026-11-07 — Main's red CI, and the intake of new IMPs
@@ -16,7 +16,8 @@ tags: [session, imp, harvest, ci]
 
 ## The fields of this very note
 - `model: 'claude-opus-5-5'` — the main session.
-- `turns: 1` — the brief.
+- `turns: 2` — the brief; the user's answers of 2026-11-08, with the section of the project's
+  report.
 - Ultracode was on for the session, by the user's `/effort` at its start, whose output read
   "Set effort level to max (this session only) … · Ultracode on": the user's explicit
   decision, the case candidate (c) asks a note to record. The delegation kept the core's
@@ -31,6 +32,9 @@ tags: [session, imp, harvest, ci]
   summary, not the text — an answer that rests on one is marked so where an entry cites it,
   and no proposal rests on one —; and each kinship the sweep called "extends" was read again
   here, by hand, before it reached an entry.
+- On 2026-11-08 the user turned Ultracode off (`/effort`: "Set effort level to medium … ·
+  Ultracode off") and asked that no other workflow run without their word; the rest of the
+  session ran with none.
 
 ## The user's brief, 2026-11-07 (translated from Italian)
 Project names replaced by their neutral labels, as everywhere in this repository.
@@ -107,11 +111,15 @@ message: *Problems*, below.
 - [x] 2. Main's red CI, diagnosed from its log: the test, its cause and the evidence, the class; the fix's direction, for a `fix/` branch of its own — commit: 9897afd
 - [x] 3. The IMP on the run block 2 starts on `main`, which no step of the method reads, and where its check goes — commit: f94c008
 - [x] 4. The course's candidates (a) to (e), PROPOSED, each with its source and its verification date — commit: 48b944c
-- [ ] 5. The course's candidates (f) to (j), PROPOSED — (i) at LOW priority, (j) deferred — commit: —
-- [ ] 6. The first derived project's harvest: its new entries, from the first free number — commit: —
-- [ ] 7. The harvest's entries that repeat or extend an existing one, as evidence on it; the lesson decided at an agreed point and never recorded; the user's two additions — U6's linter, the attribution with its settings keys verified — commit: —
-- [ ] 8. The agnosticism of what the harvest brings, and the deduplication table for the project — commit: —
-- [ ] 9. The checkpoint: the IMPs' state, the gate's line, the follow-up, `status: completed` — commit: —
+- [x] 5. The course's candidates (f) to (j), PROPOSED — (i) at LOW priority, (j) deferred — commit: a077f15
+- [ ] 6. The user's answers of 2026-11-08: the quotes on IMP-150 and IMP-151, IMP-146 reworded, Ultracode off, the self-test fix's release — commit: —
+- [ ] 7. The first derived project's harvest: its new entries, from the first free number — commit: —
+- [ ] 8. The harvest's entries that repeat or extend an existing one, as evidence on it; the lesson decided at an agreed point and never recorded; the user's two additions — U6's linter, the attribution with its settings keys verified — commit: —
+- [ ] 9. The agnosticism of what the harvest brings, and the deduplication table for the project — commit: —
+- [ ] 10. The checkpoint: the IMPs' state, the gate's line, the follow-up, `status: completed` — commit: —
+
+Task 6 was added on 2026-11-08, when the user's answers came before the harvest's block; tasks 1
+to 5 were committed as `[task N/9]`, the rest as `[task N/10]`.
 
 ## Main's red CI — the diagnosis
 Read with `gh`, read-only: `gh run view 39250087583 --log-failed`, the run's and its jobs'
@@ -174,7 +182,10 @@ JSON, the job log of the green run 39240838225, and the list of the runs since 2
   GREEN, here and on the three systems.
   `scripts/` ships, so the fix is a release, a PATCH at least, and the test backs a claim of
   the pre-commit's, so in doubt under the gate; or it joins the next corrective release —
-  the user's call.
+  the user's call. The user's decision, 2026-11-08: the first item of the next corrective
+  release, on a `fix/` branch of its own, no separate PATCH — a green re-run brings `main`
+  back, and the failure came once in 28 runs —; under the gate, by rule 8's "in doubt, under
+  the gate", with one reviewer and none in parallel; (a), (b) and (c) as written here.
 - **The re-run** of 39250087583: the user's, its outcome awaited (*Follow-up*).
 
 ## Problems encountered → cause → solution
@@ -202,8 +213,9 @@ harvest (the user's word).
   - IMP-145 (c) — Ultracode off by default; extends IMP-060. Claude Code's own default is
     already off; this session is the first case its rule would record.
   - IMP-146 (d) — git and the boundary from the CLI only; extends IMP-092, IMP-054 and
-    IMP-055. The candidate's "the pre-push does not see it" holds for a server that runs no
-    git binary or runs remotely; for a local one that runs git, to be measured.
+    IMP-055. Reworded on 2026-11-08 by the user's answer: the `pre-push` runs at every push of
+    the git binary, a local MCP server's included; the guard does not see MCP tools; whether
+    the hook refuses a local server's push is to be measured.
   - IMP-147 (e) — `ARCHITECTURE.md` at the root, its inventory checked.
   - IMP-148 (f) — the auto memory's two levers, and declared not authoritative. Setting them is
     the user's, not the payload's: a directory the project's own settings set may be refused
@@ -211,10 +223,12 @@ harvest (the user's word).
   - IMP-149 (g) — an automatic proof of what loads, by `InstructionsLoaded`. The page says
     nothing of subagents: that half is measured first.
   - IMP-150 (h) — the core's file-bound parts into path-scoped rules; extends IMP-124. IMP-117
-    kept rule 10 in the core and turned down a path rule for it.
-  - IMP-151 (i), LOW — a `SubagentStart` note for Explore and Plan. Whether those two also skip
-    the rules with no `paths`, as `docs/00` says, is not in the text read: to be read or
-    measured.
+    kept rule 10 in the core and turned down a path rule for it. On 2026-11-08, the user's
+    quote: path-scoped rules reach Explore and Plan when they work with matching files.
+  - IMP-151 (i), LOW — a `SubagentStart` note for Explore and Plan. Settled on 2026-11-08 by
+    the `sub-agents` page the user quoted, read again here: those two skip the project rules
+    too, so `docs/00` holds; the page asks for the rules restated in the brief, as the core
+    does — in the user's view, probably to be rejected at the triage.
   - IMP-152 (j) — the reviewers' model and effort at setup, deferred by the user's word; its
     trigger proposed here, none having been given.
 
@@ -222,9 +236,11 @@ harvest (the user's word).
 - The re-run of 39250087583, launched by the user: its outcome, reported by the user, goes
   into the diagnosis — green on the same commit confirms the class; red again, on a newer
   image, reopens it.
-- The harvest's block and the section of the project's report: the user's, asked for on
-  2026-11-07; tasks 6 to 8 wait for them.
-- The fix of the self-test: a `fix/` branch of its own, after this one is integrated — the
-  user decides whether it ships alone or with the next corrective release.
+- The harvest's block: the user's, asked for on 2026-11-07, to be printed again by the
+  project; tasks 7 to 9 wait for it. The section of the project's report came on 2026-11-08
+  (its U2) and is recorded with task 8.
+- The fix of the self-test: the first item of the next corrective release, on a `fix/` branch
+  of its own after this one is integrated, under the gate with one reviewer (the user's
+  decision, 2026-11-08).
 
 [[LEARNINGS]] · [[2026-10-19-4.1.0-record]]

@@ -1,6 +1,6 @@
 ---
 type: learnings
-updated: 2026-11-07
+updated: 2026-11-08
 tags: [improvement]
 ---
 # Learnings & improvement proposals
@@ -311,7 +311,8 @@ tags: [improvement]
   user), IMP-138 (the fixtures prepared before the launch), IMP-067 (`agent_id` carried to
   workflow agents, measured headless).
 - Resumption trigger: the triage, which starts with the next harvest (the user's word).
-- Status: proposed on 2026-11-07, not decided.
+- Status: proposed on 2026-11-07, not decided. On 2026-11-08 the user turned the mode off for
+  the rest of the recording session, and asked that no workflow run without their word.
 
 ### IMP-146 — CLI and MCP: git and the boundary from the CLI only, MCP where it adds, idle servers off
 - Date: 2026-11-07 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — a method candidate from a
@@ -323,14 +324,17 @@ tags: [improvement]
   `.mcp.json` file so Claude Code never connects them or asks you to approve them". The `mcp`
   page's `/mcp` toggle and its per-project list came through the fetch tool's extraction, to be
   quoted before use.
-- Observed problem: a git MCP server writes git state outside the guard, whose matcher is the
-  shell tools — `docs/04` declares it (IMP-092, merged IMP-093) —, and nothing steers the agent
-  away from such a server. The `pre-push` sees a push only through git's own hooks, in a
-  process that carries the session's markers: a server Claude Code starts inherits them
-  (IMP-095, merged IMP-097, as read on 2026-10-13), but one that writes without the git binary,
-  or runs remotely, runs no hook — `docs/04`'s "remote writes without git". The candidate's
-  "the pre-push does not see a git MCP server" holds for those; for a local server that runs
-  git, it is to be measured.
+- Observed problem: a git MCP server writes git state outside the guard: the guard is a
+  `PreToolUse` hook whose matcher is `Bash|PowerShell|Monitor` (`.claude/settings.json`), so no
+  call to an `mcp__` tool reaches it — `docs/04` declares it (IMP-092, merged IMP-093) —, and
+  nothing steers the agent away from such a server. The `pre-push` is git's own hook: it runs
+  at every push the git binary makes, whoever launches it, a local MCP server included (the
+  user's correction, 2026-11-08). What stays to be measured, for a local server, is whether the
+  hook refuses its push — whether the server's process carries the session's markers the hook
+  reads: a process Claude Code starts inherits them (IMP-095, merged IMP-097, as read on
+  2026-10-13), an MCP server's not measured. A server that writes without the git binary, or
+  runs remotely, runs no hook — `docs/04`'s "remote writes without git": the candidate's "the
+  pre-push does not see a git MCP server" holds for those only.
 - Proposal (the user's): git, and everything that touches the boundary, from the CLI only; for
   the rest, the CLI where there is one, MCP where it gives something more; the servers not in
   use disabled.
@@ -345,7 +349,8 @@ tags: [improvement]
   IMP-117 (a choice of tool that keeps an action where the protections apply), IMP-129 and
   IMP-140 (the routes the guard does not read, declared).
 - Resumption trigger: the triage, which starts with the next harvest (the user's word).
-- Status: proposed on 2026-11-07, not decided.
+- Status: proposed on 2026-11-07, not decided; its problem reworded on 2026-11-08 by the user's
+  answer.
 
 ### IMP-147 — `ARCHITECTURE.md` at the root, not copied: the layers, the cycle and an inventory, checked
 - Date: 2026-11-07 | Origin: [[2026-11-07-main-ci-and-imp-intake]] — a method candidate from a
@@ -457,7 +462,12 @@ tags: [improvement]
   a file written without being read, stays in the core; IMP-117 kept rule 10 in the core and
   turned down a path-scoped rule for it; the core keeps the prohibitions whose violation is a
   security defect or a silent error (IMP-132, the silent workaround); whether a path rule
-  reaches a delegated agent, and after a compaction, is to be measured (IMP-149).
+  reaches a general-purpose agent, and after a compaction, is to be measured (IMP-149).
+- Evidence (the user's, 2026-11-08, read again at the `sub-agents` page, *What loads at
+  startup*): "For Explore, Plan, and subagents with `omitClaudeMd`, a subdirectory's `CLAUDE.md`
+  and matching path-scoped rules still load when the subagent works with files there" — a rule
+  moved out of the core into `paths:` reaches the read-only agents at a matching file, where
+  the core never reaches them.
 - Kin: extends IMP-124 (the core as a rule with no `paths`, `docs/02` and the boundary behind
   path-scoped rules); IMP-117, IMP-132 (the silent workaround).
 - Resumption trigger: the triage, which starts with the next harvest (the user's word).
@@ -474,8 +484,17 @@ tags: [improvement]
   adds context for Claude"; the `sub-agents` page — "Explore and Plan start without your
   CLAUDE.md files and the git status snapshot to keep research fast and inexpensive". Not in
   the text read: that the hook fires for the built-in Explore and Plan — its matcher names
-  them —, and whether those two skip the rules with no `paths` too, as `docs/00` says "by
-  Claude Code's docs": to be read at the page, or measured.
+  them.
+- Evidence (the user's, 2026-11-08, read again at the `sub-agents` page, *What loads at
+  startup*): a subagent loads "every level of the CLAUDE.md hierarchy the main conversation
+  loads, including `~/.claude/CLAUDE.md`, project rules, `CLAUDE.local.md`, managed policy
+  files, and any `AGENTS.md` files loaded as project instructions. The built-in Explore and Plan
+  agents skip this" — the rules with no `paths` included, so `docs/00` holds —; "For Explore,
+  Plan, and subagents with `omitClaudeMd`, a subdirectory's `CLAUDE.md` and matching
+  path-scoped rules still load when the subagent works with files there"; and "If a rule must
+  [reach the subagent], such as "ignore the `vendor/` directory," restate it in the prompt you
+  give Claude when delegating" — what the core's *Delegation* already asks of a brief. The
+  user's reading: probably to be rejected at the triage.
 - Observed problem: an Explore or a Plan agent starts without `CLAUDE.md` and, by `docs/00`,
   without the core, so it knows the method only from its brief, which the core asks to quote
   the rules it must keep; a brief that forgets one leaves the agent without it.
