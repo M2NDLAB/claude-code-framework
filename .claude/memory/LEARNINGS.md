@@ -784,6 +784,12 @@ tags: [improvement]
   discard, a tag, a forge write, an exec option.
 - Expected benefit / risk: the boundary's claims checked where they can fail. Risk: none
   named; the file stays the user's, and the user-level file holds every project's rules.
+- Extended on 2026-11-08 (the user's security items, C4 — [[2026-11-08-second-harvests-intake]]):
+  `/fw:security-review` reads the local and the user-level settings for secrets too — a
+  credential a standing approval saved in an `allow` rule (IMP-179) —, besides the over-wide
+  rules this entry names; the scan of those files with gitleaks meets IMP-172's gap (five of six
+  command forms missed by the default rules, measured). A finding there is reported to the
+  user, who owns the file: the review never edits it.
 - Kin: IMP-092 (the permission flow can replace the guard's verdict), IMP-075 (auto mode),
   IMP-054 (a personal `settings.local.json` allowing `Bash(git *)`), IMP-123, IMP-087 (a
   hermetic test cannot see the user's configuration), IMP-148 (the user's settings as
@@ -1139,6 +1145,63 @@ tags: [improvement]
   Free: the same fact, here for every project); IMP-025 (the declared trunk-based model).
 - Preliminary verdict (a PROPOSAL, 2026-11-08): confirm — candidate for the corrective release
   (one doc line), or with IMP-086 at its trigger.
+- Resumption trigger: the triage, at the next derived project's harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided.
+
+### IMP-179 — No standing approval for a command that holds a credential; allow rules written by hand
+- Date: 2026-11-08 | Origin: the user's security items of 2026-11-08 (C3), drawn from a
+  report on Claude Code's local settings file; recorded in [[2026-11-08-second-harvests-intake]].
+- Observed problem: "Yes, and don't ask again" saves an `allow` rule in
+  `.claude/settings.local.json` (Claude Code's *settings* page, quoted in the note); a
+  credential in the approved command lands there in plaintext — the report's claim —, in a
+  file git ignores, which no scan of the stage or the history then reads. `docs/04`,
+  *Permission configuration*, already says "Avoid grants of the 'stop asking for similar
+  commands' kind" — for the breadth of a rule, not for what it holds.
+- Verified (2026-11-08 — the note's *C's facts*): the documentation says the dialog "writes the
+  space-separated form … for a command prefix" (`npm test *`) and saves one rule per subcommand
+  of a compound command; it never says the exact command is saved, so how much of a command
+  reaches the file is not settled by the docs, and not measured here (it needs the interactive
+  prompt). Either form is a problem: a prefix rule widens what runs unprompted (IMP-153: a
+  pattern on a check-only option ran code), an exact one keeps the credential.
+- Proposal (the user's): `docs/04`, *Permission configuration*, beside "No vague
+  auto-approvals": never "Yes, and don't ask again" for a command that holds a credential — the
+  credential from the environment or a secret manager (rule 1), the rule written by hand, read
+  before it is saved, in its narrowest form.
+- Expected benefit / risk: no credential parked in a settings file by a click. Risk: none
+  beyond the prompt it keeps; the article's exact-command claim stays to be measured before the
+  text asserts it.
+- Kin: extends IMP-004 (applied: clean permission configuration, the "no vague auto-approvals"
+  line); IMP-153 (a prefix rule that runs code), IMP-166 (the local file nobody checks),
+  IMP-092, IMP-123; IMP-172 (C2: a scan that would find such a credential).
+- Preliminary verdict (a PROPOSAL, 2026-11-08): confirm — candidate for the corrective release
+  (one doc line), worded on what the documentation says, not on the article.
+- Resumption trigger: the triage, at the next derived project's harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided.
+
+### IMP-180 — The upgrade's check does not verify that `.gitignore` keeps `settings.local.json` out
+- Date: 2026-11-08 | Origin: the user's security items of 2026-11-08 (C5), drawn from a
+  report on Claude Code's local settings file; recorded in [[2026-11-08-second-harvests-intake]].
+- Observed problem: the payload's `.gitignore` holds `.claude/settings.local.json` (its line
+  28), but `.gitignore` is HYBRID — merged by an additive union at an upgrade, integrated into
+  the host's at a brownfield graft — and a project can lose the line. Claude Code adds the file
+  to the GLOBAL excludes only "the first time Claude Code writes the file in a git repository
+  that doesn't already ignore it" (*settings*, quoted in the note): a machine where that
+  happened once hides the loss there, and another machine, or a hand-made file, does not — the
+  file, with its rules and any credential in them (IMP-179), staged by a `git add`.
+- Verified (2026-11-08 — the note's *C's facts*): `tools/upgrade-check.sh` reads
+  `settings.local.json` only to class it LOCAL; no check reads `.gitignore` for it, nor `git
+  ls-files` for the file tracked. In this repository: the line present, the file never tracked.
+- Proposal (the user's): `upgrade-check.sh post` (or `invariant`) FAILs when `git check-ignore
+  -q .claude/settings.local.json` fails with the project's own ignore files only — the global
+  excludes left out (`-c core.excludesFile=/dev/null` or its equivalent) —, and when the file is
+  tracked; its test, a fixture without the line.
+- Expected benefit / risk: the local file stays out by the project's own rule, on every
+  machine. Risk: none; a project that tracks it on purpose is told, a FAIL it can answer.
+- Kin: IMP-166 (the local file nobody checks), IMP-179, IMP-037 (option b) (the check's
+  script), IMP-050 (points 3-4) (`.gitignore` an additive union), IMP-027 (the brownfield
+  `.gitignore` integrated).
+- Preliminary verdict (a PROPOSAL, 2026-11-08): confirm — candidate for the corrective release,
+  with the other `upgrade-check.sh` items (IMP-139, IMP-158, IMP-160).
 - Resumption trigger: the triage, at the next derived project's harvest (the user's word).
 - Status: proposed on 2026-11-08, not decided.
 
