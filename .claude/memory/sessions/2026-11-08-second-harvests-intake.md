@@ -129,7 +129,7 @@ against Claude Code's own documentation instead (*C*, below).
 - [x] 2. The opening: the previous merge reconciled and `main`'s CI read with `gh` — commit: 5b3abe0
 - [x] 3. The measurements at v4.1.0, in throwaway folders outside every repository: B1 to B8 and C's facts, each RED or GREEN — commit: d338345
 - [x] 4. The gitleaks group: B1, C1 and C2 — commit: 82ef937
-- [ ] 5. The guard group: B2, its link to IMP-140 and IMP-156 — commit: —
+- [x] 5. The guard group: B2, its link to IMP-140 and IMP-156 — commit: c59d312
 - [ ] 6. The SETUP group: B3 and B4 — commit: —
 - [ ] 7. The scaffolds group: B5 and B6 — commit: —
 - [ ] 8. The informational items: B7's evidence, B8's finding — commit: —

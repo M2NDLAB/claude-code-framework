@@ -992,6 +992,71 @@ tags: [improvement]
 - Resumption trigger: the triage, at the next derived project's harvest (the user's word).
 - Status: proposed on 2026-11-08, not decided.
 
+### IMP-174 — The graft's copy source: step 1 says "the framework's clone", the bare option and the signature unsaid
+- Date: 2026-11-08 | Origin: a derived project — greenfield graft of v4.1.0 on a static site
+  with no services (its report's B3). Recorded in [[2026-11-08-second-harvests-intake]].
+- Observed problem: during the graft's copy another session switched branch in the
+  framework's working clone. The copy read by tag, so nothing was harmed, but `SETUP.md` step
+  1 names only "the framework's clone": the bare clone, with no working tree to switch, is an
+  option of the upgrade's *Precondition* alone, and no step checks the tag's signature — the
+  provenance of what is copied rests on the clone's remote, unverified.
+- Measured (2026-11-08 — the note's *B3*): GREEN for a graft — `git clone --branch v4.1.0
+  --depth 1` holds the one tag, and `git tag -v v4.1.0` verifies (exit 0) —; RED for an
+  upgrade — with a second tag fetched at depth 1 the diff and both signatures work, but `git
+  merge-base` exits 1, so `tools/upgrade-check.sh preflight`'s ancestry check fails (read at its
+  source) and its list of the releases between the tags is empty. A full bare clone verifies
+  too.
+- Proposal: the project's — a temporary clone of the tag alone, `git clone --branch vX.Y.Z
+  --depth 1 <remote> "$(mktemp -d)/…"`, for the graft, the upgrade and the harvest. Narrowed
+  by the measurement: right for the graft only; an upgrade needs both tags and their history —
+  the bare clone the *Precondition* already offers. So: step 1 points to the same bare-clone
+  option (or the shallow tag clone, for a graft), and both steps check the tag's signature
+  (`git -C "${FW:?}" tag -v vX.Y.Z`) before the copy, where the framework signs its tags. A
+  harvest reads no framework clone (`/fw:harvest-framework` prints from the project).
+- Expected benefit / risk: the copy's source cannot move under it, and its provenance is
+  checked. Risk: the signature check needs the signer's public key on the user's machine — a
+  key to fetch and trust, a step to explain —; a bare clone meets the guard's false positive
+  IMP-156 on a literal path.
+- Kin: IMP-107 (the greenfield copy's read-by-tag recipe), IMP-108 (the prerequisite check run
+  from the framework's clone), IMP-050 (points 1-2) (the reads by tag, `-C "${FW:?}"`),
+  IMP-156, IMP-066 (`/fw:integrate` verifies the tag's signature when signing is configured),
+  IMP-086.
+- Preliminary verdict (a PROPOSAL, 2026-11-08): confirm, narrowed as above — candidate for the
+  corrective release (`SETUP.md`'s text only), the signature check the triage's to weigh.
+- Resumption trigger: the triage, at the next derived project's harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided.
+
+### IMP-175 — A greenfield session that creates `.claude/` runs step 2 without the method's core
+- Date: 2026-11-08 | Origin: a derived project — greenfield graft of v4.1.0 on a static site
+  with no services (its report's B4). Recorded in [[2026-11-08-second-harvests-intake]].
+- Observed problem: the report says the guard and the hooks stay off until a restart.
+  Claude Code's documentation (*settings*, *When edits take effect*) says a settings file
+  created mid-session is loaded, "For the project's `.claude/` folder, it loads the file even
+  when you create the folder in the same session". What a mid-session copy does NOT bring is
+  the method's core — `.claude/rules/fw-core.md` has no `paths:`, and such a rule is "loaded at
+  launch" (*memory*) — nor the SessionStart banner: step 2 onward, the graft's own commits
+  among them, runs without rules 1 to 10 in context and without the banner check.
+- Measured (2026-11-08, `claude -p`, Claude Code 2.1.319, an untrusted throwaway workspace —
+  the note's *B4*): the report's claim RED for the guard — after step 1's copy in the same
+  session, `git commit -n` refused by the PreToolUse hook (no commit made), `rm -rf` denied,
+  `env` applied —; GREEN for the core and the banner — the session saw neither. A session
+  started after the copy, and the same session resumed with `--resume`
+  (`SessionStart:resume`), had both. Not measured: an interactive session, `--continue` itself.
+- Proposal (the project's, worded on the measurement): at the end of `SETUP.md` step 1, restart
+  Claude Code from the project's root — `claude --continue` keeps the conversation — and check
+  that the banner arrives before step 2; the text says what the copy already activated (the
+  settings: permissions, hooks, `env`) and what it did not (the core, the banner).
+- Expected benefit / risk: step 2 and the graft's commits run under the core. Risk: none
+  beyond one more instruction; a behaviour of Claude Code's that may change — the measurement
+  dated, the docs quoted.
+- Kin: IMP-104 (deferred: a session outside the root, detected mechanically), IMP-124 (the
+  docs' selective loading: the core loads at launch), IMP-149 (an automatic proof of what loads,
+  by `InstructionsLoaded`), IMP-110 (where a new project's graft commit goes).
+- Preliminary verdict (a PROPOSAL, 2026-11-08): confirm — candidate for the corrective release
+  (`SETUP.md`'s text only).
+- Resumption trigger: the triage, at the next derived project's harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided.
+
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
