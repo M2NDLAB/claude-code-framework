@@ -138,4 +138,24 @@ against Claude Code's own documentation instead (*C*, below).
 - [ ] 11. The deduplication tables, the preliminary verdicts and the agnosticism check, gitleaks on the diff — commit: —
 - [ ] 12. The checkpoint: the IMPs' state, the gate's line, the follow-up, `status: completed` — commit: the branch's tip
 
+## The opening — the previous merge, and `main`'s CI
+- **The merge, reconciled** (this repository's first checkpoint after a merge, `fw/checkpoint.md`
+  step 3): `origin/main` and `main` at `cca84f2`, the `--no-ff` merge of
+  `chore/memory-main-ci-and-imp-intake` — `20a5287..cca84f2`, its ten `[task N/10]` and
+  `[task N/9]` commits —, which brought IMP-142 to IMP-169 into the backlog, as proposed;
+  [[2026-11-07-main-ci-and-imp-intake]] holds them. The branch was deleted by block 2's atomic
+  push (`git branch -a` lists no remote branch but `main`).
+- **`main`'s CI, read with `gh`, read-only**: run 42511514580, the push of `main` at `cca84f2`
+  (2026-11-08 18:44 UTC), `completed/success`, its three jobs green — ubuntu-24.04, macos-26,
+  windows-2025. `main` is green again.
+- **The re-run the last note waited for never ran**: `gh run view 39250087583 --json attempt`
+  reads `"attempt":1`, conclusion `failure`, last updated 2026-10-19 12:28 UTC, and the API
+  has no attempt 2 (404). The last note's follow-up — "the re-run, launched by the user" — is
+  closed by this datum, not by a re-run: what brought `main` back is the next push's run, on a
+  tree whose shipped files are v4.1.0's (`git diff --stat v4.1.0 main` over `scripts/`, the
+  docs, the commands, the rules, `settings.json`, `SETUP.md`, `SECURITY.md` and `.github/` is
+  empty), whose Windows job ran the same self-test green. The diagnosis's class — a
+  non-deterministic test — stands, and the fix stays the first item of the next corrective
+  release (the user's decision of 2026-11-08).
+
 [[LEARNINGS]] · [[2026-11-07-main-ci-and-imp-intake]]
