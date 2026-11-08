@@ -872,6 +872,93 @@ tags: [improvement]
 - Status: proposed on 2026-11-08, not decided. The next corrective release holds the first
   derived project's upgrade's IMPs ([[2026-10-19-4.1.0-record]]); which of them, the triage's.
 
+### IMP-170 — The pre-commit honours an inline `gitleaks:allow`, and no document says so
+- Date: 2026-11-08 | Origin: a derived project — greenfield graft of v4.1.0 on a static site
+  with no services; its graft's security review, a LOW. Recorded in
+  [[2026-11-08-second-harvests-intake]].
+- Observed problem: the pre-commit `scripts/hooks-install.sh` writes runs `gitleaks protect
+  --staged --redact -v`, and its scan apart `gitleaks detect --no-git`, both without
+  `--ignore-gitleaks-allow`: a line that ends with the comment `gitleaks:allow` is left out of
+  the scan. Anyone who writes a staged file — an agent with the file tools among them — can
+  exempt a secret inline, while `.gitleaksignore`, the other way out, is a file the core keeps
+  out of an agent's reach. `SETUP.md` §3, `docs/03` and `SECURITY.md` never name it.
+- Measured (2026-11-08, v4.1.0, gitleaks 8.30.1 — the note's *B1*): RED — a generated PAT-form
+  token refused alone, passed with `# gitleaks:allow`, commit exit 0; with the flag, `protect
+  --staged` and `detect --no-git` both find it. The flag is a persistent flag of gitleaks' root
+  command at v8.18.2, the declared security minimum, and at v8.30.1 (`cmd/root.go`, read at
+  each tag), so `protect` and `detect` take it in every supported release.
+- Proposal (the project's): pass `--ignore-gitleaks-allow` in the hook's two scans and in
+  `SETUP.md` §3's history scan, or declare the limit where the scan's limits are declared. Not
+  fixed here (the user's word).
+- Expected benefit / risk: an inline comment no longer exempts a secret from the baseline.
+  Risk: a project that silences a false positive with `gitleaks:allow` sees it refused — the
+  fingerprint in `.gitleaksignore`, which the user writes, is the way; a change to a generated
+  hook, so every project regenerates its hooks.
+- Kin: IMP-095 (deferred: the scan apart's gaps — its trigger, "a release that changes a
+  generated hook", fires with this change), IMP-077 (deferred: `protect`'s deprecation, the
+  same command line), IMP-089 (deferred: the history scan's gaps), IMP-020; IMP-172 (C2, this
+  session: credentials in a command — the same baseline's blind spots).
+- Preliminary verdict (a PROPOSAL, 2026-11-08, for the triage): confirm — candidate for the
+  corrective release, in one change of the generated pre-commit with IMP-095's group, whose
+  trigger it fires.
+- Resumption trigger: the triage, at the next derived project's harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided.
+
+### IMP-171 — The CI scans the whole history with gitleaks at every run
+- Date: 2026-11-08 | Origin: the user's security items of 2026-11-08 (C1), drawn from a
+  report on Claude Code's local settings file; recorded in [[2026-11-08-second-harvests-intake]].
+- Observed problem: the pre-commit scans the stage, only where the hooks are installed and not
+  taken out; a commit made without them — on the forge's web interface, a merge git creates
+  itself (IMP-091), a machine without the hooks — reaches the history unscanned, and nothing
+  reads it after. This repository's CI installs gitleaks only for the hooks' tests and runs no
+  history scan (`.github/workflows/test.yml`, read on 2026-11-08); the one-off history scan is
+  a setup step.
+- Measured (2026-11-08): `gitleaks detect --log-opts=--all` over this repository: "no leaks
+  found", about 0.35 s — cheap enough for every run.
+- Proposal (the user's): a CI step `gitleaks detect` over the whole history (`--log-opts=--all`,
+  the same fixed, hashed gitleaks the CI already installs, with the hook's environment block for
+  colour and textconv), failing the run on a finding. For projects, whose CI is their own: a
+  recommendation in `docs/03`, the triage's call.
+- Expected benefit / risk: a secret that got past the hooks is seen at the next push. Risk: the
+  history scan's own gaps (IMP-089: binary-marked files, merges' resolutions, type changes); a
+  red that the fix cannot clear — the history is not rewritten — needs a fingerprint in
+  `.gitleaksignore`, the user's.
+- Kin: IMP-089 (deferred), IMP-091 (the commits git creates itself skip the pre-commit),
+  IMP-142 (`main`'s CI read by no step: a red history scan on `main` needs that check too),
+  IMP-170, IMP-172.
+- Preliminary verdict (a PROPOSAL, 2026-11-08): confirm — for this repository, a change to its
+  CI only, no tag, which can go with any deliverable; the projects' recommendation left to the
+  triage.
+- Resumption trigger: the triage, at the next derived project's harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided.
+
+### IMP-172 — A framework gitleaks rule for a credential passed in a command
+- Date: 2026-11-08 | Origin: the user's security items of 2026-11-08 (C2), drawn from a
+  report on Claude Code's local settings file; recorded in [[2026-11-08-second-harvests-intake]].
+- Observed problem: a password written in a command — an inline variable, a `-p` option, the
+  userinfo of a URL — reaches a file in plaintext: a permission rule saved in
+  `settings.local.json`, a script, a doc. gitleaks' default rules miss most such forms.
+- Measured (2026-11-08, gitleaks 8.30.1, default rules — the note's *C's facts*): RED — one
+  random password in six command forms of a `settings.local.json`-shaped file, one found
+  (`generic-api-key`, `PGPASSWORD=`), five missed: `sshpass -p`, `mysql -p<password>`, a URL's
+  userinfo for `curl` and for `git clone`, `export DB_PASSWORD=`.
+- Proposal (the user's): a rule of the framework's, worded generically — an assignment whose
+  name holds `PASS`, `PWD`, `SECRET` or `TOKEN` before a command; a `-p`/`--password` option
+  with its value; `scheme://user:password@` — added to gitleaks' defaults (`[extend]
+  useDefault = true`), with its own self-test both ways.
+- Expected benefit / risk: the baseline sees the form the report names. Risk: false positives
+  on placeholders and examples — the rule's allowlist and its tests carry the cost —; where the
+  rule lives is a design question: the hook reads the project's `.gitleaks.toml` when there is
+  one (`hooks-install.sh`), so a shipped file collides with a project's own, and a file of the
+  payload is one more HYBRID or METHOD file to class.
+- Kin: IMP-170 (B1: the other blind spot of the same baseline — an inline allow comment
+  exempts what this rule would find), IMP-095 (2) (which configuration the scan apart reads),
+  IMP-179 (C3, this session: never a standing approval for a command with a credential).
+- Preliminary verdict (a PROPOSAL, 2026-11-08): confirm the need — not for the corrective
+  release: a new rule set is a MINOR's feature, its false positives to be measured first.
+- Resumption trigger: the triage, at the next derived project's harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided.
+
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>

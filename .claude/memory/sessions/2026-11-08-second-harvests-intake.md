@@ -125,9 +125,9 @@ repository cites no external news source in its records, and the claim it makes 
 against Claude Code's own documentation instead (*C*, below).
 
 ## Plan (one commit per task)
-- [ ] 1. This note — the user's brief and this plan — commit: —
-- [ ] 2. The opening: the previous merge reconciled and `main`'s CI read with `gh` — commit: —
-- [ ] 3. The measurements at v4.1.0, in throwaway folders outside every repository: B1 to B8 and C's facts, each RED or GREEN — commit: —
+- [x] 1. This note — the user's brief and this plan — commit: 82bcdbd
+- [x] 2. The opening: the previous merge reconciled and `main`'s CI read with `gh` — commit: 5b3abe0
+- [x] 3. The measurements at v4.1.0, in throwaway folders outside every repository: B1 to B8 and C's facts, each RED or GREEN — commit: d338345
 - [ ] 4. The gitleaks group: B1, C1 and C2 — commit: —
 - [ ] 5. The guard group: B2, its link to IMP-140 and IMP-156 — commit: —
 - [ ] 6. The SETUP group: B3 and B4 — commit: —
