@@ -2,7 +2,7 @@
 date: 2026-11-08
 task: two field reports and a set of security items recorded, each reproduced at v4.1.0 first, deduplicated against the whole backlog, with a PRELIMINARY verdict — nothing applied, the triage waits for the next derived project's harvest
 branch: chore/imp-intake-second-harvests
-status: in-progress
+status: completed
 model: 'claude-opus-5-5'
 turns: 1
 tags: [session, imp, harvest, security]
@@ -135,8 +135,8 @@ against Claude Code's own documentation instead (*C*, below).
 - [x] 8. The informational items: B7's evidence, B8's finding — commit: aaeda64
 - [x] 9. The permission-settings group: C3, C4 and C5 — commit: 2e92c90
 - [x] 10. Section A: the first derived project's second harvest — what the brief itself holds recorded here, the block asked for (it was not in the message) — commit: 41399d9
-- [ ] 11. The deduplication tables, the preliminary verdicts and the agnosticism check, gitleaks on the diff — commit: —
-- [ ] 12. The checkpoint: the IMPs' state, the gate's line, the follow-up, `status: completed` — commit: the branch's tip
+- [x] 11. The deduplication tables, the preliminary verdicts and the agnosticism check, gitleaks on the diff — commit: fb5c9d7
+- [x] 12. The checkpoint: the IMPs' state, the gate's line, the follow-up, `status: completed` — commit: the branch's tip, this note's last commit
 
 ## The opening — the previous merge, and `main`'s CI
 - **The merge, reconciled** (this repository's first checkpoint after a merge, `fw/checkpoint.md`
@@ -340,5 +340,64 @@ projects' names, this machine's paths, the user's identity, the article's site, 
 secrets of the measurements and token prefixes — nothing; every "seco" match is "second".
 `gitleaks git --log-opts=origin/main..HEAD`: "no leaks found". `git diff --no-renames
 --name-only origin/main...HEAD`: `.claude/memory/LEARNINGS.md` and this note only.
+
+## Problems encountered → cause → solution
+- Section A's block was not in the message, the second session running — the last one's brief
+  lacked its block and section too → a brief written ahead of the paste → nothing reconstructed
+  from elsewhere; what the brief holds is kept in *Section A*, the block asked of the user.
+- B8: the brief foresaw a Level 1 correction "if it is not findable" → Level 1 is for a doc in
+  demonstrable disagreement with reality, and nothing written is false: the gap is a missing
+  pointer, a change of content; and a fix in `docs/03` or `docs/04` changes a shipped file, a
+  release, which this memory-only branch is not → recorded as IMP-178, Level 2, the call left
+  to the user. No Level 1 correction was made this session.
+- The first B4 run did not start: `timeout` is no macOS command ("command not found") → a GNU
+  coreutils habit → run without it; nothing had run.
+- A command of the C measurements carried a leftover `rm -f /dev/null`, refused by auto mode's
+  classifier → a draft fragment not removed before the run — the same slip as the last
+  session's leftover `sed -i` aimed at `/dev/null` → nothing ran; the command re-run without
+  it. Two sessions in a row: a candidate for the next retro, not recorded as an IMP here.
+- Task 11's first commit had a body line opening with `backlog:` → commitlint read it as the
+  footer and warned ("footer must have leading blank line"), the trap `docs/04`'s *Commit
+  format* names → the message rewritten by an amend of the local, unpushed commit (`fb5c9d7`);
+  every body of the branch searched for the form afterwards — none.
+- B4's measurements ran in `claude -p`, in an untrusted workspace: Claude Code ignored the
+  three `allow` entries there, which no probe needed → recorded with the measurement.
+
+## Proposals
+All in [[LEARNINGS]], proposed, none decided; each carries a preliminary verdict marked as a
+proposal (*Deduplication and preliminary verdicts*, above):
+- the static-site project's report: IMP-170 (B1), IMP-173 (B2), IMP-174 (B3), IMP-175 (B4),
+  IMP-176 (B5), IMP-177 (B6), IMP-178 (B8); B7 as evidence on IMP-076 (applied);
+- the security items: IMP-171 (C1), IMP-172 (C2), IMP-179 (C3), IMP-180 (C5); C4 as an
+  extension of IMP-166.
+
+## The IMPs' state after this session
+At `cca84f2`, 168 entries ([[2026-11-07-main-ci-and-imp-intake]]). This session adds 11 —
+IMP-170 to IMP-180 —: 179 entries, counted by section on `LEARNINGS.md` after task 11:
+- applied 113, rejected 11, deferred 12 — unchanged (IMP-076 gained an evidence line);
+- open 43 — 5 approved and waiting (IMP-086 for its trigger; IMP-081, IMP-139, IMP-140 and
+  IMP-141 for the next corrective release), 38 only proposed (IMP-142 to IMP-151, IMP-153 to
+  IMP-180), none decided: the triage starts with the next derived project's harvest (the
+  user's word).
+
+## Security gate
+- Not applicable: a memory-only change — this note and entries of `LEARNINGS.md` (`git diff
+  --no-renames --name-only origin/main...HEAD` lists only `.claude/memory/` paths; the
+  `LEARNINGS.md` diff touches no header, title or format comment) —; no sensitive component,
+  no security property asserted by the product. The entries record security findings; none is
+  applied here.
+
+## Follow-up
+- Section A's block — the first derived project's entries 051 to 056 —: ask the user at the
+  next session's start; then record it against the whole backlog, IMP-173 and the user's
+  evidence on its entry 055 included.
+- B8, Level 1 or Level 2: the user's call (*Problems*); IMP-178 holds it until then.
+- Not measured, for the triage: B4 in an interactive session and with `--continue`; the
+  article's exact-command claim behind IMP-179, which needs the interactive prompt.
+- The triage of the 38 entries only proposed, and the corrective release's list: when the next
+  derived project's harvest comes (the user's word).
+- Carried: the self-test fix, the first item of the next corrective release, on a `fix/`
+  branch of its own, under the gate with one reviewer (the user's decision, 2026-11-08); the
+  re-run it waited for never ran (*The opening*).
 
 [[LEARNINGS]] · [[2026-11-07-main-ci-and-imp-intake]]
