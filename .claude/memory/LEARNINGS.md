@@ -1112,6 +1112,36 @@ tags: [improvement]
 - Resumption trigger: the triage, at the next derived project's harvest (the user's word).
 - Status: proposed on 2026-11-08, not decided.
 
+### IMP-178 — A private repository on GitHub Free cannot protect its branch, and the branching model's text does not say so
+- Date: 2026-11-08 | Origin: a derived project — greenfield graft of v4.1.0 on a static site
+  with no services (its report's B8, INFO). Recorded in [[2026-11-08-second-harvests-intake]].
+- Observed problem: the project, trunk-based on a private repository, could not protect
+  `main`: GitHub's API answered 403 and asked for Pro (the project's measurement). The method
+  says it in one place, `SETUP.md`'s *Hardening* — "On GitHub, rulesets are free on public
+  repositories only" —, silent on GitHub's classic branch protection, and read by whoever
+  reads *Hardening*; `docs/03` says nothing of a forge's protection, and `docs/04`'s
+  trunk-based lines, where the choice is made, nothing either.
+- Measured (2026-11-08 — the note's *B8*): not findable where the choice is made; no false
+  statement anywhere. GitHub's own pages, read through a fetch agent, do not settle the plans
+  (the rulesets page names Team and Enterprise; the protected-branches page names plans for one
+  feature only); the 403 is not repeated here.
+- Why not a Level 1 correction (the brief foresaw one "if it is not findable"): Level 1 fixes
+  a doc in demonstrable disagreement with reality, and nothing written is false — the gap is a
+  missing pointer, a change of content, Level 2. And a fix in `docs/03` or `docs/04` changes a
+  shipped file: a release, on a branch of its own, not this memory-only one. The user's call.
+- Proposal: `docs/04`, *Branching model*, beside trunk-based: on a forge plan without branch
+  protection for private repositories (GitHub Free) the stable branch's only server-side
+  guard is gone, so the `pre-push` and the `/fw:integrate` blocks are all there is — with a
+  pointer to `SETUP.md`'s *Hardening*, whose line names classic branch protection too.
+- Expected benefit / risk: the choice made knowing its cost. Risk: a forge's plans change;
+  the line dated, and phrased as "check your plan".
+- Kin: extends IMP-086 (the framework's own repository going private loses its rulesets on
+  Free: the same fact, here for every project); IMP-025 (the declared trunk-based model).
+- Preliminary verdict (a PROPOSAL, 2026-11-08): confirm — candidate for the corrective release
+  (one doc line), or with IMP-086 at its trigger.
+- Resumption trigger: the triage, at the next derived project's harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided.
+
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
@@ -2199,6 +2229,11 @@ line on; older entries are not backfilled.
 - Uncovered: the pin fixes the two packages only; their dependencies follow the ranges they
   declare (`^21.2.3`, `yargs ^18.0.0`, …), fetched unhashed — `SETUP.md` §0 and the CI's
   statement say so. Raising the pin is a framework release's decision, and its cost.
+- Evidence for the next release that touches the pin (2026-11-08, a derived project's report —
+  greenfield graft of v4.1.0 on a static site with no services, its B7 —, checked on the npm
+  registry, [[2026-11-08-second-harvests-intake]]): both packages' latest is 21.2.4, published
+  2026-10-18; its `engines` unchanged (`node >=22.12.0`), its notes two fixes, one performance
+  change, docs and tests. No entry: the pin stays a release's decision.
 
 ### IMP-056 — The security gate checks what the code does, not what the product claims → applied on 2026-10-13, commit 4937100
 - Date: 2026-09-26 | Origin: [[2026-09-26-client-harvest-registration]] — a presentation-only

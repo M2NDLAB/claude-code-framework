@@ -131,7 +131,7 @@ against Claude Code's own documentation instead (*C*, below).
 - [x] 4. The gitleaks group: B1, C1 and C2 — commit: 82ef937
 - [x] 5. The guard group: B2, its link to IMP-140 and IMP-156 — commit: c59d312
 - [x] 6. The SETUP group: B3 and B4 — commit: 665d08b
-- [ ] 7. The scaffolds group: B5 and B6 — commit: —
+- [x] 7. The scaffolds group: B5 and B6 — commit: 5051946
 - [ ] 8. The informational items: B7's evidence, B8's finding — commit: —
 - [ ] 9. The permission-settings group: C3, C4 and C5 — commit: —
 - [ ] 10. Section A: the first derived project's second harvest — commit: —
