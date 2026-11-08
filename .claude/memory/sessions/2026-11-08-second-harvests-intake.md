@@ -158,4 +158,112 @@ against Claude Code's own documentation instead (*C*, below).
   non-deterministic test — stands, and the fix stays the first item of the next corrective
   release (the user's decision of 2026-11-08).
 
+## The measurements at v4.1.0
+Every one in a throwaway directory of this session's scratch space, outside every repository;
+the framework read only by tag from the bare clone (`git -C "${FW:?}"`), v4.1.0 extracted with
+`git archive v4.1.0 | tar -x` — tag object `8b81665`, commit `18c04a1`, the brief's —, its
+signature good (`git tag -v`, exit 0). macOS, git 2.54.0, gitleaks 8.30.1, Node 26.12.1,
+Claude Code 2.1.319. `main`'s shipped files are v4.1.0's (*The opening*), so each result holds
+on `main` too. RED means the report's defect reproduced; GREEN, the claim or the fix's premise
+holds.
+
+- **B1 — RED.** A new repository, v4.1.0's `scripts/` and `commitlint.config.cjs`, `bash
+  scripts/hooks-install.sh` (three hooks written). A random token of GitHub's PAT form
+  (`ghp_` and 36 characters, generated, never a real one) staged on its own line: the
+  pre-commit refused it (`github-pat`, "leaks found: 1"). The same token on a line ending `#
+  gitleaks:allow`, staged with the first: the scan reported only the first file. That line
+  alone: the commit passed, exit 0, the token in `HEAD`. The flag: `gitleaks protect --staged
+  --redact -v --ignore-gitleaks-allow` on that staged line, "leaks found: 1"; `gitleaks detect
+  --no-git --source <dir> --redact` on the file, "no leaks found", and with the flag "leaks
+  found: 1". In gitleaks' source (`cmd/root.go`, read with `gh api` at each tag) the flag is
+  a persistent flag of the root command — so every subcommand's, `protect` and `detect`
+  included — at v8.18.2, the declared security minimum, and at v8.30.1; absent at v8.0.0,
+  below the minimum. v4.1.0 names `gitleaks:allow` nowhere — `SETUP.md` §3's *What the
+  pre-commit's scan reads* and its history scan, `docs/03`, `SECURITY.md` —, and the hook's
+  scan apart (`detect --no-git`, the files git shows as binary) does not pass the flag either.
+- **B2 — RED.** v4.1.0's guard, fed the hook's input by hand, the main session's (no
+  `agent_id`) and an agent's: `git diff > "$SP/x.diff"` refused in every session, as an
+  implicit `--no-index` with "an operand the guard cannot place"; `git diff > /tmp/x.diff`
+  refused, the operand "outside"; `git diff --stat > "$SP/x.diff"` refused. They pass: `git
+  diff >"$SP/x.diff"` (no space), `git diff > x.diff` (a target inside the work tree), `git
+  diff HEAD > "$SP/x.diff"` and `git diff HEAD~1 HEAD > …` (more or fewer than two words), `git
+  diff | cat > …`. The cause, read in `scripts/agent-git-guard.mjs`: redirections are dropped
+  only before the command's name (its line 350, the `REDIRECTION` pattern, a bare `>` taking
+  the next word); after git's words a bare `>` and its target stay two words, which
+  `implicitNoIndexReason` counts as `git diff <path> <path>`. It fails on the safe side: no
+  form measured lets through what it should refuse.
+- **B3 — GREEN for the graft, RED for an upgrade.** `git clone --branch v4.1.0 --depth 1` from
+  the remote: 912 KB, shallow, one tag, `HEAD` at `18c04a1`; `git tag -v v4.1.0` exit 0, gpg's
+  good signature. A second tag fetched the same way (`git fetch --depth 1 origin tag v4.0.0`):
+  `git diff --stat v4.0.0 v4.1.0` works, both signatures verify, but `git merge-base v4.0.0
+  v4.1.0` exits 1 — and `tools/upgrade-check.sh preflight`'s first check is `merge-base
+  --is-ancestor vX vY`, a FAIL there (read at its source, not run), and its list of the
+  releases between them (`tag --merged --no-merged`) has no history to read. A full bare clone:
+  2.5 MB, `git tag -v` exit 0. `SETUP.md` asks for no signature check anywhere (`git tag -v`
+  and `verify-tag` appear in neither step 1 nor the Precondition); the bare clone is an option
+  of the upgrade's Precondition only, step 1 saying "the framework's clone".
+- **B4 — the report's claim RED in part.** Two `claude -p` sessions in a new repository with
+  no `.claude/`, `--allowedTools Bash`, the workspace untrusted (Claude Code ignored the three
+  `allow` entries for it, its own message). Session 1 ran step 1's copy, then probes: `git
+  commit --allow-empty -n` was refused by the guard's PreToolUse hook ("BLOCKED in every
+  session") and no commit was made (`git log`); `rm -rf zz` was denied by the `deny` rule and
+  the directory stayed; `AGENT_GIT_BOUNDARY` read `1` — the settings file created mid-session
+  was loaded, permissions, hooks and `env`, as the documentation says. The session reported no
+  text of `.claude/rules/fw-core.md` in its context and no SessionStart banner — its own
+  report, which is what can be had (the rule has no `paths:`, so it loads at launch only, by
+  the memory documentation, "Rules without `paths` frontmatter are loaded at launch"). Session
+  2, started after the copy: the same refusals, the core in its context (it quoted its fourth
+  section's title), the banner received. A third session: the copy, then `claude -p --resume`
+  of that same session — the core in its context and the banner received, from
+  `SessionStart:resume`. Not measured: an interactive session, and `--continue` itself, which
+  resumes the latest session where `--resume` names one.
+- **B5 — RED.** v4.1.0's `SECURITY.md` with its three setup markers replaced by an answer: no
+  marker left, and eight lines still speak of the framework — the *Two levels* note (lines
+  3-6), "For this repo (the framework): use GitHub's private reporting" (10-12), "for the
+  framework: best effort" (19), "For the framework: only the latest tagged version receives
+  fixes" (23-24), and the title *Prevention already active in the framework* (26). A project
+  that fills the slots ships a policy that sends its reporters to the framework's channel.
+- **B6 — confirmed, with one correction.** `fw/new-component.md` is HYBRID at v4.1.0, not
+  METHOD: the class table (`tools/upgrade-check.sh`, `classes`) and `SETUP.md`'s *The mental
+  model* list it among the commands customised at setup, and `SETUP.md` step 2 asks the project
+  to fill it. Its conditional items fit any project — a migration "if the component persists
+  data", a health check "if it is a service", API docs "if it exposes an API", the startup
+  system "if applicable" —; four are unconditional and assume a running service:
+  per-environment configuration, a production artefact whose example is a container, structured
+  logging with a correlation id, and an integration smoke test that "starts the WHOLE component
+  wired to the real dependencies" (`docs/02`'s DoD point 3 asks it only "for a component with
+  real dependencies").
+- **B7 — evidence.** The npm registry, read on 2026-11-08: `@commitlint/cli` and
+  `@commitlint/config-conventional` latest 21.2.4, published 2026-10-18 — a day before v4.1.0's
+  tag —, 21.2.3 on 2026-09-19; 21.2.4's `engines` still `node >=22.12.0`; its release notes:
+  two fixes (config arrays replaced by seed arrays in `load`; `jsonc` to v3), one performance
+  change, docs and tests. v4.1.0 pins 21.2.3 in one place, `COMMITLINT=` in
+  `scripts/check-prerequisites.sh`.
+- **B8 — not findable where the brief looks; no false statement.** `docs/03` says nothing of a
+  forge's branch protection; `docs/04`'s trunk-based lines say nothing of it either. The one
+  line is `SETUP.md`'s *Hardening*: "On GitHub, rulesets are free on public repositories only;
+  GitLab and Bitbucket have protected branches" — true as far as it goes, silent on GitHub's
+  classic branch protection, and read by whoever reads *Hardening*, not by whoever chooses the
+  branching model. GitHub's pages, read through a fetch agent, settle no plan question: the
+  rulesets page names GitHub Team and Enterprise, the protected-branches page names plans only
+  for one feature. The 403 asking for Pro is the project's measurement, not repeated here.
+- **C's facts.** `.gitignore` line 28 is `.claude/settings.local.json`, at v4.1.0 and on
+  `main`; the file never tracked (`git ls-files`, `git log --all` on it: nothing); `gitleaks
+  detect --log-opts=--all` over this repository's history: "no leaks found". The CI
+  (`.github/workflows/test.yml`) installs gitleaks for the hooks' tests and runs no history
+  scan. gitleaks 8.30.1's default rules over a `settings.local.json`-shaped file holding one
+  random password in six command forms: one found (`generic-api-key`, the `PGPASSWORD=` line);
+  missed — `sshpass -p`, `mysql -p<password>`, a password in a URL's userinfo for `curl` and for
+  `git clone`, `export DB_PASSWORD=`. `tools/upgrade-check.sh` reads `settings.local.json` only
+  to class it LOCAL; nothing checks that `.gitignore` holds it. Claude Code's documentation,
+  read on 2026-11-08 (*settings*, *Keep personal settings out of a repository*): "When Claude
+  asks permission to run a Bash command and you choose "Yes, and don't ask again", Claude Code
+  saves that permission approval here as an `allow` rule"; "The first time Claude Code writes
+  the file in a git repository that doesn't already ignore it, it adds
+  `**/.claude/settings.local.json` to your global git excludes file". The *permissions* page
+  says "The permission dialog writes the space-separated form when you select "Yes, and don't
+  ask again" for a command prefix", and its example offers `npm test *`; no sentence says the
+  rule saved is ever the exact command. The article's claim — a password in an exact-command
+  rule, in plaintext — is not measured here: it needs the interactive prompt.
+
 [[LEARNINGS]] · [[2026-11-07-main-ci-and-imp-intake]]
