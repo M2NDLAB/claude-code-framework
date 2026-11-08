@@ -2,9 +2,9 @@
 date: 2026-11-07
 task: main's red CI diagnosed, and the IMP on the run no step reads; the course's method candidates and the first derived project's harvest recorded and deduplicated — nothing applied, no triage
 branch: chore/memory-main-ci-and-imp-intake
-status: in-progress
+status: completed
 model: 'claude-opus-5-5'
-turns: 2
+turns: 3
 tags: [session, imp, harvest, ci]
 ---
 # Session 2026-11-07 — Main's red CI, and the intake of new IMPs
@@ -16,8 +16,8 @@ tags: [session, imp, harvest, ci]
 
 ## The fields of this very note
 - `model: 'claude-opus-5-5'` — the main session.
-- `turns: 2` — the brief; the user's answers of 2026-11-08, with the section of the project's
-  report.
+- `turns: 3` — the brief; the user's answers of 2026-11-08, with the section of the project's
+  report; the harvest's block, with the user's notes for its deduplication.
 - Ultracode was on for the session, by the user's `/effort` at its start, whose output read
   "Set effort level to max (this session only) … · Ultracode on": the user's explicit
   decision, the case candidate (c) asks a note to record. The delegation kept the core's
@@ -116,7 +116,7 @@ message: *Problems*, below.
 - [x] 7. The first derived project's harvest and its lesson: the new entries, from the first free number, the user's two additions in theirs — U6's linter, the attribution with its settings keys verified — commit: dc7dac9
 - [x] 8. The harvest's entries that repeat or extend an existing one, as evidence on it — commit: 8384545
 - [ ] 9. The agnosticism of what the harvest brings, and the deduplication table for the project — commit: —
-- [ ] 10. The checkpoint: the IMPs' state, the gate's line, the follow-up, `status: completed` — commit: —
+- [x] 10. The checkpoint: the IMPs' state, the gate's line, the follow-up, `status: completed` — commit: the branch's tip, this note's last commit
 
 Task 6 was added on 2026-11-08, when the user's answers came before the harvest's block; tasks 1
 to 5 were committed as `[task N/9]`, the rest as `[task N/10]`.
@@ -283,14 +283,45 @@ harvest (the user's word).
     does — in the user's view, probably to be rejected at the triage.
   - IMP-152 (j) — the reviewers' model and effort at setup, deferred by the user's word; its
     trigger proposed here, none having been given.
+- The first derived project's harvest (*The first derived project's harvest — recording*,
+  above): IMP-153 to IMP-168, its entries 033 to 049 save 037; IMP-169, its lesson U2 (its
+  entry 050). Evidence added: IMP-139 (its entry 037), IMP-112, rejected (a recurrence, its
+  entry 046). Each new entry's status names the user's decision of 2026-10-19 — the next
+  corrective release holds this project's upgrade's IMPs — and leaves which of them to the
+  triage.
+
+## The IMPs' state after this session
+At 20a5287, [[2026-10-19-4.1.0-record]]'s count held with IMP-142 to IMP-152 still to come:
+140 entries. This session adds 28 — IMP-142 to IMP-169 —: 168 entries, counted by section on
+`LEARNINGS.md` after task 9:
+- applied 113, rejected 11 — unchanged;
+- deferred 12 — IMP-152 added;
+- open 32 — 5 approved and waiting (IMP-086 for its trigger; IMP-081, IMP-139, IMP-140 and
+  IMP-141 for the next corrective release), 27 only proposed (IMP-142 to IMP-151, IMP-153 to
+  IMP-169), none decided: the triage starts with the next harvest (the user's word).
+
+## Security gate
+- Not applicable: a memory-only change — this note and entries of `LEARNINGS.md` (`git diff
+  --no-renames --name-only origin/main...HEAD` lists only `.claude/memory/` paths; the
+  `LEARNINGS.md` diff touches no header, title or format comment save its `updated:` date) —;
+  no sensitive component, no security property asserted by the product. The self-test fix the
+  diagnosis calls for is under the gate, on its own branch (the user's decision).
 
 ## Follow-up
 - The re-run of 39250087583, launched by the user: its outcome, reported by the user, goes
   into the diagnosis — green on the same commit confirms the class; red again, on a newer
   image, reopens it.
-- The harvest's block: the user's, asked for on 2026-11-07, to be printed again by the
-  project; tasks 7 to 9 wait for it. The section of the project's report came on 2026-11-08
-  (its U2) and is recorded with task 8.
+- The re-run's outcome: the user's message of 2026-11-08 left its line as a placeholder ("write
+  here: passed / failed", translated from Italian) → ask the user at the next session's start;
+  the diagnosis's class stands until then.
+- The table for the project (*The first derived project's harvest — recording*): the user's,
+  to send back to it.
+- The project's second harvest, its entries 051 to 056, after its branch's merge: deduplicated
+  then against the whole backlog — IMP-169 holds its entry 050; its guard false positive on
+  `git diff > file` is, by the user's reading, probably IMP-140's (the guard parser's
+  backlog). Nothing of it recorded here (the user's word).
+- The triage of the 27 entries only proposed: when another project's harvest comes, at the end
+  of its C1 (the user's word).
 - The fix of the self-test: the first item of the next corrective release, on a `fix/` branch
   of its own after this one is integrated, under the gate with one reviewer (the user's
   decision, 2026-11-08).
