@@ -959,6 +959,39 @@ tags: [improvement]
 - Resumption trigger: the triage, at the next derived project's harvest (the user's word).
 - Status: proposed on 2026-11-08, not decided.
 
+### IMP-173 — The guard reads a redirection after git's words as two operands of `git diff`
+- Date: 2026-11-08 | Origin: a derived project — greenfield graft of v4.1.0 on a static site
+  with no services (its report's B2). Recorded in [[2026-11-08-second-harvests-intake]].
+- Observed problem: `scripts/agent-git-guard.mjs` refuses `git diff > "$SP/…"` in every
+  session, the main one included, as an implicit `--no-index` comparison. It drops
+  redirections only before the command's name (its line 350): after git's words, a bare `>`
+  and its target stay two words, which `implicitNoIndexReason` counts as `git diff <path>
+  <path>`. A false positive, failing on the safe side; it costs the method's own habit of
+  saving a diff into a scratch directory.
+- Measured (2026-11-08, v4.1.0's guard, the hook's input by hand — the note's *B2*): RED —
+  refused: `git diff > "$SP/x.diff"`, `git diff > /tmp/x.diff`, `git diff --stat >
+  "$SP/x.diff"`, for the main session and an agent alike; passed: `git diff >"$SP/x.diff"`,
+  `git diff > x.diff` (inside the work tree), `git diff HEAD > …`, `git diff HEAD~1 HEAD > …`,
+  `git diff | cat > …`. No measured form lets through what should be refused.
+- Proposal (the project's, its direction): the guard drops a redirection and its target
+  wherever they stand among the words, not only before the command's name, with cases both
+  ways in `scripts/test-agent-git-guard.sh` — the refused forms above passing, a real
+  two-path comparison still refused. Not fixed here (the user's word).
+- Expected benefit / risk: the diff saved to a scratch file works as written. Risk: a parser
+  change — the same care as IMP-140's, its cases both ways and Claude Code's own forms among
+  the allowed.
+- Kin: extends IMP-140 (the guard's parser backlog, approved for the next corrective release:
+  this is one more wording the parser misreads, of a different kind — a redirection, not a
+  substitution); IMP-156 (another false positive of the same implicit no-index refusal, a bare
+  clone); IMP-123 (*the restriction*, which added that refusal). The first derived project's
+  second harvest carries an entry on `git diff > file` too (section A, its block not received:
+  [[2026-11-08-second-harvests-intake]], *Problems*) — to be read against this entry once it
+  comes.
+- Preliminary verdict (a PROPOSAL, 2026-11-08): confirm — candidate for the corrective
+  release, joined to IMP-140 in one change of the guard with IMP-156.
+- Resumption trigger: the triage, at the next derived project's harvest (the user's word).
+- Status: proposed on 2026-11-08, not decided.
+
 
 <!-- Format of a proposal:
 ### IMP-001 — <short title>
