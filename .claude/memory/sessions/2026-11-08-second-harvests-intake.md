@@ -133,8 +133,8 @@ against Claude Code's own documentation instead (*C*, below).
 - [x] 6. The SETUP group: B3 and B4 — commit: 665d08b
 - [x] 7. The scaffolds group: B5 and B6 — commit: 5051946
 - [x] 8. The informational items: B7's evidence, B8's finding — commit: aaeda64
-- [ ] 9. The permission-settings group: C3, C4 and C5 — commit: —
-- [ ] 10. Section A: the first derived project's second harvest — what the brief itself holds recorded here, the block asked for (it was not in the message) — commit: —
+- [x] 9. The permission-settings group: C3, C4 and C5 — commit: 2e92c90
+- [x] 10. Section A: the first derived project's second harvest — what the brief itself holds recorded here, the block asked for (it was not in the message) — commit: 41399d9
 - [ ] 11. The deduplication tables, the preliminary verdicts and the agnosticism check, gitleaks on the diff — commit: —
 - [ ] 12. The checkpoint: the IMPs' state, the gate's line, the follow-up, `status: completed` — commit: the branch's tip
 
@@ -284,5 +284,61 @@ kept here, for the recording to come:
 - **Its entry on `git diff > file`**: by the user's reading kin of IMP-140; measured this
   session as the static-site project's B2, now IMP-173 — the harvest's entry likely a repeat of
   it, evidence there, once read.
+
+## Deduplication and preliminary verdicts
+Every item read against the whole backlog — the 168 entries at `main`'s `cca84f2`, IMP-001 to
+IMP-169 — and against this session's own. Each verdict is a PROPOSAL for the triage, which
+waits for the next derived project's harvest (the user's word); "candidate" means candidate
+for the next corrective release, whose list is the user's ([[2026-10-19-4.1.0-record]], *The
+next corrective release*).
+
+**Section A — the first derived project's second harvest** (the block not received):
+
+| Harvest (the project's entry) | Here | Kind | Preliminary verdict |
+| --- | --- | --- | --- |
+| 050 — sensitive components by code path | IMP-169 | duplicate: excluded by the user, its copy evidence there | — |
+| 051 to 056 | — | not read: the block was not in the message | — |
+| 055 — the user's added evidence (a reviewer's write outside the repository, at two consecutive gates) | kept in *Section A*, above | to be read with its entry | — |
+| the entry on `git diff > file` | likely IMP-173 | to be read with its entry | — |
+
+**Section B — the static-site project** (origin on every entry: "a derived project — greenfield
+graft of v4.1.0 on a static site with no services"):
+
+| Report item | Measured | Here | Kind | Preliminary verdict |
+| --- | --- | --- | --- | --- |
+| B1 — `gitleaks:allow` honoured | RED | IMP-170 | new; kin IMP-095, IMP-077, IMP-089 | confirm — candidate, with IMP-095's group (one change of the generated pre-commit) |
+| B2 — the guard on `git diff > file` | RED | IMP-173 | extends IMP-140; kin IMP-156 | confirm — candidate, with IMP-140 and IMP-156 (one change of the guard) |
+| B3 — the copy's source | GREEN for a graft, RED for an upgrade | IMP-174 | new, narrowed; kin IMP-107, IMP-050 (1-2), IMP-156, IMP-066 | confirm narrowed — candidate (`SETUP.md`); the signature check the triage's |
+| B4 — a session that creates `.claude/` | the report's claim RED for the guard; the core and the banner missing, GREEN | IMP-175 | new; kin IMP-104, IMP-124, IMP-149 | confirm — candidate (`SETUP.md`) |
+| B5 — the `SECURITY.md` scaffold | RED | IMP-176 | new; kin IMP-022, IMP-049, IMP-086 | confirm — candidate |
+| B6 — `/fw:new-component` | confirmed; HYBRID, not METHOD | IMP-177 | new — an agnosticism defect | confirm — not for the corrective release (a conflict in every customised copy, IMP-088) |
+| B7 — commitlint 21.2.4 | evidence | IMP-076 (applied) | evidence on it, no entry | — the pin a release's decision |
+| B8 — GitHub Free, a private repository | not findable where the model is chosen; nothing false | IMP-178 | extends IMP-086 | confirm — candidate (one doc line), or with IMP-086; Level 2, not Level 1 (*Problems*) |
+
+**Section C — the security items**:
+
+| Item | Here | Kind | Preliminary verdict |
+| --- | --- | --- | --- |
+| C1 — a history scan in the CI | IMP-171 | new; kin IMP-089, IMP-091, IMP-142 | confirm — this repository's CI, no tag, any deliverable |
+| C2 — a rule for credentials in a command | IMP-172 | new; kin IMP-170 (B1), IMP-095 (2) | confirm the need — not corrective: a MINOR, its false positives measured first |
+| C3 — no standing approval with a credential | IMP-179 | extends IMP-004 (applied); kin IMP-153, IMP-166 | confirm — candidate (one doc line), on the docs' wording |
+| C4 — the review reads local and user settings | IMP-166 | extends IMP-166 (a line added there) | with IMP-166 at the triage |
+| C5 — `.gitignore` keeps the local file out | IMP-180 | new; kin IMP-166, IMP-050 (3-4) | confirm — candidate, with the other `upgrade-check.sh` items |
+
+**Groups, by file or theme**, for the triage:
+- *gitleaks and the generated pre-commit*: IMP-170, IMP-095 (deferred, its trigger fired by
+  IMP-170), IMP-077 (deferred), IMP-172; IMP-171 (the CI) beside them.
+- *the guard*: IMP-173, IMP-140 (approved), IMP-156.
+- *`SETUP.md`*: IMP-174, IMP-175, IMP-178 (or `docs/04`); with IMP-154, IMP-158, IMP-163,
+  IMP-164, IMP-168 from the last harvest.
+- *the scaffolds*: IMP-176 (`SECURITY.md`), IMP-177 (`fw/new-component.md`).
+- *the permission settings*: IMP-179, IMP-166 (extended), IMP-180, IMP-153.
+- *`tools/upgrade-check.sh`*: IMP-180, IMP-139 (approved), IMP-158, IMP-160.
+
+**Agnosticism** (2026-11-08): the branch's diff and its commit messages searched for the
+projects' names, this machine's paths, the user's identity, the article's site, the fake
+secrets of the measurements and token prefixes — nothing; every "seco" match is "second".
+`gitleaks git --log-opts=origin/main..HEAD`: "no leaks found". `git diff --no-renames
+--name-only origin/main...HEAD`: `.claude/memory/LEARNINGS.md` and this note only.
 
 [[LEARNINGS]] · [[2026-11-07-main-ci-and-imp-intake]]
